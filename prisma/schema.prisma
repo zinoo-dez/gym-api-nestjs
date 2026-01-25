@@ -1,0 +1,233 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Enums
+enum Role {
+  ADMIN
+  TRAINER
+  MEMBER
+}
+
+enum MembershipType {
+  BASIC
+  PREMIUM
+  VIP
+}
+
+enum MembershipStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+}
+
+enum BookingStatus {
+  CONFIRMED
+  CANCELLED
+  ATTENDED
+}
+
+enum AttendanceType {
+  GYM_VISIT
+  CLASS_ATTENDANCE
+}
+
+enum WorkoutGoal {
+  WEIGHT_LOSS
+  MUSCLE_GAIN
+  ENDURANCE
+  FLEXIBILITY
+}
+
+// User model for authentication
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  role      Role     @default(MEMBER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  member  Member?
+  trainer Trainer?
+}
+
+// Member model
+model Member {
+  id          String    @id @default(uuid())
+  userId      String    @unique
+  user        User      @relation(fields: [userId], references: [id])
+  firstName   String
+  lastName    String
+  phone       String?
+  dateOfBirth DateTime?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  memberships   Membership[]
+  attendance    Attendance[]
+  workoutPlans  WorkoutPlan[]
+  classBookings ClassBooking[]
+
+  @@index([userId])
+  @@index([isActive])
+}
+
+// Trainer model
+model Trainer {
+  id              String   @id @default(uuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id])
+  firstName       String
+  lastName        String
+  specializations String[]
+  certifications  String[]
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  classes      Class[]
+  workoutPlans WorkoutPlan[]
+
+  @@index([userId])
+  @@index([isActive])
+}
+
+// Membership plan model
+model MembershipPlan {
+  id           String         @id @default(uuid())
+  name         String         @unique
+  description  String?
+  durationDays Int
+  price        Decimal        @db.Decimal(10, 2)
+  type         MembershipType
+  features     String[]
+  isActive     Boolean        @default(true)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  memberships Membership[]
+
+  @@index([type])
+  @@index([isActive])
+}
+
+// Member's membership subscription
+model Membership {
+  id        String           @id @default(uuid())
+  memberId  String
+  member    Member           @relation(fields: [memberId], references: [id])
+  planId    String
+  plan      MembershipPlan   @relation(fields: [planId], references: [id])
+  startDate DateTime
+  endDate   DateTime
+  status    MembershipStatus @default(ACTIVE)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  @@index([memberId, status])
+  @@index([status])
+  @@index([endDate])
+}
+
+// Class model
+model Class {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  trainerId   String
+  trainer     Trainer  @relation(fields: [trainerId], references: [id])
+  schedule    DateTime
+  duration    Int // in minutes
+  capacity    Int
+  classType   String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  bookings   ClassBooking[]
+  attendance Attendance[]
+
+  @@index([trainerId, schedule])
+  @@index([schedule])
+  @@index([isActive])
+}
+
+// Class booking
+model ClassBooking {
+  id        String        @id @default(uuid())
+  memberId  String
+  member    Member        @relation(fields: [memberId], references: [id])
+  classId   String
+  class     Class         @relation(fields: [classId], references: [id])
+  status    BookingStatus @default(CONFIRMED)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@unique([memberId, classId])
+  @@index([classId, status])
+  @@index([memberId])
+}
+
+// Attendance tracking
+model Attendance {
+  id           String         @id @default(uuid())
+  memberId     String
+  member       Member         @relation(fields: [memberId], references: [id])
+  classId      String?
+  class        Class?         @relation(fields: [classId], references: [id])
+  checkInTime  DateTime       @default(now())
+  checkOutTime DateTime?
+  type         AttendanceType
+  createdAt    DateTime       @default(now())
+
+  @@index([memberId, checkInTime])
+  @@index([classId])
+  @@index([type])
+}
+
+// Workout plan
+model WorkoutPlan {
+  id          String      @id @default(uuid())
+  name        String
+  description String?
+  memberId    String
+  member      Member      @relation(fields: [memberId], references: [id])
+  trainerId   String
+  trainer     Trainer     @relation(fields: [trainerId], references: [id])
+  goal        WorkoutGoal
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  exercises Exercise[]
+
+  @@index([memberId, isActive])
+  @@index([trainerId])
+}
+
+// Exercise in workout plan
+model Exercise {
+  id            String      @id @default(uuid())
+  workoutPlanId String
+  workoutPlan   WorkoutPlan @relation(fields: [workoutPlanId], references: [id], onDelete: Cascade)
+  name          String
+  description   String?
+  sets          Int
+  reps          Int
+  duration      Int? // in seconds
+  targetMuscles String[]
+  order         Int
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([workoutPlanId, order])
+}
