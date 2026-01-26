@@ -7,9 +7,16 @@ import {
   Param,
   Delete,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { MembersService } from './members.service';
-import { CreateMemberDto, UpdateMemberDto, MemberResponseDto } from './dto';
+import {
+  CreateMemberDto,
+  UpdateMemberDto,
+  MemberResponseDto,
+  MemberFiltersDto,
+  PaginatedResponseDto,
+} from './dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -30,8 +37,10 @@ export class MembersController {
 
   @Get()
   @Roles(Role.ADMIN, Role.TRAINER)
-  async findAll(): Promise<MemberResponseDto[]> {
-    return this.membersService.findAll();
+  async findAll(
+    @Query() filters: MemberFiltersDto,
+  ): Promise<PaginatedResponseDto<MemberResponseDto>> {
+    return this.membersService.findAll(filters);
   }
 
   @Get(':id')

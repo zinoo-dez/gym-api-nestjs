@@ -18,6 +18,7 @@ describe('MembersService', () => {
       findMany: jest.fn(),
       findUnique: jest.fn(),
       update: jest.fn(),
+      count: jest.fn(),
     },
     membership: {
       findFirst: jest.fn(),
@@ -152,6 +153,81 @@ describe('MembersService', () => {
 
       await expect(service.findOne('non-existent')).rejects.toThrow(
         NotFoundException,
+      );
+    });
+  });
+
+  describe('findAll', () => {
+    it('should return paginated members', async () => {
+      const mockMembers = [
+        {
+          id: 'member-1',
+          userId: 'user-1',
+          firstName: 'John',
+          lastName: 'Doe',
+          phone: null,
+          dateOfBirth: null,
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          user: {
+            id: 'user-1',
+            email: 'john@example.com',
+            role: Role.MEMBER,
+          },
+          memberships: [],
+        },
+      ];
+
+      mockPrismaService.member.count.mockResolvedValue(1);
+      mockPrismaService.member.findMany.mockResolvedValue(mockMembers);
+
+      const result = await service.findAll({ page: 1, limit: 10 });
+
+      expect(result.data).toHaveLength(1);
+      expect(result.page).toBe(1);
+      expect(result.limit).toBe(10);
+      expect(result.total).toBe(1);
+      expect(result.totalPages).toBe(1);
+    });
+
+    it('should filter members by name', async () => {
+      const mockMembers = [
+        {
+          id: 'member-1',
+          userId: 'user-1',
+          firstName: 'John',
+          lastName: 'Doe',
+          phone: null,
+          dateOfBirth: null,
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          user: {
+            id: 'user-1',
+            email: 'john@example.com',
+            role: Role.MEMBER,
+          },
+          memberships: [],
+        },
+      ];
+
+      mockPrismaService.member.count.mockResolvedValue(1);
+      mockPrismaService.member.findMany.mockResolvedValue(mockMembers);
+
+      const result = await service.findAll({
+        name: 'John',
+        page: 1,
+        limit: 10,
+      });
+
+      expect(result.data).toHaveLength(1);
+      expect(mockPrismaService.member.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            OR: expect.any(Array),
+          }),
+        }),
       );
     });
   });

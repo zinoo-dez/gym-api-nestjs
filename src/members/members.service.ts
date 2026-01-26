@@ -4,9 +4,15 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateMemberDto, UpdateMemberDto, MemberResponseDto } from './dto';
+import {
+  CreateMemberDto,
+  UpdateMemberDto,
+  MemberResponseDto,
+  MemberFiltersDto,
+  PaginatedResponseDto,
+} from './dto';
 import * as bcrypt from 'bcrypt';
-import { Role } from '@prisma/client';
+import { Role, Prisma } from '@prisma/client';
 
 @Injectable()
 export class MembersService {
@@ -56,17 +62,78 @@ export class MembersService {
     return this.toResponseDto(result);
   }
 
-  async findAll(): Promise<MemberResponseDto[]> {
+  async findAll(
+    filters?: MemberFiltersDto,
+  ): Promise<PaginatedResponseDto<MemberResponseDto>> {
+    const page = filters?.page || 1;
+    const limit = filters?.limit || 10;
+    const skip = (page - 1) * limit;
+
+    // Build where clause based on filters
+    const where: Prisma.MemberWhereInput = {};
+
+    // Filter by name (search in firstName or lastName)
+    if (filters?.name) {
+      where.OR = [
+        { firstName: { contains: filters.name, mode: 'insensitive' } },
+        { lastName: { contains: filters.name, mode: 'insensitive' } },
+      ];
+    }
+
+    // Filter by email
+    if (filters?.email) {
+      where.user = {
+        email: { contains: filters.email, mode: 'insensitive' },
+      };
+    }
+
+    // Filter by membership status or type
+    if (filters?.status || filters?.membershipType) {
+      const membershipWhere: Prisma.MembershipWhereInput = {};
+
+      if (filters.status) {
+        membershipWhere.status = filters.status;
+      }
+
+      if (filters.membershipType) {
+        membershipWhere.plan = {
+          type: filters.membershipType,
+        };
+      }
+
+      where.memberships = {
+        some: membershipWhere,
+      };
+    }
+
+    // Get total count
+    const total = await this.prisma.member.count({ where });
+
+    // Get paginated members
     const members = await this.prisma.member.findMany({
+      where,
       include: {
         user: true,
+        memberships: {
+          include: {
+            plan: true,
+          },
+          orderBy: {
+            createdAt: 'desc',
+          },
+          take: 1,
+        },
       },
       orderBy: {
         createdAt: 'desc',
       },
+      skip,
+      take: limit,
     });
 
-    return members.map((member) => this.toResponseDto(member));
+    const memberDtos = members.map((member) => this.toResponseDto(member));
+
+    return new PaginatedResponseDto(memberDtos, page, limit, total);
   }
 
   async findOne(id: string): Promise<MemberResponseDto> {
