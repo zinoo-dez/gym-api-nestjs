@@ -3,7 +3,9 @@ import {
   NotFoundException,
   ConflictException,
   BadRequestException,
+  Logger,
 } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   CreateMembershipPlanDto,
@@ -17,6 +19,8 @@ import { MembershipStatus } from '@prisma/client';
 
 @Injectable()
 export class MembershipsService {
+  private readonly logger = new Logger(MembershipsService.name);
+
   constructor(private readonly prisma: PrismaService) {}
 
   // Membership Plan CRUD operations
@@ -300,6 +304,27 @@ export class MembershipsService {
     });
 
     return result.count;
+  }
+
+  /**
+   * Scheduled job that runs daily at midnight to expire memberships
+   * Cron expression: '0 0 * * *' means run at 00:00 (midnight) every day
+   */
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  async handleMembershipExpiration() {
+    this.logger.log('Running scheduled membership expiration check...');
+
+    try {
+      const expiredCount = await this.expireMemberships();
+      this.logger.log(
+        `Membership expiration check completed. Expired ${expiredCount} membership(s).`,
+      );
+    } catch (error) {
+      this.logger.error(
+        'Error during membership expiration check',
+        error instanceof Error ? error.stack : String(error),
+      );
+    }
   }
 
   // Helper methods to convert to DTOs
