@@ -230,6 +230,108 @@ describe('MembersService', () => {
         }),
       );
     });
+
+    it('should filter members by email', async () => {
+      const mockMembers = [
+        {
+          id: 'member-1',
+          userId: 'user-1',
+          firstName: 'John',
+          lastName: 'Doe',
+          phone: null,
+          dateOfBirth: null,
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          user: {
+            id: 'user-1',
+            email: 'john@example.com',
+            role: Role.MEMBER,
+          },
+          memberships: [],
+        },
+      ];
+
+      mockPrismaService.member.count.mockResolvedValue(1);
+      mockPrismaService.member.findMany.mockResolvedValue(mockMembers);
+
+      const result = await service.findAll({
+        email: 'john',
+        page: 1,
+        limit: 10,
+      });
+
+      expect(result.data).toHaveLength(1);
+      expect(mockPrismaService.member.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            user: expect.any(Object),
+          }),
+        }),
+      );
+    });
+
+    it('should filter members by membership status', async () => {
+      const mockMembers = [
+        {
+          id: 'member-1',
+          userId: 'user-1',
+          firstName: 'John',
+          lastName: 'Doe',
+          phone: null,
+          dateOfBirth: null,
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          user: {
+            id: 'user-1',
+            email: 'john@example.com',
+            role: Role.MEMBER,
+          },
+          memberships: [],
+        },
+      ];
+
+      mockPrismaService.member.count.mockResolvedValue(1);
+      mockPrismaService.member.findMany.mockResolvedValue(mockMembers);
+
+      const result = await service.findAll({
+        status: 'ACTIVE' as any,
+        page: 1,
+        limit: 10,
+      });
+
+      expect(result.data).toHaveLength(1);
+      expect(mockPrismaService.member.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            memberships: expect.any(Object),
+          }),
+        }),
+      );
+    });
+
+    it('should support partial name matching (case-insensitive)', async () => {
+      mockPrismaService.member.count.mockResolvedValue(0);
+      mockPrismaService.member.findMany.mockResolvedValue([]);
+
+      await service.findAll({
+        name: 'joh',
+        page: 1,
+        limit: 10,
+      });
+
+      expect(mockPrismaService.member.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            OR: [
+              { firstName: { contains: 'joh', mode: 'insensitive' } },
+              { lastName: { contains: 'joh', mode: 'insensitive' } },
+            ],
+          }),
+        }),
+      );
+    });
   });
 
   describe('update', () => {
