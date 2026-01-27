@@ -317,6 +317,29 @@ describe('ClassesService', () => {
       const result = await service.hasCapacity('class-1');
       expect(result).toBe(false);
     });
+
+    it('should not count cancelled bookings toward capacity', async () => {
+      mockPrismaService.class.findUnique.mockResolvedValue({
+        id: 'class-1',
+        capacity: 2,
+        bookings: [{ id: 'booking-1', status: BookingStatus.CONFIRMED }],
+      });
+
+      const result = await service.hasCapacity('class-1');
+      expect(result).toBe(true);
+    });
+
+    it('should allow booking after cancellation frees capacity', async () => {
+      // Simulate a class at capacity with one cancelled booking
+      mockPrismaService.class.findUnique.mockResolvedValue({
+        id: 'class-1',
+        capacity: 2,
+        bookings: [{ id: 'booking-1', status: BookingStatus.CONFIRMED }],
+      });
+
+      const result = await service.hasCapacity('class-1');
+      expect(result).toBe(true);
+    });
   });
 
   describe('hasScheduleConflict', () => {
