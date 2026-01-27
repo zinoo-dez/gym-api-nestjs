@@ -4,7 +4,12 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateTrainerDto, UpdateTrainerDto, TrainerResponseDto } from './dto';
+import {
+  CreateTrainerDto,
+  UpdateTrainerDto,
+  TrainerResponseDto,
+  TrainerFiltersDto,
+} from './dto';
 import * as bcrypt from 'bcrypt';
 import { Role } from '@prisma/client';
 
@@ -56,8 +61,23 @@ export class TrainersService {
     return this.toResponseDto(result);
   }
 
-  async findAll(): Promise<TrainerResponseDto[]> {
+  async findAll(filters?: TrainerFiltersDto): Promise<TrainerResponseDto[]> {
+    const where: any = {};
+
+    // Apply specialization filter
+    if (filters?.specialization) {
+      where.specializations = {
+        has: filters.specialization,
+      };
+    }
+
+    // Apply availability filter (active trainers)
+    if (filters?.availability !== undefined) {
+      where.isActive = filters.availability;
+    }
+
     const trainers = await this.prisma.trainer.findMany({
+      where,
       include: {
         user: true,
       },
@@ -74,6 +94,14 @@ export class TrainersService {
       where: { id },
       include: {
         user: true,
+        classes: {
+          where: {
+            isActive: true,
+          },
+          orderBy: {
+            schedule: 'asc',
+          },
+        },
       },
     });
 
@@ -134,7 +162,7 @@ export class TrainersService {
   }
 
   private toResponseDto(trainer: any): TrainerResponseDto {
-    return {
+    const response: TrainerResponseDto = {
       id: trainer.id,
       email: trainer.user.email,
       firstName: trainer.firstName,
@@ -145,5 +173,19 @@ export class TrainersService {
       createdAt: trainer.createdAt,
       updatedAt: trainer.updatedAt,
     };
+
+    // Include classes if they were loaded
+    if (trainer.classes) {
+      response.classes = trainer.classes.map((cls: any) => ({
+        id: cls.id,
+        name: cls.name,
+        schedule: cls.schedule,
+        duration: cls.duration,
+        capacity: cls.capacity,
+        classType: cls.classType,
+      }));
+    }
+
+    return response;
   }
 }

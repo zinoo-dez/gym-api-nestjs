@@ -3,11 +3,9 @@ import { TrainersService } from './trainers.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Role } from '@prisma/client';
-import * as bcrypt from 'bcrypt';
 
 describe('TrainersService', () => {
   let service: TrainersService;
-  let prisma: PrismaService;
 
   const mockPrismaService = {
     user: {
@@ -35,7 +33,6 @@ describe('TrainersService', () => {
     }).compile();
 
     service = module.get<TrainersService>(TrainersService);
-    prisma = module.get<PrismaService>(PrismaService);
 
     jest.clearAllMocks();
   });
@@ -146,10 +143,94 @@ describe('TrainersService', () => {
       expect(result[0].email).toBe('john@example.com');
       expect(mockPrismaService.trainer.findMany).toHaveBeenCalled();
     });
+
+    it('should filter trainers by specialization', async () => {
+      const mockTrainers = [
+        {
+          id: 'trainer-1',
+          userId: 'user-1',
+          firstName: 'John',
+          lastName: 'Doe',
+          specializations: ['Yoga'],
+          certifications: ['Cert1'],
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          user: {
+            id: 'user-1',
+            email: 'john@example.com',
+            password: 'hashed',
+            role: Role.TRAINER,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        },
+      ];
+
+      mockPrismaService.trainer.findMany.mockResolvedValue(mockTrainers);
+
+      const result = await service.findAll({ specialization: 'Yoga' });
+
+      expect(result).toHaveLength(1);
+      expect(mockPrismaService.trainer.findMany).toHaveBeenCalledWith({
+        where: {
+          specializations: {
+            has: 'Yoga',
+          },
+        },
+        include: {
+          user: true,
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
+    });
+
+    it('should filter trainers by availability', async () => {
+      const mockTrainers = [
+        {
+          id: 'trainer-1',
+          userId: 'user-1',
+          firstName: 'John',
+          lastName: 'Doe',
+          specializations: ['Yoga'],
+          certifications: ['Cert1'],
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          user: {
+            id: 'user-1',
+            email: 'john@example.com',
+            password: 'hashed',
+            role: Role.TRAINER,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        },
+      ];
+
+      mockPrismaService.trainer.findMany.mockResolvedValue(mockTrainers);
+
+      const result = await service.findAll({ availability: true });
+
+      expect(result).toHaveLength(1);
+      expect(mockPrismaService.trainer.findMany).toHaveBeenCalledWith({
+        where: {
+          isActive: true,
+        },
+        include: {
+          user: true,
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
+    });
   });
 
   describe('findOne', () => {
-    it('should return a trainer by id', async () => {
+    it('should return a trainer by id with classes', async () => {
       const mockTrainer = {
         id: 'trainer-1',
         userId: 'user-1',
@@ -168,6 +249,16 @@ describe('TrainersService', () => {
           createdAt: new Date(),
           updatedAt: new Date(),
         },
+        classes: [
+          {
+            id: 'class-1',
+            name: 'Morning Yoga',
+            schedule: new Date(),
+            duration: 60,
+            capacity: 20,
+            classType: 'Yoga',
+          },
+        ],
       };
 
       mockPrismaService.trainer.findUnique.mockResolvedValue(mockTrainer);
@@ -176,6 +267,23 @@ describe('TrainersService', () => {
 
       expect(result.id).toBe('trainer-1');
       expect(result.email).toBe('john@example.com');
+      expect(result.classes).toBeDefined();
+      expect(result.classes).toHaveLength(1);
+      expect(result.classes![0].name).toBe('Morning Yoga');
+      expect(mockPrismaService.trainer.findUnique).toHaveBeenCalledWith({
+        where: { id: 'trainer-1' },
+        include: {
+          user: true,
+          classes: {
+            where: {
+              isActive: true,
+            },
+            orderBy: {
+              schedule: 'asc',
+            },
+          },
+        },
+      });
     });
 
     it('should throw NotFoundException if trainer not found', async () => {
