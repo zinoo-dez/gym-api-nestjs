@@ -216,6 +216,55 @@ export class MembersService {
     return !!activeMembership;
   }
 
+  async getBookings(memberId: string): Promise<any[]> {
+    // Check if member exists
+    const member = await this.prisma.member.findUnique({
+      where: { id: memberId },
+    });
+
+    if (!member) {
+      throw new NotFoundException(`Member with ID ${memberId} not found`);
+    }
+
+    // Get all bookings for the member
+    const bookings = await this.prisma.classBooking.findMany({
+      where: {
+        memberId,
+      },
+      include: {
+        class: {
+          include: {
+            trainer: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    return bookings.map((booking) => ({
+      id: booking.id,
+      status: booking.status,
+      createdAt: booking.createdAt,
+      updatedAt: booking.updatedAt,
+      class: {
+        id: booking.class.id,
+        name: booking.class.name,
+        description: booking.class.description,
+        schedule: booking.class.schedule,
+        duration: booking.class.duration,
+        capacity: booking.class.capacity,
+        classType: booking.class.classType,
+        trainer: {
+          id: booking.class.trainer.id,
+          firstName: booking.class.trainer.firstName,
+          lastName: booking.class.trainer.lastName,
+        },
+      },
+    }));
+  }
+
   private toResponseDto(member: any): MemberResponseDto {
     return {
       id: member.id,

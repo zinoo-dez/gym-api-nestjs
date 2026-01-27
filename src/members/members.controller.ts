@@ -64,4 +64,10 @@ export class MembersController {
     await this.membersService.deactivate(id);
     return { message: 'Member deactivated successfully' };
   }
+
+  @Get(':id/bookings')
+  @Roles(Role.ADMIN, Role.TRAINER, Role.MEMBER)
+  async getBookings(@Param('id') id: string): Promise<any[]> {
+    return this.membersService.getBookings(id);
+  }
 }

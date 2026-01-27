@@ -23,6 +23,9 @@ describe('MembersService', () => {
     membership: {
       findFirst: jest.fn(),
     },
+    classBooking: {
+      findMany: jest.fn(),
+    },
     $transaction: jest.fn(),
   };
 
@@ -426,6 +429,79 @@ describe('MembersService', () => {
       const result = await service.hasActiveMembership('member-1');
 
       expect(result).toBe(false);
+    });
+  });
+
+  describe('getBookings', () => {
+    it('should return all bookings for a member', async () => {
+      const mockMember = {
+        id: 'member-1',
+        userId: 'user-1',
+        firstName: 'John',
+        lastName: 'Doe',
+        isActive: true,
+      };
+
+      const mockBookings = [
+        {
+          id: 'booking-1',
+          memberId: 'member-1',
+          classId: 'class-1',
+          status: 'CONFIRMED',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          class: {
+            id: 'class-1',
+            name: 'Yoga Class',
+            description: 'Morning yoga',
+            schedule: new Date(),
+            duration: 60,
+            capacity: 20,
+            classType: 'yoga',
+            trainer: {
+              id: 'trainer-1',
+              firstName: 'Jane',
+              lastName: 'Smith',
+            },
+          },
+        },
+      ];
+
+      mockPrismaService.member.findUnique.mockResolvedValue(mockMember);
+      mockPrismaService.classBooking.findMany.mockResolvedValue(mockBookings);
+
+      const result = await service.getBookings('member-1');
+
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('booking-1');
+      expect(result[0].status).toBe('CONFIRMED');
+      expect(result[0].class.name).toBe('Yoga Class');
+      expect(result[0].class.trainer.firstName).toBe('Jane');
+    });
+
+    it('should throw NotFoundException if member not found', async () => {
+      mockPrismaService.member.findUnique.mockResolvedValue(null);
+
+      await expect(service.getBookings('non-existent')).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('should return empty array if member has no bookings', async () => {
+      const mockMember = {
+        id: 'member-1',
+        userId: 'user-1',
+        firstName: 'John',
+        lastName: 'Doe',
+        isActive: true,
+      };
+
+      mockPrismaService.member.findUnique.mockResolvedValue(mockMember);
+      mockPrismaService.classBooking.findMany.mockResolvedValue([]);
+
+      const result = await service.getBookings('member-1');
+
+      expect(result).toHaveLength(0);
     });
   });
 });
