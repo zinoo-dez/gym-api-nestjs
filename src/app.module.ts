@@ -6,6 +6,7 @@ import { AuthModule } from './auth/auth.module';
 import { MembersModule } from './members/members.module';
 import { MembershipsModule } from './memberships/memberships.module';
 import { TrainersModule } from './trainers/trainers.module';
+import { ClassesModule } from './classes/classes.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { TrainersModule } from './trainers/trainers.module';
     MembersModule,
     MembershipsModule,
     TrainersModule,
+    ClassesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
