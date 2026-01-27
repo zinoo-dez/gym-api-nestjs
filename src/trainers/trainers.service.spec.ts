@@ -18,6 +18,9 @@ describe('TrainersService', () => {
       findUnique: jest.fn(),
       update: jest.fn(),
     },
+    class: {
+      findMany: jest.fn(),
+    },
     $transaction: jest.fn(),
   };
 
@@ -379,6 +382,250 @@ describe('TrainersService', () => {
       await expect(service.deactivate('non-existent-id')).rejects.toThrow(
         NotFoundException,
       );
+    });
+  });
+
+  describe('hasScheduleConflict', () => {
+    const trainerId = 'trainer-1';
+
+    it('should return false when no classes exist for the trainer', async () => {
+      mockPrismaService.class.findMany.mockResolvedValue([]);
+
+      const schedule = new Date('2024-01-15T10:00:00Z');
+      const duration = 60;
+
+      const result = await service.hasScheduleConflict(
+        trainerId,
+        schedule,
+        duration,
+      );
+
+      expect(result).toBe(false);
+      expect(mockPrismaService.class.findMany).toHaveBeenCalled();
+    });
+
+    it('should return false when classes do not overlap', async () => {
+      const existingClasses = [
+        {
+          id: 'class-1',
+          schedule: new Date('2024-01-15T08:00:00Z'), // 8:00 AM - 9:00 AM
+          duration: 60,
+        },
+        {
+          id: 'class-2',
+          schedule: new Date('2024-01-15T12:00:00Z'), // 12:00 PM - 1:00 PM
+          duration: 60,
+        },
+      ];
+
+      mockPrismaService.class.findMany.mockResolvedValue(existingClasses);
+
+      const schedule = new Date('2024-01-15T10:00:00Z'); // 10:00 AM - 11:00 AM
+      const duration = 60;
+
+      const result = await service.hasScheduleConflict(
+        trainerId,
+        schedule,
+        duration,
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it('should return true when classes overlap - new class starts during existing class', async () => {
+      const existingClasses = [
+        {
+          id: 'class-1',
+          schedule: new Date('2024-01-15T10:00:00Z'), // 10:00 AM - 11:00 AM
+          duration: 60,
+        },
+      ];
+
+      mockPrismaService.class.findMany.mockResolvedValue(existingClasses);
+
+      const schedule = new Date('2024-01-15T10:30:00Z'); // 10:30 AM - 11:30 AM
+      const duration = 60;
+
+      const result = await service.hasScheduleConflict(
+        trainerId,
+        schedule,
+        duration,
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it('should return true when classes overlap - new class ends during existing class', async () => {
+      const existingClasses = [
+        {
+          id: 'class-1',
+          schedule: new Date('2024-01-15T10:00:00Z'), // 10:00 AM - 11:00 AM
+          duration: 60,
+        },
+      ];
+
+      mockPrismaService.class.findMany.mockResolvedValue(existingClasses);
+
+      const schedule = new Date('2024-01-15T09:30:00Z'); // 9:30 AM - 10:30 AM
+      const duration = 60;
+
+      const result = await service.hasScheduleConflict(
+        trainerId,
+        schedule,
+        duration,
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it('should return true when new class completely contains existing class', async () => {
+      const existingClasses = [
+        {
+          id: 'class-1',
+          schedule: new Date('2024-01-15T10:30:00Z'), // 10:30 AM - 11:00 AM
+          duration: 30,
+        },
+      ];
+
+      mockPrismaService.class.findMany.mockResolvedValue(existingClasses);
+
+      const schedule = new Date('2024-01-15T10:00:00Z'); // 10:00 AM - 12:00 PM
+      const duration = 120;
+
+      const result = await service.hasScheduleConflict(
+        trainerId,
+        schedule,
+        duration,
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it('should return true when existing class completely contains new class', async () => {
+      const existingClasses = [
+        {
+          id: 'class-1',
+          schedule: new Date('2024-01-15T10:00:00Z'), // 10:00 AM - 12:00 PM
+          duration: 120,
+        },
+      ];
+
+      mockPrismaService.class.findMany.mockResolvedValue(existingClasses);
+
+      const schedule = new Date('2024-01-15T10:30:00Z'); // 10:30 AM - 11:00 AM
+      const duration = 30;
+
+      const result = await service.hasScheduleConflict(
+        trainerId,
+        schedule,
+        duration,
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it('should return true when classes have exact same time', async () => {
+      const existingClasses = [
+        {
+          id: 'class-1',
+          schedule: new Date('2024-01-15T10:00:00Z'), // 10:00 AM - 11:00 AM
+          duration: 60,
+        },
+      ];
+
+      mockPrismaService.class.findMany.mockResolvedValue(existingClasses);
+
+      const schedule = new Date('2024-01-15T10:00:00Z'); // 10:00 AM - 11:00 AM
+      const duration = 60;
+
+      const result = await service.hasScheduleConflict(
+        trainerId,
+        schedule,
+        duration,
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it('should return false when classes are back-to-back (no overlap)', async () => {
+      const existingClasses = [
+        {
+          id: 'class-1',
+          schedule: new Date('2024-01-15T10:00:00Z'), // 10:00 AM - 11:00 AM
+          duration: 60,
+        },
+      ];
+
+      mockPrismaService.class.findMany.mockResolvedValue(existingClasses);
+
+      const schedule = new Date('2024-01-15T11:00:00Z'); // 11:00 AM - 12:00 PM
+      const duration = 60;
+
+      const result = await service.hasScheduleConflict(
+        trainerId,
+        schedule,
+        duration,
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it('should exclude a specific class when excludeClassId is provided', async () => {
+      const existingClasses = [
+        {
+          id: 'class-2',
+          schedule: new Date('2024-01-15T12:00:00Z'), // 12:00 PM - 1:00 PM
+          duration: 60,
+        },
+      ];
+
+      mockPrismaService.class.findMany.mockResolvedValue(existingClasses);
+
+      const schedule = new Date('2024-01-15T10:00:00Z'); // 10:00 AM - 11:00 AM
+      const duration = 60;
+
+      const result = await service.hasScheduleConflict(
+        trainerId,
+        schedule,
+        duration,
+        'class-1', // Exclude class-1 from conflict check
+      );
+
+      expect(result).toBe(false);
+      expect(mockPrismaService.class.findMany).toHaveBeenCalledWith({
+        where: expect.objectContaining({
+          trainerId,
+          isActive: true,
+          id: {
+            not: 'class-1',
+          },
+        }),
+        select: {
+          id: true,
+          schedule: true,
+          duration: true,
+        },
+      });
+    });
+
+    it('should only check active classes', async () => {
+      mockPrismaService.class.findMany.mockResolvedValue([]);
+
+      const schedule = new Date('2024-01-15T10:00:00Z');
+      const duration = 60;
+
+      await service.hasScheduleConflict(trainerId, schedule, duration);
+
+      expect(mockPrismaService.class.findMany).toHaveBeenCalledWith({
+        where: expect.objectContaining({
+          isActive: true,
+        }),
+        select: {
+          id: true,
+          schedule: true,
+          duration: true,
+        },
+      });
     });
   });
 });

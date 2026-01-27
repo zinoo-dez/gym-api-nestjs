@@ -161,6 +161,70 @@ export class TrainersService {
     });
   }
 
+  /**
+   * Check if a trainer has a schedule conflict with an existing class
+   * @param trainerId - The trainer's ID
+   * @param schedule - The proposed class start time
+   * @param duration - The proposed class duration in minutes
+   * @param excludeClassId - Optional class ID to exclude from conflict check (for updates)
+   * @returns true if there is a conflict, false otherwise
+   */
+  async hasScheduleConflict(
+    trainerId: string,
+    schedule: Date,
+    duration: number,
+    excludeClassId?: string,
+  ): Promise<boolean> {
+    // Calculate the end time of the proposed class
+    const proposedEndTime = new Date(schedule.getTime() + duration * 60000);
+
+    // Build the where clause
+    const where: any = {
+      trainerId,
+      isActive: true,
+      schedule: {
+        lt: proposedEndTime, // Class starts before proposed class ends
+      },
+    };
+
+    // Exclude a specific class if provided (for update operations)
+    if (excludeClassId) {
+      where.id = {
+        not: excludeClassId,
+      };
+    }
+
+    // Find all active classes for this trainer that might overlap
+    const existingClasses = await this.prisma.class.findMany({
+      where,
+      select: {
+        id: true,
+        schedule: true,
+        duration: true,
+      },
+    });
+
+    // Check each existing class for overlap
+    for (const existingClass of existingClasses) {
+      const existingEndTime = new Date(
+        existingClass.schedule.getTime() + existingClass.duration * 60000,
+      );
+
+      // Check if the time ranges overlap
+      // Two time ranges overlap if:
+      // - Proposed class starts before existing class ends AND
+      // - Existing class starts before proposed class ends
+      if (
+        schedule < existingEndTime &&
+        existingClass.schedule < proposedEndTime
+      ) {
+        return true; // Conflict found
+      }
+    }
+
+    return false; // No conflict
+  }
+
   private toResponseDto(trainer: any): TrainerResponseDto {
     const response: TrainerResponseDto = {
       id: trainer.id,
