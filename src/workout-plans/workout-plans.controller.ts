@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   Request,
+  Query,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -22,7 +23,9 @@ import {
   UpdateWorkoutPlanDto,
   WorkoutPlanResponseDto,
   WorkoutPlanVersionResponseDto,
+  WorkoutPlanFiltersDto,
 } from './dto';
+import { PaginatedResponseDto } from '../common/dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -68,20 +71,21 @@ export class WorkoutPlansController {
   @ApiOperation({
     summary: 'Get all workout plans',
     description:
-      'Retrieve a list of all workout plans. Requires ADMIN or TRAINER role.',
+      'Retrieve a paginated list of all workout plans with optional filters. Requires ADMIN or TRAINER role.',
   })
   @ApiResponse({
     status: 200,
     description: 'List of workout plans retrieved successfully',
-    type: [WorkoutPlanResponseDto],
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({
     status: 403,
     description: 'Forbidden - Admin or Trainer role required',
   })
-  async findAll(): Promise<WorkoutPlanResponseDto[]> {
-    return this.workoutPlansService.findAll();
+  async findAll(
+    @Query() filters: WorkoutPlanFiltersDto,
+  ): Promise<PaginatedResponseDto<WorkoutPlanResponseDto>> {
+    return this.workoutPlansService.findAll(filters);
   }
 
   @Get('member/:memberId')

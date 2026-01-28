@@ -10,6 +10,7 @@ import {
   TrainerResponseDto,
   TrainerFiltersDto,
 } from './dto';
+import { PaginatedResponseDto } from '../common/dto';
 import * as bcrypt from 'bcrypt';
 import { Role } from '@prisma/client';
 
@@ -61,7 +62,13 @@ export class TrainersService {
     return this.toResponseDto(result);
   }
 
-  async findAll(filters?: TrainerFiltersDto): Promise<TrainerResponseDto[]> {
+  async findAll(
+    filters?: TrainerFiltersDto,
+  ): Promise<PaginatedResponseDto<TrainerResponseDto>> {
+    const page = filters?.page || 1;
+    const limit = filters?.limit || 10;
+    const skip = filters?.skip || 0;
+
     const where: any = {};
 
     // Apply specialization filter
@@ -76,6 +83,10 @@ export class TrainersService {
       where.isActive = filters.availability;
     }
 
+    // Get total count
+    const total = await this.prisma.trainer.count({ where });
+
+    // Get paginated trainers
     const trainers = await this.prisma.trainer.findMany({
       where,
       include: {
@@ -84,9 +95,13 @@ export class TrainersService {
       orderBy: {
         createdAt: 'desc',
       },
+      skip,
+      take: limit,
     });
 
-    return trainers.map((trainer) => this.toResponseDto(trainer));
+    const trainerDtos = trainers.map((trainer) => this.toResponseDto(trainer));
+
+    return new PaginatedResponseDto(trainerDtos, page, limit, total);
   }
 
   async findOne(id: string): Promise<TrainerResponseDto> {

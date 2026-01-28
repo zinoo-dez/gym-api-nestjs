@@ -12,7 +12,7 @@ import {
   AttendanceFiltersDto,
 } from './dto';
 import { AttendanceType, Prisma } from '@prisma/client';
-import { PaginatedResponseDto } from '../members/dto';
+import { PaginatedResponseDto } from '../common/dto';
 
 @Injectable()
 export class AttendanceService {
@@ -137,7 +137,7 @@ export class AttendanceService {
   ): Promise<PaginatedResponseDto<AttendanceResponseDto>> {
     const page = filters?.page || 1;
     const limit = filters?.limit || 10;
-    const skip = (page - 1) * limit;
+    const skip = filters?.skip || 0;
 
     // Build where clause
     const where: Prisma.AttendanceWhereInput = {};

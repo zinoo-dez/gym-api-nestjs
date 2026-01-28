@@ -14,8 +14,10 @@ import {
   MembershipPlanResponseDto,
   MembershipResponseDto,
   UpgradeMembershipDto,
+  MembershipPlanFiltersDto,
 } from './dto';
-import { MembershipStatus } from '@prisma/client';
+import { PaginatedResponseDto } from '../common/dto';
+import { MembershipStatus, Prisma } from '@prisma/client';
 
 @Injectable()
 export class MembershipsService {
@@ -53,13 +55,41 @@ export class MembershipsService {
     return this.toPlanResponseDto(plan);
   }
 
-  async findAllPlans(): Promise<MembershipPlanResponseDto[]> {
+  async findAllPlans(
+    filters?: MembershipPlanFiltersDto,
+  ): Promise<PaginatedResponseDto<MembershipPlanResponseDto>> {
+    const page = filters?.page || 1;
+    const limit = filters?.limit || 10;
+    const skip = filters?.skip || 0;
+
+    // Build where clause based on filters
+    const where: Prisma.MembershipPlanWhereInput = {};
+
+    if (filters?.type) {
+      where.type = filters.type;
+    }
+
+    if (filters?.isActive !== undefined) {
+      where.isActive = filters.isActive;
+    } else {
+      // Default to active plans only if not specified
+      where.isActive = true;
+    }
+
+    // Get total count
+    const total = await this.prisma.membershipPlan.count({ where });
+
+    // Get paginated plans
     const plans = await this.prisma.membershipPlan.findMany({
-      where: { isActive: true },
+      where,
       orderBy: { createdAt: 'desc' },
+      skip,
+      take: limit,
     });
 
-    return plans.map((plan) => this.toPlanResponseDto(plan));
+    const planDtos = plans.map((plan) => this.toPlanResponseDto(plan));
+
+    return new PaginatedResponseDto(planDtos, page, limit, total);
   }
 
   async findPlanById(id: string): Promise<MembershipPlanResponseDto> {

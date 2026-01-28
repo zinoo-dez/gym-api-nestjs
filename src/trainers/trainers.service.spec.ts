@@ -17,6 +17,7 @@ describe('TrainersService', () => {
       findMany: jest.fn(),
       findUnique: jest.fn(),
       update: jest.fn(),
+      count: jest.fn(),
     },
     class: {
       findMany: jest.fn(),
@@ -138,12 +139,18 @@ describe('TrainersService', () => {
         },
       ];
 
+      mockPrismaService.trainer.count.mockResolvedValue(1);
       mockPrismaService.trainer.findMany.mockResolvedValue(mockTrainers);
 
       const result = await service.findAll();
 
-      expect(result).toHaveLength(1);
-      expect(result[0].email).toBe('john@example.com');
+      expect(result.data).toHaveLength(1);
+      expect(result.data[0].email).toBe('john@example.com');
+      expect(result.page).toBe(1);
+      expect(result.limit).toBe(10);
+      expect(result.total).toBe(1);
+      expect(result.totalPages).toBe(1);
+      expect(mockPrismaService.trainer.count).toHaveBeenCalled();
       expect(mockPrismaService.trainer.findMany).toHaveBeenCalled();
     });
 
@@ -170,11 +177,19 @@ describe('TrainersService', () => {
         },
       ];
 
+      mockPrismaService.trainer.count.mockResolvedValue(1);
       mockPrismaService.trainer.findMany.mockResolvedValue(mockTrainers);
 
       const result = await service.findAll({ specialization: 'Yoga' });
 
-      expect(result).toHaveLength(1);
+      expect(result.data).toHaveLength(1);
+      expect(mockPrismaService.trainer.count).toHaveBeenCalledWith({
+        where: {
+          specializations: {
+            has: 'Yoga',
+          },
+        },
+      });
       expect(mockPrismaService.trainer.findMany).toHaveBeenCalledWith({
         where: {
           specializations: {
@@ -187,6 +202,8 @@ describe('TrainersService', () => {
         orderBy: {
           createdAt: 'desc',
         },
+        skip: 0,
+        take: 10,
       });
     });
 
@@ -213,11 +230,17 @@ describe('TrainersService', () => {
         },
       ];
 
+      mockPrismaService.trainer.count.mockResolvedValue(1);
       mockPrismaService.trainer.findMany.mockResolvedValue(mockTrainers);
 
       const result = await service.findAll({ availability: true });
 
-      expect(result).toHaveLength(1);
+      expect(result.data).toHaveLength(1);
+      expect(mockPrismaService.trainer.count).toHaveBeenCalledWith({
+        where: {
+          isActive: true,
+        },
+      });
       expect(mockPrismaService.trainer.findMany).toHaveBeenCalledWith({
         where: {
           isActive: true,
@@ -228,6 +251,8 @@ describe('TrainersService', () => {
         orderBy: {
           createdAt: 'desc',
         },
+        skip: 0,
+        take: 10,
       });
     });
   });

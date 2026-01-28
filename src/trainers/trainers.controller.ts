@@ -23,6 +23,7 @@ import {
   TrainerResponseDto,
   TrainerFiltersDto,
 } from './dto';
+import { PaginatedResponseDto } from '../common/dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -61,17 +62,16 @@ export class TrainersController {
   @ApiOperation({
     summary: 'Get all trainers',
     description:
-      'Retrieve a list of trainers with optional filters (specialization, availability).',
+      'Retrieve a paginated list of trainers with optional filters (specialization, availability).',
   })
   @ApiResponse({
     status: 200,
     description: 'List of trainers retrieved successfully',
-    type: [TrainerResponseDto],
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async findAll(
     @Query() filters: TrainerFiltersDto,
-  ): Promise<TrainerResponseDto[]> {
+  ): Promise<PaginatedResponseDto<TrainerResponseDto>> {
     return this.trainersService.findAll(filters);
   }
 

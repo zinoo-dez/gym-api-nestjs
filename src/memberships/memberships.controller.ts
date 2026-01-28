@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -22,7 +23,9 @@ import {
   MembershipPlanResponseDto,
   MembershipResponseDto,
   UpgradeMembershipDto,
+  MembershipPlanFiltersDto,
 } from './dto';
+import { PaginatedResponseDto } from '../common/dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -62,16 +65,18 @@ export class MembershipsController {
   @Roles(Role.ADMIN, Role.TRAINER, Role.MEMBER)
   @ApiOperation({
     summary: 'Get all membership plans',
-    description: 'Retrieve a list of all available membership plans.',
+    description:
+      'Retrieve a paginated list of all available membership plans with optional filters.',
   })
   @ApiResponse({
     status: 200,
     description: 'List of membership plans retrieved successfully',
-    type: [MembershipPlanResponseDto],
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async findAllPlans(): Promise<MembershipPlanResponseDto[]> {
-    return this.membershipsService.findAllPlans();
+  async findAllPlans(
+    @Query() filters: MembershipPlanFiltersDto,
+  ): Promise<PaginatedResponseDto<MembershipPlanResponseDto>> {
+    return this.membershipsService.findAllPlans(filters);
   }
 
   @Get('membership-plans/:id')

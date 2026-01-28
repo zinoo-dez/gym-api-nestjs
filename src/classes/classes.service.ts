@@ -13,7 +13,7 @@ import {
   ClassBookingResponseDto,
   ClassFiltersDto,
 } from './dto';
-import { PaginatedResponseDto } from '../members/dto';
+import { PaginatedResponseDto } from '../common/dto';
 import { Prisma, BookingStatus } from '@prisma/client';
 
 @Injectable()
@@ -75,7 +75,7 @@ export class ClassesService {
   ): Promise<PaginatedResponseDto<ClassResponseDto>> {
     const page = filters?.page || 1;
     const limit = filters?.limit || 10;
-    const skip = (page - 1) * limit;
+    const skip = filters?.skip || 0;
 
     // Build where clause based on filters
     const where: Prisma.ClassWhereInput = {

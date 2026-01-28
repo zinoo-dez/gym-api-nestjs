@@ -1,19 +1,21 @@
-import { IsOptional, IsString, IsBoolean } from 'class-validator';
+import { IsOptional, IsEnum, IsBoolean } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
+import { MembershipType } from '@prisma/client';
 import { PaginationDto } from '../../common/dto';
 
-export class TrainerFiltersDto extends PaginationDto {
+export class MembershipPlanFiltersDto extends PaginationDto {
   @ApiPropertyOptional({
-    description: 'Filter by specialization',
-    example: 'Yoga',
+    description: 'Filter by membership type',
+    enum: MembershipType,
+    example: MembershipType.PREMIUM,
   })
   @IsOptional()
-  @IsString()
-  specialization?: string;
+  @IsEnum(MembershipType)
+  type?: MembershipType;
 
   @ApiPropertyOptional({
-    description: 'Filter by availability',
+    description: 'Filter by active status',
     example: true,
   })
   @IsOptional()
@@ -23,5 +25,5 @@ export class TrainerFiltersDto extends PaginationDto {
     if (value === 'false') return false;
     return value;
   })
-  availability?: boolean;
+  isActive?: boolean;
 }

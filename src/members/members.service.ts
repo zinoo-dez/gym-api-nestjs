@@ -67,7 +67,7 @@ export class MembersService {
   ): Promise<PaginatedResponseDto<MemberResponseDto>> {
     const page = filters?.page || 1;
     const limit = filters?.limit || 10;
-    const skip = (page - 1) * limit;
+    const skip = filters?.skip || 0;
 
     // Build where clause based on filters
     const where: Prisma.MemberWhereInput = {};

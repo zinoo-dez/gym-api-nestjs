@@ -9,7 +9,10 @@ import {
   UpdateWorkoutPlanDto,
   WorkoutPlanResponseDto,
   WorkoutPlanVersionResponseDto,
+  WorkoutPlanFiltersDto,
 } from './dto';
+import { PaginatedResponseDto } from '../common/dto';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class WorkoutPlansService {
@@ -74,8 +77,34 @@ export class WorkoutPlansService {
     return this.toResponseDto(workoutPlan);
   }
 
-  async findAll(): Promise<WorkoutPlanResponseDto[]> {
+  async findAll(
+    filters?: WorkoutPlanFiltersDto,
+  ): Promise<PaginatedResponseDto<WorkoutPlanResponseDto>> {
+    const page = filters?.page || 1;
+    const limit = filters?.limit || 10;
+    const skip = filters?.skip || 0;
+
+    // Build where clause based on filters
+    const where: Prisma.WorkoutPlanWhereInput = {};
+
+    if (filters?.memberId) {
+      where.memberId = filters.memberId;
+    }
+
+    if (filters?.trainerId) {
+      where.trainerId = filters.trainerId;
+    }
+
+    if (filters?.goal) {
+      where.goal = filters.goal;
+    }
+
+    // Get total count
+    const total = await this.prisma.workoutPlan.count({ where });
+
+    // Get paginated workout plans
     const workoutPlans = await this.prisma.workoutPlan.findMany({
+      where,
       include: {
         exercises: {
           orderBy: {
@@ -86,9 +115,13 @@ export class WorkoutPlansService {
       orderBy: {
         createdAt: 'desc',
       },
+      skip,
+      take: limit,
     });
 
-    return workoutPlans.map((plan) => this.toResponseDto(plan));
+    const planDtos = workoutPlans.map((plan) => this.toResponseDto(plan));
+
+    return new PaginatedResponseDto(planDtos, page, limit, total);
   }
 
   async findOne(id: string): Promise<WorkoutPlanResponseDto> {
