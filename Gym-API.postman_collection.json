@@ -1,0 +1,1163 @@
+{
+  "info": {
+    "name": "Gym API",
+    "description": "Complete API collection for Gym Management System built with NestJS",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "gym-api-v1"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3500",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "memberId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "trainerId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "classId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "membershipPlanId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "membershipId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "workoutPlanId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "attendanceId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "bookingId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('accessToken', response.accessToken);",
+                  "    console.log('Access token saved:', response.accessToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@gym.com\",\n  \"password\": \"Admin123!\",\n  \"role\": \"ADMIN\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Register a new user account. Returns JWT token and user information."
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('accessToken', response.accessToken);",
+                  "    console.log('Access token saved:', response.accessToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@gym.com\",\n  \"password\": \"Admin123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Authenticate user with email and password. Returns JWT token for subsequent requests."
+          },
+          "response": []
+        }
+      ],
+      "description": "Authentication endpoints for user registration and login"
+    },
+    {
+      "name": "Members",
+      "item": [
+        {
+          "name": "Create Member",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('memberId', response.id);",
+                  "    console.log('Member ID saved:', response.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"phone\": \"+1234567890\",\n  \"dateOfBirth\": \"1990-01-15\",\n  \"address\": \"123 Main St, City, State 12345\",\n  \"emergencyContact\": \"+0987654321\",\n  \"medicalNotes\": \"No known allergies\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/members",
+              "host": ["{{baseUrl}}"],
+              "path": ["members"]
+            },
+            "description": "Create a new gym member account. Requires ADMIN role."
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Members",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/members?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["members"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "isActive",
+                  "value": "true",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Retrieve a paginated list of members with optional filters. Requires ADMIN or TRAINER role."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Member by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/members/{{memberId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["members", "{{memberId}}"]
+            },
+            "description": "Retrieve detailed information about a specific member."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Member",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"+1234567899\",\n  \"address\": \"456 New St, City, State 12345\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/members/{{memberId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["members", "{{memberId}}"]
+            },
+            "description": "Update member profile information. Requires ADMIN or MEMBER role."
+          },
+          "response": []
+        },
+        {
+          "name": "Deactivate Member",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/members/{{memberId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["members", "{{memberId}}"]
+            },
+            "description": "Soft delete a member account (sets isActive to false). Requires ADMIN role."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Member Bookings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/members/{{memberId}}/bookings",
+              "host": ["{{baseUrl}}"],
+              "path": ["members", "{{memberId}}", "bookings"]
+            },
+            "description": "Retrieve all class bookings for a specific member."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Member Workout Plans",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/members/{{memberId}}/workout-plans",
+              "host": ["{{baseUrl}}"],
+              "path": ["members", "{{memberId}}", "workout-plans"]
+            },
+            "description": "Retrieve all workout plans assigned to a specific member."
+          },
+          "response": []
+        }
+      ],
+      "description": "Member management endpoints"
+    },
+    {
+      "name": "Trainers",
+      "item": [
+        {
+          "name": "Create Trainer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('trainerId', response.id);",
+                  "    console.log('Trainer ID saved:', response.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Jane\",\n  \"lastName\": \"Smith\",\n  \"email\": \"jane.smith@gym.com\",\n  \"phone\": \"+1234567891\",\n  \"specialization\": \"Yoga, Pilates\",\n  \"certifications\": \"Certified Yoga Instructor, Pilates Master\",\n  \"bio\": \"Experienced yoga and pilates instructor with 10+ years of experience\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/trainers",
+              "host": ["{{baseUrl}}"],
+              "path": ["trainers"]
+            },
+            "description": "Create a new trainer account. Requires ADMIN role."
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Trainers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/trainers?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["trainers"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "specialization",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "isAvailable",
+                  "value": "true",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Retrieve a paginated list of trainers with optional filters."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Trainer by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/trainers/{{trainerId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["trainers", "{{trainerId}}"]
+            },
+            "description": "Retrieve detailed information about a specific trainer including their classes."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Trainer",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"specialization\": \"Yoga, Pilates, Meditation\",\n  \"isAvailable\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/trainers/{{trainerId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["trainers", "{{trainerId}}"]
+            },
+            "description": "Update trainer profile information. Requires ADMIN or TRAINER role."
+          },
+          "response": []
+        },
+        {
+          "name": "Deactivate Trainer",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/trainers/{{trainerId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["trainers", "{{trainerId}}"]
+            },
+            "description": "Soft delete a trainer account (sets isActive to false). Requires ADMIN role."
+          },
+          "response": []
+        }
+      ],
+      "description": "Trainer management endpoints"
+    },
+    {
+      "name": "Membership Plans",
+      "item": [
+        {
+          "name": "Create Membership Plan",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('membershipPlanId', response.id);",
+                  "    console.log('Membership Plan ID saved:', response.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Premium Monthly\",\n  \"description\": \"Full access to all gym facilities and classes\",\n  \"price\": 99.99,\n  \"durationDays\": 30,\n  \"features\": [\"Unlimited gym access\", \"All classes included\", \"Personal locker\", \"Free towel service\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/membership-plans",
+              "host": ["{{baseUrl}}"],
+              "path": ["membership-plans"]
+            },
+            "description": "Create a new membership plan. Requires ADMIN role."
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Membership Plans",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/membership-plans?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["membership-plans"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "isActive",
+                  "value": "true",
+                  "disabled": true
+                },
+                {
+                  "key": "minPrice",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "maxPrice",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Retrieve a paginated list of all available membership plans with optional filters."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Membership Plan by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/membership-plans/{{membershipPlanId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["membership-plans", "{{membershipPlanId}}"]
+            },
+            "description": "Retrieve detailed information about a specific membership plan."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Membership Plan",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price\": 89.99,\n  \"description\": \"Full access to all gym facilities and classes - Special offer!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/membership-plans/{{membershipPlanId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["membership-plans", "{{membershipPlanId}}"]
+            },
+            "description": "Update membership plan details. Requires ADMIN role."
+          },
+          "response": []
+        }
+      ],
+      "description": "Membership plan management endpoints"
+    },
+    {
+      "name": "Memberships",
+      "item": [
+        {
+          "name": "Assign Membership to Member",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('membershipId', response.id);",
+                  "    console.log('Membership ID saved:', response.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"memberId\": \"{{memberId}}\",\n  \"membershipPlanId\": \"{{membershipPlanId}}\",\n  \"startDate\": \"2024-01-01\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/memberships",
+              "host": ["{{baseUrl}}"],
+              "path": ["memberships"]
+            },
+            "description": "Assign a membership plan to a member. Requires ADMIN role."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Membership by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/memberships/{{membershipId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["memberships", "{{membershipId}}"]
+            },
+            "description": "Retrieve detailed information about a specific membership."
+          },
+          "response": []
+        },
+        {
+          "name": "Upgrade Membership",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"newPlanId\": \"{{membershipPlanId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/memberships/{{memberId}}/upgrade",
+              "host": ["{{baseUrl}}"],
+              "path": ["memberships", "{{memberId}}", "upgrade"]
+            },
+            "description": "Upgrade a member's membership to a new plan. Requires ADMIN or MEMBER role."
+          },
+          "response": []
+        }
+      ],
+      "description": "Membership assignment and management endpoints"
+    },
+    {
+      "name": "Classes",
+      "item": [
+        {
+          "name": "Create Class",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('classId', response.id);",
+                  "    console.log('Class ID saved:', response.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Morning Yoga\",\n  \"description\": \"Relaxing yoga session to start your day\",\n  \"trainerId\": \"{{trainerId}}\",\n  \"schedule\": \"2024-02-01T08:00:00Z\",\n  \"duration\": 60,\n  \"capacity\": 20,\n  \"type\": \"Yoga\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/classes",
+              "host": ["{{baseUrl}}"],
+              "path": ["classes"]
+            },
+            "description": "Create a new fitness class. Requires ADMIN or TRAINER role."
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Classes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/classes?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["classes"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "trainerId",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "type",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "startDate",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "endDate",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Retrieve a paginated list of classes with optional filters."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Class by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/classes/{{classId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["classes", "{{classId}}"]
+            },
+            "description": "Retrieve detailed information about a specific class including bookings."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Class",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"capacity\": 25,\n  \"description\": \"Relaxing yoga session to start your day - Now with more space!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/classes/{{classId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["classes", "{{classId}}"]
+            },
+            "description": "Update class details. Requires ADMIN or TRAINER role."
+          },
+          "response": []
+        },
+        {
+          "name": "Deactivate Class",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/classes/{{classId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["classes", "{{classId}}"]
+            },
+            "description": "Soft delete a class (sets isActive to false). Requires ADMIN role."
+          },
+          "response": []
+        },
+        {
+          "name": "Book Class",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('bookingId', response.id);",
+                  "    console.log('Booking ID saved:', response.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"memberId\": \"{{memberId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/classes/{{classId}}/book",
+              "host": ["{{baseUrl}}"],
+              "path": ["classes", "{{classId}}", "book"]
+            },
+            "description": "Book a class for a member. Requires ADMIN or MEMBER role."
+          },
+          "response": []
+        },
+        {
+          "name": "Cancel Class Booking",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/classes/bookings/{{bookingId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["classes", "bookings", "{{bookingId}}"]
+            },
+            "description": "Cancel a class booking. Requires ADMIN or MEMBER role."
+          },
+          "response": []
+        }
+      ],
+      "description": "Class management and booking endpoints"
+    },
+    {
+      "name": "Attendance",
+      "item": [
+        {
+          "name": "Check In Member",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('attendanceId', response.id);",
+                  "    console.log('Attendance ID saved:', response.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"memberId\": \"{{memberId}}\",\n  \"type\": \"GYM_VISIT\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/attendance/check-in",
+              "host": ["{{baseUrl}}"],
+              "path": ["attendance", "check-in"]
+            },
+            "description": "Record a member check-in for gym visit or class attendance."
+          },
+          "response": []
+        },
+        {
+          "name": "Check In Member for Class",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"memberId\": \"{{memberId}}\",\n  \"type\": \"CLASS\",\n  \"classId\": \"{{classId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/attendance/check-in",
+              "host": ["{{baseUrl}}"],
+              "path": ["attendance", "check-in"]
+            },
+            "description": "Record a member check-in for a specific class."
+          },
+          "response": []
+        },
+        {
+          "name": "Check Out Member",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/attendance/{{attendanceId}}/check-out",
+              "host": ["{{baseUrl}}"],
+              "path": ["attendance", "{{attendanceId}}", "check-out"]
+            },
+            "description": "Record a member check-out."
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Attendance Records",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/attendance?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["attendance"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "memberId",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "type",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "startDate",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "endDate",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Retrieve a paginated list of attendance records with optional filters. Requires ADMIN or TRAINER role."
+          },
+          "response": []
+        },
+        {
+          "name": "Generate Attendance Report",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/attendance/report/{{memberId}}?startDate=2024-01-01&endDate=2024-01-31",
+              "host": ["{{baseUrl}}"],
+              "path": ["attendance", "report", "{{memberId}}"],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "2024-01-01"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2024-01-31"
+                }
+              ]
+            },
+            "description": "Generate an attendance report for a member within a date range."
+          },
+          "response": []
+        }
+      ],
+      "description": "Attendance tracking and reporting endpoints"
+    },
+    {
+      "name": "Workout Plans",
+      "item": [
+        {
+          "name": "Create Workout Plan",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('workoutPlanId', response.id);",
+                  "    console.log('Workout Plan ID saved:', response.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Beginner Strength Training\",\n  \"description\": \"4-week beginner strength training program\",\n  \"memberId\": \"{{memberId}}\",\n  \"trainerId\": \"{{trainerId}}\",\n  \"startDate\": \"2024-02-01\",\n  \"endDate\": \"2024-02-28\",\n  \"exercises\": [\n    {\n      \"name\": \"Squats\",\n      \"sets\": 3,\n      \"reps\": 12,\n      \"weight\": 50,\n      \"restTime\": 60,\n      \"notes\": \"Focus on form\",\n      \"order\": 1\n    },\n    {\n      \"name\": \"Bench Press\",\n      \"sets\": 3,\n      \"reps\": 10,\n      \"weight\": 40,\n      \"restTime\": 90,\n      \"notes\": \"Keep back flat\",\n      \"order\": 2\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/workout-plans",
+              "host": ["{{baseUrl}}"],
+              "path": ["workout-plans"]
+            },
+            "description": "Create a new workout plan with exercises. Requires ADMIN or TRAINER role."
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Workout Plans",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/workout-plans?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["workout-plans"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "memberId",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "trainerId",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "isActive",
+                  "value": "true",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Retrieve a paginated list of all workout plans with optional filters. Requires ADMIN or TRAINER role."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Workout Plans by Member",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/workout-plans/member/{{memberId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["workout-plans", "member", "{{memberId}}"]
+            },
+            "description": "Retrieve all workout plans assigned to a specific member."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Workout Plan by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/workout-plans/{{workoutPlanId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["workout-plans", "{{workoutPlanId}}"]
+            },
+            "description": "Retrieve detailed information about a specific workout plan including exercises."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Workout Plan",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"4-week beginner strength training program - Updated with new exercises\",\n  \"exercises\": [\n    {\n      \"name\": \"Squats\",\n      \"sets\": 4,\n      \"reps\": 12,\n      \"weight\": 60,\n      \"restTime\": 60,\n      \"notes\": \"Increase weight gradually\",\n      \"order\": 1\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/workout-plans/{{workoutPlanId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["workout-plans", "{{workoutPlanId}}"]
+            },
+            "description": "Update workout plan details. Version history is preserved. Requires ADMIN or TRAINER role."
+          },
+          "response": []
+        },
+        {
+          "name": "Deactivate Workout Plan",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/workout-plans/{{workoutPlanId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["workout-plans", "{{workoutPlanId}}"]
+            },
+            "description": "Soft delete a workout plan (sets isActive to false). Requires ADMIN or TRAINER role."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Workout Plan Version History",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/workout-plans/{{workoutPlanId}}/versions",
+              "host": ["{{baseUrl}}"],
+              "path": ["workout-plans", "{{workoutPlanId}}", "versions"]
+            },
+            "description": "Retrieve all versions of a workout plan."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Specific Workout Plan Version",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/workout-plans/{{workoutPlanId}}/versions/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["workout-plans", "{{workoutPlanId}}", "versions", "1"]
+            },
+            "description": "Retrieve a specific version of a workout plan."
+          },
+          "response": []
+        }
+      ],
+      "description": "Workout plan management endpoints with version history"
+    }
+  ]
+}
