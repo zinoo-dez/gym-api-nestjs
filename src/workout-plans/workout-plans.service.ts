@@ -25,9 +25,10 @@ export class WorkoutPlansService {
     // Validate exercise order
     this.validateExerciseOrder(createWorkoutPlanDto.exercises);
 
-    // Verify member exists
+    // Verify member exists - only select id field
     const member = await this.prisma.member.findUnique({
       where: { id: createWorkoutPlanDto.memberId },
+      select: { id: true },
     });
 
     if (!member) {
@@ -36,9 +37,10 @@ export class WorkoutPlansService {
       );
     }
 
-    // Get trainer from user ID
+    // Get trainer from user ID - only select id field
     const trainer = await this.prisma.trainer.findUnique({
       where: { userId },
+      select: { id: true },
     });
 
     if (!trainer) {
@@ -144,9 +146,10 @@ export class WorkoutPlansService {
   }
 
   async findByMember(memberId: string): Promise<WorkoutPlanResponseDto[]> {
-    // Verify member exists
+    // Verify member exists - only select id field
     const member = await this.prisma.member.findUnique({
       where: { id: memberId },
+      select: { id: true },
     });
 
     if (!member) {
@@ -198,51 +201,57 @@ export class WorkoutPlansService {
     // Store current version before updating
     await this.storeVersion(existingPlan);
 
-    // If exercises are provided, delete old ones and create new ones
-    const updateData: any = {
-      name: updateWorkoutPlanDto.name,
-      description: updateWorkoutPlanDto.description,
-      goal: updateWorkoutPlanDto.goal,
-    };
+    // Use transaction for update with exercises deletion and creation
+    const updatedPlan = await this.prisma.$transaction(async (tx) => {
+      // If exercises are provided, delete old ones first
+      if (updateWorkoutPlanDto.exercises) {
+        await tx.exercise.deleteMany({
+          where: { workoutPlanId: id },
+        });
+      }
 
-    if (updateWorkoutPlanDto.exercises) {
-      // Delete existing exercises and create new ones
-      await this.prisma.exercise.deleteMany({
-        where: { workoutPlanId: id },
-      });
-
-      updateData.exercises = {
-        create: updateWorkoutPlanDto.exercises.map((exercise) => ({
-          name: exercise.name,
-          description: exercise.description,
-          sets: exercise.sets,
-          reps: exercise.reps,
-          duration: exercise.duration,
-          targetMuscles: exercise.targetMuscles,
-          order: exercise.order,
-        })),
+      // Update the workout plan
+      const updateData: any = {
+        name: updateWorkoutPlanDto.name,
+        description: updateWorkoutPlanDto.description,
+        goal: updateWorkoutPlanDto.goal,
       };
-    }
 
-    const updatedPlan = await this.prisma.workoutPlan.update({
-      where: { id },
-      data: updateData,
-      include: {
-        exercises: {
-          orderBy: {
-            order: 'asc',
+      if (updateWorkoutPlanDto.exercises) {
+        updateData.exercises = {
+          create: updateWorkoutPlanDto.exercises.map((exercise) => ({
+            name: exercise.name,
+            description: exercise.description,
+            sets: exercise.sets,
+            reps: exercise.reps,
+            duration: exercise.duration,
+            targetMuscles: exercise.targetMuscles,
+            order: exercise.order,
+          })),
+        };
+      }
+
+      return await tx.workoutPlan.update({
+        where: { id },
+        data: updateData,
+        include: {
+          exercises: {
+            orderBy: {
+              order: 'asc',
+            },
           },
         },
-      },
+      });
     });
 
     return this.toResponseDto(updatedPlan);
   }
 
   async deactivate(id: string): Promise<void> {
-    // Check if workout plan exists
+    // Check if workout plan exists - only select id field
     const existingPlan = await this.prisma.workoutPlan.findUnique({
       where: { id },
+      select: { id: true },
     });
 
     if (!existingPlan) {
@@ -261,9 +270,10 @@ export class WorkoutPlansService {
   async getVersionHistory(
     workoutPlanId: string,
   ): Promise<WorkoutPlanVersionResponseDto[]> {
-    // Check if workout plan exists
+    // Check if workout plan exists - only select id field
     const workoutPlan = await this.prisma.workoutPlan.findUnique({
       where: { id: workoutPlanId },
+      select: { id: true },
     });
 
     if (!workoutPlan) {
@@ -296,9 +306,10 @@ export class WorkoutPlansService {
     workoutPlanId: string,
     version: number,
   ): Promise<WorkoutPlanVersionResponseDto> {
-    // Check if workout plan exists
+    // Check if workout plan exists - only select id field
     const workoutPlan = await this.prisma.workoutPlan.findUnique({
       where: { id: workoutPlanId },
+      select: { id: true },
     });
 
     if (!workoutPlan) {
@@ -336,10 +347,11 @@ export class WorkoutPlansService {
   }
 
   private async storeVersion(workoutPlan: any): Promise<void> {
-    // Get the current highest version number
+    // Get the current highest version number - only select version field
     const latestVersion = await this.prisma.workoutPlanVersion.findFirst({
       where: { workoutPlanId: workoutPlan.id },
       orderBy: { version: 'desc' },
+      select: { version: true },
     });
 
     const nextVersion = latestVersion ? latestVersion.version + 1 : 1;

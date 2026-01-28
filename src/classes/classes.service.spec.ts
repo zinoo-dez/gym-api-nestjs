@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { ClassesService } from './classes.service';
 import { PrismaService } from '../prisma/prisma.service';
 import {
@@ -11,6 +12,12 @@ import { BookingStatus } from '@prisma/client';
 describe('ClassesService', () => {
   let service: ClassesService;
   let prisma: PrismaService;
+
+  const mockCacheManager = {
+    get: jest.fn(),
+    set: jest.fn(),
+    del: jest.fn(),
+  };
 
   const mockPrismaService = {
     class: {
@@ -40,6 +47,10 @@ describe('ClassesService', () => {
         {
           provide: PrismaService,
           useValue: mockPrismaService,
+        },
+        {
+          provide: CACHE_MANAGER,
+          useValue: mockCacheManager,
         },
       ],
     }).compile();

@@ -155,9 +155,10 @@ export class MembersService {
     id: string,
     updateMemberDto: UpdateMemberDto,
   ): Promise<MemberResponseDto> {
-    // Check if member exists
+    // Check if member exists - only select id field
     const existingMember = await this.prisma.member.findUnique({
       where: { id },
+      select: { id: true },
     });
 
     if (!existingMember) {
@@ -184,9 +185,10 @@ export class MembersService {
   }
 
   async deactivate(id: string): Promise<void> {
-    // Check if member exists
+    // Check if member exists - only select id field
     const existingMember = await this.prisma.member.findUnique({
       where: { id },
+      select: { id: true },
     });
 
     if (!existingMember) {
@@ -211,30 +213,51 @@ export class MembersService {
           gte: new Date(),
         },
       },
+      select: {
+        id: true,
+      },
     });
 
     return !!activeMembership;
   }
 
   async getBookings(memberId: string): Promise<any[]> {
-    // Check if member exists
+    // Check if member exists - only select id field
     const member = await this.prisma.member.findUnique({
       where: { id: memberId },
+      select: { id: true },
     });
 
     if (!member) {
       throw new NotFoundException(`Member with ID ${memberId} not found`);
     }
 
-    // Get all bookings for the member
+    // Get all bookings for the member - use select to avoid over-fetching
     const bookings = await this.prisma.classBooking.findMany({
       where: {
         memberId,
       },
-      include: {
+      select: {
+        id: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
         class: {
-          include: {
-            trainer: true,
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            schedule: true,
+            duration: true,
+            capacity: true,
+            classType: true,
+            trainer: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+              },
+            },
           },
         },
       },

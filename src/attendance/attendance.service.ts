@@ -19,10 +19,15 @@ export class AttendanceService {
   constructor(private readonly prisma: PrismaService) {}
 
   async checkIn(checkInDto: CheckInDto): Promise<AttendanceResponseDto> {
-    // Verify member exists
+    // Verify member exists - only select needed fields
     const member = await this.prisma.member.findUnique({
       where: { id: checkInDto.memberId },
-      include: { user: true },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        user: { select: { email: true } },
+      },
     });
 
     if (!member) {
@@ -50,6 +55,7 @@ export class AttendanceService {
 
       const classExists = await this.prisma.class.findUnique({
         where: { id: checkInDto.classId },
+        select: { id: true },
       });
 
       if (!classExists) {
@@ -66,6 +72,7 @@ export class AttendanceService {
             classId: checkInDto.classId,
           },
         },
+        select: { status: true },
       });
 
       if (!booking || booking.status !== 'CONFIRMED') {
@@ -97,9 +104,10 @@ export class AttendanceService {
   }
 
   async checkOut(attendanceId: string): Promise<AttendanceResponseDto> {
-    // Verify attendance record exists
+    // Verify attendance record exists - only select needed fields
     const attendance = await this.prisma.attendance.findUnique({
       where: { id: attendanceId },
+      select: { id: true, checkOutTime: true },
     });
 
     if (!attendance) {
@@ -200,17 +208,22 @@ export class AttendanceService {
     startDate: Date,
     endDate: Date,
   ): Promise<AttendanceReportDto> {
-    // Verify member exists
+    // Verify member exists - only select needed fields
     const member = await this.prisma.member.findUnique({
       where: { id: memberId },
-      include: { user: true },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        user: { select: { email: true } },
+      },
     });
 
     if (!member) {
       throw new NotFoundException(`Member with ID ${memberId} not found`);
     }
 
-    // Get all attendance records in date range
+    // Get all attendance records in date range - only select needed fields
     const attendanceRecords = await this.prisma.attendance.findMany({
       where: {
         memberId,
@@ -218,6 +231,10 @@ export class AttendanceService {
           gte: startDate,
           lte: endDate,
         },
+      },
+      select: {
+        type: true,
+        checkInTime: true,
       },
       orderBy: {
         checkInTime: 'asc',
@@ -300,6 +317,9 @@ export class AttendanceService {
         endDate: {
           gte: new Date(),
         },
+      },
+      select: {
+        id: true,
       },
     });
 

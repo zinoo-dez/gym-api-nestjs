@@ -30,6 +30,7 @@ describe('WorkoutPlansService', () => {
       findFirst: jest.fn(),
       findUnique: jest.fn(),
     },
+    $transaction: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -113,9 +114,11 @@ describe('WorkoutPlansService', () => {
       expect(result.exercises).toHaveLength(1);
       expect(mockPrismaService.member.findUnique).toHaveBeenCalledWith({
         where: { id: memberId },
+        select: { id: true },
       });
       expect(mockPrismaService.trainer.findUnique).toHaveBeenCalledWith({
         where: { userId },
+        select: { id: true },
       });
     });
 
@@ -456,6 +459,16 @@ describe('WorkoutPlansService', () => {
         workoutPlanId: 'plan-123',
         version: 1,
       });
+
+      // Mock transaction to execute the callback immediately
+      mockPrismaService.$transaction.mockImplementation(async (callback) => {
+        const tx = {
+          exercise: mockPrismaService.exercise,
+          workoutPlan: mockPrismaService.workoutPlan,
+        };
+        return callback(tx);
+      });
+
       mockPrismaService.exercise.deleteMany.mockResolvedValue({ count: 1 });
       mockPrismaService.workoutPlan.update.mockResolvedValue(mockUpdatedPlan);
 

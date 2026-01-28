@@ -93,6 +93,9 @@ describe('AttendanceService - Membership Validation (Task 11.3)', () => {
             gte: expect.any(Date),
           },
         },
+        select: {
+          id: true,
+        },
       });
     });
   });

@@ -131,9 +131,10 @@ export class TrainersService {
     id: string,
     updateTrainerDto: UpdateTrainerDto,
   ): Promise<TrainerResponseDto> {
-    // Check if trainer exists
+    // Check if trainer exists - only select id field
     const existingTrainer = await this.prisma.trainer.findUnique({
       where: { id },
+      select: { id: true },
     });
 
     if (!existingTrainer) {
@@ -158,9 +159,10 @@ export class TrainersService {
   }
 
   async deactivate(id: string): Promise<void> {
-    // Check if trainer exists
+    // Check if trainer exists - only select id field
     const existingTrainer = await this.prisma.trainer.findUnique({
       where: { id },
+      select: { id: true },
     });
 
     if (!existingTrainer) {

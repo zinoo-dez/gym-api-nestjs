@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { MembershipsService } from './memberships.service';
 import { PrismaService } from '../prisma/prisma.service';
 import {
@@ -12,12 +13,19 @@ describe('MembershipsService - Assignment Endpoints', () => {
   let service: MembershipsService;
   let prisma: PrismaService;
 
+  const mockCacheManager = {
+    get: jest.fn(),
+    set: jest.fn(),
+    del: jest.fn(),
+  };
+
   const mockPrismaService = {
     membershipPlan: {
       findUnique: jest.fn(),
       create: jest.fn(),
       findMany: jest.fn(),
       update: jest.fn(),
+      count: jest.fn(),
     },
     membership: {
       findUnique: jest.fn(),
@@ -39,6 +47,10 @@ describe('MembershipsService - Assignment Endpoints', () => {
         {
           provide: PrismaService,
           useValue: mockPrismaService,
+        },
+        {
+          provide: CACHE_MANAGER,
+          useValue: mockCacheManager,
         },
       ],
     }).compile();

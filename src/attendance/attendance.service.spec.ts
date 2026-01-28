@@ -107,7 +107,12 @@ describe('AttendanceService', () => {
       expect(result.memberId).toBe('member-1');
       expect(prisma.member.findUnique).toHaveBeenCalledWith({
         where: { id: 'member-1' },
-        include: { user: true },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          user: { select: { email: true } },
+        },
       });
     });
 

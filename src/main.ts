@@ -4,12 +4,63 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { PrismaService } from './prisma/prisma.service';
 import { GlobalExceptionFilter } from './common/filters';
+import { ResponseInterceptor, LoggingInterceptor } from './common/interceptors';
+import helmet from 'helmet';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  // Configure security headers with helmet
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: [`'self'`],
+          styleSrc: [`'self'`, `'unsafe-inline'`],
+          scriptSrc: [`'self'`, `'unsafe-inline'`],
+          imgSrc: [`'self'`, 'data:', 'https:'],
+        },
+      },
+      crossOriginEmbedderPolicy: false, // Allow Swagger UI to work
+    }),
+  );
+
+  // Configure CORS
+  const allowedOrigins = process.env.CORS_ORIGINS
+    ? process.env.CORS_ORIGINS.split(',')
+    : ['http://localhost:3000', 'http://localhost:3001'];
+
+  app.enableCors({
+    origin: (
+      origin: string | undefined,
+      callback: (err: Error | null, allow?: boolean) => void,
+    ) => {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+    exposedHeaders: ['X-Total-Count', 'X-Page', 'X-Limit'],
+    maxAge: 3600, // Cache preflight requests for 1 hour
+  });
+
   // Configure global exception filter
   app.useGlobalFilters(new GlobalExceptionFilter());
+
+  // Configure global logging interceptor
+  app.useGlobalInterceptors(new LoggingInterceptor());
+
+  // Configure global response interceptor
+  app.useGlobalInterceptors(new ResponseInterceptor());
 
   // Configure global validation pipe
   app.useGlobalPipes(
