@@ -209,9 +209,26 @@ model WorkoutPlan {
   updatedAt   DateTime    @updatedAt
 
   exercises Exercise[]
+  versions  WorkoutPlanVersion[]
 
   @@index([memberId, isActive])
   @@index([trainerId])
+}
+
+// Workout plan version history
+model WorkoutPlanVersion {
+  id            String      @id @default(uuid())
+  workoutPlanId String
+  workoutPlan   WorkoutPlan @relation(fields: [workoutPlanId], references: [id], onDelete: Cascade)
+  version       Int
+  name          String
+  description   String?
+  goal          WorkoutGoal
+  exercises     Json // Store exercises as JSON snapshot
+  createdAt     DateTime    @default(now())
+
+  @@index([workoutPlanId, version])
+  @@unique([workoutPlanId, version])
 }
 
 // Exercise in workout plan

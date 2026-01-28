@@ -348,6 +348,79 @@ describe('AttendanceService', () => {
       expect(result.averageVisitsPerWeek).toBeGreaterThan(0);
     });
 
+    it('should calculate usage patterns correctly', async () => {
+      const mockMember = {
+        id: 'member-1',
+        firstName: 'John',
+        lastName: 'Doe',
+        user: { email: 'john@example.com' },
+      };
+
+      const startDate = new Date('2024-01-01');
+      const endDate = new Date('2024-01-31');
+
+      // Create attendance records with specific patterns
+      const mockAttendanceRecords = [
+        {
+          id: 'attendance-1',
+          memberId: 'member-1',
+          type: AttendanceType.GYM_VISIT,
+          checkInTime: new Date('2024-01-08T10:00:00'), // Monday 10am
+        },
+        {
+          id: 'attendance-2',
+          memberId: 'member-1',
+          type: AttendanceType.GYM_VISIT,
+          checkInTime: new Date('2024-01-10T10:00:00'), // Wednesday 10am
+        },
+        {
+          id: 'attendance-3',
+          memberId: 'member-1',
+          type: AttendanceType.CLASS_ATTENDANCE,
+          checkInTime: new Date('2024-01-15T14:00:00'), // Monday 2pm
+        },
+        {
+          id: 'attendance-4',
+          memberId: 'member-1',
+          type: AttendanceType.GYM_VISIT,
+          checkInTime: new Date('2024-01-17T10:00:00'), // Wednesday 10am
+        },
+      ];
+
+      mockPrismaService.member.findUnique.mockResolvedValue(mockMember);
+      mockPrismaService.attendance.findMany.mockResolvedValue(
+        mockAttendanceRecords,
+      );
+
+      const result = await service.generateReport(
+        'member-1',
+        startDate,
+        endDate,
+      );
+
+      // Verify basic counts
+      expect(result.totalGymVisits).toBe(3);
+      expect(result.totalClassAttendances).toBe(1);
+      expect(result.totalVisits).toBe(4);
+
+      // Verify average visits per week calculation
+      expect(result.averageVisitsPerWeek).toBeGreaterThan(0);
+
+      // Verify peak visit hours are calculated
+      expect(result.peakVisitHours).toBeDefined();
+      expect(Array.isArray(result.peakVisitHours)).toBe(true);
+      expect(result.peakVisitHours.length).toBeGreaterThan(0);
+      expect(result.peakVisitHours[0]).toHaveProperty('hour');
+      expect(result.peakVisitHours[0]).toHaveProperty('count');
+
+      // Verify visits by day of week are calculated
+      expect(result.visitsByDayOfWeek).toBeDefined();
+      expect(Array.isArray(result.visitsByDayOfWeek)).toBe(true);
+      expect(result.visitsByDayOfWeek.length).toBeGreaterThan(0);
+      expect(result.visitsByDayOfWeek[0]).toHaveProperty('dayOfWeek');
+      expect(result.visitsByDayOfWeek[0]).toHaveProperty('count');
+    });
+
     it('should throw NotFoundException if member does not exist', async () => {
       mockPrismaService.member.findUnique.mockResolvedValue(null);
 

@@ -6,29 +6,31 @@ import {
   Min,
   IsOptional,
 } from 'class-validator';
+import { IsFutureDate } from '../../common/validators';
 
 export class CreateClassDto {
-  @IsString()
+  @IsString({ message: 'Class name must be a string' })
   name!: string;
 
   @IsOptional()
-  @IsString()
+  @IsString({ message: 'Description must be a string' })
   description?: string;
 
-  @IsUUID()
+  @IsUUID('4', { message: 'Trainer ID must be a valid UUID' })
   trainerId!: string;
 
-  @IsDateString()
+  @IsDateString({}, { message: 'Schedule must be a valid ISO 8601 date' })
+  @IsFutureDate({ message: 'Schedule must be in the future' })
   schedule!: string;
 
-  @IsInt()
-  @Min(15)
+  @IsInt({ message: 'Duration must be an integer' })
+  @Min(15, { message: 'Duration must be at least 15 minutes' })
   duration!: number;
 
-  @IsInt()
-  @Min(1)
+  @IsInt({ message: 'Capacity must be an integer' })
+  @Min(1, { message: 'Capacity must be at least 1' })
   capacity!: number;
 
-  @IsString()
+  @IsString({ message: 'Class type must be a string' })
   classType!: string;
 }

@@ -7,25 +7,25 @@ import {
 } from 'class-validator';
 
 export class CreateTrainerDto {
-  @IsEmail()
+  @IsEmail({}, { message: 'Email must be a valid email address' })
   email!: string;
 
   @IsString()
-  @MinLength(8)
+  @MinLength(8, { message: 'Password must be at least 8 characters long' })
   password!: string;
 
-  @IsString()
+  @IsString({ message: 'First name must be a string' })
   firstName!: string;
 
-  @IsString()
+  @IsString({ message: 'Last name must be a string' })
   lastName!: string;
 
-  @IsArray()
-  @IsString({ each: true })
+  @IsArray({ message: 'Specializations must be an array' })
+  @IsString({ each: true, message: 'Each specialization must be a string' })
   specializations!: string[];
 
   @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
+  @IsArray({ message: 'Certifications must be an array' })
+  @IsString({ each: true, message: 'Each certification must be a string' })
   certifications?: string[];
 }

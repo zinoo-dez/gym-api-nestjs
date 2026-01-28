@@ -2,13 +2,16 @@ import { IsUUID, IsEnum, IsOptional } from 'class-validator';
 import { AttendanceType } from '@prisma/client';
 
 export class CheckInDto {
-  @IsUUID()
+  @IsUUID('4', { message: 'Member ID must be a valid UUID' })
   memberId!: string;
 
-  @IsEnum(AttendanceType)
+  @IsEnum(AttendanceType, {
+    message:
+      'Type must be a valid attendance type (GYM_VISIT, CLASS_ATTENDANCE)',
+  })
   type!: AttendanceType;
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID('4', { message: 'Class ID must be a valid UUID' })
   classId?: string;
 }
