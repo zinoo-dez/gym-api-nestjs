@@ -11,7 +11,7 @@
         "start": "npx nest start",
         "start:dev": "npx nest start --watch",
         "start:debug": "npx nest start --debug --watch",
-        "start:prod": "node dist/main",
+        "start:prod": "node dist/main.js",
         "lint": "eslint \"{src,apps,libs}/**/*.ts\" --fix",
         "prisma:generate": "npx prisma generate"
     },
