@@ -1,7 +1,6 @@
 import { GlobalExceptionFilter } from './global-exception.filter';
 import {
   ArgumentsHost,
-  HttpException,
   HttpStatus,
   BadRequestException,
   NotFoundException,

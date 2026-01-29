@@ -59,14 +59,10 @@ describe('Rate Limiting (e2e)', () => {
 
   it('should decrement remaining count with each request', async () => {
     const response1 = await request(app.getHttpServer()).get('/');
-    const remaining1 = parseInt(
-      response1.headers['x-ratelimit-remaining'] as string,
-    );
+    const remaining1 = parseInt(response1.headers['x-ratelimit-remaining']);
 
     const response2 = await request(app.getHttpServer()).get('/');
-    const remaining2 = parseInt(
-      response2.headers['x-ratelimit-remaining'] as string,
-    );
+    const remaining2 = parseInt(response2.headers['x-ratelimit-remaining']);
 
     // The remaining count should decrease
     expect(remaining2).toBeLessThan(remaining1);

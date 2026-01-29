@@ -77,7 +77,7 @@ export class LoggingInterceptor implements NestInterceptor {
       const sanitized: any = {};
 
       for (const key in data) {
-        if (data.hasOwnProperty(key)) {
+        if (Object.prototype.hasOwnProperty.call(data, key)) {
           // Check if field is sensitive
           if (this.isSensitiveField(key)) {
             sanitized[key] = '[REDACTED]';
@@ -100,7 +100,7 @@ export class LoggingInterceptor implements NestInterceptor {
     const sanitized: any = {};
 
     for (const key in headers) {
-      if (headers.hasOwnProperty(key)) {
+      if (Object.prototype.hasOwnProperty.call(headers, key)) {
         const lowerKey = key.toLowerCase();
 
         // Redact authorization headers

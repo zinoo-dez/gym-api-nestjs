@@ -124,14 +124,6 @@ describe('AttendanceService - Membership Validation (Task 11.3)', () => {
         type: AttendanceType.GYM_VISIT,
       };
 
-      // Membership with end date in the past
-      const expiredMembership = {
-        id: 'membership-1',
-        memberId: 'member-1',
-        status: 'EXPIRED',
-        endDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000), // 10 days ago
-      };
-
       mockPrismaService.member.findUnique.mockResolvedValue(mockMember);
       // findFirst will return null because the query filters for ACTIVE status and endDate >= now
       mockPrismaService.membership.findFirst.mockResolvedValue(null);
@@ -160,14 +152,6 @@ describe('AttendanceService - Membership Validation (Task 11.3)', () => {
       const checkInDto = {
         memberId: 'member-1',
         type: AttendanceType.GYM_VISIT,
-      };
-
-      // Membership that ended 1 hour ago
-      const justExpiredMembership = {
-        id: 'membership-1',
-        memberId: 'member-1',
-        status: 'ACTIVE',
-        endDate: new Date(Date.now() - 60 * 60 * 1000), // 1 hour ago
       };
 
       mockPrismaService.member.findUnique.mockResolvedValue(mockMember);

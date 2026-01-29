@@ -17,7 +17,7 @@ export function IsPhone(validationOptions?: ValidationOptions) {
       propertyName: propertyName,
       options: validationOptions,
       validator: {
-        validate(value: any, _args: ValidationArguments) {
+        validate(value: any) {
           if (typeof value !== 'string') {
             return false;
           }
@@ -33,7 +33,7 @@ export function IsPhone(validationOptions?: ValidationOptions) {
           // Basic phone number pattern validation
           // Accepts: +1234567890, (123) 456-7890, 123-456-7890, 1234567890, +44 20 7946 0958
           const phonePattern =
-            /^[\+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{1,4}[-\s\.]?[0-9]{0,9}$/;
+            /^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,4}[-\s.]?[0-9]{0,9}$/;
           return phonePattern.test(value);
         },
         defaultMessage(args: ValidationArguments) {

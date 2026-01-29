@@ -30,7 +30,7 @@ export class AppService {
         database: 'connected',
         responseTime,
       };
-    } catch (error) {
+    } catch {
       const responseTime = Date.now() - startTime;
 
       return {
