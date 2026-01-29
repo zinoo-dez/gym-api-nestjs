@@ -12,6 +12,31 @@ export class AppController {
     return this.appService.getHello();
   }
 
+  @Get('test')
+  @ApiOperation({ summary: 'Simple test endpoint for deployment verification' })
+  @ApiResponse({
+    status: 200,
+    description: 'Test successful',
+    schema: {
+      type: 'object',
+      properties: {
+        message: {
+          type: 'string',
+          example: 'Hello World! Deployment is working.',
+        },
+        status: { type: 'string', example: 'success' },
+        timestamp: { type: 'string', example: '2026-01-29T12:00:00.000Z' },
+      },
+    },
+  })
+  test(): { message: string; status: string; timestamp: string } {
+    return {
+      message: 'Hello World! Deployment is working.',
+      status: 'success',
+      timestamp: new Date().toISOString(),
+    };
+  }
+
   @Get('health')
   @ApiOperation({ summary: 'Health check endpoint' })
   @ApiResponse({
