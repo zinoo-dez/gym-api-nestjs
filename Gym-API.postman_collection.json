@@ -280,7 +280,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"phone\": \"+1234567899\",\n  \"address\": \"456 New St, City, State 12345\"\n}"
+                            "raw": "{\n  \"phone\": \"+1234567899\"\n}"
                         },
                         "url": {
                             "raw": "{{baseUrl}}/members/{{memberId}}",
@@ -472,7 +472,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"specializations\": [\"Yoga\", \"Pilates\", \"Meditation\"],\n  \"isAvailable\": true\n}"
+                            "raw": "{\n  \"specializations\": [\"Yoga\", \"Pilates\", \"Meditation\"]\n}"
                         },
                         "url": {
                             "raw": "{{baseUrl}}/trainers/{{trainerId}}",
