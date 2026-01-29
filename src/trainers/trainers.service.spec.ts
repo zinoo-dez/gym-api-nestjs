@@ -79,7 +79,7 @@ describe('TrainersService', () => {
       };
 
       mockPrismaService.user.findUnique.mockResolvedValue(null);
-      mockPrismaService.$transaction.mockImplementation(async (callback) => {
+      mockPrismaService.$transaction.mockImplementation((callback) => {
         return callback(mockPrismaService);
       });
       mockPrismaService.user.create.mockResolvedValue(mockUser);

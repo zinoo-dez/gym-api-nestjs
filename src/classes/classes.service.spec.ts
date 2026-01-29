@@ -11,7 +11,6 @@ import { BookingStatus } from '@prisma/client';
 
 describe('ClassesService', () => {
   let service: ClassesService;
-  let prisma: PrismaService;
 
   const mockCacheManager = {
     get: jest.fn(),

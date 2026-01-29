@@ -52,9 +52,9 @@ export class PrismaService
     this.logger.log('Disconnected from database');
   }
 
-  async enableShutdownHooks(app: any) {
-    process.on('beforeExit', async () => {
-      await app.close();
+  enableShutdownHooks(app: any): void {
+    process.on('beforeExit', () => {
+      void app.close();
     });
   }
 }

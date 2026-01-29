@@ -6,7 +6,6 @@ import { WorkoutGoal } from '@prisma/client';
 
 describe('WorkoutPlansService', () => {
   let service: WorkoutPlansService;
-  let prisma: PrismaService;
 
   const mockPrismaService = {
     member: {
@@ -461,7 +460,7 @@ describe('WorkoutPlansService', () => {
       });
 
       // Mock transaction to execute the callback immediately
-      mockPrismaService.$transaction.mockImplementation(async (callback) => {
+      mockPrismaService.$transaction.mockImplementation((callback) => {
         const tx = {
           exercise: mockPrismaService.exercise,
           workoutPlan: mockPrismaService.workoutPlan,

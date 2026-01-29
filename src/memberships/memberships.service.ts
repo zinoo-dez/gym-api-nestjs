@@ -62,7 +62,7 @@ export class MembershipsService {
     });
 
     // Invalidate cache when a new plan is created
-    await this.invalidatePlansCache();
+    this.invalidatePlansCache();
 
     return this.toPlanResponseDto(plan);
   }
@@ -196,7 +196,7 @@ export class MembershipsService {
     });
 
     // Invalidate cache when a plan is updated
-    await this.invalidatePlansCache();
+    this.invalidatePlansCache();
 
     return this.toPlanResponseDto(updatedPlan);
   }
@@ -425,7 +425,7 @@ export class MembershipsService {
   /**
    * Invalidate all membership plans cache entries
    */
-  private async invalidatePlansCache(): Promise<void> {
+  private invalidatePlansCache(): void {
     try {
       // Since cache-manager doesn't provide a direct way to delete by pattern,
       // we'll need to track keys or use a simpler approach

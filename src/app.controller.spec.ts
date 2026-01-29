@@ -5,7 +5,6 @@ import { PrismaService } from './prisma/prisma.service';
 
 describe('AppController', () => {
   let appController: AppController;
-  let appService: AppService;
   let prismaService: PrismaService;
 
   beforeEach(async () => {
@@ -25,7 +24,6 @@ describe('AppController', () => {
     }).compile();
 
     appController = app.get<AppController>(AppController);
-    appService = app.get<AppService>(AppService);
     prismaService = app.get<PrismaService>(PrismaService);
   });
 

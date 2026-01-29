@@ -80,7 +80,7 @@ export class ClassesService {
     });
 
     // Invalidate cache when a new class is created
-    await this.invalidateClassesCache();
+    this.invalidateClassesCache();
 
     return this.toResponseDto(newClass);
   }
@@ -290,7 +290,7 @@ export class ClassesService {
     });
 
     // Invalidate cache when a class is updated
-    await this.invalidateClassesCache();
+    this.invalidateClassesCache();
 
     return this.toResponseDto(updatedClass);
   }
@@ -315,7 +315,7 @@ export class ClassesService {
     });
 
     // Invalidate cache when a class is deactivated
-    await this.invalidateClassesCache();
+    this.invalidateClassesCache();
   }
 
   async bookClass(bookDto: BookClassDto): Promise<ClassBookingResponseDto> {
@@ -394,7 +394,7 @@ export class ClassesService {
     }
 
     // Invalidate cache when a booking is made (affects available slots)
-    await this.invalidateClassesCache();
+    this.invalidateClassesCache();
 
     return this.toBookingResponseDto(booking);
   }
@@ -423,7 +423,7 @@ export class ClassesService {
     });
 
     // Invalidate cache when a booking is cancelled (affects available slots)
-    await this.invalidateClassesCache();
+    this.invalidateClassesCache();
   }
 
   async hasCapacity(classId: string): Promise<boolean> {
@@ -521,7 +521,7 @@ export class ClassesService {
   /**
    * Invalidate all class schedules cache entries
    */
-  private async invalidateClassesCache(): Promise<void> {
+  private invalidateClassesCache(): void {
     try {
       // Since cache-manager doesn't provide a direct way to delete by pattern,
       // we'll need to track keys or use a simpler approach

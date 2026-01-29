@@ -16,7 +16,7 @@ export function IsPastDate(validationOptions?: ValidationOptions) {
       propertyName: propertyName,
       options: validationOptions,
       validator: {
-        validate(value: any, _args: ValidationArguments) {
+        validate(value: any) {
           if (!value) {
             return true; // Allow empty values (use @IsNotEmpty if required)
           }
