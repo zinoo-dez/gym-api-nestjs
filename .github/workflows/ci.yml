@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   test:
@@ -14,7 +14,11 @@ jobs:
       postgres:
         image: postgres:14
         env:
+          POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: gym_test
+        ports:
+          - 5432:5432
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -22,32 +26,32 @@ jobs:
           --health-retries 5
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Use Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: 'latest'
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'latest'
 
-    - name: Install dependencies
-      run: npm ci
+      - name: Install dependencies
+        run: npm ci
 
-    - name: Lint
-      run: npm run lint
+      - name: Lint
+        run: npm run lint
 
-    # - name: Run unit tests
-    #   run: npm run test
+      # - name: Run unit tests
+      #   run: npm run test
 
-    # - name: Run e2e tests
-    #   run: npm run test:e2e
-    #   env:
-    #     DATABASE_URL: ${{ secrets.DATABASE_URL }}
-    #     JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      # - name: Run e2e tests
+      #   run: npm run test:e2e
+      #   env:
+      #     DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      #     JWT_SECRET: ${{ secrets.JWT_SECRET }}
 
-    - name: Build
-      run: npm run build
+      - name: Build
+        run: npm run build
 
-    - name: Run Prisma migrate
-      run: npx prisma migrate deploy
-      env:
-        DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      - name: Run Prisma migrate
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/gym_test
