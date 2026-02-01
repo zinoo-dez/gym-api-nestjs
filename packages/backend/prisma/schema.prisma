@@ -1,0 +1,274 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+}
+
+// Enums
+enum Role {
+    ADMIN
+    TRAINER
+    MEMBER
+
+    @@map("role")
+}
+
+enum MembershipType {
+    BASIC
+    PREMIUM
+    VIP
+
+    @@map("membership_type")
+}
+
+enum MembershipStatus {
+    ACTIVE
+    EXPIRED
+    CANCELLED
+
+    @@map("membership_status")
+}
+
+enum BookingStatus {
+    CONFIRMED
+    CANCELLED
+    ATTENDED
+
+    @@map("booking_status")
+}
+
+enum AttendanceType {
+    GYM_VISIT
+    CLASS_ATTENDANCE
+
+    @@map("attendance_type")
+}
+
+enum WorkoutGoal {
+    WEIGHT_LOSS
+    MUSCLE_GAIN
+    ENDURANCE
+    FLEXIBILITY
+
+    @@map("workout_goal")
+}
+
+// User model for authentication
+model User {
+    id        String   @id @default(uuid())
+    email     String   @unique
+    password  String
+    role      Role     @default(MEMBER)
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
+
+    member  Member?
+    trainer Trainer?
+
+    @@map("users")
+}
+
+// Member model
+model Member {
+    id          String    @id @default(uuid())
+    userId      String    @unique @map("user_id")
+    user        User      @relation(fields: [userId], references: [id])
+    firstName   String    @map("first_name")
+    lastName    String    @map("last_name")
+    phone       String?
+    dateOfBirth DateTime? @map("date_of_birth")
+    isActive    Boolean   @default(true) @map("is_active")
+    createdAt   DateTime  @default(now()) @map("created_at")
+    updatedAt   DateTime  @updatedAt @map("updated_at")
+
+    memberships   Membership[]
+    attendance    Attendance[]
+    workoutPlans  WorkoutPlan[]
+    classBookings ClassBooking[]
+
+    @@index([userId])
+    @@index([isActive])
+    @@map("members")
+}
+
+// Trainer model
+model Trainer {
+    id              String   @id @default(uuid())
+    userId          String   @unique @map("user_id")
+    user            User     @relation(fields: [userId], references: [id])
+    firstName       String   @map("first_name")
+    lastName        String   @map("last_name")
+    specializations String[]
+    certifications  String[]
+    isActive        Boolean  @default(true) @map("is_active")
+    createdAt       DateTime @default(now()) @map("created_at")
+    updatedAt       DateTime @updatedAt @map("updated_at")
+
+    classes      Class[]
+    workoutPlans WorkoutPlan[]
+
+    @@index([userId])
+    @@index([isActive])
+    @@map("trainers")
+}
+
+// Membership plan model
+model MembershipPlan {
+    id           String         @id @default(uuid())
+    name         String         @unique
+    description  String?
+    durationDays Int            @map("duration_days")
+    price        Decimal        @db.Decimal(10, 2)
+    type         MembershipType
+    features     String[]
+    isActive     Boolean        @default(true) @map("is_active")
+    createdAt    DateTime       @default(now()) @map("created_at")
+    updatedAt    DateTime       @updatedAt @map("updated_at")
+
+    memberships Membership[]
+
+    @@index([type])
+    @@index([isActive])
+    @@map("membership_plans")
+}
+
+// Member's membership subscription
+model Membership {
+    id        String           @id @default(uuid())
+    memberId  String           @map("member_id")
+    member    Member           @relation(fields: [memberId], references: [id])
+    planId    String           @map("plan_id")
+    plan      MembershipPlan   @relation(fields: [planId], references: [id])
+    startDate DateTime         @map("start_date")
+    endDate   DateTime         @map("end_date")
+    status    MembershipStatus @default(ACTIVE)
+    createdAt DateTime         @default(now()) @map("created_at")
+    updatedAt DateTime         @updatedAt @map("updated_at")
+
+    @@index([memberId, status])
+    @@index([status])
+    @@index([endDate])
+    @@map("memberships")
+}
+
+// Class model
+model Class {
+    id          String   @id @default(uuid())
+    name        String
+    description String?
+    trainerId   String   @map("trainer_id")
+    trainer     Trainer  @relation(fields: [trainerId], references: [id])
+    schedule    DateTime
+    duration    Int // in minutes
+    capacity    Int
+    classType   String   @map("class_type")
+    isActive    Boolean  @default(true) @map("is_active")
+    createdAt   DateTime @default(now()) @map("created_at")
+    updatedAt   DateTime @updatedAt @map("updated_at")
+
+    bookings   ClassBooking[]
+    attendance Attendance[]
+
+    @@index([trainerId, schedule])
+    @@index([schedule])
+    @@index([isActive])
+    @@map("classes")
+}
+
+// Class booking
+model ClassBooking {
+    id        String        @id @default(uuid())
+    memberId  String        @map("member_id")
+    member    Member        @relation(fields: [memberId], references: [id])
+    classId   String        @map("class_id")
+    class     Class         @relation(fields: [classId], references: [id])
+    status    BookingStatus @default(CONFIRMED)
+    createdAt DateTime      @default(now()) @map("created_at")
+    updatedAt DateTime      @updatedAt @map("updated_at")
+
+    @@unique([memberId, classId])
+    @@index([classId, status])
+    @@index([memberId])
+    @@map("class_bookings")
+}
+
+// Attendance tracking
+model Attendance {
+    id           String         @id @default(uuid())
+    memberId     String         @map("member_id")
+    member       Member         @relation(fields: [memberId], references: [id])
+    classId      String?        @map("class_id")
+    class        Class?         @relation(fields: [classId], references: [id])
+    checkInTime  DateTime       @default(now()) @map("check_in_time")
+    checkOutTime DateTime?      @map("check_out_time")
+    type         AttendanceType
+    createdAt    DateTime       @default(now()) @map("created_at")
+
+    @@index([memberId, checkInTime])
+    @@index([classId])
+    @@index([type])
+    @@map("attendance")
+}
+
+// Workout plan
+model WorkoutPlan {
+    id          String      @id @default(uuid())
+    name        String
+    description String?
+    memberId    String      @map("member_id")
+    member      Member      @relation(fields: [memberId], references: [id])
+    trainerId   String      @map("trainer_id")
+    trainer     Trainer     @relation(fields: [trainerId], references: [id])
+    goal        WorkoutGoal
+    isActive    Boolean     @default(true) @map("is_active")
+    createdAt   DateTime    @default(now()) @map("created_at")
+    updatedAt   DateTime    @updatedAt @map("updated_at")
+
+    exercises Exercise[]
+    versions  WorkoutPlanVersion[]
+
+    @@index([memberId, isActive])
+    @@index([trainerId])
+    @@map("workout_plans")
+}
+
+// Workout plan version history
+model WorkoutPlanVersion {
+    id            String      @id @default(uuid())
+    workoutPlanId String      @map("workout_plan_id")
+    workoutPlan   WorkoutPlan @relation(fields: [workoutPlanId], references: [id], onDelete: Cascade)
+    version       Int
+    name          String
+    description   String?
+    goal          WorkoutGoal
+    exercises     Json // Store exercises as JSON snapshot
+    createdAt     DateTime    @default(now()) @map("created_at")
+
+    @@unique([workoutPlanId, version])
+    @@index([workoutPlanId, version])
+    @@map("workout_plan_versions")
+}
+
+// Exercise in workout plan
+model Exercise {
+    id            String      @id @default(uuid())
+    workoutPlanId String      @map("workout_plan_id")
+    workoutPlan   WorkoutPlan @relation(fields: [workoutPlanId], references: [id], onDelete: Cascade)
+    name          String
+    description   String?
+    sets          Int
+    reps          Int
+    duration      Int? // in seconds
+    targetMuscles String[]    @map("target_muscles")
+    order         Int
+    createdAt     DateTime    @default(now()) @map("created_at")
+    updatedAt     DateTime    @updatedAt @map("updated_at")
+
+    @@index([workoutPlanId, order])
+    @@map("exercises")
+}

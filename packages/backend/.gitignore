@@ -1,0 +1,14 @@
+# Package-specific ignores
+/dist
+/node_modules
+/build
+/generated/prisma
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Logs
+logs/
+*.log

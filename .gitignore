@@ -1,15 +1,24 @@
-node_modules
+# Dependencies
+node_modules/
+**/node_modules/
 
+# Build outputs
+dist/
+dist-ssr/
+build/
+out/
+.next/
+.turbo/
+.vite/
+.vercel/
+
+# Compiled output
 /generated/prisma
-
-# compiled output
-/dist
-/node_modules
-/build
+**/generated/prisma
 
 # Logs
-logs
 *.log
+logs/
 npm-debug.log*
 pnpm-debug.log*
 yarn-debug.log*
@@ -18,49 +27,63 @@ lerna-debug.log*
 
 # OS
 .DS_Store
+Thumbs.db
 
 # Tests
-/coverage
-/.nyc_output
+coverage/
+.nyc_output/
 
 # IDEs and editors
-/.idea
+.idea/
 .project
 .classpath
 .c9/
 *.launch
 .settings/
 *.sublime-workspace
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.swp
+*.swo
 
-# IDE - VSCode
+# VS Code specific
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+.history/
 
-# dotenv environment variable files
+# Environment variables
 .env
-.env.development.local
-.env.test.local
-.env.production.local
-.env.local
+.env.*
+!.env.example
+*.local
 
-# temp directory
-.temp
-.tmp
+# Temp directories
+.temp/
+.tmp/
+*.bak
+*.tmp
 
 # Runtime data
-pids
+pids/
 *.pid
 *.seed
 *.pid.lock
 
-# Diagnostic reports (https://nodejs.org/api/report.html)
+# Diagnostic reports
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
-# Miscellaneous
-*.swp
-*.swo
-*.bak
-*.tmp
+# Misc
+*.tsbuildinfo
+
+
+.secrets
+pnpm-install-verfication.log
+pnpm-install.log
+pnpm-lock.yaml
+pnpm-workspace.yaml

@@ -1,0 +1,14 @@
+# Package-specific ignores
+/dist
+/dist-ssr
+/node_modules
+/.vite
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Logs
+logs/
+*.log
