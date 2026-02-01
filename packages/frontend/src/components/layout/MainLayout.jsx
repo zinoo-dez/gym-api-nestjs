@@ -135,13 +135,13 @@ export function MainLayout() {
 
   // Navigation items
   const navItems = [
-    { path: "/", label: "Dashboard", icon: "🏠" },
-    { path: "/members", label: "Members", icon: "👥" },
-    { path: "/trainers", label: "Trainers", icon: "💪" },
-    { path: "/classes", label: "Classes", icon: "📅" },
-    { path: "/memberships", label: "Memberships", icon: "💳" },
-    { path: "/attendance", label: "Attendance", icon: "✓" },
-    { path: "/workouts", label: "Workouts", icon: "🏋️" },
+    { path: "/dashboard", label: "Dashboard", icon: "🏠" },
+    { path: "/dashboard/members", label: "Members", icon: "👥" },
+    { path: "/dashboard/trainers", label: "Trainers", icon: "💪" },
+    { path: "/dashboard/classes", label: "Classes", icon: "📅" },
+    { path: "/dashboard/memberships", label: "Memberships", icon: "💳" },
+    { path: "/dashboard/attendance", label: "Attendance", icon: "✓" },
+    { path: "/dashboard/workouts", label: "Workouts", icon: "🏋️" },
   ];
 
   return (
@@ -166,7 +166,7 @@ export function MainLayout() {
                 <NavLink
                   key={item.path}
                   to={item.path}
-                  end={item.path === "/"}
+                  end={item.path === "/dashboard"}
                   className={({ isActive }) =>
                     `px-3 xl:px-4 py-2 rounded-md text-xs xl:text-sm font-medium transition-colors whitespace-nowrap min-h-[44px] flex items-center ${
                       isActive
@@ -356,7 +356,7 @@ export function MainLayout() {
                     <NavLink
                       key={item.path}
                       to={item.path}
-                      end={item.path === "/"}
+                      end={item.path === "/dashboard"}
                       onClick={closeMobileMenu}
                       className={({ isActive }) =>
                         `flex items-center px-4 py-3 rounded-lg text-base font-medium min-h-[48px] mb-1 transition-colors ${

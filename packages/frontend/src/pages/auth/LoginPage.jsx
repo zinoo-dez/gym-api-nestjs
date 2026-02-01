@@ -65,7 +65,7 @@ export function LoginPage() {
     try {
       await login(result.data);
       // Redirect to dashboard on success
-      navigate("/");
+      navigate("/dashboard");
     } catch (error) {
       // Handle API errors
       console.error("Login error:", error);
@@ -85,12 +85,21 @@ export function LoginPage() {
   };
 
   return (
-    <AnimatedPage className="min-h-screen bg-gray-50 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-8">
-      <div className="max-w-md w-full">
-        <div className="bg-white rounded-lg shadow-md p-6 sm:p-8">
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6 text-center">
-            Login to Gym Management
-          </h1>
+    <AnimatedPage className="min-h-screen bg-zinc-950 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-8 relative overflow-hidden">
+      {/* Abstract Background Glows */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full z-0 pointer-events-none">
+        <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-blue-600/10 blur-[120px] rounded-full" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-indigo-600/10 blur-[120px] rounded-full" />
+      </div>
+
+      <div className="max-w-md w-full relative z-10">
+        <div className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 sm:p-10 shadow-2xl">
+          <div className="text-center mb-8">
+            <h1 className="text-2xl sm:text-3xl font-black text-white italic uppercase tracking-tighter">
+              Welcome <span className="text-blue-500">Back</span>
+            </h1>
+            <p className="text-gray-500 text-sm mt-2">Enter your credentials to access your premier portal</p>
+          </div>
           
           {apiError && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md" role="alert" aria-live="assertive">
@@ -100,16 +109,17 @@ export function LoginPage() {
           
           <form onSubmit={handleSubmit} noValidate aria-label="Login form">
             <Input
-              label="Email"
+              label="Email Address"
               name="email"
               type="email"
               value={formData.email}
               onChange={handleChange}
               error={errors.email}
-              placeholder="Enter your email"
+              placeholder="name@example.com"
               required
               disabled={isLoading}
               autoComplete="email"
+              variant="dark"
             />
             
             <Input
@@ -119,31 +129,35 @@ export function LoginPage() {
               value={formData.password}
               onChange={handleChange}
               error={errors.password}
-              placeholder="Enter your password"
+              placeholder="••••••••"
               required
               disabled={isLoading}
               autoComplete="current-password"
+              variant="dark"
             />
             
             <Button
               type="submit"
-              variant="primary"
+              variant="premium"
               isLoading={isLoading}
               disabled={isLoading}
-              className="w-full"
+              className="w-full mt-4"
               aria-label="Login to your account"
             >
-              Login
+              Sign In
             </Button>
           </form>
           
-          <div className="mt-4 sm:mt-6 text-center">
-            <Link
-              to="/register"
-              className="text-blue-600 hover:text-blue-700 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded font-medium text-xs sm:text-sm"
-            >
-              Don't have an account? Register
-            </Link>
+          <div className="mt-8 text-center">
+            <p className="text-gray-500 text-sm">
+              New to Gym Premier?{" "}
+              <Link
+                to="/register"
+                className="text-blue-400 hover:text-blue-300 font-bold transition-colors"
+              >
+                Join Now
+              </Link>
+            </p>
           </div>
         </div>
       </div>

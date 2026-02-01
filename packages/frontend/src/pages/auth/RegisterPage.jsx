@@ -20,7 +20,7 @@ export function RegisterPage() {
     confirmPassword: "",
     firstName: "",
     lastName: "",
-    role: "member",
+    role: "MEMBER",
   });
   
   const [errors, setErrors] = useState({});
@@ -66,10 +66,10 @@ export function RegisterPage() {
     setIsLoading(true);
     
     try {
-      const { confirmPassword, ...registrationData } = result.data;
+      const { confirmPassword: _confirmPassword, ...registrationData } = result.data;
       await register(registrationData);
       // Auto-login happens in register function, redirect to dashboard
-      navigate("/");
+      navigate("/dashboard");
     } catch (error) {
       // Handle API errors
       console.error("Registration error:", error);
@@ -100,12 +100,21 @@ export function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-8">
-      <div className="max-w-md w-full">
-        <div className="bg-white rounded-lg shadow-md p-6 sm:p-8">
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6 text-center">
-            Create Your Account
-          </h1>
+    <div className="min-h-screen bg-zinc-950 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-8 relative overflow-hidden">
+      {/* Abstract Background Glows */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full z-0 pointer-events-none">
+        <div className="absolute top-[-5%] left-[-10%] w-[600px] h-[600px] bg-blue-600/10 blur-[130px] rounded-full" />
+        <div className="absolute bottom-[0%] right-[-10%] w-[500px] h-[500px] bg-indigo-600/10 blur-[120px] rounded-full" />
+      </div>
+
+      <div className="max-w-xl w-full relative z-10">
+        <div className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 sm:p-10 shadow-2xl">
+          <div className="text-center mb-8">
+            <h1 className="text-2xl sm:text-3xl font-black text-white italic uppercase tracking-tighter">
+              Join <span className="text-blue-500">The Elite</span>
+            </h1>
+            <p className="text-gray-500 text-sm mt-2">Complete your profile to start your premier journey</p>
+          </div>
           
           {apiError && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
@@ -114,73 +123,82 @@ export function RegisterPage() {
           )}
           
           <form onSubmit={handleSubmit}>
-            <Input
-              label="First Name"
-              name="firstName"
-              type="text"
-              value={formData.firstName}
-              onChange={handleChange}
-              error={errors.firstName}
-              placeholder="Enter your first name"
-              required
-              disabled={isLoading}
-            />
+            <div className="grid sm:grid-cols-2 gap-4">
+              <Input
+                label="First Name"
+                name="firstName"
+                type="text"
+                value={formData.firstName}
+                onChange={handleChange}
+                error={errors.firstName}
+                placeholder="John"
+                required
+                disabled={isLoading}
+                variant="dark"
+              />
+              
+              <Input
+                label="Last Name"
+                name="lastName"
+                type="text"
+                value={formData.lastName}
+                onChange={handleChange}
+                error={errors.lastName}
+                placeholder="Doe"
+                required
+                disabled={isLoading}
+                variant="dark"
+              />
+            </div>
             
             <Input
-              label="Last Name"
-              name="lastName"
-              type="text"
-              value={formData.lastName}
-              onChange={handleChange}
-              error={errors.lastName}
-              placeholder="Enter your last name"
-              required
-              disabled={isLoading}
-            />
-            
-            <Input
-              label="Email"
+              label="Email Address"
               name="email"
               type="email"
               value={formData.email}
               onChange={handleChange}
               error={errors.email}
-              placeholder="Enter your email"
+              placeholder="john@example.com"
               required
               disabled={isLoading}
+              variant="dark"
             />
             
-            <Input
-              label="Password"
-              name="password"
-              type="password"
-              value={formData.password}
-              onChange={handleChange}
-              error={errors.password}
-              placeholder="Enter your password (min 6 characters)"
-              required
-              disabled={isLoading}
-            />
+            <div className="grid sm:grid-cols-2 gap-4">
+              <Input
+                label="Password"
+                name="password"
+                type="password"
+                value={formData.password}
+                onChange={handleChange}
+                error={errors.password}
+                placeholder="••••••••"
+                required
+                disabled={isLoading}
+                variant="dark"
+              />
+              
+              <Input
+                label="Confirm Password"
+                name="confirmPassword"
+                type="password"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                error={errors.confirmPassword}
+                placeholder="••••••••"
+                required
+                disabled={isLoading}
+                variant="dark"
+              />
+            </div>
             
-            <Input
-              label="Confirm Password"
-              name="confirmPassword"
-              type="password"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              error={errors.confirmPassword}
-              placeholder="Confirm your password"
-              required
-              disabled={isLoading}
-            />
-            
-            <div className="mb-4">
+            <div className="mb-6">
               <label
                 htmlFor="role"
-                className="block text-sm font-medium text-gray-700 mb-1"
+                className="block text-sm font-bold text-gray-400 mb-1 uppercase tracking-wider"
               >
-                Role
-                <span className="text-red-500 ml-1">*</span>
+                Select Your Role
+                {<span className="text-red-500 ml-1">*</span>}
               </label>
               <select
                 id="role"
@@ -188,15 +206,14 @@ export function RegisterPage() {
                 value={formData.role}
                 onChange={handleChange}
                 disabled={isLoading}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed text-sm sm:text-base min-h-[44px] sm:min-h-0"
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 disabled:bg-gray-800 disabled:cursor-not-allowed text-sm sm:text-base transition-all"
               >
-                <option value="member">Member</option>
-                <option value="trainer">Trainer</option>
-                <option value="staff">Staff</option>
-                <option value="admin">Admin</option>
+                <option value="MEMBER" className="bg-zinc-900">Member</option>
+                <option value="TRAINER" className="bg-zinc-900">Trainer</option>
+                <option value="ADMIN" className="bg-zinc-900">Admin</option>
               </select>
               {errors.role && (
-                <p className="mt-1 text-sm text-red-600" role="alert">
+                <p className="mt-1 text-sm text-red-600 font-medium" role="alert">
                   {errors.role}
                 </p>
               )}
@@ -204,22 +221,25 @@ export function RegisterPage() {
             
             <Button
               type="submit"
-              variant="primary"
+              variant="premium"
               isLoading={isLoading}
               disabled={isLoading}
               className="w-full"
             >
-              Register
+              Join The Elite
             </Button>
           </form>
           
-          <div className="mt-4 sm:mt-6 text-center">
-            <Link
-              to="/login"
-              className="text-blue-600 hover:text-blue-700 font-medium text-xs sm:text-sm"
-            >
-              Already have an account? Login
-            </Link>
+          <div className="mt-8 text-center">
+            <p className="text-gray-500 text-sm">
+              Already a member?{" "}
+              <Link
+                to="/login"
+                className="text-blue-400 hover:text-blue-300 font-bold transition-colors"
+              >
+                Sign In
+              </Link>
+            </p>
           </div>
         </div>
       </div>

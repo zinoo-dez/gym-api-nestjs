@@ -15,6 +15,7 @@ import { RegisterPage } from "../pages/auth/RegisterPage.jsx";
 
 // Dashboard - loaded eagerly as it's the default protected route
 import { DashboardPage } from "../pages/DashboardPage.jsx";
+import { LandingPage } from "../pages/LandingPage.jsx";
 
 // Lazy-loaded pages for code splitting
 // Member pages
@@ -131,7 +132,11 @@ const NotFoundPage = lazy(() =>
  * Defines all routes with authentication protection and nested layouts
  */
 export const router = createBrowserRouter([
-  // Public routes (authentication)
+  // Public routes
+  {
+    path: "/",
+    element: <LandingPage />,
+  },
   {
     path: "/login",
     element: <LoginPage />,
@@ -143,14 +148,14 @@ export const router = createBrowserRouter([
 
   // Protected routes (require authentication)
   {
-    path: "/",
+    path: "/dashboard",
     element: (
       <ProtectedRoute>
         <MainLayout />
       </ProtectedRoute>
     ),
     children: [
-      // Dashboard
+      // Dashboard Home
       {
         index: true,
         element: <DashboardPage />,

@@ -28,6 +28,7 @@ export function DashboardPage() {
   });
 
   // Calculate metrics
+  // Calculate metrics with safety checks
   const totalMembers = membersData?.data?.length || 0;
   const activeMembers =
     membersData?.data?.filter((m) => m.status === "active").length || 0;
@@ -260,12 +261,12 @@ export function DashboardPage() {
             >
               <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
                 <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-semibold text-xs sm:text-sm flex-shrink-0">
-                  {record.member?.firstName?.[0]}
-                  {record.member?.lastName?.[0]}
+                  {record.member?.firstName?.[0] || "?"}
+                  {record.member?.lastName?.[0] || "?"}
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="font-medium text-sm sm:text-base text-gray-900 truncate">
-                    {record.member?.firstName} {record.member?.lastName}
+                    {record.member?.firstName || "Unknown"} {record.member?.lastName || ""}
                   </p>
                   <p className="text-xs sm:text-sm text-gray-600 truncate">
                     {record.type === "gym_entry"
@@ -275,10 +276,10 @@ export function DashboardPage() {
                 </div>
               </div>
               <div className="text-xs sm:text-sm text-gray-500 flex-shrink-0">
-                {new Date(record.checkInTime).toLocaleTimeString([], {
+                {record.checkInTime ? new Date(record.checkInTime).toLocaleTimeString([], {
                   hour: "2-digit",
                   minute: "2-digit",
-                })}
+                }) : "--:--"}
               </div>
             </div>
           ))}
