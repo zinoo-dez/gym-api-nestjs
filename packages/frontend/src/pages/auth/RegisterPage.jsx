@@ -9,6 +9,8 @@ import { useAuth } from "../../context/AuthContext.jsx";
 import { registerSchema } from "../../schemas/auth.js";
 import { Input } from "../../components/common/Input.jsx";
 import { Button } from "../../components/common/Button.jsx";
+import { AnimatedPage } from "../../components/animated/index.js";
+import { motion } from "framer-motion";
 
 export function RegisterPage() {
   const navigate = useNavigate();
@@ -87,12 +89,12 @@ export function RegisterPage() {
           });
           setErrors(fieldErrors);
         } else {
-          setApiError("Invalid registration data. Please check your inputs.");
+          setApiError("Invalid submission. Verify all protocols.");
         }
       } else if (error.code === "ECONNABORTED" || !error.response) {
-        setApiError("Connection failed. Please check your internet connection.");
+        setApiError("Connection failed. Check your uplink.");
       } else {
-        setApiError("An error occurred during registration. Please try again.");
+        setApiError("Internal system error. Retry later.");
       }
     } finally {
       setIsLoading(false);
@@ -100,30 +102,49 @@ export function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-8 relative overflow-hidden">
-      {/* Abstract Background Glows */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full z-0 pointer-events-none">
-        <div className="absolute top-[-5%] left-[-10%] w-[600px] h-[600px] bg-blue-600/10 blur-[130px] rounded-full" />
-        <div className="absolute bottom-[0%] right-[-10%] w-[500px] h-[500px] bg-indigo-600/10 blur-[120px] rounded-full" />
+    <AnimatedPage className="min-h-screen bg-[#050505] flex items-center justify-center px-4 py-12 relative overflow-hidden">
+      {/* Background elements */}
+      <div className="absolute inset-0 z-0">
+        <div className="absolute top-[-5%] left-[-10%] w-[700px] h-[700px] bg-blue-600/10 blur-[130px] rounded-full" />
+        <div className="absolute bottom-[0%] right-[-10%] w-[600px] h-[600px] bg-indigo-600/10 blur-[130px] rounded-full" />
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] pointer-events-none" />
       </div>
 
-      <div className="max-w-xl w-full relative z-10">
-        <div className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 sm:p-10 shadow-2xl">
-          <div className="text-center mb-8">
-            <h1 className="text-2xl sm:text-3xl font-black text-white italic uppercase tracking-tighter">
-              Join <span className="text-blue-500">The Elite</span>
+      <div className="max-w-[580px] w-full relative z-10">
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7 }}
+          className="glass-morphism rounded-[3rem] p-8 sm:p-16"
+        >
+          <div className="mb-12 text-center text-balance">
+            <Link to="/" className="inline-flex items-center gap-2 mb-10 group">
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-110 transition-transform">
+                <span className="text-white font-black text-sm italic">G</span>
+              </div>
+              <span className="text-sm font-black uppercase italic tracking-widest text-gray-500 group-hover:text-white transition-colors">Gym Premier</span>
+            </Link>
+            <h1 className="text-4xl sm:text-5xl font-black text-white italic uppercase tracking-tighter mb-4">
+              Join <span className="text-gradient">The Elite</span>
             </h1>
-            <p className="text-gray-500 text-sm mt-2">Complete your profile to start your premier journey</p>
+            <p className="text-gray-500 text-[10px] font-black uppercase tracking-[0.2em]">Initiate your transformation protocol</p>
           </div>
           
           {apiError && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
-              <p className="text-xs sm:text-sm text-red-800">{apiError}</p>
-            </div>
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="mb-10 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl"
+            >
+              <p className="text-xs text-red-400 font-bold flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
+                {apiError}
+              </p>
+            </motion.div>
           )}
           
           <form onSubmit={handleSubmit}>
-            <div className="grid sm:grid-cols-2 gap-4">
+            <div className="grid sm:grid-cols-2 gap-6">
               <Input
                 label="First Name"
                 name="firstName"
@@ -152,7 +173,7 @@ export function RegisterPage() {
             </div>
             
             <Input
-              label="Email Address"
+              label="Secure Email Uplink"
               name="email"
               type="email"
               value={formData.email}
@@ -164,9 +185,9 @@ export function RegisterPage() {
               variant="dark"
             />
             
-            <div className="grid sm:grid-cols-2 gap-4">
+            <div className="grid sm:grid-cols-2 gap-6">
               <Input
-                label="Password"
+                label="Passphrase"
                 name="password"
                 type="password"
                 value={formData.password}
@@ -179,7 +200,7 @@ export function RegisterPage() {
               />
               
               <Input
-                label="Confirm Password"
+                label="Verify Passphrase"
                 name="confirmPassword"
                 type="password"
                 value={formData.confirmPassword}
@@ -192,28 +213,35 @@ export function RegisterPage() {
               />
             </div>
             
-            <div className="mb-6">
+            <div className="mb-10">
               <label
                 htmlFor="role"
-                className="block text-sm font-bold text-gray-400 mb-1 uppercase tracking-wider"
+                className="block text-[10px] font-black text-gray-400 mb-3 uppercase tracking-widest px-1"
               >
-                Select Your Role
+                Specialization
                 {<span className="text-red-500 ml-1">*</span>}
               </label>
-              <select
-                id="role"
-                name="role"
-                value={formData.role}
-                onChange={handleChange}
-                disabled={isLoading}
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 disabled:bg-gray-800 disabled:cursor-not-allowed text-sm sm:text-base transition-all"
-              >
-                <option value="MEMBER" className="bg-zinc-900">Member</option>
-                <option value="TRAINER" className="bg-zinc-900">Trainer</option>
-                <option value="ADMIN" className="bg-zinc-900">Admin</option>
-              </select>
+              <div className="relative">
+                <select
+                  id="role"
+                  name="role"
+                  value={formData.role}
+                  onChange={handleChange}
+                  disabled={isLoading}
+                  className="w-full px-5 py-4 bg-white/[0.03] border border-white/10 rounded-2xl text-white shadow-sm focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500/50 appearance-none disabled:bg-gray-900 disabled:cursor-not-allowed text-sm transition-all"
+                >
+                  <option value="MEMBER" className="bg-[#0a0a0a] text-white">Elite Member</option>
+                  <option value="TRAINER" className="bg-[#0a0a0a] text-white">Master Trainer</option>
+                  <option value="ADMIN" className="bg-[#0a0a0a] text-white">System Admin</option>
+                </select>
+                <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </div>
               {errors.role && (
-                <p className="mt-1 text-sm text-red-600 font-medium" role="alert">
+                <p className="mt-2 text-[10px] text-red-500 font-bold px-1" role="alert">
                   {errors.role}
                 </p>
               )}
@@ -224,25 +252,25 @@ export function RegisterPage() {
               variant="premium"
               isLoading={isLoading}
               disabled={isLoading}
-              className="w-full"
+              className="w-full !py-5 uppercase tracking-[0.2em] font-black text-xs"
             >
-              Join The Elite
+              Initialize Profile
             </Button>
           </form>
           
-          <div className="mt-8 text-center">
-            <p className="text-gray-500 text-sm">
-              Already a member?{" "}
+          <div className="mt-12 text-center pt-8 border-t border-white/5">
+            <p className="text-gray-500 text-[10px] font-black uppercase tracking-widest">
+              Already initialized?{" "}
               <Link
                 to="/login"
-                className="text-blue-400 hover:text-blue-300 font-bold transition-colors"
+                className="text-white hover:text-blue-400 transition-colors ml-2 underline underline-offset-4 decoration-blue-500/50"
               >
-                Sign In
+                Entrance
               </Link>
             </p>
           </div>
-        </div>
+        </motion.div>
       </div>
-    </div>
+    </AnimatedPage>
   );
 }
