@@ -16,8 +16,8 @@ export function LandingPage() {
     <div className="min-h-screen bg-[#050505] text-white selection:bg-blue-500/30 selection:text-white overflow-x-hidden">
       {/* Navigation */}
       <nav className="fixed top-0 w-full z-50 bg-black/40 backdrop-blur-xl border-b border-white/5">
-        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
-          <div className="flex justify-between items-center h-24">
+        <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-20">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
                 <span className="text-white font-black text-xl italic">G</span>
@@ -44,7 +44,7 @@ export function LandingPage() {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative pt-40 pb-32 lg:pt-60 lg:pb-52 overflow-hidden">
+      <section className="relative pt-24 pb-20 lg:pt-32 lg:pb-32 overflow-hidden">
         {/* Dynamic Background */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full z-0">
           <div className="absolute top-[-10%] right-[-5%] w-[600px] h-[600px] bg-blue-600/10 blur-[130px] rounded-full animate-pulse" />
@@ -58,7 +58,7 @@ export function LandingPage() {
 
         <motion.div 
           style={{ opacity, scale }}
-          className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 relative z-10"
+          className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10"
         >
           <div className="max-w-4xl">
             <motion.div
@@ -94,8 +94,8 @@ export function LandingPage() {
       </section>
 
       {/* Stats Section */}
-      <section className="py-24 border-y border-white/5 bg-black/20">
-        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
+      <section className="py-16 border-y border-white/5 bg-black/20">
+        <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-12 sm:gap-16">
             {[
               { label: "Elite Athletes", val: "2,400+" },
@@ -120,8 +120,8 @@ export function LandingPage() {
       </section>
 
       {/* Features Grid */}
-      <section className="py-32 lg:py-52 relative">
-        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
+      <section className="py-20 lg:py-32 relative">
+        <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-end mb-20 gap-8">
             <div className="max-w-2xl">
               <h2 className="text-4xl lg:text-6xl font-black mb-6 uppercase italic tracking-tighter">Beyond Physicality</h2>
@@ -162,8 +162,8 @@ export function LandingPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 lg:py-48 relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 relative z-10">
+      <section className="py-20 lg:py-32 relative overflow-hidden">
+        <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="relative p-12 lg:p-24 rounded-[3rem] bg-gradient-to-br from-blue-600/90 to-indigo-700/90 overflow-hidden shadow-2xl">
             <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20" />
             <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-white/10 blur-[100px] rounded-full translate-x-1/2 -translate-y-1/2" />
@@ -182,8 +182,8 @@ export function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="py-20 border-t border-white/5 bg-black/40">
-        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
+      <footer className="py-16 border-t border-white/5 bg-black/40">
+        <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-12">
             <div className="flex flex-col items-center md:items-start gap-4">
               <span className="text-2xl font-black tracking-tighter uppercase italic text-white/80">Gym Premier</span>

@@ -4,11 +4,13 @@
  */
 
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 import { useMembers } from "../hooks/useMembers.js";
 import { useClasses } from "../hooks/useClasses.js";
 import { useAttendance } from "../hooks/useAttendance.js";
 import { LoadingSpinner } from "../components/common/index.js";
 import { AnimatedPage } from "../components/animated/index.js";
+import { Button } from "../components/common/Button.jsx";
 
 export function DashboardPage() {
   // Get today's date for filtering
@@ -28,7 +30,6 @@ export function DashboardPage() {
   });
 
   // Calculate metrics
-  // Calculate metrics with safety checks
   const totalMembers = membersData?.data?.length || 0;
   const activeMembers =
     membersData?.data?.filter((m) => m.status === "active").length || 0;
@@ -42,31 +43,31 @@ export function DashboardPage() {
   const quickActions = [
     {
       title: "Add Member",
-      description: "Register a new gym member",
+      description: "Register a new elite member",
       icon: "👤",
       link: "/members/new",
       color: "blue",
     },
     {
       title: "Schedule Class",
-      description: "Create a new class session",
+      description: "Create a new session",
       icon: "📅",
       link: "/classes/new",
-      color: "green",
+      color: "emerald",
     },
     {
-      title: "Record Attendance",
-      description: "Check-in a member",
+      title: "Attendance",
+      description: "Initiate daily protocol",
       icon: "✓",
       link: "/attendance",
-      color: "purple",
+      color: "indigo",
     },
     {
-      title: "Create Workout",
-      description: "Design a workout plan",
+      title: "Workout Plan",
+      description: "Design performance cycle",
       icon: "🏋️",
       link: "/workouts/new",
-      color: "orange",
+      color: "violet",
     },
   ];
 
@@ -74,219 +75,213 @@ export function DashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <LoadingSpinner />
+      <div className="flex justify-center items-center h-[60vh]">
+        <div className="relative">
+          <div className="w-16 h-16 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-[10px] font-black uppercase text-blue-500 animate-pulse">GYM</span>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <AnimatedPage className="px-2 sm:px-0">
-      <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4 sm:mb-6">Dashboard</h1>
-
-      {/* Overview Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
-        {/* Total Members */}
-        <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 border-l-4 border-blue-500">
-          <div className="flex items-center justify-between">
-            <div className="flex-1 min-w-0">
-              <p className="text-xs sm:text-sm font-medium text-gray-600 truncate">Total Members</p>
-              <p className="text-2xl sm:text-3xl font-bold text-gray-900 mt-1 sm:mt-2">
-                {totalMembers}
-              </p>
-              <p className="text-xs text-gray-500 mt-1">
-                {activeMembers} active
-              </p>
-            </div>
-            <div className="text-3xl sm:text-4xl ml-2">👥</div>
-          </div>
+    <AnimatedPage className="pb-12 text-white">
+      <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
+        <div>
+          <h1 className="text-4xl sm:text-5xl font-black italic uppercase tracking-tighter mb-2">
+            Control <span className="text-gradient">Center</span>
+          </h1>
+          <p className="text-gray-500 font-bold uppercase tracking-[0.2em] text-[10px]">System Operational // {new Date().toLocaleDateString()}</p>
         </div>
-
-        {/* Today's Classes */}
-        <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 border-l-4 border-green-500">
-          <div className="flex items-center justify-between">
-            <div className="flex-1 min-w-0">
-              <p className="text-xs sm:text-sm font-medium text-gray-600 truncate">
-                Today's Classes
-              </p>
-              <p className="text-2xl sm:text-3xl font-bold text-gray-900 mt-1 sm:mt-2">
-                {todayClasses}
-              </p>
-              <p className="text-xs text-gray-500 mt-1">Scheduled sessions</p>
-            </div>
-            <div className="text-3xl sm:text-4xl ml-2">📅</div>
-          </div>
-        </div>
-
-        {/* Today's Attendance */}
-        <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 border-l-4 border-purple-500">
-          <div className="flex items-center justify-between">
-            <div className="flex-1 min-w-0">
-              <p className="text-xs sm:text-sm font-medium text-gray-600 truncate">
-                Today's Attendance
-              </p>
-              <p className="text-2xl sm:text-3xl font-bold text-gray-900 mt-1 sm:mt-2">
-                {todayAttendance}
-              </p>
-              <p className="text-xs text-gray-500 mt-1">Check-ins today</p>
-            </div>
-            <div className="text-3xl sm:text-4xl ml-2">✓</div>
-          </div>
-        </div>
-
-        {/* Attendance Rate */}
-        <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 border-l-4 border-orange-500">
-          <div className="flex items-center justify-between">
-            <div className="flex-1 min-w-0">
-              <p className="text-xs sm:text-sm font-medium text-gray-600 truncate">
-                Attendance Rate
-              </p>
-              <p className="text-2xl sm:text-3xl font-bold text-gray-900 mt-1 sm:mt-2">
-                {activeMembers > 0
-                  ? Math.round((todayAttendance / activeMembers) * 100)
-                  : 0}
-                %
-              </p>
-              <p className="text-xs text-gray-500 mt-1">Of active members</p>
-            </div>
-            <div className="text-3xl sm:text-4xl ml-2">📊</div>
-          </div>
+        <div className="flex gap-4">
+          <Link to="/attendance">
+            <Button variant="premium" className="px-6 !py-2.5 text-[10px] uppercase tracking-widest font-black">
+              Check-in Now
+            </Button>
+          </Link>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-        {/* Quick Actions */}
-        <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
-          <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">
-            Quick Actions
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-            {quickActions.map((action) => (
-              <Link
-                key={action.title}
-                to={action.link}
-                className={`p-3 sm:p-4 rounded-lg border-2 border-${action.color}-200 hover:border-${action.color}-400 hover:bg-${action.color}-50 transition-all group min-h-[80px] sm:min-h-0`}
-              >
-                <div className="flex items-start space-x-2 sm:space-x-3">
-                  <div className="text-2xl sm:text-3xl">{action.icon}</div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-sm sm:text-base text-gray-900 group-hover:text-gray-700 truncate">
-                      {action.title}
-                    </h3>
-                    <p className="text-xs sm:text-sm text-gray-600 mt-1 line-clamp-2">
-                      {action.description}
-                    </p>
-                  </div>
+      {/* Overview Metrics */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+        {[
+          { label: "Elite Members", val: totalMembers, sub: `${activeMembers} Active`, icon: "👥", color: "from-blue-600/20" },
+          { label: "Sessions Today", val: todayClasses, sub: "Scheduled", icon: "📅", color: "from-emerald-600/20" },
+          { label: "Check-ins Today", val: todayAttendance, sub: "Attendance", icon: "✓", color: "from-indigo-600/20" },
+          { 
+            label: "Performance", 
+            val: activeMembers > 0 ? Math.round((todayAttendance / activeMembers) * 100) : 0, 
+            sub: "% Capacity", 
+            icon: "📊", 
+            color: "from-violet-600/20" 
+          },
+        ].map((stat, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.1 }}
+            className={`glass-morphism rounded-[2rem] p-8 border-l-4 ${i === 0 ? 'border-blue-500' : i === 1 ? 'border-emerald-500' : i === 2 ? 'border-indigo-500' : 'border-violet-500'} relative overflow-hidden group`}
+          >
+            <div className={`absolute inset-0 bg-gradient-to-br ${stat.color} to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
+            <div className="flex items-center justify-between relative z-10">
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2 truncate">{stat.label}</p>
+                <p className="text-4xl font-black italic tracking-tighter text-white mb-1">
+                  {stat.val}{stat.label === "Performance" ? "%" : ""}
+                </p>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-1 h-1 rounded-full bg-blue-500 animate-pulse" />
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{stat.sub}</p>
                 </div>
-              </Link>
+              </div>
+              <div className="text-4xl opacity-20 group-hover:opacity-100 group-hover:scale-110 transition-all duration-500 grayscale group-hover:grayscale-0">{stat.icon}</div>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Quick Actions */}
+        <div className="lg:col-span-2 glass-morphism rounded-[2.5rem] p-8 sm:p-10">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-xl font-black italic uppercase tracking-tighter">Quick Protocol</h2>
+            <div className="w-8 h-[2px] bg-white/10" />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {quickActions.map((action, i) => (
+              <motion.div
+                key={i}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <Link
+                  to={action.link}
+                  className="block p-6 rounded-2xl bg-white/[0.03] border border-white/5 hover:border-white/20 transition-all group overflow-hidden relative"
+                >
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-white/5 to-transparent rounded-bl-full translate-x-12 -translate-y-12" />
+                  <div className="flex items-start space-x-4 relative z-10">
+                    <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center text-2xl group-hover:bg-blue-600 transition-colors duration-500">
+                      {action.icon}
+                    </div>
+                    <div className="flex-1 min-w-0 pt-1">
+                      <h3 className="font-black text-xs uppercase tracking-widest text-white mb-1 group-hover:text-blue-400 transition-colors">
+                        {action.title}
+                      </h3>
+                      <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">
+                        {action.description}
+                      </p>
+                    </div>
+                  </div>
+                </Link>
+              </motion.div>
             ))}
           </div>
         </div>
 
         {/* Upcoming Classes */}
-        <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
-          <div className="flex items-center justify-between mb-3 sm:mb-4">
-            <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
-              Upcoming Classes Today
-            </h2>
+        <div className="glass-morphism rounded-[2.5rem] p-8">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-xl font-black italic uppercase tracking-tighter italic">Live Board</h2>
             <Link
               to="/classes"
-              className="text-xs sm:text-sm text-blue-600 hover:text-blue-800 font-medium whitespace-nowrap"
+              className="text-[10px] font-black uppercase tracking-widest text-blue-400 hover:text-white transition-colors"
             >
-              <span className="hidden sm:inline">View All →</span>
-              <span className="sm:hidden">All →</span>
+              All →
             </Link>
           </div>
 
-          {upcomingClasses.length === 0 ? (
-            <div className="text-center py-6 sm:py-8 text-gray-500">
-              <p className="text-3xl sm:text-4xl mb-2">📅</p>
-              <p className="text-sm sm:text-base">No classes scheduled for today</p>
-            </div>
-          ) : (
-            <div className="space-y-2 sm:space-y-3">
-              {upcomingClasses.map((classItem) => (
-                <Link
+          <div className="space-y-4">
+            {upcomingClasses.length === 0 ? (
+              <div className="text-center py-12 bg-white/[0.02] rounded-3xl border border-white/5 text-gray-600">
+                <p className="text-4xl mb-4 opacity-20">📅</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest">No Active Protocol</p>
+              </div>
+            ) : (
+              upcomingClasses.map((classItem, i) => (
+                <motion.div
                   key={classItem.id}
-                  to={`/classes/${classItem.id}`}
-                  className="block p-3 sm:p-4 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.1 }}
                 >
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-sm sm:text-base text-gray-900 truncate">
-                        {classItem.name}
-                      </h3>
-                      <p className="text-xs sm:text-sm text-gray-600 mt-1 truncate">
-                        {classItem.trainer?.firstName}{" "}
-                        {classItem.trainer?.lastName}
-                      </p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {new Date(classItem.startTime).toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}{" "}
-                        -{" "}
-                        {new Date(classItem.endTime).toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </p>
-                    </div>
-                    <div className="text-right flex-shrink-0">
-                      <div className="text-xs sm:text-sm font-medium text-gray-900">
-                        {classItem.enrolled || 0}/{classItem.capacity}
+                  <Link
+                    to={`/classes/${classItem.id}`}
+                    className="block p-5 rounded-3xl bg-white/[0.03] border border-white/5 hover:border-blue-500/20 hover:bg-white/[0.05] transition-all group"
+                  >
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-black text-[10px] uppercase tracking-widest text-white mb-2 truncate group-hover:text-blue-400 transition-colors">
+                          {classItem.name}
+                        </h3>
+                        <div className="flex items-center gap-2 text-[10px] font-bold text-gray-500 uppercase tracking-tighter mb-2">
+                          <span className="w-1 h-1 rounded-full bg-blue-500" />
+                          {classItem.trainer?.firstName} {classItem.trainer?.lastName}
+                        </div>
+                        <div className="text-xs font-black italic tracking-tighter text-blue-500/80">
+                          {new Date(classItem.startTime).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </div>
                       </div>
-                      <div className="text-xs text-gray-500">enrolled</div>
+                      <div className="text-right flex-shrink-0 bg-white/5 rounded-2xl p-3 border border-white/5">
+                        <div className="text-lg font-black italic tracking-tighter text-white">
+                          {classItem.enrolled || 0}/{classItem.capacity}
+                        </div>
+                        <div className="text-[8px] font-black uppercase tracking-widest text-gray-600 italic">Occupancy</div>
+                      </div>
                     </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
+                  </Link>
+                </motion.div>
+              ))
+            )}
+          </div>
         </div>
       </div>
 
       {/* Recent Activity Section */}
-      <div className="mt-4 sm:mt-6 bg-white rounded-lg shadow-md p-4 sm:p-6">
-        <div className="flex items-center justify-between mb-3 sm:mb-4">
-          <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
-            Recent Activity
-          </h2>
+      <div className="mt-8 glass-morphism rounded-[2.5rem] p-8 sm:p-10">
+        <div className="flex items-center justify-between mb-8">
+          <h2 className="text-xl font-black italic uppercase tracking-tighter">System Log</h2>
         </div>
-        <div className="space-y-2 sm:space-y-3">
-          {attendanceData?.data?.slice(0, 5).map((record) => (
-            <div
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {attendanceData?.data?.slice(0, 6).map((record, i) => (
+            <motion.div
               key={record.id}
-              className="flex items-center justify-between p-2 sm:p-3 rounded-lg bg-gray-50 gap-2"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: i * 0.05 }}
+              className="flex items-center justify-between p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] transition-colors gap-4"
             >
-              <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-semibold text-xs sm:text-sm flex-shrink-0">
+              <div className="flex items-center space-x-4 min-w-0 flex-1">
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center text-white font-black italic text-xs flex-shrink-0 shadow-lg shadow-blue-500/10">
                   {record.member?.firstName?.[0] || "?"}
-                  {record.member?.lastName?.[0] || "?"}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="font-medium text-sm sm:text-base text-gray-900 truncate">
+                  <p className="font-black text-xs uppercase tracking-widest text-white truncate">
                     {record.member?.firstName || "Unknown"} {record.member?.lastName || ""}
                   </p>
-                  <p className="text-xs sm:text-sm text-gray-600 truncate">
+                  <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest truncate">
                     {record.type === "gym_entry"
-                      ? "Gym Check-in"
-                      : "Class Attendance"}
+                      ? "Infrastructure Access"
+                      : "Protocol Engagement"}
                   </p>
                 </div>
               </div>
-              <div className="text-xs sm:text-sm text-gray-500 flex-shrink-0">
+              <div className="text-[10px] font-black italic tracking-widest text-blue-500 whitespace-nowrap bg-blue-500/5 px-3 py-1.5 rounded-full border border-blue-500/10">
                 {record.checkInTime ? new Date(record.checkInTime).toLocaleTimeString([], {
                   hour: "2-digit",
                   minute: "2-digit",
                 }) : "--:--"}
               </div>
-            </div>
+            </motion.div>
           ))}
           {(!attendanceData?.data || attendanceData.data.length === 0) && (
-            <div className="text-center py-6 sm:py-8 text-gray-500">
-              <p className="text-3xl sm:text-4xl mb-2">📋</p>
-              <p className="text-sm sm:text-base">No recent activity</p>
+            <div className="col-span-full text-center py-12 text-gray-600 italic">
+              <p className="text-[10px] font-bold uppercase tracking-widest">System Log Empty</p>
             </div>
           )}
         </div>
