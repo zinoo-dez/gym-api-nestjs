@@ -85,5 +85,4 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 .secrets
 pnpm-install-verfication.log
 pnpm-install.log
-pnpm-lock.yaml
 pnpm-workspace.yaml
