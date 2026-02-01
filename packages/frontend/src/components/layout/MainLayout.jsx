@@ -1,11 +1,12 @@
 /**
  * MainLayout Component
- * Main application layout with navigation and content area
+ * Premium main application layout with navigation and content area
  * Optimized for mobile with hamburger menu, touch-friendly targets, and swipe gestures
+ * Features dark theme with glass morphism and premium aesthetics
  */
 
 import { useRef, useEffect, Suspense } from "react";
-import { Outlet, NavLink, useNavigate } from "react-router-dom";
+import { Outlet, NavLink, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth.js";
 import { useUIStore } from "../../stores/useUIStore.js";
 import { motion, AnimatePresence } from "framer-motion";
@@ -133,72 +134,83 @@ export function MainLayout() {
     };
   }, [isMobileMenuOpen]);
 
-  // Navigation items
+  // Navigation items with premium icons
   const navItems = [
-    { path: "/dashboard", label: "Dashboard", icon: "🏠" },
+    { path: "/dashboard", label: "Dashboard", icon: "⚡" },
     { path: "/dashboard/members", label: "Members", icon: "👥" },
     { path: "/dashboard/trainers", label: "Trainers", icon: "💪" },
-    { path: "/dashboard/classes", label: "Classes", icon: "📅" },
-    { path: "/dashboard/memberships", label: "Memberships", icon: "💳" },
+    { path: "/dashboard/classes", label: "Classes", icon: "🎯" },
+    { path: "/dashboard/memberships", label: "Memberships", icon: "�" },
     { path: "/dashboard/attendance", label: "Attendance", icon: "✓" },
-    { path: "/dashboard/workouts", label: "Workouts", icon: "🏋️" },
+    { path: "/dashboard/workouts", label: "Workouts", icon: "🔥" },
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#050505] text-white relative overflow-x-hidden">
+      {/* Background Elements */}
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        <div className="absolute top-[-10%] right-[-5%] w-[600px] h-[600px] bg-blue-600/10 blur-[130px] rounded-full animate-pulse" />
+        <div className="absolute bottom-[10%] left-[-10%] w-[700px] h-[700px] bg-indigo-600/5 blur-[150px] rounded-full" />
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03]" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:40px_40px]" />
+      </div>
+
       {/* Skip Navigation Links */}
       <SkipNavigation />
       
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40" id="navigation">
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
-          <div className="flex justify-between items-center h-14 sm:h-16">
+      <header className="fixed top-0 w-full z-50 bg-black/40 backdrop-blur-xl border-b border-white/5" id="navigation">
+        <div className="max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-8">
+          <div className="flex justify-between items-center h-16 sm:h-20">
             {/* Logo */}
-            <div className="flex items-center min-w-0 flex-1">
-              <h1 className="text-base sm:text-xl font-bold text-gray-900 truncate">
-                Gym Management
+            <Link to="/dashboard" className="flex items-center gap-3 min-w-0 flex-1 group">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-110 transition-transform">
+                <span className="text-white font-black text-lg sm:text-xl italic">G</span>
+              </div>
+              <h1 className="text-base sm:text-xl font-black bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent italic tracking-tighter uppercase truncate">
+                Gym Premier
               </h1>
-            </div>
+            </Link>
 
             {/* Desktop Navigation */}
-            <nav className="hidden lg:flex space-x-2 xl:space-x-4" aria-label="Main navigation">
+            <nav className="hidden lg:flex space-x-1 xl:space-x-2" aria-label="Main navigation">
               {navItems.map((item) => (
                 <NavLink
                   key={item.path}
                   to={item.path}
                   end={item.path === "/dashboard"}
                   className={({ isActive }) =>
-                    `px-3 xl:px-4 py-2 rounded-md text-xs xl:text-sm font-medium transition-colors whitespace-nowrap min-h-[44px] flex items-center ${
+                    `px-3 xl:px-4 py-2.5 rounded-xl text-[10px] xl:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap min-h-[44px] flex items-center gap-2 ${
                       isActive
-                        ? "bg-blue-100 text-blue-700"
-                        : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                        ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20"
+                        : "text-gray-400 hover:bg-white/5 hover:text-white"
                     }`
                   }
                   aria-label={item.label}
                 >
-                  <span className="mr-1.5" aria-hidden="true">{item.icon}</span>
+                  <span className="text-base" aria-hidden="true">{item.icon}</span>
                   <span className="hidden xl:inline">{item.label}</span>
                 </NavLink>
               ))}
             </nav>
 
             {/* User Menu */}
-            <div className="flex items-center space-x-2 sm:space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-3">
               {/* User Profile Dropdown */}
               <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={toggleProfileDropdown}
-                  className="hidden lg:flex items-center space-x-2 px-3 py-2 rounded-md text-xs xl:text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors min-h-[44px]"
+                  className="hidden lg:flex items-center space-x-2 xl:space-x-3 px-3 xl:px-4 py-2.5 rounded-xl text-xs font-bold text-white hover:bg-white/5 transition-all min-h-[44px] border border-white/10"
                   aria-label="User menu"
                 >
-                  <div className="w-8 h-8 xl:w-9 xl:h-9 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-xs">
+                  <div className="w-8 h-8 xl:w-9 xl:h-9 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center text-white font-black text-xs shadow-lg shadow-blue-500/20">
                     {user?.firstName?.[0]}{user?.lastName?.[0]}
                   </div>
-                  <span className="hidden xl:inline truncate max-w-[120px]">
+                  <span className="hidden xl:inline truncate max-w-[120px] text-[10px] uppercase tracking-wider">
                     {user?.firstName} {user?.lastName}
                   </span>
                   <svg
-                    className={`w-4 h-4 transition-transform ${isProfileDropdownOpen ? "rotate-180" : ""}`}
+                    className={`w-3 h-3 transition-transform ${isProfileDropdownOpen ? "rotate-180" : ""}`}
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -206,7 +218,7 @@ export function MainLayout() {
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      strokeWidth={2}
+                      strokeWidth={3}
                       d="M19 9l-7 7-7-7"
                     />
                   </svg>
@@ -220,23 +232,23 @@ export function MainLayout() {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
                       transition={{ duration: 0.15 }}
-                      className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg py-1 z-50 border border-gray-200"
+                      className="absolute right-0 mt-3 w-64 bg-black/90 backdrop-blur-xl rounded-2xl shadow-2xl py-2 z-50 border border-white/10"
                     >
-                      <div className="px-4 py-3 border-b border-gray-200">
-                        <p className="text-sm font-medium text-gray-900 truncate">
+                      <div className="px-5 py-4 border-b border-white/10">
+                        <p className="text-sm font-black text-white truncate uppercase tracking-wide">
                           {user?.firstName} {user?.lastName}
                         </p>
-                        <p className="text-xs text-gray-500 truncate">{user?.email}</p>
-                        <p className="text-xs text-gray-500 capitalize mt-1">
-                          Role: {user?.role}
+                        <p className="text-[10px] text-gray-400 truncate mt-1">{user?.email}</p>
+                        <p className="text-[10px] text-blue-400 capitalize mt-2 font-bold uppercase tracking-widest">
+                          {user?.role}
                         </p>
                       </div>
                       <button
                         onClick={handleLogout}
-                        className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 transition-colors flex items-center min-h-[44px]"
+                        className="w-full text-left px-5 py-4 text-xs font-bold text-red-400 hover:bg-white/5 transition-colors flex items-center min-h-[44px] gap-3 uppercase tracking-wider"
                       >
-                        <span className="mr-2">🚪</span>
-                        Logout
+                        <span className="text-base">🚪</span>
+                        Exit System
                       </button>
                     </motion.div>
                   )}
@@ -246,36 +258,35 @@ export function MainLayout() {
               {/* Mobile Logout Button */}
               <button
                 onClick={handleLogout}
-                className="lg:hidden px-3 py-2 text-xs sm:text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors whitespace-nowrap min-h-[44px]"
+                className="lg:hidden px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-white bg-red-600/80 rounded-xl hover:bg-red-600 transition-all whitespace-nowrap min-h-[44px] border border-red-500/20"
                 aria-label="Logout"
               >
-                Logout
+                Exit
               </button>
 
               {/* Mobile menu button */}
               <button
                 onClick={toggleMobileMenu}
-                className="lg:hidden p-2 rounded-md text-gray-700 hover:bg-gray-100 min-h-[44px] min-w-[44px] flex items-center justify-center"
+                className="lg:hidden p-2.5 rounded-xl text-white hover:bg-white/5 min-h-[44px] min-w-[44px] flex items-center justify-center border border-white/10 transition-all"
                 aria-label="Toggle menu"
               >
                 <svg
-                  className="h-6 w-6"
+                  className="h-5 w-5"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
+                  strokeWidth={2.5}
                 >
                   {isMobileMenuOpen ? (
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      strokeWidth={2}
                       d="M6 18L18 6M6 6l12 12"
                     />
                   ) : (
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      strokeWidth={2}
                       d="M4 6h16M4 12h16M4 18h16"
                     />
                   )}
@@ -295,7 +306,7 @@ export function MainLayout() {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
-                className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+                className="fixed inset-0 bg-black/70 backdrop-blur-sm z-30 lg:hidden"
                 onClick={closeMobileMenu}
               />
               
@@ -306,26 +317,31 @@ export function MainLayout() {
                 animate={{ x: 0 }}
                 exit={{ x: "-100%" }}
                 transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                className="fixed top-0 left-0 bottom-0 w-80 max-w-[85vw] bg-white shadow-xl z-40 lg:hidden overflow-y-auto"
+                className="fixed top-0 left-0 bottom-0 w-80 max-w-[85vw] bg-black/95 backdrop-blur-xl shadow-2xl z-40 lg:hidden overflow-y-auto border-r border-white/10"
               >
                 {/* Menu Header */}
-                <div className="flex items-center justify-between p-4 border-b border-gray-200 min-h-[64px]">
-                  <h2 className="text-lg font-semibold text-gray-900">Menu</h2>
+                <div className="flex items-center justify-between p-5 border-b border-white/10 min-h-[80px]">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+                      <span className="text-white font-black text-lg italic">G</span>
+                    </div>
+                    <h2 className="text-base font-black text-white uppercase italic tracking-tighter">Gym Premier</h2>
+                  </div>
                   <button
                     onClick={closeMobileMenu}
-                    className="p-2 rounded-md text-gray-700 hover:bg-gray-100 min-h-[44px] min-w-[44px] flex items-center justify-center"
+                    className="p-2 rounded-xl text-white hover:bg-white/5 min-h-[44px] min-w-[44px] flex items-center justify-center border border-white/10 transition-all"
                     aria-label="Close menu"
                   >
                     <svg
-                      className="h-6 w-6"
+                      className="h-5 w-5"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
+                      strokeWidth={2.5}
                     >
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                        strokeWidth={2}
                         d="M6 18L18 6M6 6l12 12"
                       />
                     </svg>
@@ -333,25 +349,25 @@ export function MainLayout() {
                 </div>
 
                 {/* User Info */}
-                <div className="p-4 border-b border-gray-200 bg-gray-50">
+                <div className="p-5 border-b border-white/10 bg-white/[0.02]">
                   <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-lg">
+                    <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center text-white font-black text-lg shadow-lg shadow-blue-500/20">
                       {user?.firstName?.[0]}{user?.lastName?.[0]}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">
+                      <p className="text-sm font-black text-white truncate uppercase tracking-wide">
                         {user?.firstName} {user?.lastName}
                       </p>
-                      <p className="text-xs text-gray-500 truncate">{user?.email}</p>
-                      <p className="text-xs text-gray-500 capitalize mt-0.5">
-                        Role: {user?.role}
+                      <p className="text-[10px] text-gray-400 truncate mt-1">{user?.email}</p>
+                      <p className="text-[10px] text-blue-400 capitalize mt-1.5 font-bold uppercase tracking-widest">
+                        {user?.role}
                       </p>
                     </div>
                   </div>
                 </div>
 
                 {/* Navigation Links */}
-                <nav className="p-2" aria-label="Mobile navigation">
+                <nav className="p-3" aria-label="Mobile navigation">
                   {navItems.map((item) => (
                     <NavLink
                       key={item.path}
@@ -359,31 +375,31 @@ export function MainLayout() {
                       end={item.path === "/dashboard"}
                       onClick={closeMobileMenu}
                       className={({ isActive }) =>
-                        `flex items-center px-4 py-3 rounded-lg text-base font-medium min-h-[48px] mb-1 transition-colors ${
+                        `flex items-center px-5 py-4 rounded-xl text-xs font-black uppercase tracking-wider min-h-[52px] mb-2 transition-all ${
                           isActive
-                            ? "bg-blue-100 text-blue-700"
-                            : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                            ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20"
+                            : "text-gray-400 hover:bg-white/5 hover:text-white"
                         }`
                       }
                       aria-label={item.label}
                     >
-                      <span className="mr-3 text-xl" aria-hidden="true">{item.icon}</span>
+                      <span className="mr-4 text-xl" aria-hidden="true">{item.icon}</span>
                       <span>{item.label}</span>
                     </NavLink>
                   ))}
                 </nav>
 
                 {/* Logout Button */}
-                <div className="p-4 border-t border-gray-200 mt-auto">
+                <div className="p-5 border-t border-white/10 mt-auto">
                   <button
                     onClick={() => {
                       closeMobileMenu();
                       handleLogout();
                     }}
-                    className="w-full flex items-center justify-center px-4 py-3 text-base font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors min-h-[48px]"
+                    className="w-full flex items-center justify-center gap-3 px-5 py-4 text-xs font-black uppercase tracking-widest text-white bg-red-600/80 rounded-xl hover:bg-red-600 transition-all min-h-[52px] border border-red-500/20"
                   >
-                    <span className="mr-2">🚪</span>
-                    Logout
+                    <span className="text-lg">🚪</span>
+                    Exit System
                   </button>
                 </div>
               </motion.div>
@@ -393,7 +409,7 @@ export function MainLayout() {
       </header>
 
       {/* Main Content */}
-      <main id="main-content" className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-6 lg:py-8" tabIndex={-1}>
+      <main id="main-content" className="relative z-10 max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-8 pt-20 sm:pt-24 pb-8 sm:pb-12 lg:pb-16" tabIndex={-1}>
         <Suspense
           fallback={
             <div className="flex items-center justify-center min-h-[400px]">
@@ -408,11 +424,19 @@ export function MainLayout() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-white border-t border-gray-200 mt-auto">
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-3 sm:py-4">
-          <p className="text-center text-xs sm:text-sm text-gray-500">
-            © 2026 Gym Management System. All rights reserved.
-          </p>
+      <footer className="relative z-10 border-t border-white/5 bg-black/40 backdrop-blur-xl mt-auto">
+        <div className="max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-8 py-6 sm:py-8">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/20">
+                <span className="text-white font-black text-sm italic">G</span>
+              </div>
+              <span className="text-sm font-black tracking-tighter uppercase italic text-white/80">Gym Premier</span>
+            </div>
+            <p className="text-center text-[10px] sm:text-xs text-gray-600 uppercase tracking-[0.2em] font-bold">
+              © 2026 GP Management. All Rights Reserved.
+            </p>
+          </div>
         </div>
       </footer>
     </div>
