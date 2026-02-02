@@ -15,7 +15,7 @@ const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 async function resetSuperadmin() {
-  console.log('Resetting superadmin account...');
+  //   console.log('Resetting superadmin account...');
 
   const superadminEmail = process.env.SUPERADMIN_EMAIL || 'superadmin@gym.com';
   const superadminPassword =
@@ -30,13 +30,13 @@ async function resetSuperadmin() {
     await prisma.user.delete({
       where: { email: superadminEmail },
     });
-    console.log('✅ Deleted existing superadmin account');
+    // console.log('✅ Deleted existing superadmin account');
   }
 
   // Create new superadmin with fresh password
   const hashedPassword = await bcrypt.hash(superadminPassword, 10);
 
-  const superadmin = await prisma.user.create({
+  await prisma.user.create({
     data: {
       email: superadminEmail,
       password: hashedPassword,
@@ -44,11 +44,11 @@ async function resetSuperadmin() {
     },
   });
 
-  console.log('\n✅ Superadmin account reset successfully!');
-  console.log(`   Email: ${superadminEmail}`);
-  console.log(`   Password: ${superadminPassword}`);
-  console.log(`   ID: ${superadmin.id}`);
-  console.log('\nYou can now login with these credentials.');
+  //   console.log('\n✅ Superadmin account reset successfully!');
+  //   console.log(`   Email: ${superadminEmail}`);
+  //   console.log(`   Password: ${superadminPassword}`);
+  //   console.log(`   ID: ${superadmin.id}`);
+  //   console.log('\nYou can now login with these credentials.');
 }
 
 resetSuperadmin()

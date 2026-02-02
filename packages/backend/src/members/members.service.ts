@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
@@ -64,6 +65,7 @@ export class MembersService {
 
   async findAll(
     filters?: MemberFiltersDto,
+    currentUser?: any,
   ): Promise<PaginatedResponseDto<MemberResponseDto>> {
     const page = filters?.page || 1;
     const limit = filters?.limit || 10;
@@ -71,6 +73,22 @@ export class MembersService {
 
     // Build where clause based on filters
     const where: Prisma.MemberWhereInput = {};
+
+    // If trainer, only show assigned members
+    if (currentUser?.role === Role.TRAINER) {
+      const trainer = await this.prisma.trainer.findUnique({
+        where: { userId: currentUser.userId },
+        select: { id: true },
+      });
+
+      if (trainer) {
+        where.workoutPlans = {
+          some: {
+            trainerId: trainer.id,
+          },
+        };
+      }
+    }
 
     // Filter by name (search in firstName or lastName)
     if (filters?.name) {
@@ -136,7 +154,7 @@ export class MembersService {
     return new PaginatedResponseDto(memberDtos, page, limit, total);
   }
 
-  async findOne(id: string): Promise<MemberResponseDto> {
+  async findOne(id: string, currentUser?: any): Promise<MemberResponseDto> {
     const member = await this.prisma.member.findUnique({
       where: { id },
       include: {
@@ -148,21 +166,69 @@ export class MembersService {
       throw new NotFoundException(`Member with ID ${id} not found`);
     }
 
+    // Authorization check
+    if (currentUser) {
+      // Members can only access their own record
+      if (
+        currentUser.role === Role.MEMBER &&
+        member.userId !== currentUser.userId
+      ) {
+        throw new ForbiddenException(
+          'You can only access your own member record',
+        );
+      }
+
+      // Trainers can only access assigned members
+      if (currentUser.role === Role.TRAINER) {
+        const trainer = await this.prisma.trainer.findUnique({
+          where: { userId: currentUser.userId },
+          select: { id: true },
+        });
+
+        if (trainer) {
+          const isAssigned = await this.prisma.workoutPlan.findFirst({
+            where: {
+              memberId: id,
+              trainerId: trainer.id,
+            },
+            select: { id: true },
+          });
+
+          if (!isAssigned) {
+            throw new ForbiddenException(
+              'You can only access members assigned to you',
+            );
+          }
+        }
+      }
+    }
+
     return this.toResponseDto(member);
   }
 
   async update(
     id: string,
     updateMemberDto: UpdateMemberDto,
+    currentUser?: any,
   ): Promise<MemberResponseDto> {
     // Check if member exists - only select id field
     const existingMember = await this.prisma.member.findUnique({
       where: { id },
-      select: { id: true },
+      select: { id: true, userId: true },
     });
 
     if (!existingMember) {
       throw new NotFoundException(`Member with ID ${id} not found`);
+    }
+
+    // Authorization check - Members can only update their own record
+    if (
+      currentUser?.role === Role.MEMBER &&
+      existingMember.userId !== currentUser.userId
+    ) {
+      throw new ForbiddenException(
+        'You can only update your own member record',
+      );
     }
 
     // Update member
@@ -221,15 +287,23 @@ export class MembersService {
     return !!activeMembership;
   }
 
-  async getBookings(memberId: string): Promise<any[]> {
+  async getBookings(memberId: string, currentUser?: any): Promise<any[]> {
     // Check if member exists - only select id field
     const member = await this.prisma.member.findUnique({
       where: { id: memberId },
-      select: { id: true },
+      select: { id: true, userId: true },
     });
 
     if (!member) {
       throw new NotFoundException(`Member with ID ${memberId} not found`);
+    }
+
+    // Authorization check - Members can only access their own bookings
+    if (
+      currentUser?.role === Role.MEMBER &&
+      member.userId !== currentUser.userId
+    ) {
+      throw new ForbiddenException('You can only access your own bookings');
     }
 
     // Get all bookings for the member - use select to avoid over-fetching

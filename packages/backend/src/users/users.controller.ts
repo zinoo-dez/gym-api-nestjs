@@ -7,11 +7,13 @@ import {
   Body,
   UseGuards,
   Request,
+  ForbiddenException,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Role } from '@prisma/client';
 import { ChangeRoleDto } from './dto';
 
@@ -27,8 +29,15 @@ export class UsersController {
   }
 
   @Get(':id')
-  @Roles(Role.SUPERADMIN, Role.ADMIN)
-  async getUserById(@Param('id') id: string) {
+  @Roles(Role.SUPERADMIN, Role.ADMIN, Role.TRAINER, Role.MEMBER)
+  async getUserById(@Param('id') id: string, @CurrentUser() user: any) {
+    // Members and Trainers can only access their own user record
+    if (
+      (user.role === Role.MEMBER || user.role === Role.TRAINER) &&
+      user.userId !== id
+    ) {
+      throw new ForbiddenException('You can only access your own user record');
+    }
     return this.usersService.getUserById(id);
   }
 

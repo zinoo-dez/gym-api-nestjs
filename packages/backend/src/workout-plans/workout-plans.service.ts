@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
@@ -12,7 +13,7 @@ import {
   WorkoutPlanFiltersDto,
 } from './dto';
 import { PaginatedResponseDto } from '../common/dto';
-import { Prisma } from '@prisma/client';
+import { Prisma, Role } from '@prisma/client';
 
 @Injectable()
 export class WorkoutPlansService {
@@ -145,15 +146,28 @@ export class WorkoutPlansService {
     return this.toResponseDto(workoutPlan);
   }
 
-  async findByMember(memberId: string): Promise<WorkoutPlanResponseDto[]> {
+  async findByMember(
+    memberId: string,
+    currentUser?: any,
+  ): Promise<WorkoutPlanResponseDto[]> {
     // Verify member exists - only select id field
     const member = await this.prisma.member.findUnique({
       where: { id: memberId },
-      select: { id: true },
+      select: { id: true, userId: true },
     });
 
     if (!member) {
       throw new NotFoundException(`Member with ID ${memberId} not found`);
+    }
+
+    // Authorization check - Members can only access their own workout plans
+    if (
+      currentUser?.role === Role.MEMBER &&
+      member.userId !== currentUser.userId
+    ) {
+      throw new ForbiddenException(
+        'You can only access your own workout plans',
+      );
     }
 
     const workoutPlans = await this.prisma.workoutPlan.findMany({

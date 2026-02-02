@@ -29,10 +29,11 @@ import { PaginatedResponseDto } from '../common/dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { Public } from '../auth/decorators/public.decorator';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Role } from '@prisma/client';
 
 @ApiTags('memberships')
-@ApiBearerAuth('JWT-auth')
 @Controller()
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class MembershipsController {
@@ -41,7 +42,8 @@ export class MembershipsController {
   // Membership Plan endpoints
 
   @Post('membership-plans')
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.SUPERADMIN)
+  @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Create a membership plan',
     description: 'Create a new membership plan. Requires ADMIN role.',
@@ -62,17 +64,16 @@ export class MembershipsController {
   }
 
   @Get('membership-plans')
-  @Roles(Role.ADMIN, Role.TRAINER, Role.MEMBER)
+  @Public()
   @ApiOperation({
-    summary: 'Get all membership plans',
+    summary: 'Get all membership plans (Public)',
     description:
-      'Retrieve a paginated list of all available membership plans with optional filters.',
+      'Retrieve a paginated list of all available membership plans with optional filters. No authentication required.',
   })
   @ApiResponse({
     status: 200,
     description: 'List of membership plans retrieved successfully',
   })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
   async findAllPlans(
     @Query() filters: MembershipPlanFiltersDto,
   ): Promise<PaginatedResponseDto<MembershipPlanResponseDto>> {
@@ -80,11 +81,11 @@ export class MembershipsController {
   }
 
   @Get('membership-plans/:id')
-  @Roles(Role.ADMIN, Role.TRAINER, Role.MEMBER)
+  @Public()
   @ApiOperation({
-    summary: 'Get membership plan by ID',
+    summary: 'Get membership plan by ID (Public)',
     description:
-      'Retrieve detailed information about a specific membership plan.',
+      'Retrieve detailed information about a specific membership plan. No authentication required.',
   })
   @ApiParam({
     name: 'id',
@@ -96,7 +97,6 @@ export class MembershipsController {
     description: 'Membership plan details retrieved successfully',
     type: MembershipPlanResponseDto,
   })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Membership plan not found' })
   async findPlanById(
     @Param('id') id: string,
@@ -105,7 +105,8 @@ export class MembershipsController {
   }
 
   @Patch('membership-plans/:id')
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.SUPERADMIN)
+  @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Update membership plan',
     description: 'Update membership plan details. Requires ADMIN role.',
@@ -134,7 +135,8 @@ export class MembershipsController {
   // Membership assignment endpoints
 
   @Post('memberships')
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.SUPERADMIN)
+  @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Assign membership to member',
     description: 'Assign a membership plan to a member. Requires ADMIN role.',
@@ -155,7 +157,8 @@ export class MembershipsController {
   }
 
   @Get('memberships/:id')
-  @Roles(Role.ADMIN, Role.TRAINER, Role.MEMBER)
+  @Roles(Role.ADMIN, Role.MEMBER, Role.SUPERADMIN)
+  @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Get membership by ID',
     description: 'Retrieve detailed information about a specific membership.',
@@ -174,12 +177,14 @@ export class MembershipsController {
   @ApiResponse({ status: 404, description: 'Membership not found' })
   async findMembershipById(
     @Param('id') id: string,
+    @CurrentUser() user: any,
   ): Promise<MembershipResponseDto> {
-    return this.membershipsService.findMembershipById(id);
+    return this.membershipsService.findMembershipById(id, user);
   }
 
   @Post('memberships/:memberId/upgrade')
-  @Roles(Role.ADMIN, Role.MEMBER)
+  @Roles(Role.ADMIN, Role.MEMBER, Role.SUPERADMIN)
+  @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Upgrade membership',
     description:
@@ -201,7 +206,12 @@ export class MembershipsController {
   async upgradeMembership(
     @Param('memberId') memberId: string,
     @Body() upgradeDto: UpgradeMembershipDto,
+    @CurrentUser() user: any,
   ): Promise<MembershipResponseDto> {
-    return this.membershipsService.upgradeMembership(memberId, upgradeDto);
+    return this.membershipsService.upgradeMembership(
+      memberId,
+      upgradeDto,
+      user,
+    );
   }
 }

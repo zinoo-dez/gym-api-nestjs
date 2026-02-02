@@ -3,6 +3,7 @@ import {
   NotFoundException,
   ConflictException,
   BadRequestException,
+  ForbiddenException,
   Logger,
   Inject,
 } from '@nestjs/common';
@@ -20,7 +21,7 @@ import {
   MembershipPlanFiltersDto,
 } from './dto';
 import { PaginatedResponseDto } from '../common/dto';
-import { MembershipStatus, Prisma } from '@prisma/client';
+import { MembershipStatus, Prisma, Role } from '@prisma/client';
 
 @Injectable()
 export class MembershipsService {
@@ -270,16 +271,30 @@ export class MembershipsService {
     return this.toMembershipResponseDto(membership);
   }
 
-  async findMembershipById(id: string): Promise<MembershipResponseDto> {
+  async findMembershipById(
+    id: string,
+    currentUser?: any,
+  ): Promise<MembershipResponseDto> {
     const membership = await this.prisma.membership.findUnique({
       where: { id },
       include: {
         plan: true,
+        member: {
+          select: { userId: true },
+        },
       },
     });
 
     if (!membership) {
       throw new NotFoundException(`Membership with ID ${id} not found`);
+    }
+
+    // Authorization check - Members can only access their own membership
+    if (
+      currentUser?.role === Role.MEMBER &&
+      membership.member.userId !== currentUser.userId
+    ) {
+      throw new ForbiddenException('You can only access your own membership');
     }
 
     return this.toMembershipResponseDto(membership);
@@ -288,15 +303,24 @@ export class MembershipsService {
   async upgradeMembership(
     memberId: string,
     upgradeDto: UpgradeMembershipDto,
+    currentUser?: any,
   ): Promise<MembershipResponseDto> {
     // Verify member exists - only select id field
     const member = await this.prisma.member.findUnique({
       where: { id: memberId },
-      select: { id: true },
+      select: { id: true, userId: true },
     });
 
     if (!member) {
       throw new NotFoundException(`Member with ID ${memberId} not found`);
+    }
+
+    // Authorization check - Members can only upgrade their own membership
+    if (
+      currentUser?.role === Role.MEMBER &&
+      member.userId !== currentUser.userId
+    ) {
+      throw new ForbiddenException('You can only upgrade your own membership');
     }
 
     // Verify new plan exists - only select needed fields

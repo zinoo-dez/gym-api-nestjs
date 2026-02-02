@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
@@ -104,7 +105,7 @@ export class TrainersService {
     return new PaginatedResponseDto(trainerDtos, page, limit, total);
   }
 
-  async findOne(id: string): Promise<TrainerResponseDto> {
+  async findOne(id: string, currentUser?: any): Promise<TrainerResponseDto> {
     const trainer = await this.prisma.trainer.findUnique({
       where: { id },
       include: {
@@ -124,21 +125,42 @@ export class TrainersService {
       throw new NotFoundException(`Trainer with ID ${id} not found`);
     }
 
+    // Authorization check - Trainers can only access their own record
+    if (
+      currentUser?.role === Role.TRAINER &&
+      trainer.userId !== currentUser.userId
+    ) {
+      throw new ForbiddenException(
+        'You can only access your own trainer record',
+      );
+    }
+
     return this.toResponseDto(trainer);
   }
 
   async update(
     id: string,
     updateTrainerDto: UpdateTrainerDto,
+    currentUser?: any,
   ): Promise<TrainerResponseDto> {
     // Check if trainer exists - only select id field
     const existingTrainer = await this.prisma.trainer.findUnique({
       where: { id },
-      select: { id: true },
+      select: { id: true, userId: true },
     });
 
     if (!existingTrainer) {
       throw new NotFoundException(`Trainer with ID ${id} not found`);
+    }
+
+    // Authorization check - Trainers can only update their own record
+    if (
+      currentUser?.role === Role.TRAINER &&
+      existingTrainer.userId !== currentUser.userId
+    ) {
+      throw new ForbiddenException(
+        'You can only update your own trainer record',
+      );
     }
 
     // Update trainer

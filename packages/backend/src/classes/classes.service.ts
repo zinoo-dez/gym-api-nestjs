@@ -3,6 +3,7 @@ import {
   NotFoundException,
   ConflictException,
   BadRequestException,
+  ForbiddenException,
   Inject,
   Logger,
 } from '@nestjs/common';
@@ -18,7 +19,7 @@ import {
   ClassFiltersDto,
 } from './dto';
 import { PaginatedResponseDto } from '../common/dto';
-import { Prisma, BookingStatus } from '@prisma/client';
+import { Prisma, BookingStatus, Role } from '@prisma/client';
 
 @Injectable()
 export class ClassesService {
@@ -31,11 +32,14 @@ export class ClassesService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
-  async create(createClassDto: CreateClassDto): Promise<ClassResponseDto> {
+  async create(
+    createClassDto: CreateClassDto,
+    currentUser?: any,
+  ): Promise<ClassResponseDto> {
     // Verify trainer exists - only select needed fields
     const trainer = await this.prisma.trainer.findUnique({
       where: { id: createClassDto.trainerId },
-      select: { id: true, isActive: true },
+      select: { id: true, isActive: true, userId: true },
     });
 
     if (!trainer) {
@@ -46,6 +50,20 @@ export class ClassesService {
 
     if (!trainer.isActive) {
       throw new BadRequestException('Trainer is not active');
+    }
+
+    // Authorization check - Trainers can only create classes for themselves
+    if (currentUser?.role === Role.TRAINER) {
+      const currentTrainer = await this.prisma.trainer.findUnique({
+        where: { userId: currentUser.userId },
+        select: { id: true },
+      });
+
+      if (currentTrainer && currentTrainer.id !== createClassDto.trainerId) {
+        throw new ForbiddenException(
+          'You can only create classes for yourself',
+        );
+      }
     }
 
     const schedule = new Date(createClassDto.schedule);
@@ -215,22 +233,37 @@ export class ClassesService {
   async update(
     id: string,
     updateClassDto: UpdateClassDto,
+    currentUser?: any,
   ): Promise<ClassResponseDto> {
     // Check if class exists - only select needed fields
     const existingClass = await this.prisma.class.findUnique({
       where: { id },
-      select: { id: true, trainerId: true, schedule: true, duration: true },
+      select: {
+        id: true,
+        trainerId: true,
+        schedule: true,
+        duration: true,
+        trainer: { select: { userId: true } },
+      },
     });
 
     if (!existingClass) {
       throw new NotFoundException(`Class with ID ${id} not found`);
     }
 
+    // Authorization check - Trainers can only update their own classes
+    if (
+      currentUser?.role === Role.TRAINER &&
+      existingClass.trainer.userId !== currentUser.userId
+    ) {
+      throw new ForbiddenException('You can only update your own classes');
+    }
+
     // If trainer is being updated, verify new trainer exists
     if (updateClassDto.trainerId) {
       const trainer = await this.prisma.trainer.findUnique({
         where: { id: updateClassDto.trainerId },
-        select: { id: true, isActive: true },
+        select: { id: true, isActive: true, userId: true },
       });
 
       if (!trainer) {
@@ -241,6 +274,14 @@ export class ClassesService {
 
       if (!trainer.isActive) {
         throw new BadRequestException('Trainer is not active');
+      }
+
+      // Trainers can only assign classes to themselves
+      if (
+        currentUser?.role === Role.TRAINER &&
+        trainer.userId !== currentUser.userId
+      ) {
+        throw new ForbiddenException('You can only assign classes to yourself');
       }
     }
 
@@ -318,11 +359,14 @@ export class ClassesService {
     this.invalidateClassesCache();
   }
 
-  async bookClass(bookDto: BookClassDto): Promise<ClassBookingResponseDto> {
+  async bookClass(
+    bookDto: BookClassDto,
+    currentUser?: any,
+  ): Promise<ClassBookingResponseDto> {
     // Verify member exists - only select needed fields
     const member = await this.prisma.member.findUnique({
       where: { id: bookDto.memberId },
-      select: { id: true, isActive: true },
+      select: { id: true, isActive: true, userId: true },
     });
 
     if (!member) {
@@ -333,6 +377,14 @@ export class ClassesService {
 
     if (!member.isActive) {
       throw new BadRequestException('Member is not active');
+    }
+
+    // Authorization check - Members can only book for themselves
+    if (
+      currentUser?.role === Role.MEMBER &&
+      member.userId !== currentUser.userId
+    ) {
+      throw new ForbiddenException('You can only book classes for yourself');
     }
 
     // Verify class exists - only select needed fields
@@ -399,11 +451,11 @@ export class ClassesService {
     return this.toBookingResponseDto(booking);
   }
 
-  async cancelBooking(bookingId: string): Promise<void> {
+  async cancelBooking(bookingId: string, currentUser?: any): Promise<void> {
     // Check if booking exists - only select needed fields
     const booking = await this.prisma.classBooking.findUnique({
       where: { id: bookingId },
-      select: { id: true, status: true },
+      select: { id: true, status: true, member: { select: { userId: true } } },
     });
 
     if (!booking) {
@@ -412,6 +464,14 @@ export class ClassesService {
 
     if (booking.status === BookingStatus.CANCELLED) {
       throw new BadRequestException('Booking is already cancelled');
+    }
+
+    // Authorization check - Members can only cancel their own bookings
+    if (
+      currentUser?.role === Role.MEMBER &&
+      booking.member.userId !== currentUser.userId
+    ) {
+      throw new ForbiddenException('You can only cancel your own bookings');
     }
 
     // Cancel the booking

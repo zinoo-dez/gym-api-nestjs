@@ -27,6 +27,7 @@ import {
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Role } from '@prisma/client';
 import { WorkoutPlansService } from '../workout-plans/workout-plans.service';
 import { WorkoutPlanResponseDto } from '../workout-plans/dto';
@@ -42,7 +43,7 @@ export class MembersController {
   ) {}
 
   @Post()
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.SUPERADMIN)
   @ApiOperation({
     summary: 'Create a new member',
     description: 'Create a new gym member account. Requires ADMIN role.',
@@ -63,7 +64,7 @@ export class MembersController {
   }
 
   @Get()
-  @Roles(Role.ADMIN, Role.TRAINER)
+  @Roles(Role.ADMIN, Role.TRAINER, Role.SUPERADMIN)
   @ApiOperation({
     summary: 'Get all members',
     description:
@@ -80,12 +81,13 @@ export class MembersController {
   })
   async findAll(
     @Query() filters: MemberFiltersDto,
+    @CurrentUser() user: any,
   ): Promise<PaginatedResponseDto<MemberResponseDto>> {
-    return this.membersService.findAll(filters);
+    return this.membersService.findAll(filters, user);
   }
 
   @Get(':id')
-  @Roles(Role.ADMIN, Role.TRAINER, Role.MEMBER)
+  @Roles(Role.ADMIN, Role.TRAINER, Role.MEMBER, Role.SUPERADMIN)
   @ApiOperation({
     summary: 'Get member by ID',
     description: 'Retrieve detailed information about a specific member.',
@@ -102,12 +104,15 @@ export class MembersController {
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Member not found' })
-  async findOne(@Param('id') id: string): Promise<MemberResponseDto> {
-    return this.membersService.findOne(id);
+  async findOne(
+    @Param('id') id: string,
+    @CurrentUser() user: any,
+  ): Promise<MemberResponseDto> {
+    return this.membersService.findOne(id, user);
   }
 
   @Patch(':id')
-  @Roles(Role.ADMIN, Role.MEMBER)
+  @Roles(Role.ADMIN, Role.MEMBER, Role.SUPERADMIN)
   @ApiOperation({
     summary: 'Update member information',
     description:
@@ -129,12 +134,13 @@ export class MembersController {
   async update(
     @Param('id') id: string,
     @Body() updateMemberDto: UpdateMemberDto,
+    @CurrentUser() user: any,
   ): Promise<MemberResponseDto> {
-    return this.membersService.update(id, updateMemberDto);
+    return this.membersService.update(id, updateMemberDto, user);
   }
 
   @Delete(':id')
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.SUPERADMIN)
   @ApiOperation({
     summary: 'Deactivate member',
     description:
@@ -161,7 +167,7 @@ export class MembersController {
   }
 
   @Get(':id/bookings')
-  @Roles(Role.ADMIN, Role.TRAINER, Role.MEMBER)
+  @Roles(Role.ADMIN, Role.TRAINER, Role.MEMBER, Role.SUPERADMIN)
   @ApiOperation({
     summary: 'Get member bookings',
     description: 'Retrieve all class bookings for a specific member.',
@@ -177,12 +183,15 @@ export class MembersController {
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Member not found' })
-  async getBookings(@Param('id') id: string): Promise<any[]> {
-    return this.membersService.getBookings(id);
+  async getBookings(
+    @Param('id') id: string,
+    @CurrentUser() user: any,
+  ): Promise<any[]> {
+    return this.membersService.getBookings(id, user);
   }
 
   @Get(':id/workout-plans')
-  @Roles(Role.ADMIN, Role.TRAINER, Role.MEMBER)
+  @Roles(Role.ADMIN, Role.TRAINER, Role.MEMBER, Role.SUPERADMIN)
   @ApiOperation({
     summary: 'Get member workout plans',
     description: 'Retrieve all workout plans assigned to a specific member.',
@@ -201,7 +210,8 @@ export class MembersController {
   @ApiResponse({ status: 404, description: 'Member not found' })
   async getWorkoutPlans(
     @Param('id') id: string,
+    @CurrentUser() user: any,
   ): Promise<WorkoutPlanResponseDto[]> {
-    return this.workoutPlansService.findByMember(id);
+    return this.workoutPlansService.findByMember(id, user);
   }
 }

@@ -27,6 +27,7 @@ import { PaginatedResponseDto } from '../common/dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Role } from '@prisma/client';
 
 @ApiTags('trainers')
@@ -37,7 +38,7 @@ export class TrainersController {
   constructor(private readonly trainersService: TrainersService) {}
 
   @Post()
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.SUPERADMIN)
   @ApiOperation({
     summary: 'Create a new trainer',
     description: 'Create a new trainer account. Requires ADMIN role.',
@@ -58,7 +59,7 @@ export class TrainersController {
   }
 
   @Get()
-  @Roles(Role.ADMIN, Role.TRAINER, Role.MEMBER)
+  @Roles(Role.ADMIN, Role.TRAINER, Role.MEMBER, Role.SUPERADMIN)
   @ApiOperation({
     summary: 'Get all trainers',
     description:
@@ -76,7 +77,7 @@ export class TrainersController {
   }
 
   @Get(':id')
-  @Roles(Role.ADMIN, Role.TRAINER, Role.MEMBER)
+  @Roles(Role.ADMIN, Role.TRAINER, Role.MEMBER, Role.SUPERADMIN)
   @ApiOperation({
     summary: 'Get trainer by ID',
     description:
@@ -94,12 +95,15 @@ export class TrainersController {
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Trainer not found' })
-  async findOne(@Param('id') id: string): Promise<TrainerResponseDto> {
-    return this.trainersService.findOne(id);
+  async findOne(
+    @Param('id') id: string,
+    @CurrentUser() user: any,
+  ): Promise<TrainerResponseDto> {
+    return this.trainersService.findOne(id, user);
   }
 
   @Patch(':id')
-  @Roles(Role.ADMIN, Role.TRAINER)
+  @Roles(Role.ADMIN, Role.TRAINER, Role.SUPERADMIN)
   @ApiOperation({
     summary: 'Update trainer information',
     description:
@@ -121,12 +125,13 @@ export class TrainersController {
   async update(
     @Param('id') id: string,
     @Body() updateTrainerDto: UpdateTrainerDto,
+    @CurrentUser() user: any,
   ): Promise<TrainerResponseDto> {
-    return this.trainersService.update(id, updateTrainerDto);
+    return this.trainersService.update(id, updateTrainerDto, user);
   }
 
   @Delete(':id')
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.SUPERADMIN)
   @ApiOperation({
     summary: 'Deactivate trainer',
     description:

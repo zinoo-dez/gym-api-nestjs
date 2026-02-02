@@ -29,17 +29,19 @@ import { PaginatedResponseDto } from '../members/dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { Public } from '../auth/decorators/public.decorator';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Role } from '@prisma/client';
 
 @ApiTags('classes')
-@ApiBearerAuth('JWT-auth')
 @Controller('classes')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class ClassesController {
   constructor(private readonly classesService: ClassesService) {}
 
   @Post()
-  @Roles(Role.ADMIN, Role.TRAINER)
+  @Roles(Role.ADMIN, Role.TRAINER, Role.SUPERADMIN)
+  @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Create a new class',
     description: 'Create a new fitness class. Requires ADMIN or TRAINER role.',
@@ -58,22 +60,22 @@ export class ClassesController {
   @ApiResponse({ status: 409, description: 'Trainer schedule conflict' })
   async create(
     @Body() createClassDto: CreateClassDto,
+    @CurrentUser() user: any,
   ): Promise<ClassResponseDto> {
-    return this.classesService.create(createClassDto);
+    return this.classesService.create(createClassDto, user);
   }
 
   @Get()
-  @Roles(Role.ADMIN, Role.TRAINER, Role.MEMBER)
+  @Public()
   @ApiOperation({
-    summary: 'Get all classes',
+    summary: 'Get all classes (Public)',
     description:
-      'Retrieve a paginated list of classes with optional filters (date range, trainer, type).',
+      'Retrieve a paginated list of classes with optional filters (date range, trainer, type). No authentication required.',
   })
   @ApiResponse({
     status: 200,
     description: 'List of classes retrieved successfully',
   })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
   async findAll(
     @Query() filters: ClassFiltersDto,
   ): Promise<PaginatedResponseDto<ClassResponseDto>> {
@@ -81,11 +83,11 @@ export class ClassesController {
   }
 
   @Get(':id')
-  @Roles(Role.ADMIN, Role.TRAINER, Role.MEMBER)
+  @Public()
   @ApiOperation({
-    summary: 'Get class by ID',
+    summary: 'Get class by ID (Public)',
     description:
-      'Retrieve detailed information about a specific class including bookings.',
+      'Retrieve detailed information about a specific class including bookings. No authentication required.',
   })
   @ApiParam({
     name: 'id',
@@ -97,14 +99,14 @@ export class ClassesController {
     description: 'Class details retrieved successfully',
     type: ClassResponseDto,
   })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Class not found' })
   async findOne(@Param('id') id: string): Promise<ClassResponseDto> {
     return this.classesService.findOne(id);
   }
 
   @Patch(':id')
-  @Roles(Role.ADMIN, Role.TRAINER)
+  @Roles(Role.ADMIN, Role.TRAINER, Role.SUPERADMIN)
+  @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Update class information',
     description: 'Update class details. Requires ADMIN or TRAINER role.',
@@ -125,12 +127,14 @@ export class ClassesController {
   async update(
     @Param('id') id: string,
     @Body() updateClassDto: UpdateClassDto,
+    @CurrentUser() user: any,
   ): Promise<ClassResponseDto> {
-    return this.classesService.update(id, updateClassDto);
+    return this.classesService.update(id, updateClassDto, user);
   }
 
   @Delete(':id')
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.SUPERADMIN)
+  @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Deactivate class',
     description:
@@ -157,7 +161,8 @@ export class ClassesController {
   }
 
   @Post(':id/book')
-  @Roles(Role.ADMIN, Role.MEMBER)
+  @Roles(Role.ADMIN, Role.MEMBER, Role.SUPERADMIN)
+  @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Book a class',
     description: 'Book a class for a member. Requires ADMIN or MEMBER role.',
@@ -179,15 +184,20 @@ export class ClassesController {
   async bookClass(
     @Param('id') classId: string,
     @Body() bookDto: Omit<BookClassDto, 'classId'>,
+    @CurrentUser() user: any,
   ): Promise<ClassBookingResponseDto> {
-    return this.classesService.bookClass({
-      ...bookDto,
-      classId,
-    } as BookClassDto);
+    return this.classesService.bookClass(
+      {
+        ...bookDto,
+        classId,
+      } as BookClassDto,
+      user,
+    );
   }
 
   @Delete('bookings/:id')
-  @Roles(Role.ADMIN, Role.MEMBER)
+  @Roles(Role.ADMIN, Role.MEMBER, Role.SUPERADMIN)
+  @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Cancel class booking',
     description: 'Cancel a class booking. Requires ADMIN or MEMBER role.',
@@ -208,8 +218,9 @@ export class ClassesController {
   @ApiResponse({ status: 404, description: 'Booking not found' })
   async cancelBooking(
     @Param('id') bookingId: string,
+    @CurrentUser() user: any,
   ): Promise<{ message: string }> {
-    await this.classesService.cancelBooking(bookingId);
+    await this.classesService.cancelBooking(bookingId, user);
     return { message: 'Booking cancelled successfully' };
   }
 }
