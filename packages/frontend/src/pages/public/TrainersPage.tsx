@@ -1,4 +1,5 @@
 
+import { Link } from "react-router-dom"
 import { PublicLayout } from "../../layouts"
 import { TrainerCard } from "@/components/gym"
 

@@ -1,5 +1,6 @@
 
 import * as React from "react"
+import { Link } from "react-router-dom"
 import { PublicLayout } from "../../layouts"
 import { WorkoutPlanCard } from "@/components/gym"
 import { cn } from "@/lib/utils"

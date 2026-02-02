@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { AdminLayout } from "@/layouts";
+import { AdminLayout } from "../../layouts/AdminLayout";
 import { PrimaryButton, SecondaryButton } from "@/components/gym";
 import {
   Building,
