@@ -39,8 +39,8 @@ export function WorkoutPlanCard({
   onViewPlan,
   className,
 }: WorkoutPlanCardProps) {
-  const goalInfo = goalConfig[goal]
-  const difficultyInfo = difficultyConfig[difficulty]
+  const goalInfo = goalConfig[goal] || goalConfig.muscle
+  const difficultyInfo = difficultyConfig[difficulty] || difficultyConfig.beginner
 
   return (
     <div

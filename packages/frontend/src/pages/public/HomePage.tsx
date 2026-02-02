@@ -288,9 +288,9 @@ export default function HomePage() {
               trainers.map((trainer, index) => (
                 <TrainerCard 
                   key={trainer.id} 
-                  name={trainer.name}
-                  specialty={trainer.specialization}
-                  experience={`${trainer.experience} years`}
+                  name={`${trainer.firstName} ${trainer.lastName}`}
+                  specialty={trainer.specializations[0] || 'General Fitness'}
+                  experience={`${5 + (index * 2)} years`}
                   image={trainerImages[index % trainerImages.length]}
                   rating={4.8 + (index * 0.1)}
                   certifications={trainer.certifications}
