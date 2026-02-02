@@ -1,8 +1,5 @@
-'use client';
-
-import * as React from "react"
+import React from "react"
 import { cn } from "@/lib/utils"
-import Image from "next/image"
 
 interface TrainerCardProps {
   name: string
@@ -34,11 +31,10 @@ export function TrainerCard({
       )}
     >
       <div className="relative aspect-[4/5] overflow-hidden">
-        <Image
+        <img
           src={image || "/placeholder.svg"}
           alt={`${name} - ${specialty}`}
-          fill
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent" />
         

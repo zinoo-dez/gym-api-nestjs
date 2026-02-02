@@ -1,7 +1,6 @@
-"use client"
 
 import * as React from "react"
-import Link from "next/link"
+import { Link } from "react-router-dom"
 import { cn } from "@/lib/utils"
 import { PrimaryButton } from "./primary-button"
 import { SecondaryButton } from "./secondary-button"
@@ -53,7 +52,7 @@ export function TopNavbar({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <nav className="flex items-center justify-between h-20">
           {/* Logo */}
-          <Link href="/" className="flex items-center">
+          <Link to="/" className="flex items-center">
             {logo || (
               <span className="text-2xl font-bold text-foreground">
                 Power<span className="text-primary">Fit</span>
@@ -66,7 +65,7 @@ export function TopNavbar({
             {links.map((link) => (
               <Link
                 key={link.href}
-                href={link.href}
+                to={link.href}
                 className="text-muted-foreground hover:text-foreground font-medium transition-colors"
               >
                 {link.label}
@@ -132,7 +131,7 @@ export function TopNavbar({
               {links.map((link) => (
                 <Link
                   key={link.href}
-                  href={link.href}
+                  to={link.href}
                   className="text-muted-foreground hover:text-foreground font-medium py-2 transition-colors"
                   onClick={() => setIsMenuOpen(false)}
                 >

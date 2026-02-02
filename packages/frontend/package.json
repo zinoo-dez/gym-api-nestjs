@@ -6,9 +6,8 @@
     "scripts": {
         "dev": "vite",
         "build": "vite build",
-        "build:analyze": "vite build && open dist/stats.html",
-        "lint": "eslint .",
-        "preview": "vite preview"
+        "preview": "vite preview",
+        "lint": "eslint ."
     },
     "dependencies": {
         "@tanstack/react-query": "^5.90.20",
