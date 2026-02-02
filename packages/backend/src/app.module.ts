@@ -1,5 +1,5 @@
 import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_FILTER } from '@nestjs/core';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { CacheModule } from '@nestjs/cache-manager';
 import { ConfigModule } from '@nestjs/config';
@@ -16,6 +16,9 @@ import { WorkoutPlansModule } from './workout-plans/workout-plans.module';
 import { UsersModule } from './users/users.module';
 import { PricingModule } from './pricing/pricing.module';
 import { SanitizationMiddleware } from './common/middleware';
+import { LoggingModule } from './logging/logging.module';
+import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
+import { LoggerService } from './logging/logger.service';
 
 @Module({
   imports: [
@@ -34,6 +37,7 @@ import { SanitizationMiddleware } from './common/middleware';
       ttl: 3600000, // Default TTL: 1 hour in milliseconds
       max: 100, // Maximum number of items in cache
     }),
+    LoggingModule,
     PrismaModule,
     AuthModule,
     MembersModule,
@@ -52,6 +56,14 @@ import { SanitizationMiddleware } from './common/middleware';
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
+    },
+    // Apply GlobalExceptionFilter with LoggerService injection
+    {
+      provide: APP_FILTER,
+      useFactory: (loggerService: LoggerService) => {
+        return new GlobalExceptionFilter(loggerService);
+      },
+      inject: [LoggerService],
     },
   ],
 })

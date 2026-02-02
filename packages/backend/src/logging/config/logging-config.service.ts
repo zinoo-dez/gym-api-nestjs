@@ -80,6 +80,27 @@ export class LoggingConfigService {
         type: 'console',
         enabled: true,
       },
+      {
+        type: 'file',
+        enabled:
+          this.configService.get<string>('ENABLE_FILE_LOGGING', 'true') ===
+          'true',
+        options: {
+          logDir: this.configService.get<string>('LOG_DIR', 'logs'),
+          filename: this.configService.get<string>('LOG_FILENAME', 'app'),
+          maxFileSize: parseInt(
+            this.configService.get<string>('LOG_MAX_FILE_SIZE', '10485760'), // 10MB
+            10,
+          ),
+          maxFiles: parseInt(
+            this.configService.get<string>('LOG_MAX_FILES', '5'),
+            10,
+          ),
+          separateByLevel:
+            this.configService.get<string>('LOG_SEPARATE_BY_LEVEL', 'true') ===
+            'true',
+        },
+      },
     ];
 
     return {

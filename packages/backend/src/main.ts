@@ -3,7 +3,6 @@ import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { PrismaService } from './prisma/prisma.service';
-import { GlobalExceptionFilter } from './common/filters';
 import { ResponseInterceptor, LoggingInterceptor } from './common/interceptors';
 import { ConfigService } from '@nestjs/config';
 import helmet from 'helmet';
@@ -63,8 +62,8 @@ async function bootstrap() {
     maxAge: 3600, // Cache preflight requests for 1 hour
   });
 
-  // Configure global exception filter
-  app.useGlobalFilters(new GlobalExceptionFilter());
+  // Note: GlobalExceptionFilter is now provided via APP_FILTER in AppModule
+  // This ensures proper dependency injection of LoggerService
 
   // Configure global logging interceptor
   app.useGlobalInterceptors(new LoggingInterceptor());
