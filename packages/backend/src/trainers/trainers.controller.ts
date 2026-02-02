@@ -27,6 +27,7 @@ import { PaginatedResponseDto } from '../common/dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { Public } from '../auth/decorators/public.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Role } from '@prisma/client';
 
@@ -59,17 +60,16 @@ export class TrainersController {
   }
 
   @Get()
-  @Roles(Role.ADMIN, Role.TRAINER, Role.MEMBER, Role.SUPERADMIN)
+  @Public()
   @ApiOperation({
-    summary: 'Get all trainers',
+    summary: 'Get all trainers (Public)',
     description:
-      'Retrieve a paginated list of trainers with optional filters (specialization, availability).',
+      'Retrieve a paginated list of trainers with optional filters (specialization, availability). No authentication required.',
   })
   @ApiResponse({
     status: 200,
     description: 'List of trainers retrieved successfully',
   })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
   async findAll(
     @Query() filters: TrainerFiltersDto,
   ): Promise<PaginatedResponseDto<TrainerResponseDto>> {
@@ -77,11 +77,11 @@ export class TrainersController {
   }
 
   @Get(':id')
-  @Roles(Role.ADMIN, Role.TRAINER, Role.MEMBER, Role.SUPERADMIN)
+  @Public()
   @ApiOperation({
-    summary: 'Get trainer by ID',
+    summary: 'Get trainer by ID (Public)',
     description:
-      'Retrieve detailed information about a specific trainer including their classes.',
+      'Retrieve detailed information about a specific trainer including their classes. No authentication required.',
   })
   @ApiParam({
     name: 'id',
@@ -93,13 +93,9 @@ export class TrainersController {
     description: 'Trainer details retrieved successfully',
     type: TrainerResponseDto,
   })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Trainer not found' })
-  async findOne(
-    @Param('id') id: string,
-    @CurrentUser() user: any,
-  ): Promise<TrainerResponseDto> {
-    return this.trainersService.findOne(id, user);
+  async findOne(@Param('id') id: string): Promise<TrainerResponseDto> {
+    return this.trainersService.findOne(id, null);
   }
 
   @Patch(':id')

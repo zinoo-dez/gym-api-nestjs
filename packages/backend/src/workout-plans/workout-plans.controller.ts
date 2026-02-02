@@ -29,6 +29,7 @@ import { PaginatedResponseDto } from '../common/dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { Public } from '../auth/decorators/public.decorator';
 import { Role } from '@prisma/client';
 
 @ApiTags('workout-plans')
@@ -67,20 +68,15 @@ export class WorkoutPlansController {
   }
 
   @Get()
-  @Roles(Role.ADMIN, Role.TRAINER)
+  @Public()
   @ApiOperation({
-    summary: 'Get all workout plans',
+    summary: 'Get all workout plans (Public)',
     description:
-      'Retrieve a paginated list of all workout plans with optional filters. Requires ADMIN or TRAINER role.',
+      'Retrieve a paginated list of all workout plans with optional filters. No authentication required.',
   })
   @ApiResponse({
     status: 200,
     description: 'List of workout plans retrieved successfully',
-  })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({
-    status: 403,
-    description: 'Forbidden - Admin or Trainer role required',
   })
   async findAll(
     @Query() filters: WorkoutPlanFiltersDto,
@@ -113,11 +109,11 @@ export class WorkoutPlansController {
   }
 
   @Get(':id')
-  @Roles(Role.ADMIN, Role.TRAINER, Role.MEMBER)
+  @Public()
   @ApiOperation({
-    summary: 'Get workout plan by ID',
+    summary: 'Get workout plan by ID (Public)',
     description:
-      'Retrieve detailed information about a specific workout plan including exercises.',
+      'Retrieve detailed information about a specific workout plan including exercises. No authentication required.',
   })
   @ApiParam({
     name: 'id',
@@ -129,7 +125,6 @@ export class WorkoutPlansController {
     description: 'Workout plan details retrieved successfully',
     type: WorkoutPlanResponseDto,
   })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Workout plan not found' })
   async findOne(@Param('id') id: string): Promise<WorkoutPlanResponseDto> {
     return this.workoutPlansService.findOne(id);

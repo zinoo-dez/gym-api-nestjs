@@ -25,7 +25,8 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    // Only redirect to login for authenticated routes (401 with token present)
+    if (error.response?.status === 401 && localStorage.getItem("accessToken")) {
       // Clear token and redirect to login
       localStorage.removeItem("accessToken");
       localStorage.removeItem("user");

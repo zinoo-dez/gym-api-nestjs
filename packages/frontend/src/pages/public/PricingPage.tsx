@@ -1,105 +1,10 @@
 
 import * as React from "react"
+import { useEffect, useState } from "react"
 import { PublicLayout } from "../../layouts"
 import { PricingCard, SecondaryButton } from "@/components/gym"
 import { cn } from "@/lib/utils"
-
-const plans = {
-  monthly: [
-    {
-      name: "Basic",
-      price: 29,
-      period: "month" as const,
-      description: "Essential access for casual gym-goers",
-      features: [
-        "Access to gym floor",
-        "Locker room access",
-        "Free parking",
-        "Mobile app access",
-        "Basic workout tracking",
-      ],
-    },
-    {
-      name: "Pro",
-      price: 59,
-      period: "month" as const,
-      description: "Everything you need for serious training",
-      features: [
-        "Everything in Basic",
-        "Unlimited group classes",
-        "1 personal training session/month",
-        "Nutrition consultation",
-        "Sauna & steam room",
-        "Guest passes (2/month)",
-        "Advanced analytics",
-      ],
-      isPopular: true,
-    },
-    {
-      name: "Elite",
-      price: 99,
-      period: "month" as const,
-      description: "Premium experience for dedicated athletes",
-      features: [
-        "Everything in Pro",
-        "4 personal training sessions/month",
-        "Custom workout plans",
-        "Recovery zone access",
-        "Priority class booking",
-        "Exclusive member events",
-        "Dedicated trainer support",
-        "Body composition analysis",
-      ],
-    },
-  ],
-  yearly: [
-    {
-      name: "Basic",
-      price: 249,
-      period: "year" as const,
-      description: "Essential access for casual gym-goers",
-      features: [
-        "Access to gym floor",
-        "Locker room access",
-        "Free parking",
-        "Mobile app access",
-        "Basic workout tracking",
-      ],
-    },
-    {
-      name: "Pro",
-      price: 499,
-      period: "year" as const,
-      description: "Everything you need for serious training",
-      features: [
-        "Everything in Basic",
-        "Unlimited group classes",
-        "1 personal training session/month",
-        "Nutrition consultation",
-        "Sauna & steam room",
-        "Guest passes (2/month)",
-        "Advanced analytics",
-      ],
-      isPopular: true,
-    },
-    {
-      name: "Elite",
-      price: 899,
-      period: "year" as const,
-      description: "Premium experience for dedicated athletes",
-      features: [
-        "Everything in Pro",
-        "4 personal training sessions/month",
-        "Custom workout plans",
-        "Recovery zone access",
-        "Priority class booking",
-        "Exclusive member events",
-        "Dedicated trainer support",
-        "Body composition analysis",
-      ],
-    },
-  ],
-}
+import { membershipsService, type MembershipPlan } from "@/services/memberships.service"
 
 const faqs = [
   {
@@ -129,7 +34,44 @@ const faqs = [
 ]
 
 export default function PricingPage() {
-  const [billingPeriod, setBillingPeriod] = React.useState<"monthly" | "yearly">("monthly")
+  const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">("monthly")
+  const [plans, setPlans] = useState<MembershipPlan[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchPlans = async () => {
+      try {
+        const response = await membershipsService.getAllPlans({ limit: 10, isActive: true })
+        setPlans(Array.isArray(response.data) ? response.data : [])
+      } catch (error) {
+        console.error('Error fetching membership plans:', error)
+        setPlans([]) // Ensure it's always an array
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchPlans()
+  }, [])
+
+  if (loading) {
+    return (
+      <PublicLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <p className="text-muted-foreground">Loading pricing plans...</p>
+          </div>
+        </div>
+      </PublicLayout>
+    )
+  }
+
+  const displayPlans = (plans || []).map((plan, index) => ({
+    ...plan,
+    period: billingPeriod,
+    isPopular: index === 1,
+  }))
 
   return (
     <PublicLayout>
@@ -180,8 +122,8 @@ export default function PricingPage() {
 
           {/* Pricing Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto mb-20">
-            {plans[billingPeriod].map((plan) => (
-              <PricingCard key={plan.name} {...plan} />
+            {displayPlans.map((plan) => (
+              <PricingCard key={plan.id} {...plan} />
             ))}
           </div>
 

@@ -1,93 +1,11 @@
 
 import * as React from "react"
+import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import { PublicLayout } from "../../layouts"
 import { WorkoutPlanCard } from "@/components/gym"
 import { cn } from "@/lib/utils"
-
-const workoutPlans = [
-  {
-    title: "Beginner Full Body",
-    goal: "muscle" as const,
-    difficulty: "beginner" as const,
-    duration: "8 weeks",
-    daysPerWeek: 3,
-    exercises: 24,
-    description: "Perfect for those just starting their fitness journey. Build a strong foundation with compound movements.",
-  },
-  {
-    title: "Fat Burner HIIT",
-    goal: "fat-loss" as const,
-    difficulty: "intermediate" as const,
-    duration: "6 weeks",
-    daysPerWeek: 4,
-    exercises: 32,
-    description: "High-intensity interval training program designed to maximize calorie burn and boost metabolism.",
-  },
-  {
-    title: "Strength Builder",
-    goal: "strength" as const,
-    difficulty: "advanced" as const,
-    duration: "12 weeks",
-    daysPerWeek: 5,
-    exercises: 48,
-    description: "Progressive overload program focused on building raw strength with heavy compound lifts.",
-  },
-  {
-    title: "Lean Muscle Program",
-    goal: "muscle" as const,
-    difficulty: "intermediate" as const,
-    duration: "10 weeks",
-    daysPerWeek: 4,
-    exercises: 36,
-    description: "Build lean muscle mass while maintaining low body fat with this balanced hypertrophy program.",
-  },
-  {
-    title: "Cardio Endurance",
-    goal: "endurance" as const,
-    difficulty: "beginner" as const,
-    duration: "8 weeks",
-    daysPerWeek: 4,
-    exercises: 28,
-    description: "Improve cardiovascular fitness and stamina with progressive cardio training.",
-  },
-  {
-    title: "Shred & Tone",
-    goal: "fat-loss" as const,
-    difficulty: "intermediate" as const,
-    duration: "8 weeks",
-    daysPerWeek: 5,
-    exercises: 40,
-    description: "Combination of resistance training and cardio to burn fat while preserving muscle.",
-  },
-  {
-    title: "Powerlifting Prep",
-    goal: "strength" as const,
-    difficulty: "advanced" as const,
-    duration: "16 weeks",
-    daysPerWeek: 4,
-    exercises: 32,
-    description: "Competition-ready powerlifting program focused on squat, bench, and deadlift.",
-  },
-  {
-    title: "Athletic Performance",
-    goal: "endurance" as const,
-    difficulty: "intermediate" as const,
-    duration: "12 weeks",
-    daysPerWeek: 5,
-    exercises: 45,
-    description: "Improve speed, agility, and overall athletic performance for sports.",
-  },
-  {
-    title: "Mass Gainer",
-    goal: "muscle" as const,
-    difficulty: "advanced" as const,
-    duration: "12 weeks",
-    daysPerWeek: 6,
-    exercises: 54,
-    description: "High-volume bodybuilding program designed for serious muscle growth.",
-  },
-]
+import { workoutPlansService, type WorkoutPlan } from "@/services/workout-plans.service"
 
 const goals = [
   { value: "all", label: "All Goals" },
@@ -105,14 +23,45 @@ const difficulties = [
 ]
 
 export default function WorkoutsPage() {
-  const [selectedGoal, setSelectedGoal] = React.useState("all")
-  const [selectedDifficulty, setSelectedDifficulty] = React.useState("all")
+  const [selectedGoal, setSelectedGoal] = useState("all")
+  const [selectedDifficulty, setSelectedDifficulty] = useState("all")
+  const [workoutPlans, setWorkoutPlans] = useState<WorkoutPlan[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const filteredPlans = workoutPlans.filter((plan) => {
+  useEffect(() => {
+    const fetchWorkoutPlans = async () => {
+      try {
+        const response = await workoutPlansService.getAll({ limit: 50 })
+        setWorkoutPlans(Array.isArray(response.data) ? response.data : [])
+      } catch (error) {
+        console.error('Error fetching workout plans:', error)
+        setWorkoutPlans([])
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchWorkoutPlans()
+  }, [])
+
+  const filteredPlans = (workoutPlans || []).filter((plan) => {
     const goalMatch = selectedGoal === "all" || plan.goal === selectedGoal
     const difficultyMatch = selectedDifficulty === "all" || plan.difficulty === selectedDifficulty
     return goalMatch && difficultyMatch
   })
+
+  if (loading) {
+    return (
+      <PublicLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <p className="text-muted-foreground">Loading workout plans...</p>
+          </div>
+        </div>
+      </PublicLayout>
+    )
+  }
 
   return (
     <PublicLayout>
@@ -128,80 +77,99 @@ export default function WorkoutsPage() {
             </p>
           </div>
 
-          {/* Filters */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
-            {/* Goal Filter */}
-            <div className="flex flex-wrap items-center justify-center gap-2">
-              {goals.map((goal) => (
-                <button
-                  key={goal.value}
-                  onClick={() => setSelectedGoal(goal.value)}
-                  className={cn(
-                    "px-4 py-2 rounded-lg text-sm font-medium transition-colors",
-                    selectedGoal === goal.value
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-card border border-border text-muted-foreground hover:text-foreground hover:border-primary/50"
-                  )}
-                >
-                  {goal.label}
-                </button>
-              ))}
-            </div>
-
-            <div className="w-px h-6 bg-border hidden sm:block" />
-
-            {/* Difficulty Filter */}
-            <div className="flex flex-wrap items-center justify-center gap-2">
-              {difficulties.map((difficulty) => (
-                <button
-                  key={difficulty.value}
-                  onClick={() => setSelectedDifficulty(difficulty.value)}
-                  className={cn(
-                    "px-4 py-2 rounded-lg text-sm font-medium transition-colors",
-                    selectedDifficulty === difficulty.value
-                      ? "bg-secondary text-foreground"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  {difficulty.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Workout Plans Grid */}
-          {filteredPlans.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {filteredPlans.map((plan) => (
-                <WorkoutPlanCard key={plan.title} {...plan} />
-              ))}
+          {!workoutPlans || workoutPlans.length === 0 ? (
+            <div className="text-center py-20">
+              <p className="text-muted-foreground mb-4">
+                No workout plans available at the moment. Please check back later.
+              </p>
             </div>
           ) : (
-            <div className="text-center py-20">
-              <p className="text-muted-foreground mb-4">No workout plans match your filters.</p>
-              <button
-                onClick={() => { setSelectedGoal("all"); setSelectedDifficulty("all"); }}
-                className="text-primary font-medium hover:underline"
-              >
-                Clear Filters
-              </button>
-            </div>
+            <>
+              {/* Filters */}
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
+                {/* Goal Filter */}
+                <div className="flex flex-wrap items-center justify-center gap-2">
+                  {goals.map((goal) => (
+                    <button
+                      key={goal.value}
+                      onClick={() => setSelectedGoal(goal.value)}
+                      className={cn(
+                        "px-4 py-2 rounded-lg text-sm font-medium transition-colors",
+                        selectedGoal === goal.value
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-card border border-border text-muted-foreground hover:text-foreground hover:border-primary/50"
+                      )}
+                    >
+                      {goal.label}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="w-px h-6 bg-border hidden sm:block" />
+
+                {/* Difficulty Filter */}
+                <div className="flex flex-wrap items-center justify-center gap-2">
+                  {difficulties.map((difficulty) => (
+                    <button
+                      key={difficulty.value}
+                      onClick={() => setSelectedDifficulty(difficulty.value)}
+                      className={cn(
+                        "px-4 py-2 rounded-lg text-sm font-medium transition-colors",
+                        selectedDifficulty === difficulty.value
+                          ? "bg-secondary text-foreground"
+                          : "text-muted-foreground hover:text-foreground"
+                      )}
+                    >
+                      {difficulty.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Workout Plans Grid */}
+              {filteredPlans.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {filteredPlans.map((plan) => (
+                    <WorkoutPlanCard 
+                      key={plan.id} 
+                      title={plan.name}
+                      goal={plan.goal}
+                      difficulty={plan.difficulty}
+                      duration={`${plan.durationWeeks} weeks`}
+                      daysPerWeek={plan.daysPerWeek}
+                      exercises={plan.exercises?.length || 0}
+                      description={plan.description || ''}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-20">
+                  <p className="text-muted-foreground mb-4">No workout plans match your filters.</p>
+                  <button
+                    onClick={() => { setSelectedGoal("all"); setSelectedDifficulty("all"); }}
+                    className="text-primary font-medium hover:underline"
+                  >
+                    Clear Filters
+                  </button>
+                </div>
+              )}
+            </>
           )}
 
-          {/* Custom Plan CTA */}
-          <div className="mt-20 bg-gradient-to-r from-primary/10 to-accent/10 rounded-2xl p-8 md:p-12 text-center">
-            <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4">
-              Need a Custom Workout Plan?
+          {/* Join CTA */}
+          <div className="mt-20 text-center bg-card border border-border rounded-2xl p-12">
+            <h2 className="text-2xl font-bold text-foreground mb-4">
+              Want Custom Workout Plans?
             </h2>
             <p className="text-muted-foreground mb-6 max-w-xl mx-auto">
-              Our expert trainers can create a personalized workout plan tailored to your specific goals, 
-              fitness level, and schedule. Available with Elite membership.
+              Our expert trainers can create personalized workout plans tailored to your specific goals, 
+              fitness level, and schedule. Available with membership.
             </p>
             <Link
               to="/pricing"
               className="inline-flex items-center justify-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-lg font-semibold hover:bg-primary-dark transition-colors"
             >
-              Get Custom Plan
+              View Membership Plans
             </Link>
           </div>
         </div>

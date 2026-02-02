@@ -14,6 +14,7 @@ import { ClassesModule } from './classes/classes.module';
 import { AttendanceModule } from './attendance/attendance.module';
 import { WorkoutPlansModule } from './workout-plans/workout-plans.module';
 import { UsersModule } from './users/users.module';
+import { PricingModule } from './pricing/pricing.module';
 import { SanitizationMiddleware } from './common/middleware';
 
 @Module({
@@ -42,6 +43,7 @@ import { SanitizationMiddleware } from './common/middleware';
     AttendanceModule,
     WorkoutPlansModule,
     UsersModule,
+    PricingModule,
   ],
   controllers: [AppController],
   providers: [

@@ -50,6 +50,16 @@ enum AttendanceType {
     @@map("attendance_type")
 }
 
+enum PricingCategory {
+    MEMBERSHIP
+    CLASS
+    PERSONAL_TRAINING
+    FACILITY
+    OTHER
+
+    @@map("pricing_category")
+}
+
 enum WorkoutGoal {
     WEIGHT_LOSS
     MUSCLE_GAIN
@@ -272,4 +282,25 @@ model Exercise {
 
     @@index([workoutPlanId, order])
     @@map("exercises")
+}
+
+// Pricing table for various services
+model Pricing {
+    id          String          @id @default(uuid())
+    name        String
+    description String?
+    category    PricingCategory
+    price       Decimal         @db.Decimal(10, 2)
+    currency    String          @default("USD")
+    duration    Int? // Duration in days (for time-based pricing)
+    features    String[] // List of features included
+    isActive    Boolean         @default(true) @map("is_active")
+    sortOrder   Int             @default(0) @map("sort_order") // For display ordering
+    createdAt   DateTime        @default(now()) @map("created_at")
+    updatedAt   DateTime        @updatedAt @map("updated_at")
+
+    @@index([category])
+    @@index([isActive])
+    @@index([sortOrder])
+    @@map("pricing")
 }

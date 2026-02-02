@@ -1,26 +1,29 @@
 
 import * as React from "react"
+import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import { PublicLayout } from "../../layouts"
 import { ClassScheduleTable, type ClassScheduleItem, SecondaryButton } from "@/components/gym"
 import { cn } from "@/lib/utils"
+import { classesService, type Class } from "@/services/classes.service"
 
-const classSchedule: ClassScheduleItem[] = [
-  { id: "1", name: "Morning HIIT", trainer: "Sarah Chen", time: "6:00 AM", duration: "45 min", day: "Monday", capacity: 20, enrolled: 18, level: "intermediate" },
-  { id: "2", name: "Power Yoga", trainer: "Emily Rodriguez", time: "7:30 AM", duration: "60 min", day: "Monday", capacity: 15, enrolled: 12, level: "all" },
-  { id: "3", name: "CrossFit WOD", trainer: "James Park", time: "12:00 PM", duration: "60 min", day: "Monday", capacity: 12, enrolled: 12, level: "advanced" },
-  { id: "4", name: "Spin Class", trainer: "Sarah Chen", time: "5:30 PM", duration: "45 min", day: "Monday", capacity: 25, enrolled: 22, level: "all" },
-  { id: "5", name: "Boxing Basics", trainer: "Lisa Anderson", time: "7:00 PM", duration: "60 min", day: "Monday", capacity: 16, enrolled: 10, level: "beginner" },
-  { id: "6", name: "Strength Training", trainer: "Alex Thompson", time: "6:00 AM", duration: "60 min", day: "Tuesday", capacity: 15, enrolled: 8, level: "intermediate" },
-  { id: "7", name: "Pilates", trainer: "Emily Rodriguez", time: "9:00 AM", duration: "50 min", day: "Tuesday", capacity: 12, enrolled: 11, level: "all" },
-  { id: "8", name: "HIIT Circuit", trainer: "Sarah Chen", time: "12:00 PM", duration: "45 min", day: "Tuesday", capacity: 20, enrolled: 15, level: "intermediate" },
-  { id: "9", name: "Bodybuilding", trainer: "Marcus Williams", time: "6:00 PM", duration: "75 min", day: "Tuesday", capacity: 10, enrolled: 9, level: "advanced" },
-  { id: "10", name: "MMA Conditioning", trainer: "Lisa Anderson", time: "7:30 PM", duration: "60 min", day: "Tuesday", capacity: 14, enrolled: 7, level: "intermediate" },
-  { id: "11", name: "Sunrise Yoga", trainer: "Emily Rodriguez", time: "6:00 AM", duration: "60 min", day: "Wednesday", capacity: 15, enrolled: 14, level: "all" },
-  { id: "12", name: "CrossFit Open", trainer: "James Park", time: "12:00 PM", duration: "60 min", day: "Wednesday", capacity: 12, enrolled: 10, level: "all" },
-  { id: "13", name: "Spin & Burn", trainer: "Sarah Chen", time: "5:30 PM", duration: "45 min", day: "Wednesday", capacity: 25, enrolled: 25, level: "intermediate" },
-  { id: "14", name: "Core & More", trainer: "Alex Thompson", time: "7:00 PM", duration: "45 min", day: "Wednesday", capacity: 20, enrolled: 12, level: "beginner" },
-]
+const convertClassToScheduleItem = (cls: Class): ClassScheduleItem => {
+  const startTime = new Date(cls.startTime)
+  const endTime = new Date(cls.endTime)
+  const duration = Math.round((endTime.getTime() - startTime.getTime()) / (1000 * 60))
+  
+  return {
+    id: cls.id,
+    name: cls.name,
+    trainer: cls.trainer?.name || 'TBA',
+    time: startTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
+    duration: `${duration} min`,
+    day: startTime.toLocaleDateString('en-US', { weekday: 'long' }),
+    capacity: cls.capacity,
+    enrolled: cls.enrolled,
+    level: 'all' as const,
+  }
+}
 
 const classTypes = [
   { name: "HIIT", description: "High-intensity interval training for maximum calorie burn", icon: "🔥" },
@@ -34,14 +37,46 @@ const classTypes = [
 const days = ["All", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
 export default function ClassesPage() {
-  const [selectedDay, setSelectedDay] = React.useState("All")
-  const [selectedLevel, setSelectedLevel] = React.useState("all")
+  const [selectedDay, setSelectedDay] = useState("All")
+  const [selectedLevel, setSelectedLevel] = useState("all")
+  const [classes, setClasses] = useState<ClassScheduleItem[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const filteredClasses = classSchedule.filter((cls) => {
+  useEffect(() => {
+    const fetchClasses = async () => {
+      try {
+        const response = await classesService.getAll({ limit: 50 })
+        const scheduleItems = Array.isArray(response.data) ? response.data.map(convertClassToScheduleItem) : []
+        setClasses(scheduleItems)
+      } catch (error) {
+        console.error('Error fetching classes:', error)
+        setClasses([]) // Ensure it's always an array
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchClasses()
+  }, [])
+
+  const filteredClasses = (classes || []).filter((cls) => {
     const dayMatch = selectedDay === "All" || cls.day === selectedDay
     const levelMatch = selectedLevel === "all" || cls.level === selectedLevel
     return dayMatch && levelMatch
   })
+
+  if (loading) {
+    return (
+      <PublicLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <p className="text-muted-foreground">Loading classes...</p>
+          </div>
+        </div>
+      </PublicLayout>
+    )
+  }
 
   return (
     <PublicLayout>

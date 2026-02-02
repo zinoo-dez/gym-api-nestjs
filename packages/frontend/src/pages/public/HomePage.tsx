@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useEffect, useState } from "react"
 
 import { PublicLayout } from "../../layouts/PublicLayout"
 import {
@@ -9,6 +9,9 @@ import {
   WorkoutPlanCard,
 } from "@/components/gym"
 import { Link } from "react-router-dom"
+import { trainersService, type Trainer } from "@/services/trainers.service"
+import { workoutPlansService, type WorkoutPlan } from "@/services/workout-plans.service"
+import { membershipsService, type MembershipPlan } from "@/services/memberships.service"
 
 const features = [
   {
@@ -49,102 +52,10 @@ const features = [
   },
 ]
 
-const trainers = [
-  {
-    name: "Alex Thompson",
-    specialty: "Strength & Conditioning",
-    experience: "8 years",
-    image: "https://images.unsplash.com/photo-1567013127542-490d757e51fc?w=400&h=500&fit=crop",
-    rating: 4.9,
-    certifications: ["NASM-CPT", "CSCS"],
-  },
-  {
-    name: "Sarah Chen",
-    specialty: "HIIT & Cardio",
-    experience: "6 years",
-    image: "https://images.unsplash.com/photo-1594381898411-846e7d193883?w=400&h=500&fit=crop",
-    rating: 4.8,
-    certifications: ["ACE-CPT", "Spinning"],
-  },
-  {
-    name: "Marcus Williams",
-    specialty: "Bodybuilding",
-    experience: "10 years",
-    image: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&h=500&fit=crop",
-    rating: 5.0,
-    certifications: ["ISSA-CPT", "Nutrition"],
-  },
-]
-
-const workoutPlans = [
-  {
-    title: "Beginner Full Body",
-    goal: "muscle" as const,
-    difficulty: "beginner" as const,
-    duration: "8 weeks",
-    daysPerWeek: 3,
-    exercises: 24,
-    description: "Perfect for those just starting their fitness journey",
-  },
-  {
-    title: "Fat Burner HIIT",
-    goal: "fat-loss" as const,
-    difficulty: "intermediate" as const,
-    duration: "6 weeks",
-    daysPerWeek: 4,
-    exercises: 32,
-    description: "High-intensity program designed to maximize calorie burn",
-  },
-  {
-    title: "Strength Builder",
-    goal: "strength" as const,
-    difficulty: "advanced" as const,
-    duration: "12 weeks",
-    daysPerWeek: 5,
-    exercises: 48,
-    description: "Progressive overload program for serious strength gains",
-  },
-]
-
-const pricingPlans = [
-  {
-    name: "Basic",
-    price: 29,
-    description: "Essential access for casual gym-goers",
-    features: [
-      "Access to gym floor",
-      "Locker room access",
-      "Free parking",
-      "Mobile app access",
-    ],
-  },
-  {
-    name: "Pro",
-    price: 59,
-    description: "Everything you need for serious training",
-    features: [
-      "Everything in Basic",
-      "Unlimited group classes",
-      "1 personal training session/month",
-      "Nutrition consultation",
-      "Sauna & steam room",
-      "Guest passes (2/month)",
-    ],
-    isPopular: true,
-  },
-  {
-    name: "Elite",
-    price: 99,
-    description: "Premium experience for dedicated athletes",
-    features: [
-      "Everything in Pro",
-      "4 personal training sessions/month",
-      "Custom workout plans",
-      "Recovery zone access",
-      "Priority class booking",
-      "Exclusive member events",
-    ],
-  },
+const trainerImages = [
+  "https://images.unsplash.com/photo-1567013127542-490d757e51fc?w=400&h=500&fit=crop",
+  "https://images.unsplash.com/photo-1594381898411-846e7d193883?w=400&h=500&fit=crop",
+  "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&h=500&fit=crop",
 ]
 
 const testimonials = [
@@ -168,7 +79,109 @@ const testimonials = [
   },
 ]
 
+// Mock data for trainers (not available publicly per auth matrix)
+const mockTrainers = [
+  {
+    id: '1',
+    name: "Alex Thompson",
+    specialization: "Strength & Conditioning",
+    experience: 8,
+    certifications: ["NASM-CPT", "CSCS"],
+  },
+  {
+    id: '2',
+    name: "Sarah Chen",
+    specialization: "HIIT & Cardio",
+    experience: 6,
+    certifications: ["ACE-CPT", "Spinning"],
+  },
+  {
+    id: '3',
+    name: "Marcus Williams",
+    specialization: "Bodybuilding",
+    experience: 10,
+    certifications: ["ISSA-CPT", "Nutrition"],
+  },
+]
+
+// Mock data for workout plans (not available publicly per auth matrix)
+const mockWorkoutPlans = [
+  {
+    id: '1',
+    name: "Beginner Full Body",
+    goal: "muscle" as const,
+    difficulty: "beginner" as const,
+    durationWeeks: 8,
+    daysPerWeek: 3,
+    exercises: [1, 2, 3],
+    description: "Perfect for those just starting their fitness journey",
+  },
+  {
+    id: '2',
+    name: "Fat Burner HIIT",
+    goal: "fat-loss" as const,
+    difficulty: "intermediate" as const,
+    durationWeeks: 6,
+    daysPerWeek: 4,
+    exercises: [1, 2, 3, 4],
+    description: "High-intensity program designed to maximize calorie burn",
+  },
+  {
+    id: '3',
+    name: "Strength Builder",
+    goal: "strength" as const,
+    difficulty: "advanced" as const,
+    durationWeeks: 12,
+    daysPerWeek: 5,
+    exercises: [1, 2, 3, 4, 5],
+    description: "Progressive overload program for serious strength gains",
+  },
+]
+
 export default function HomePage() {
+  const [trainers, setTrainers] = useState<Trainer[]>([])
+  const [workoutPlans, setWorkoutPlans] = useState<WorkoutPlan[]>([])
+  const [pricingPlans, setPricingPlans] = useState<MembershipPlan[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch all public data
+        const [trainersData, workoutPlansData, membershipPlansData] = await Promise.all([
+          trainersService.getAll({ limit: 3 }),
+          workoutPlansService.getAll({ limit: 3 }),
+          membershipsService.getAllPlans({ limit: 3, isActive: true }),
+        ])
+        setTrainers(Array.isArray(trainersData.data) ? trainersData.data : [])
+        setWorkoutPlans(Array.isArray(workoutPlansData.data) ? workoutPlansData.data : [])
+        setPricingPlans(Array.isArray(membershipPlansData.data) ? membershipPlansData.data : [])
+      } catch (error) {
+        console.error('Error fetching homepage data:', error)
+        setTrainers([])
+        setWorkoutPlans([])
+        setPricingPlans([]) // Ensure it's always an array
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [])
+
+  if (loading) {
+    return (
+      <PublicLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <p className="text-muted-foreground">Loading...</p>
+          </div>
+        </div>
+      </PublicLayout>
+    )
+  }
+
   return (
     <PublicLayout>
       {/* Hero Section */}
@@ -271,9 +284,23 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {trainers.map((trainer) => (
-              <TrainerCard key={trainer.name} {...trainer} />
-            ))}
+            {trainers && trainers.length > 0 ? (
+              trainers.map((trainer, index) => (
+                <TrainerCard 
+                  key={trainer.id} 
+                  name={trainer.name}
+                  specialty={trainer.specialization}
+                  experience={`${trainer.experience} years`}
+                  image={trainerImages[index % trainerImages.length]}
+                  rating={4.8 + (index * 0.1)}
+                  certifications={trainer.certifications}
+                />
+              ))
+            ) : (
+              <div className="col-span-3 text-center py-12">
+                <p className="text-muted-foreground">Loading trainers...</p>
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -296,9 +323,24 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {workoutPlans.map((plan) => (
-              <WorkoutPlanCard key={plan.title} {...plan} />
-            ))}
+            {workoutPlans && workoutPlans.length > 0 ? (
+              workoutPlans.map((plan) => (
+                <WorkoutPlanCard 
+                  key={plan.id} 
+                  title={plan.name}
+                  goal={plan.goal}
+                  difficulty={plan.difficulty}
+                  duration={`${plan.durationWeeks} weeks`}
+                  daysPerWeek={plan.daysPerWeek}
+                  exercises={plan.exercises?.length || 0}
+                  description={plan.description || ''}
+                />
+              ))
+            ) : (
+              <div className="col-span-3 text-center py-12">
+                <p className="text-muted-foreground">Loading workout plans...</p>
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -316,9 +358,22 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {pricingPlans.map((plan) => (
-              <PricingCard key={plan.name} {...plan} />
-            ))}
+            {pricingPlans && pricingPlans.length > 0 ? (
+              pricingPlans.map((plan, index) => (
+                <PricingCard 
+                  key={plan.id} 
+                  name={plan.name}
+                  price={plan.price}
+                  description={plan.description || ''}
+                  features={plan.features}
+                  isPopular={index === 1}
+                />
+              ))
+            ) : (
+              <div className="col-span-3 text-center py-12">
+                <p className="text-muted-foreground">Loading pricing plans...</p>
+              </div>
+            )}
           </div>
         </div>
       </section>
