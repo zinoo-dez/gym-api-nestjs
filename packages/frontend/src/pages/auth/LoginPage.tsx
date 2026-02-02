@@ -3,10 +3,15 @@ import * as React from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { AuthLayout } from "../../layouts"
 import { PrimaryButton } from "@/components/gym"
+import { authService } from "@/services/auth.service"
+import { useAuthStore } from "@/store/auth.store"
+import { toast } from "sonner"
 
 export default function LoginPage() {
   const navigate = useNavigate()
+  const setAuth = useAuthStore((state) => state.setAuth)
   const [isLoading, setIsLoading] = React.useState(false)
+  const [error, setError] = React.useState("")
   const [formData, setFormData] = React.useState({
     email: "",
     password: "",
@@ -16,13 +21,33 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setError("")
     
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    
-    // Redirect based on role (for demo, redirect to member)
-    navigate("/member")
-    setIsLoading(false)
+    try {
+      const response = await authService.login({
+        email: formData.email,
+        password: formData.password,
+      })
+      
+      setAuth(response)
+      toast.success("Welcome back!")
+      
+      // Redirect based on role
+      const role = response.user.role.toLowerCase()
+      if (role === 'admin' || role === 'superadmin') {
+        navigate("/admin")
+      } else if (role === 'trainer') {
+        navigate("/trainer")
+      } else {
+        navigate("/member")
+      }
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || "Invalid email or password"
+      setError(errorMessage)
+      toast.error(errorMessage)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -31,6 +56,13 @@ export default function LoginPage() {
       subtitle="Sign in to your account to continue your fitness journey"
     >
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Error Message */}
+        {error && (
+          <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
+            <p className="text-destructive text-sm">{error}</p>
+          </div>
+        )}
+
         {/* Email */}
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">

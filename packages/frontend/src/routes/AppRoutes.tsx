@@ -1,9 +1,10 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
+import { ProtectedRoute } from '../components/ProtectedRoute';
 
 // Public Pages
 import HomePage from '../pages/public/HomePage';
-import RegisterPage from '../pages/public/RegisterPage';
+import RegisterPage from '../pages/auth/RegisterPage';
 import PricingPage from '../pages/public/PricingPage';
 import TrainersPage from '../pages/public/TrainersPage';
 import WorkoutsPage from '../pages/public/WorkoutsPage';
@@ -42,17 +43,17 @@ const AppRoutes = () => {
       <Route path="/auth/login" element={<LoginPage />} />
       <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
 
-      {/* Admin Routes (Placeholder for protection) */}
-      <Route path="/admin" element={<DashboardPage />} />
-      <Route path="/admin/members" element={<MembersPage />} />
-      <Route path="/admin/trainers" element={<AdminTrainersPage />} />
-      <Route path="/admin/plans" element={<PlansPage />} />
-      <Route path="/admin/classes" element={<AdminClassesPage />} />
-      <Route path="/admin/reports" element={<ReportsPage />} />
-      <Route path="/admin/settings" element={<SettingsPage />} />
+      {/* Admin Routes - Protected */}
+      <Route path="/admin" element={<ProtectedRoute allowedRoles={['ADMIN', 'SUPERADMIN']}><DashboardPage /></ProtectedRoute>} />
+      <Route path="/admin/members" element={<ProtectedRoute allowedRoles={['ADMIN', 'SUPERADMIN']}><MembersPage /></ProtectedRoute>} />
+      <Route path="/admin/trainers" element={<ProtectedRoute allowedRoles={['ADMIN', 'SUPERADMIN']}><AdminTrainersPage /></ProtectedRoute>} />
+      <Route path="/admin/plans" element={<ProtectedRoute allowedRoles={['ADMIN', 'SUPERADMIN']}><PlansPage /></ProtectedRoute>} />
+      <Route path="/admin/classes" element={<ProtectedRoute allowedRoles={['ADMIN', 'SUPERADMIN']}><AdminClassesPage /></ProtectedRoute>} />
+      <Route path="/admin/reports" element={<ProtectedRoute allowedRoles={['ADMIN', 'SUPERADMIN']}><ReportsPage /></ProtectedRoute>} />
+      <Route path="/admin/settings" element={<ProtectedRoute allowedRoles={['ADMIN', 'SUPERADMIN']}><SettingsPage /></ProtectedRoute>} />
 
-      {/* Member Routes */}
-      <Route path="/member" element={<MemberDashboardPage />} />
+      {/* Member Routes - Protected */}
+      <Route path="/member" element={<ProtectedRoute allowedRoles={['MEMBER']}><MemberDashboardPage /></ProtectedRoute>} />
 
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />

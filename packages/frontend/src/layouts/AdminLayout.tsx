@@ -1,6 +1,8 @@
 import React from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { SidebarNavigation } from "@/components/gym"
+import { useAuthStore } from "@/store/auth.store"
+import { toast } from "sonner"
 
 const adminNavGroups = [
   {
@@ -113,11 +115,13 @@ interface AdminLayoutProps {
 
 export function AdminLayout({ children }: AdminLayoutProps) {
   const navigate = useNavigate()
+  const { user, clearAuth } = useAuthStore()
   const [collapsed, setCollapsed] = React.useState(false)
   const [searchQuery, setSearchQuery] = React.useState("")
 
   const handleLogout = () => {
-    // Add logout logic here
+    clearAuth()
+    toast.success("Logged out successfully")
     navigate("/auth/login")
   }
 
@@ -185,11 +189,13 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             {/* Profile Dropdown */}
             <div className="flex items-center gap-3 pl-4 border-l border-border">
               <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                <span className="text-primary-foreground text-sm font-semibold">AD</span>
+                <span className="text-primary-foreground text-sm font-semibold">
+                  {user?.email?.charAt(0).toUpperCase() || 'A'}
+                </span>
               </div>
               <div className="hidden sm:block">
-                <p className="text-sm font-medium text-foreground">Admin User</p>
-                <p className="text-xs text-muted-foreground">admin@powerfit.com</p>
+                <p className="text-sm font-medium text-foreground">{user?.role || 'Admin'}</p>
+                <p className="text-xs text-muted-foreground">{user?.email || 'admin@powerfit.com'}</p>
               </div>
             </div>
           </div>

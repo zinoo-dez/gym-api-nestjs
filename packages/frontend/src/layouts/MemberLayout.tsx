@@ -1,6 +1,8 @@
 import React from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { SidebarNavigation } from "@/components/gym"
+import { useAuthStore } from "@/store/auth.store"
+import { toast } from "sonner"
 
 const memberNavGroups = [
   {
@@ -80,10 +82,12 @@ interface MemberLayoutProps {
 
 export function MemberLayout({ children }: MemberLayoutProps) {
   const navigate = useNavigate()
+  const { user, clearAuth } = useAuthStore()
   const [collapsed, setCollapsed] = React.useState(false)
 
   const handleLogout = () => {
-    // Add logout logic here
+    clearAuth()
+    toast.success("Logged out successfully")
     navigate("/auth/login")
   }
 
@@ -131,7 +135,9 @@ export function MemberLayout({ children }: MemberLayoutProps) {
             {/* Profile */}
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center">
-                <span className="text-primary text-sm font-semibold">JD</span>
+                <span className="text-primary text-sm font-semibold">
+                  {user?.email?.charAt(0).toUpperCase() || 'M'}
+                </span>
               </div>
             </div>
           </div>

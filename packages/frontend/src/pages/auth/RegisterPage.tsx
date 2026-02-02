@@ -2,10 +2,15 @@ import React from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { AuthLayout } from "../../layouts/AuthLayout"
 import { PrimaryButton } from "@/components/gym"
+import { authService } from "@/services/auth.service"
+import { useAuthStore } from "@/store/auth.store"
+import { toast } from "sonner"
 
 export default function RegisterPage() {
   const navigate = useNavigate()
+  const setAuth = useAuthStore((state) => state.setAuth)
   const [isLoading, setIsLoading] = React.useState(false)
+  const [error, setError] = React.useState("")
   const [formData, setFormData] = React.useState({
     firstName: "",
     lastName: "",
@@ -18,20 +23,43 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError("")
     
     if (formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match")
+      setError("Passwords do not match")
+      toast.error("Passwords do not match")
+      return
+    }
+
+    if (formData.password.length < 8) {
+      setError("Password must be at least 8 characters")
+      toast.error("Password must be at least 8 characters")
       return
     }
     
     setIsLoading(true)
     
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    
-    // Redirect to member dashboard after registration
-    navigate("/member")
-    setIsLoading(false)
+    try {
+      const response = await authService.register({
+        email: formData.email,
+        password: formData.password,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        role: 'MEMBER', // Default role for registration
+      })
+      
+      setAuth(response)
+      toast.success("Account created successfully!")
+      
+      // Redirect to member dashboard after registration
+      navigate("/member")
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || "Registration failed. Please try again."
+      setError(errorMessage)
+      toast.error(errorMessage)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -40,6 +68,13 @@ export default function RegisterPage() {
       subtitle="Create your account and join the PowerFit community"
     >
       <form onSubmit={handleSubmit} className="space-y-5">
+        {/* Error Message */}
+        {error && (
+          <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
+            <p className="text-destructive text-sm">{error}</p>
+          </div>
+        )}
+
         {/* Name Fields */}
         <div className="grid grid-cols-2 gap-4">
           <div>

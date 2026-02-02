@@ -3,21 +3,33 @@ import * as React from "react"
 import { Link } from "react-router-dom"
 import { AuthLayout } from "../../layouts"
 import { PrimaryButton, SecondaryButton } from "@/components/gym"
+import { toast } from "sonner"
 
 export default function ForgotPasswordPage() {
   const [isLoading, setIsLoading] = React.useState(false)
   const [isSubmitted, setIsSubmitted] = React.useState(false)
   const [email, setEmail] = React.useState("")
+  const [error, setError] = React.useState("")
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setError("")
     
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    
-    setIsSubmitted(true)
-    setIsLoading(false)
+    try {
+      // TODO: Implement forgot password API endpoint in backend
+      // For now, show success message
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+      
+      setIsSubmitted(true)
+      toast.success("Password reset link sent!")
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || "Failed to send reset link"
+      setError(errorMessage)
+      toast.error(errorMessage)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   if (isSubmitted) {
