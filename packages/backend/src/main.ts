@@ -114,7 +114,10 @@ async function bootstrap() {
   prismaService.enableShutdownHooks(app);
 
   void app.listen(process.env.PORT ?? 3000, () => {
-    console.log(`Server is running on port ${process.env.PORT ?? 3000}`);
+    console.log(
+      `Server is running on port http://localhost:${process.env.PORT ?? 3000}`,
+      `Server is running on port http://localhost:${process.env.PORT ?? 3000}/api/docs`,
+    );
   });
 }
 

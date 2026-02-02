@@ -1,4 +1,12 @@
-export { Button } from "./Button";
+// New Button Components
+export { PrimaryButton } from "./PrimaryButton";
+export { SecondaryButton } from "./SecondaryButton";
+export { Button } from "./Button"; // Backward compatibility wrapper
+export { StatCard } from "./StatCard";
+export { ClassScheduleTable } from "./ClassScheduleTable";
+export { ThemeSwitcher } from "./ThemeSwitcher";
+
+// Existing Components
 export { Input } from "./Input";
 export { Modal } from "./Modal";
 export { LoadingSpinner } from "./LoadingSpinner";

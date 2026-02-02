@@ -60,6 +60,7 @@ function App() {
   const setPrefersReducedMotion = usePreferencesStore(
     (state) => state.setPrefersReducedMotion,
   );
+  const theme = useUIStore((state) => state.theme);
 
   // Detect user's motion preference on mount and listen for changes
   useEffect(() => {
@@ -71,6 +72,11 @@ function App() {
 
     return () => mediaQuery.removeEventListener("change", handleChange);
   }, [setPrefersReducedMotion]);
+
+  // Apply theme to document root
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+  }, [theme]);
 
   return (
     <ErrorBoundary>

@@ -85,20 +85,28 @@ export function LoginPage() {
   };
 
   return (
-    <AnimatedPage className="min-h-screen bg-zinc-950 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-8 relative overflow-hidden">
+    <AnimatedPage className="min-h-screen bg-[#0a0a0a] flex items-center justify-center px-4 sm:px-6 lg:px-8 py-8 relative overflow-hidden">
       {/* Abstract Background Glows */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full z-0 pointer-events-none">
-        <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-blue-600/10 blur-[120px] rounded-full" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-indigo-600/10 blur-[120px] rounded-full" />
+        <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-[#22c55e]/10 blur-[120px] rounded-full" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-[#84cc16]/10 blur-[120px] rounded-full" />
       </div>
 
       <div className="max-w-md w-full relative z-10">
-        <div className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 sm:p-10 shadow-2xl">
+        {/* Logo */}
+        <Link to="/" className="flex items-center justify-center gap-3 mb-8">
+          <div className="w-12 h-12 bg-gradient-to-br from-[#22c55e] to-[#84cc16] rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(34,197,94,0.3)]">
+            <span className="text-black font-black text-2xl">G</span>
+          </div>
+          <span className="text-2xl font-black tracking-tighter uppercase">Gym Elite</span>
+        </Link>
+
+        <div className="bg-[#171717] border border-white/5 rounded-3xl p-6 sm:p-10 shadow-2xl">
           <div className="text-center mb-8">
-            <h1 className="text-2xl sm:text-3xl font-black text-white italic uppercase tracking-tighter">
-              Welcome <span className="text-blue-500">Back</span>
+            <h1 className="text-2xl sm:text-3xl font-black text-white uppercase tracking-tighter">
+              Welcome <span className="text-[#22c55e]">Back</span>
             </h1>
-            <p className="text-gray-500 text-sm mt-2">Enter your credentials to access your premier portal</p>
+            <p className="text-gray-500 text-sm mt-2">Sign in to access your account</p>
           </div>
           
           {apiError && (
@@ -150,14 +158,20 @@ export function LoginPage() {
           
           <div className="mt-8 text-center">
             <p className="text-gray-500 text-sm">
-              New to Gym Premier?{" "}
+              New to Gym Elite?{" "}
               <Link
                 to="/register"
-                className="text-blue-400 hover:text-blue-300 font-bold transition-colors"
+                className="text-[#22c55e] hover:text-[#84cc16] font-bold transition-colors"
               >
                 Join Now
               </Link>
             </p>
+            <Link
+              to="/"
+              className="text-gray-600 hover:text-gray-400 text-xs mt-4 inline-block transition-colors"
+            >
+              ← Back to Home
+            </Link>
           </div>
         </div>
       </div>

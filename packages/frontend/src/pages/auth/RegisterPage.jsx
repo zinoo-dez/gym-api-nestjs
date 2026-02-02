@@ -102,11 +102,11 @@ export function RegisterPage() {
   };
 
   return (
-    <AnimatedPage className="min-h-screen bg-[#050505] flex items-center justify-center px-4 py-12 relative overflow-hidden">
+    <AnimatedPage className="min-h-screen bg-[#0a0a0a] flex items-center justify-center px-4 py-12 relative overflow-hidden">
       {/* Background elements */}
       <div className="absolute inset-0 z-0">
-        <div className="absolute top-[-5%] left-[-10%] w-[700px] h-[700px] bg-blue-600/10 blur-[130px] rounded-full" />
-        <div className="absolute bottom-[0%] right-[-10%] w-[600px] h-[600px] bg-indigo-600/10 blur-[130px] rounded-full" />
+        <div className="absolute top-[-5%] left-[-10%] w-[700px] h-[700px] bg-[#22c55e]/10 blur-[130px] rounded-full" />
+        <div className="absolute bottom-[0%] right-[-10%] w-[600px] h-[600px] bg-[#84cc16]/10 blur-[130px] rounded-full" />
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] pointer-events-none" />
       </div>
 
@@ -115,31 +115,28 @@ export function RegisterPage() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7 }}
-          className="glass-morphism rounded-[3rem] p-8 sm:p-16"
+          className="bg-[#171717] border border-white/5 rounded-[3rem] p-8 sm:p-16"
         >
-          <div className="mb-12 text-center text-balance">
-            <Link to="/" className="inline-flex items-center gap-2 mb-10 group">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-110 transition-transform">
-                <span className="text-white font-black text-sm italic">G</span>
+          <div className="mb-12 text-center">
+            <Link to="/" className="inline-flex items-center gap-3 mb-10 group">
+              <div className="w-10 h-10 bg-gradient-to-br from-[#22c55e] to-[#84cc16] rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(34,197,94,0.3)] group-hover:scale-110 transition-transform">
+                <span className="text-black font-black text-xl">G</span>
               </div>
-              <span className="text-sm font-black uppercase italic tracking-widest text-gray-500 group-hover:text-white transition-colors">Gym Premier</span>
+              <span className="text-xl font-black uppercase tracking-tighter group-hover:text-[#22c55e] transition-colors">Gym Elite</span>
             </Link>
-            <h1 className="text-4xl sm:text-5xl font-black text-white italic uppercase tracking-tighter mb-4">
-              Join <span className="text-gradient">The Elite</span>
+            <h1 className="text-4xl sm:text-5xl font-black text-white uppercase tracking-tighter mb-4">
+              Join <span className="text-[#22c55e]">The Elite</span>
             </h1>
-            <p className="text-gray-500 text-[10px] font-black uppercase tracking-[0.2em]">Initiate your transformation protocol</p>
+            <p className="text-gray-500 text-sm">Start your transformation journey today</p>
           </div>
           
           {apiError && (
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="mb-10 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl"
+              className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl"
             >
-              <p className="text-xs text-red-400 font-bold flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
-                {apiError}
-              </p>
+              <p className="text-sm text-red-400">{apiError}</p>
             </motion.div>
           )}
           
@@ -173,7 +170,7 @@ export function RegisterPage() {
             </div>
             
             <Input
-              label="Secure Email Uplink"
+              label="Email Address"
               name="email"
               type="email"
               value={formData.email}
@@ -187,7 +184,7 @@ export function RegisterPage() {
             
             <div className="grid sm:grid-cols-2 gap-6">
               <Input
-                label="Passphrase"
+                label="Password"
                 name="password"
                 type="password"
                 value={formData.password}
@@ -200,7 +197,7 @@ export function RegisterPage() {
               />
               
               <Input
-                label="Verify Passphrase"
+                label="Confirm Password"
                 name="confirmPassword"
                 type="password"
                 value={formData.confirmPassword}
@@ -213,12 +210,12 @@ export function RegisterPage() {
               />
             </div>
             
-            <div className="mb-10">
+            <div className="mb-6">
               <label
                 htmlFor="role"
-                className="block text-[10px] font-black text-gray-400 mb-3 uppercase tracking-widest px-1"
+                className="block text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider"
               >
-                Specialization
+                Account Type
                 {<span className="text-red-500 ml-1">*</span>}
               </label>
               <div className="relative">
@@ -228,20 +225,20 @@ export function RegisterPage() {
                   value={formData.role}
                   onChange={handleChange}
                   disabled={isLoading}
-                  className="w-full px-5 py-4 bg-white/[0.03] border border-white/10 rounded-2xl text-white shadow-sm focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500/50 appearance-none disabled:bg-gray-900 disabled:cursor-not-allowed text-sm transition-all"
+                  className="w-full px-4 py-3 bg-white/[0.03] border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[#22c55e]/50 focus:border-[#22c55e]/50 appearance-none disabled:bg-gray-900 disabled:cursor-not-allowed text-sm transition-all"
                 >
-                  <option value="MEMBER" className="bg-[#0a0a0a] text-white">Elite Member</option>
-                  <option value="TRAINER" className="bg-[#0a0a0a] text-white">Master Trainer</option>
-                  <option value="ADMIN" className="bg-[#0a0a0a] text-white">System Admin</option>
+                  <option value="MEMBER" className="bg-[#0a0a0a] text-white">Member</option>
+                  <option value="TRAINER" className="bg-[#0a0a0a] text-white">Trainer</option>
+                  <option value="ADMIN" className="bg-[#0a0a0a] text-white">Admin</option>
                 </select>
-                <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
                   </svg>
                 </div>
               </div>
               {errors.role && (
-                <p className="mt-2 text-[10px] text-red-500 font-bold px-1" role="alert">
+                <p className="mt-2 text-xs text-red-500" role="alert">
                   {errors.role}
                 </p>
               )}
@@ -252,22 +249,28 @@ export function RegisterPage() {
               variant="premium"
               isLoading={isLoading}
               disabled={isLoading}
-              className="w-full !py-5 uppercase tracking-[0.2em] font-black text-xs"
+              className="w-full !py-4 uppercase tracking-wider font-bold text-sm bg-[#22c55e] hover:bg-[#84cc16] text-black"
             >
-              Initialize Profile
+              Create Account
             </Button>
           </form>
           
-          <div className="mt-12 text-center pt-8 border-t border-white/5">
-            <p className="text-gray-500 text-[10px] font-black uppercase tracking-widest">
-              Already initialized?{" "}
+          <div className="mt-8 text-center pt-6 border-t border-white/5">
+            <p className="text-gray-500 text-sm">
+              Already have an account?{" "}
               <Link
                 to="/login"
-                className="text-white hover:text-blue-400 transition-colors ml-2 underline underline-offset-4 decoration-blue-500/50"
+                className="text-[#22c55e] hover:text-[#84cc16] font-bold transition-colors"
               >
-                Entrance
+                Sign In
               </Link>
             </p>
+            <Link
+              to="/"
+              className="text-gray-600 hover:text-gray-400 text-xs mt-4 inline-block transition-colors"
+            >
+              ← Back to Home
+            </Link>
           </div>
         </motion.div>
       </div>

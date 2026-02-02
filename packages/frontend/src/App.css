@@ -1,3 +1,38 @@
+/* Theme Variables */
+:root[data-theme="neon-green"],
+:root {
+  --color-bg: #0a0a0a;
+  --color-surface: #141414;
+  --color-primary: #22c55e;
+  --color-primary-dark: #16a34a;
+  --color-primary-light: #4ade80;
+  --color-text: #ffffff;
+  --color-text-muted: #a3a3a3;
+  --color-accent: #4ade80;
+}
+
+:root[data-theme="electric-cyan"] {
+  --color-bg: #050b1a;
+  --color-surface: #0b1228;
+  --color-primary: #06b6d4;
+  --color-primary-dark: #0891b2;
+  --color-primary-light: #22d3ee;
+  --color-text: #e5e7eb;
+  --color-text-muted: #94a3b8;
+  --color-accent: #22d3ee;
+}
+
+:root[data-theme="energy-red"] {
+  --color-bg: #0f0f0f;
+  --color-surface: #1c1c1c;
+  --color-primary: #ef4444;
+  --color-primary-dark: #dc2626;
+  --color-primary-light: #f87171;
+  --color-text: #ffffff;
+  --color-text-muted: #9ca3af;
+  --color-accent: #f87171;
+}
+
 #root {
   margin: 0 auto;
   text-align: center;

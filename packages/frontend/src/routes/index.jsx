@@ -7,7 +7,9 @@
 import { lazy } from "react";
 import { createBrowserRouter } from "react-router-dom";
 import { ProtectedRoute } from "../components/auth/ProtectedRoute.jsx";
+import { AdminRoute } from "../components/auth/AdminRoute.jsx";
 import { MainLayout } from "../components/layout/MainLayout.jsx";
+import { AdminLayout } from "../components/layout/AdminLayout.jsx";
 
 // Auth pages - loaded eagerly as they're the entry point
 import { LoginPage } from "../pages/auth/LoginPage.jsx";
@@ -15,108 +17,55 @@ import { RegisterPage } from "../pages/auth/RegisterPage.jsx";
 
 // Dashboard - loaded eagerly as it's the default protected route
 import { DashboardPage } from "../pages/DashboardPage.jsx";
-import { LandingPage } from "../pages/LandingPage.jsx";
+
+// Public pages - loaded eagerly for better UX
+import { HomePage } from "../pages/public/HomePage.jsx";
+import { FeaturesPage } from "../pages/public/FeaturesPage.jsx";
+import { PublicTrainersPage } from "../pages/public/PublicTrainersPage.jsx";
+import { PublicClassesPage } from "../pages/public/PublicClassesPage.jsx";
+import { PublicWorkoutPlansPage } from "../pages/public/PublicWorkoutPlansPage.jsx";
+import { PublicMembershipsPage } from "../pages/public/PublicMembershipsPage.jsx";
 
 // Lazy-loaded pages for code splitting
-// Member pages
-const MembersListPage = lazy(() =>
-  import("../pages/members/MembersListPage.jsx").then((module) => ({
-    default: module.MembersListPage,
+// Admin pages
+const AdminDashboard = lazy(() =>
+  import("../pages/admin/AdminDashboard.jsx").then((module) => ({
+    default: module.AdminDashboard,
   }))
 );
-const MemberCreatePage = lazy(() =>
-  import("../pages/members/MemberCreatePage.jsx").then((module) => ({
-    default: module.MemberCreatePage,
+const AdminMembers = lazy(() =>
+  import("../pages/admin/AdminMembers.jsx").then((module) => ({
+    default: module.AdminMembers,
   }))
 );
-const MemberDetailPage = lazy(() =>
-  import("../pages/members/MemberDetailPage.jsx").then((module) => ({
-    default: module.MemberDetailPage,
+const AdminTrainers = lazy(() =>
+  import("../pages/admin/AdminTrainers.jsx").then((module) => ({
+    default: module.AdminTrainers,
   }))
 );
-const MemberEditPage = lazy(() =>
-  import("../pages/members/MemberEditPage.jsx").then((module) => ({
-    default: module.MemberEditPage,
+const AdminClasses = lazy(() =>
+  import("../pages/admin/AdminClasses.jsx").then((module) => ({
+    default: module.AdminClasses,
   }))
 );
-
-// Trainer pages
-const TrainersListPage = lazy(() =>
-  import("../pages/trainers/TrainersListPage.jsx").then((module) => ({
-    default: module.TrainersListPage,
+const AdminMemberships = lazy(() =>
+  import("../pages/admin/AdminMemberships.jsx").then((module) => ({
+    default: module.AdminMemberships,
   }))
 );
-const TrainerCreatePage = lazy(() =>
-  import("../pages/trainers/TrainerCreatePage.jsx").then((module) => ({
-    default: module.TrainerCreatePage,
+const AdminAttendance = lazy(() =>
+  import("../pages/admin/AdminAttendance.jsx").then((module) => ({
+    default: module.AdminAttendance,
   }))
 );
-const TrainerDetailPage = lazy(() =>
-  import("../pages/trainers/TrainerDetailPage.jsx").then((module) => ({
-    default: module.TrainerDetailPage,
+const AdminWorkouts = lazy(() =>
+  import("../pages/admin/AdminWorkouts.jsx").then((module) => ({
+    default: module.AdminWorkouts,
   }))
 );
-const TrainerEditPage = lazy(() =>
-  import("../pages/trainers/TrainerEditPage.jsx").then((module) => ({
-    default: module.TrainerEditPage,
-  }))
-);
-
-// Class pages
-const ClassSchedulePage = lazy(() =>
-  import("../pages/classes/ClassSchedulePage.jsx").then((module) => ({
-    default: module.ClassSchedulePage,
-  }))
-);
-const ClassCreatePage = lazy(() =>
-  import("../pages/classes/ClassCreatePage.jsx").then((module) => ({
-    default: module.ClassCreatePage,
-  }))
-);
-const ClassDetailPage = lazy(() =>
-  import("../pages/classes/ClassDetailPage.jsx").then((module) => ({
-    default: module.ClassDetailPage,
-  }))
-);
-const ClassEditPage = lazy(() =>
-  import("../pages/classes/ClassEditPage.jsx").then((module) => ({
-    default: module.ClassEditPage,
-  }))
-);
-
-// Membership pages
-const MembershipsPage = lazy(() =>
-  import("../pages/memberships/MembershipsPage.jsx").then((module) => ({
-    default: module.MembershipsPage,
-  }))
-);
-
-// Attendance pages
-const AttendancePage = lazy(() =>
-  import("../pages/attendance/AttendancePage.jsx").then((module) => ({
-    default: module.AttendancePage,
-  }))
-);
-
-// Workout pages
-const WorkoutsListPage = lazy(() =>
-  import("../pages/workouts/WorkoutsListPage.jsx").then((module) => ({
-    default: module.WorkoutsListPage,
-  }))
-);
-const WorkoutCreatePage = lazy(() =>
-  import("../pages/workouts/WorkoutCreatePage.jsx").then((module) => ({
-    default: module.WorkoutCreatePage,
-  }))
-);
-const WorkoutDetailPage = lazy(() =>
-  import("../pages/workouts/WorkoutDetailPage.jsx").then((module) => ({
-    default: module.WorkoutDetailPage,
-  }))
-);
-const WorkoutEditPage = lazy(() =>
-  import("../pages/workouts/WorkoutEditPage.jsx").then((module) => ({
-    default: module.WorkoutEditPage,
+const AdminUsers = lazy(() =>
+  import("../pages/admin/AdminUsers.jsx").then((module) => ({
+    default: module.AdminUsers,
   }))
 );
 
@@ -135,7 +84,27 @@ export const router = createBrowserRouter([
   // Public routes
   {
     path: "/",
-    element: <LandingPage />,
+    element: <HomePage />,
+  },
+  {
+    path: "/features",
+    element: <FeaturesPage />,
+  },
+  {
+    path: "/trainers",
+    element: <PublicTrainersPage />,
+  },
+  {
+    path: "/classes",
+    element: <PublicClassesPage />,
+  },
+  {
+    path: "/workout-plans",
+    element: <PublicWorkoutPlansPage />,
+  },
+  {
+    path: "/memberships",
+    element: <PublicMembershipsPage />,
   },
   {
     path: "/login",
@@ -160,109 +129,49 @@ export const router = createBrowserRouter([
         index: true,
         element: <DashboardPage />,
       },
+    ],
+  },
 
-      // Member routes
+  // Admin routes (require admin/superadmin role)
+  {
+    path: "/admin",
+    element: (
+      <AdminRoute>
+        <AdminLayout />
+      </AdminRoute>
+    ),
+    children: [
+      {
+        index: true,
+        element: <AdminDashboard />,
+      },
       {
         path: "members",
-        children: [
-          {
-            index: true,
-            element: <MembersListPage />,
-          },
-          {
-            path: "new",
-            element: <MemberCreatePage />,
-          },
-          {
-            path: ":id",
-            element: <MemberDetailPage />,
-          },
-          {
-            path: ":id/edit",
-            element: <MemberEditPage />,
-          },
-        ],
+        element: <AdminMembers />,
       },
-
-      // Trainer routes
       {
         path: "trainers",
-        children: [
-          {
-            index: true,
-            element: <TrainersListPage />,
-          },
-          {
-            path: "new",
-            element: <TrainerCreatePage />,
-          },
-          {
-            path: ":id",
-            element: <TrainerDetailPage />,
-          },
-          {
-            path: ":id/edit",
-            element: <TrainerEditPage />,
-          },
-        ],
+        element: <AdminTrainers />,
       },
-
-      // Class routes
       {
         path: "classes",
-        children: [
-          {
-            index: true,
-            element: <ClassSchedulePage />,
-          },
-          {
-            path: "new",
-            element: <ClassCreatePage />,
-          },
-          {
-            path: ":id",
-            element: <ClassDetailPage />,
-          },
-          {
-            path: ":id/edit",
-            element: <ClassEditPage />,
-          },
-        ],
+        element: <AdminClasses />,
       },
-
-      // Membership routes
       {
         path: "memberships",
-        element: <MembershipsPage />,
+        element: <AdminMemberships />,
       },
-
-      // Attendance routes
       {
         path: "attendance",
-        element: <AttendancePage />,
+        element: <AdminAttendance />,
       },
-
-      // Workout routes
       {
         path: "workouts",
-        children: [
-          {
-            index: true,
-            element: <WorkoutsListPage />,
-          },
-          {
-            path: "new",
-            element: <WorkoutCreatePage />,
-          },
-          {
-            path: ":id",
-            element: <WorkoutDetailPage />,
-          },
-          {
-            path: ":id/edit",
-            element: <WorkoutEditPage />,
-          },
-        ],
+        element: <AdminWorkouts />,
+      },
+      {
+        path: "users",
+        element: <AdminUsers />,
       },
     ],
   },

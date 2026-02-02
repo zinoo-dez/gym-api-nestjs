@@ -24,22 +24,25 @@ export const useUIStore = create(
        */
       setSidebarOpen: (open) => set({ sidebarOpen: open }),
 
-      // Theme state
-      theme: "light",
+      // Theme state - 'neon-green' | 'electric-cyan' | 'energy-red'
+      theme: "neon-green",
 
       /**
        * Set theme
-       * @param {string} theme - Theme name: 'light' | 'dark'
+       * @param {string} theme - Theme name: 'neon-green' | 'electric-cyan' | 'energy-red'
        */
       setTheme: (theme) => set({ theme }),
 
       /**
-       * Toggle between light and dark theme
+       * Cycle through available themes
        */
-      toggleTheme: () =>
-        set((state) => ({
-          theme: state.theme === "light" ? "dark" : "light",
-        })),
+      cycleTheme: () =>
+        set((state) => {
+          const themes = ["neon-green", "electric-cyan", "energy-red"];
+          const currentIndex = themes.indexOf(state.theme);
+          const nextIndex = (currentIndex + 1) % themes.length;
+          return { theme: themes[nextIndex] };
+        }),
 
       // Modal state
       activeModal: null,

@@ -13,6 +13,7 @@ import { TrainersModule } from './trainers/trainers.module';
 import { ClassesModule } from './classes/classes.module';
 import { AttendanceModule } from './attendance/attendance.module';
 import { WorkoutPlansModule } from './workout-plans/workout-plans.module';
+import { UsersModule } from './users/users.module';
 import { SanitizationMiddleware } from './common/middleware';
 
 @Module({
@@ -40,6 +41,7 @@ import { SanitizationMiddleware } from './common/middleware';
     ClassesModule,
     AttendanceModule,
     WorkoutPlansModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [
