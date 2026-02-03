@@ -10,6 +10,7 @@
         "build:frontend": "pnpm --filter frontend build",
         "build": "pnpm --recursive build",
         "lint": "pnpm --recursive lint",
+        "prisma:migrate": "pnpm --filter backend prisma:migrate",
         "prisma:generate": "pnpm --filter backend prisma:generate"
     },
     "devDependencies": {

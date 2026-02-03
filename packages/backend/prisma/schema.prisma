@@ -71,16 +71,25 @@ enum WorkoutGoal {
 
 // User model for authentication
 model User {
-    id        String   @id @default(uuid())
-    email     String   @unique
-    password  String
-    role      Role     @default(MEMBER)
-    createdAt DateTime @default(now()) @map("created_at")
-    updatedAt DateTime @updatedAt @map("updated_at")
+    id              String   @id @default(uuid())
+    email           String   @unique
+    password        String
+    role            Role     @default(MEMBER)
+    firstName       String   @default("") @map("first_name")
+    lastName        String   @default("") @map("last_name")
+    phone           String?
+    specializations String[] @default([]) // For trainers
+    certifications  String[] @default([]) // For trainers
+    isActive        Boolean  @default(true) @map("is_active")
+    createdAt       DateTime @default(now()) @map("created_at")
+    updatedAt       DateTime @updatedAt @map("updated_at")
 
-    member  Member?
-    trainer Trainer?
+    member       Member?
+    classes      Class[]
+    workoutPlans WorkoutPlan[]
 
+    @@index([role])
+    @@index([isActive])
     @@map("users")
 }
 
@@ -107,26 +116,7 @@ model Member {
     @@map("members")
 }
 
-// Trainer model
-model Trainer {
-    id              String   @id @default(uuid())
-    userId          String   @unique @map("user_id")
-    user            User     @relation(fields: [userId], references: [id])
-    firstName       String   @map("first_name")
-    lastName        String   @map("last_name")
-    specializations String[]
-    certifications  String[]
-    isActive        Boolean  @default(true) @map("is_active")
-    createdAt       DateTime @default(now()) @map("created_at")
-    updatedAt       DateTime @updatedAt @map("updated_at")
 
-    classes      Class[]
-    workoutPlans WorkoutPlan[]
-
-    @@index([userId])
-    @@index([isActive])
-    @@map("trainers")
-}
 
 // Membership plan model
 model MembershipPlan {
@@ -173,7 +163,7 @@ model Class {
     name        String
     description String?
     trainerId   String   @map("trainer_id")
-    trainer     Trainer  @relation(fields: [trainerId], references: [id])
+    trainer     User     @relation(fields: [trainerId], references: [id])
     schedule    DateTime
     duration    Int // in minutes
     capacity    Int
@@ -234,7 +224,7 @@ model WorkoutPlan {
     memberId    String      @map("member_id")
     member      Member      @relation(fields: [memberId], references: [id])
     trainerId   String      @map("trainer_id")
-    trainer     Trainer     @relation(fields: [trainerId], references: [id])
+    trainer     User        @relation(fields: [trainerId], references: [id])
     goal        WorkoutGoal
     isActive    Boolean     @default(true) @map("is_active")
     createdAt   DateTime    @default(now()) @map("created_at")
