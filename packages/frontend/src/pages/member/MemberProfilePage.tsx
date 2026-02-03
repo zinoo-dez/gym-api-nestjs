@@ -1,18 +1,24 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useAuth } from '@/contexts/auth-context';
-import { ProtectedRoute } from '@/components/protected-route';
-import { MemberLayout } from '@/components/layouts/member-layout';
-import { PrimaryButton, SecondaryButton, FormInput } from '@/components/gym';
+import { useAuthStore } from '@/store/auth.store';
+import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { MemberLayout } from '@/layouts/MemberLayout';
+import { PrimaryButton, FormInput } from '@/components/gym';
 import { FormModal } from '@/components/gym/form-modal';
-import { User, Mail, Phone, MapPin, Calendar, Edit2 } from 'lucide-react';
+import { User, Mail, Calendar, Edit2 } from 'lucide-react';
 
 export default function MemberProfilePage() {
-  const { user, updateUser } = useAuth();
+  const { user } = useAuthStore();
+
+  // Construct full name if available, otherwise use email or fallback
+  const displayName = user?.firstName && user?.lastName 
+    ? `${user.firstName} ${user.lastName}` 
+    : user?.email?.split('@')[0] || 'User';
+
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [formData, setFormData] = useState({
-    name: user?.name || '',
+    name: displayName,
     email: user?.email || '',
     phone: '',
     address: '',
@@ -26,9 +32,10 @@ export default function MemberProfilePage() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      await updateUser({
-        name: formData.name,
-      });
+      // await updateUser({
+      //   name: formData.name,
+      // });
+      console.log('Update user not implemented yet', formData);
       setIsEditModalOpen(false);
     } catch (error) {
       console.error('Failed to update profile:', error);
@@ -36,7 +43,7 @@ export default function MemberProfilePage() {
   };
 
   return (
-    <ProtectedRoute requiredRole="member">
+    <ProtectedRoute allowedRoles={['MEMBER']}>
       <MemberLayout>
         <div className="space-y-6">
           {/* Header */}
@@ -64,7 +71,7 @@ export default function MemberProfilePage() {
                 {/* Name */}
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Full Name</label>
-                  <p className="text-lg text-foreground mt-1">{user?.name}</p>
+                  <p className="text-lg text-foreground mt-1">{displayName}</p>
                 </div>
 
                 {/* Email */}
@@ -83,8 +90,8 @@ export default function MemberProfilePage() {
                     Member Since
                   </label>
                   <p className="text-lg text-foreground mt-1">
-                    {user?.joinDate
-                      ? new Date(user.joinDate).toLocaleDateString()
+                    {user?.createdAt
+                      ? new Date(user.createdAt).toLocaleDateString()
                       : 'N/A'}
                   </p>
                 </div>
@@ -171,6 +178,7 @@ export default function MemberProfilePage() {
             value={formData.phone}
             onChange={handleChange}
             placeholder="+1 (555) 000-0000"
+            required={false}
           />
           <FormInput
             label="Address"
@@ -178,6 +186,7 @@ export default function MemberProfilePage() {
             value={formData.address}
             onChange={handleChange}
             placeholder="123 Main St, City, State"
+            required={false}
           />
         </FormModal>
       </MemberLayout>
