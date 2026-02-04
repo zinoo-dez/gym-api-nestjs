@@ -49,13 +49,13 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --prod=false
 
-      #   - name: Generate Prisma client
-      #     run: pnpm --filter backend exec prisma generate
+      - name: Generate Prisma client
+        run: pnpm --filter backend exec prisma generate
 
-      #   - name: Run Prisma migrate deploy
-      #     run: pnpm --filter backend exec prisma migrate deploy
+      - name: Run Prisma migrate deploy
+        run: pnpm --filter backend exec prisma migrate deploy
 
       - name: Lint
         run: pnpm run lint

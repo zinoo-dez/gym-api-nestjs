@@ -65,8 +65,8 @@ async function bootstrap() {
   // Note: GlobalExceptionFilter is now provided via APP_FILTER in AppModule
   // This ensures proper dependency injection of LoggerService
 
-  // Configure global logging interceptor
-  app.useGlobalInterceptors(new LoggingInterceptor());
+  // Configure global logging interceptor (DI-enabled)
+  app.useGlobalInterceptors(app.get(LoggingInterceptor));
 
   // Configure global response interceptor
   app.useGlobalInterceptors(new ResponseInterceptor());

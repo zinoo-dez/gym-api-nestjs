@@ -19,6 +19,7 @@ import { SanitizationMiddleware } from './common/middleware';
 import { LoggingModule } from './logging/logging.module';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 import { LoggerService } from './logging/logger.service';
+import { LoggingInterceptor } from './common/interceptors';
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { LoggerService } from './logging/logger.service';
   controllers: [AppController],
   providers: [
     AppService,
+    LoggingInterceptor,
     // Apply ThrottlerGuard globally to all routes
     {
       provide: APP_GUARD,

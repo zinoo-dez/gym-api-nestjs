@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { LoggerService } from '../../logging/logger.service';
 
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {
@@ -22,6 +23,8 @@ export class LoggingInterceptor implements NestInterceptor {
     'ssn',
     'secret',
   ];
+
+  constructor(private readonly fileLogger: LoggerService) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const ctx = context.switchToHttp();
@@ -39,6 +42,10 @@ export class LoggingInterceptor implements NestInterceptor {
     this.logger.log(
       `Incoming Request: ${method} ${url} - Body: ${JSON.stringify(sanitizedBody)} - Headers: ${JSON.stringify(sanitizedHeaders)}`,
     );
+    this.fileLogger.log(
+      `Incoming Request: ${method} ${url} - Body: ${JSON.stringify(sanitizedBody)} - Headers: ${JSON.stringify(sanitizedHeaders)}`,
+      'HTTP',
+    );
 
     return next.handle().pipe(
       tap({
@@ -49,6 +56,10 @@ export class LoggingInterceptor implements NestInterceptor {
           this.logger.log(
             `Outgoing Response: ${method} ${url} - Status: ${response.statusCode} - Duration: ${duration}ms - Response: ${JSON.stringify(sanitizedResponse)}`,
           );
+          this.fileLogger.log(
+            `Outgoing Response: ${method} ${url} - Status: ${response.statusCode} - Duration: ${duration}ms - Response: ${JSON.stringify(sanitizedResponse)}`,
+            'HTTP',
+          );
         },
         error: (error) => {
           const duration = Date.now() - startTime;
@@ -56,6 +67,14 @@ export class LoggingInterceptor implements NestInterceptor {
           this.logger.error(
             `Request Failed: ${method} ${url} - Status: ${error.status || 500} - Duration: ${duration}ms - Error: ${error.message}`,
           );
+          this.fileLogger.logHttpError(error, {
+            method,
+            url,
+            body: sanitizedBody,
+            query: this.sanitizeData(request.query),
+            params: request.params,
+            user: request.user,
+          });
         },
       }),
     );
