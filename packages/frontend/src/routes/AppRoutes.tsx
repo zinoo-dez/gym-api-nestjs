@@ -21,11 +21,17 @@ import MembersPage from '../pages/admin/MembersPage';
 import AdminTrainersPage from '../pages/admin/TrainersPage';
 import PlansPage from '../pages/admin/PlansPage';
 import AdminClassesPage from '../pages/admin/ClassesPage';
+import AdminAttendancePage from '../pages/admin/AttendancePage';
 import ReportsPage from '../pages/admin/ReportsPage';
 import SettingsPage from '../pages/admin/SettingsPage';
+import AdminWorkoutPlansPage from '../pages/admin/WorkoutPlansPage';
 
 // Member Pages
 import MemberDashboardPage from '../pages/member/MemberDashboardPage';
+import MemberBookingsPage from '../pages/member/MemberBookingPage';
+import MemberProfilePage from '../pages/member/MemberProfilePage';
+import MemberProgressPage from '../pages/member/MemberProgressPage';
+import MemberWorkoutsPage from '../pages/member/MemberWorkoutsPage';
 
 const AppRoutes = () => {
   return (
@@ -49,11 +55,21 @@ const AppRoutes = () => {
       <Route path="/admin/trainers" element={<ProtectedRoute allowedRoles={['ADMIN', 'SUPERADMIN']}><AdminTrainersPage /></ProtectedRoute>} />
       <Route path="/admin/plans" element={<ProtectedRoute allowedRoles={['ADMIN', 'SUPERADMIN']}><PlansPage /></ProtectedRoute>} />
       <Route path="/admin/classes" element={<ProtectedRoute allowedRoles={['ADMIN', 'SUPERADMIN']}><AdminClassesPage /></ProtectedRoute>} />
+      <Route path="/admin/attendance" element={<ProtectedRoute allowedRoles={['ADMIN', 'SUPERADMIN']}><AdminAttendancePage /></ProtectedRoute>} />
+      <Route path="/admin/workout-plans" element={<ProtectedRoute allowedRoles={['ADMIN', 'SUPERADMIN']}><AdminWorkoutPlansPage /></ProtectedRoute>} />
+      <Route path="/admin/workoutplans" element={<Navigate to="/admin/workout-plans" replace />} />
       <Route path="/admin/reports" element={<ProtectedRoute allowedRoles={['ADMIN', 'SUPERADMIN']}><ReportsPage /></ProtectedRoute>} />
       <Route path="/admin/settings" element={<ProtectedRoute allowedRoles={['ADMIN', 'SUPERADMIN']}><SettingsPage /></ProtectedRoute>} />
 
       {/* Member Routes - Protected */}
       <Route path="/member" element={<ProtectedRoute allowedRoles={['MEMBER']}><MemberDashboardPage /></ProtectedRoute>} />
+      <Route path="/member/classes" element={<ProtectedRoute allowedRoles={['MEMBER']}><MemberBookingsPage /></ProtectedRoute>} />
+      <Route path="/member/workouts" element={<ProtectedRoute allowedRoles={['MEMBER']}><MemberWorkoutsPage /></ProtectedRoute>} />
+      <Route path="/member/workoutplans" element={<Navigate to="/member/workouts" replace />} />
+      <Route path="/member/progress" element={<ProtectedRoute allowedRoles={['MEMBER']}><MemberProgressPage /></ProtectedRoute>} />
+      <Route path="/member/profile" element={<ProtectedRoute allowedRoles={['MEMBER']}><MemberProfilePage /></ProtectedRoute>} />
+      <Route path="/member/membership" element={<ProtectedRoute allowedRoles={['MEMBER']}><MemberProfilePage /></ProtectedRoute>} />
+      <Route path="/member/bookings" element={<Navigate to="/member/classes" replace />} />
 
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />

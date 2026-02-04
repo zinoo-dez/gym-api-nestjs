@@ -86,6 +86,46 @@ export class MembersController {
     return this.membersService.findAll(filters, user);
   }
 
+  @Get('me')
+  @Roles(UserRole.MEMBER)
+  @ApiOperation({
+    summary: 'Get current member profile',
+    description: 'Retrieve the current member profile.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Member profile retrieved successfully',
+    type: MemberResponseDto,
+  })
+  async findMe(@CurrentUser() user: any): Promise<MemberResponseDto> {
+    const member = await this.membersService.findByUserId(user.userId);
+    return this.membersService.toResponseDto(member);
+  }
+
+  @Get('me/bookings')
+  @Roles(UserRole.MEMBER)
+  @ApiOperation({
+    summary: 'Get current member bookings',
+    description: 'Retrieve all class bookings for the current member.',
+  })
+  async getMyBookings(@CurrentUser() user: any): Promise<any[]> {
+    const member = await this.membersService.findByUserId(user.userId);
+    return this.membersService.getBookings(member.id, user);
+  }
+
+  @Get('me/workout-plans')
+  @Roles(UserRole.MEMBER)
+  @ApiOperation({
+    summary: 'Get current member workout plans',
+    description: 'Retrieve workout plans for the current member.',
+  })
+  async getMyWorkoutPlans(
+    @CurrentUser() user: any,
+  ): Promise<WorkoutPlanResponseDto[]> {
+    const member = await this.membersService.findByUserId(user.userId);
+    return this.workoutPlansService.findByMember(member.id, user);
+  }
+
   @Get(':id')
   @Roles(UserRole.ADMIN, UserRole.TRAINER, UserRole.MEMBER)
   @ApiOperation({

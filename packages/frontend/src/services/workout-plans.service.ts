@@ -6,12 +6,8 @@ export interface WorkoutPlan {
     trainerId: string;
     name: string;
     description?: string;
-    goal: "muscle" | "fat-loss" | "strength" | "endurance";
-    difficulty: "beginner" | "intermediate" | "advanced";
-    durationWeeks: number;
-    daysPerWeek: number;
+    goal: string;
     isActive: boolean;
-    version: number;
     createdAt: string;
     updatedAt: string;
     exercises?: any[];
@@ -37,7 +33,8 @@ export const workoutPlansService = {
         page?: number;
         limit?: number;
         goal?: string;
-        difficulty?: string;
+        memberId?: string;
+        trainerId?: string;
     }) {
         const response = await apiClient.get<ApiResponse<WorkoutPlansResponse>>(
             "/workout-plans",

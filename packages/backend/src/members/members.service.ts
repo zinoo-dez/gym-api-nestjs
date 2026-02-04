@@ -175,6 +175,15 @@ export class MembersService {
       where: { id },
       include: {
         user: true,
+        subscriptions: {
+          include: {
+            membershipPlan: true,
+          },
+          orderBy: {
+            createdAt: 'desc',
+          },
+          take: 1,
+        },
       },
     });
 
@@ -220,6 +229,30 @@ export class MembersService {
     }
 
     return this.toResponseDto(member);
+  }
+
+  async findByUserId(userId: string): Promise<any> {
+    const member = await this.prisma.member.findUnique({
+      where: { userId },
+      include: {
+        user: true,
+        subscriptions: {
+          include: {
+            membershipPlan: true,
+          },
+          orderBy: {
+            createdAt: 'desc',
+          },
+          take: 1,
+        },
+      },
+    });
+
+    if (!member) {
+      throw new NotFoundException(`Member not found for user ID ${userId}`);
+    }
+
+    return member;
   }
 
   async update(
@@ -375,7 +408,7 @@ export class MembersService {
     }));
   }
 
-  private toResponseDto(member: any): MemberResponseDto {
+  toResponseDto(member: any): MemberResponseDto {
     return {
       id: member.id,
       email: member.user.email,

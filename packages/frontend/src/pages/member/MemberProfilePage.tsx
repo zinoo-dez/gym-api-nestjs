@@ -1,19 +1,20 @@
-'use client';
-
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuthStore } from '@/store/auth.store';
-import { ProtectedRoute } from '@/components/ProtectedRoute';
-import { MemberLayout } from '@/layouts/MemberLayout';
-import { PrimaryButton, FormInput } from '@/components/gym';
+import { MemberLayout } from '../../layouts';
+import { PrimaryButton, SecondaryButton, FormInput } from '@/components/gym';
 import { FormModal } from '@/components/gym/form-modal';
+import { membersService, type Member } from '@/services/members.service';
 import { User, Mail, Calendar, Edit2 } from 'lucide-react';
 
 export default function MemberProfilePage() {
   const { user } = useAuthStore();
+  const [member, setMember] = useState<Member | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Construct full name if available, otherwise use email or fallback
-  const displayName = user?.firstName && user?.lastName 
-    ? `${user.firstName} ${user.lastName}` 
+  const displayName = member?.firstName && member?.lastName
+    ? `${member.firstName} ${member.lastName}`
     : user?.email?.split('@')[0] || 'User';
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -23,6 +24,30 @@ export default function MemberProfilePage() {
     phone: '',
     address: '',
   });
+
+  useEffect(() => {
+    const loadMember = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await membersService.getMe();
+        setMember(response);
+        setFormData((prev) => ({
+          ...prev,
+          name: `${response.firstName} ${response.lastName}`.trim(),
+          email: response.email,
+          phone: response.phone || '',
+        }));
+      } catch (err) {
+        console.error('Failed to load member profile:', err);
+        setError('Failed to load profile.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadMember();
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -43,9 +68,8 @@ export default function MemberProfilePage() {
   };
 
   return (
-    <ProtectedRoute allowedRoles={['MEMBER']}>
-      <MemberLayout>
-        <div className="space-y-6">
+    <MemberLayout>
+      <div className="space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between">
             <div>
@@ -57,6 +81,12 @@ export default function MemberProfilePage() {
               Edit Profile
             </PrimaryButton>
           </div>
+
+          {error && (
+            <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 text-destructive">
+              {error}
+            </div>
+          )}
 
           {/* Profile Card */}
           <div className="bg-card border border-border rounded-lg p-8">
@@ -80,7 +110,7 @@ export default function MemberProfilePage() {
                     <Mail className="w-4 h-4" />
                     Email
                   </label>
-                  <p className="text-lg text-foreground mt-1">{user?.email}</p>
+                  <p className="text-lg text-foreground mt-1">{member?.email || user?.email}</p>
                 </div>
 
                 {/* Join Date */}
@@ -90,8 +120,8 @@ export default function MemberProfilePage() {
                     Member Since
                   </label>
                   <p className="text-lg text-foreground mt-1">
-                    {user?.createdAt
-                      ? new Date(user.createdAt).toLocaleDateString()
+                    {member?.createdAt
+                      ? new Date(member.createdAt).toLocaleDateString()
                       : 'N/A'}
                   </p>
                 </div>
@@ -101,7 +131,7 @@ export default function MemberProfilePage() {
                   <label className="text-sm font-medium text-muted-foreground">Status</label>
                   <div className="flex items-center gap-2 mt-1">
                     <div className="w-2 h-2 rounded-full bg-primary" />
-                    <p className="text-lg text-foreground">Active</p>
+                    <p className="text-lg text-foreground">{member?.isActive ? 'Active' : 'Inactive'}</p>
                   </div>
                 </div>
               </div>
@@ -112,20 +142,20 @@ export default function MemberProfilePage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-card border border-border rounded-lg p-6">
               <h3 className="text-sm font-medium text-muted-foreground">Current Plan</h3>
-              <p className="text-2xl font-bold text-primary mt-2">Premium</p>
-              <p className="text-xs text-muted-foreground mt-2">Unlimited access</p>
+              <p className="text-2xl font-bold text-primary mt-2">—</p>
+              <p className="text-xs text-muted-foreground mt-2">Plan details coming soon</p>
             </div>
 
             <div className="bg-card border border-border rounded-lg p-6">
               <h3 className="text-sm font-medium text-muted-foreground">Renewal Date</h3>
-              <p className="text-2xl font-bold text-foreground mt-2">Mar 15, 2025</p>
-              <p className="text-xs text-muted-foreground mt-2">41 days remaining</p>
+              <p className="text-2xl font-bold text-foreground mt-2">—</p>
+              <p className="text-xs text-muted-foreground mt-2">Auto-renew not available</p>
             </div>
 
             <div className="bg-card border border-border rounded-lg p-6">
               <h3 className="text-sm font-medium text-muted-foreground">Classes Attended</h3>
-              <p className="text-2xl font-bold text-accent mt-2">24</p>
-              <p className="text-xs text-muted-foreground mt-2">This month</p>
+              <p className="text-2xl font-bold text-accent mt-2">—</p>
+              <p className="text-xs text-muted-foreground mt-2">Attendance data loading</p>
             </div>
           </div>
 
@@ -189,7 +219,6 @@ export default function MemberProfilePage() {
             required={false}
           />
         </FormModal>
-      </MemberLayout>
-    </ProtectedRoute>
+    </MemberLayout>
   );
 }

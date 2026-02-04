@@ -1,11 +1,9 @@
-'use client';
-
 import React from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { Modal } from './modal';
 import { PrimaryButton, SecondaryButton } from './index';
 
-interface ConfirmationDialogProps {
+export interface ConfirmationDialogProps {
   isOpen: boolean;
   title: string;
   description: string;

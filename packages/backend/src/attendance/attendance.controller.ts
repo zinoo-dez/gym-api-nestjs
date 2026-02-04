@@ -16,6 +16,7 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 import { AttendanceService } from './attendance.service';
+import { MembersService } from '../members/members.service';
 import {
   CheckInDto,
   AttendanceResponseDto,
@@ -25,6 +26,7 @@ import {
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { UserRole } from '@prisma/client';
 import { PaginatedResponseDto } from '../members/dto';
 
@@ -33,7 +35,10 @@ import { PaginatedResponseDto } from '../members/dto';
 @Controller('attendance')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class AttendanceController {
-  constructor(private readonly attendanceService: AttendanceService) {}
+  constructor(
+    private readonly attendanceService: AttendanceService,
+    private readonly membersService: MembersService,
+  ) {}
 
   @Post('check-in')
   @Roles(UserRole.ADMIN, UserRole.TRAINER, UserRole.MEMBER)
@@ -79,11 +84,11 @@ export class AttendanceController {
   }
 
   @Get()
-  @Roles(UserRole.ADMIN, UserRole.TRAINER)
+  @Roles(UserRole.ADMIN, UserRole.TRAINER, UserRole.MEMBER)
   @ApiOperation({
     summary: 'Get all attendance records',
     description:
-      'Retrieve a paginated list of attendance records with optional filters. Requires ADMIN or TRAINER role.',
+      'Retrieve a paginated list of attendance records with optional filters. Requires ADMIN, TRAINER, or MEMBER role.',
   })
   @ApiResponse({
     status: 200,
@@ -96,8 +101,18 @@ export class AttendanceController {
   })
   async findAll(
     @Query() filters: AttendanceFiltersDto,
+    @CurrentUser() user: any,
   ): Promise<PaginatedResponseDto<AttendanceResponseDto>> {
-    return this.attendanceService.findAll(filters);
+    let effectiveFilters = filters;
+
+    if (user?.role === UserRole.MEMBER) {
+      const member = await this.membersService.findByUserId(user.userId);
+      if (!effectiveFilters) {
+        effectiveFilters = new AttendanceFiltersDto();
+      }
+      effectiveFilters.memberId = member.id;
+    }
+    return this.attendanceService.findAll(effectiveFilters);
   }
 
   @Get('report/:memberId')

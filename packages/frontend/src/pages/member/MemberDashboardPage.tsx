@@ -1,171 +1,249 @@
+import { Link } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { MemberLayout } from "../../layouts";
+import { StatCard, PrimaryButton, WorkoutPlanCard } from "@/components/gym";
+import { attendanceService, type AttendanceRecord } from "@/services/attendance.service";
+import { membersService } from "@/services/members.service";
+import type { WorkoutPlan } from "@/services/workout-plans.service";
 
-import { Link } from "react-router-dom"
-import { MemberLayout } from "../../layouts"
-import { StatCard, PrimaryButton, WorkoutPlanCard } from "@/components/gym"
-
-const memberStats = [
-  {
-    title: "This Month Visits",
-    value: "18",
-    change: { value: 20, type: "increase" as const },
-    icon: (
-      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-      </svg>
-    ),
-  },
-  {
-    title: "Classes Attended",
-    value: "12",
-    change: { value: 8, type: "increase" as const },
-    icon: (
-      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-      </svg>
-    ),
-  },
-  {
-    title: "Current Streak",
-    value: "7 days",
-    icon: (
-      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
-      </svg>
-    ),
-  },
-  {
-    title: "Membership Status",
-    value: "Pro",
-    icon: (
-      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-      </svg>
-    ),
-  },
-]
-
-const upcomingClasses = [
-  { name: "Morning HIIT", trainer: "Sarah Chen", time: "Tomorrow, 6:00 AM", duration: "45 min" },
-  { name: "Power Yoga", trainer: "Emily Rodriguez", time: "Tomorrow, 7:30 AM", duration: "60 min" },
-  { name: "Spin Class", trainer: "Sarah Chen", time: "Wednesday, 5:30 PM", duration: "45 min" },
-]
-
-const todayWorkout = {
-  title: "Upper Body Strength",
-  exercises: [
-    { name: "Bench Press", sets: 4, reps: "8-10", completed: true },
-    { name: "Incline Dumbbell Press", sets: 3, reps: "10-12", completed: true },
-    { name: "Lat Pulldown", sets: 4, reps: "10-12", completed: false },
-    { name: "Seated Row", sets: 3, reps: "10-12", completed: false },
-    { name: "Shoulder Press", sets: 3, reps: "10-12", completed: false },
-    { name: "Tricep Pushdown", sets: 3, reps: "12-15", completed: false },
-  ],
+interface BookingView {
+  id: string;
+  name: string;
+  trainer?: string;
+  startTime: Date;
+  duration: number;
 }
 
-const suggestedPlans = [
-  {
-    title: "Progressive Overload",
-    goal: "strength" as const,
-    difficulty: "intermediate" as const,
-    duration: "8 weeks",
-    daysPerWeek: 4,
-    exercises: 32,
-    description: "Build strength with progressive loading techniques",
-  },
-  {
-    title: "Shred Program",
-    goal: "fat-loss" as const,
-    difficulty: "intermediate" as const,
-    duration: "6 weeks",
-    daysPerWeek: 5,
-    exercises: 40,
-    description: "High-intensity fat burning with muscle preservation",
-  },
-]
+function mapGoal(goal: string): "muscle" | "fat-loss" | "strength" | "endurance" {
+  switch (goal) {
+    case "WEIGHT_LOSS":
+      return "fat-loss";
+    case "MUSCLE_GAIN":
+      return "muscle";
+    case "ENDURANCE":
+      return "endurance";
+    case "FLEXIBILITY":
+      return "strength";
+    default:
+      return "strength";
+  }
+}
+
+function calculateStreak(records: AttendanceRecord[]): number {
+  if (records.length === 0) return 0;
+  const dates = new Set(
+    records.map((record) => new Date(record.checkInTime).toDateString()),
+  );
+  let streak = 0;
+  let cursor = new Date();
+
+  while (dates.has(cursor.toDateString())) {
+    streak += 1;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+
+  return streak;
+}
 
 export default function MemberDashboardPage() {
+  const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
+  const [workoutPlans, setWorkoutPlans] = useState<WorkoutPlan[]>([]);
+  const [bookings, setBookings] = useState<BookingView[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [memberName, setMemberName] = useState<string>("Member");
+  const [memberActive, setMemberActive] = useState(true);
+
+  useEffect(() => {
+    const loadDashboard = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const member = await membersService.getMe();
+        setMemberName(`${member.firstName} ${member.lastName}`.trim() || "Member");
+        setMemberActive(member.isActive);
+
+        const [attendanceResponse, plansResponse, bookingsResponse] = await Promise.all([
+          attendanceService.getAll({ memberId: member.id, limit: 200 }),
+          membersService.getMyWorkoutPlans(),
+          membersService.getMyBookings(),
+        ]);
+
+        setAttendance(Array.isArray(attendanceResponse.data) ? attendanceResponse.data : []);
+        setWorkoutPlans(Array.isArray(plansResponse) ? plansResponse : []);
+
+        const now = new Date();
+        const normalizedBookings = Array.isArray(bookingsResponse)
+          ? bookingsResponse
+              .map((booking: any) => {
+                const startTime = booking.classSchedule?.startTime
+                  ? new Date(booking.classSchedule.startTime)
+                  : null;
+                if (!startTime) return null;
+                return {
+                  id: booking.id,
+                  name: booking.class?.name || "Class",
+                  trainer: booking.class?.trainer
+                    ? `${booking.class.trainer.firstName} ${booking.class.trainer.lastName}`
+                    : undefined,
+                  startTime,
+                  duration: booking.class?.duration || 0,
+                } as BookingView;
+              })
+              .filter(Boolean)
+              .filter((booking: BookingView | null) => booking && booking.startTime >= now)
+              .sort((a: BookingView, b: BookingView) => a.startTime.getTime() - b.startTime.getTime())
+          : [];
+        setBookings(normalizedBookings as BookingView[]);
+      } catch (err) {
+        console.error("Error loading member dashboard:", err);
+        setError("Failed to load dashboard data.");
+        setAttendance([]);
+        setWorkoutPlans([]);
+        setBookings([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadDashboard();
+  }, []);
+
+  const thisMonthVisits = useMemo(() => {
+    const now = new Date();
+    return attendance.filter((record) => {
+      const date = new Date(record.checkInTime);
+      return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+    }).length;
+  }, [attendance]);
+
+  const classesAttended = useMemo(
+    () => attendance.filter((record) => record.type === "CLASS_ATTENDANCE").length,
+    [attendance],
+  );
+
+  const streak = useMemo(() => calculateStreak(attendance), [attendance]);
+
+  const latestPlan = workoutPlans[0];
+  const planExercises = Array.isArray(latestPlan?.exercises) ? latestPlan.exercises : [];
+
+  const suggestedPlans = workoutPlans.slice(0, 2).map((plan) => ({
+    title: plan.name,
+    goal: mapGoal(plan.goal),
+    difficulty: "beginner" as const,
+    duration: "4 weeks",
+    daysPerWeek: 3,
+    exercises: Array.isArray(plan.exercises) ? plan.exercises.length : 0,
+    description: plan.description || "",
+  }));
+
   return (
     <MemberLayout>
       <div className="space-y-6">
-        {/* Welcome Section */}
         <div className="bg-gradient-to-r from-primary/20 to-accent/20 rounded-2xl p-6 md:p-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-foreground mb-2">Welcome back, John!</h1>
+              <h1 className="text-2xl font-bold text-foreground mb-2">
+                Welcome back, {memberName}!
+              </h1>
               <p className="text-muted-foreground">
-                You&apos;re on a 7-day streak. Keep up the great work!
+                {streak > 0
+                  ? `You're on a ${streak}-day streak. Keep it up!`
+                  : "Let's start a new streak today."}
               </p>
             </div>
-            <PrimaryButton>
-              Check In Now
-            </PrimaryButton>
+            <PrimaryButton>Check In Now</PrimaryButton>
           </div>
         </div>
 
-        {/* Stats Grid */}
+        {error && (
+          <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 text-destructive">
+            {error}
+          </div>
+        )}
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {memberStats.map((stat) => (
-            <StatCard key={stat.title} {...stat} />
-          ))}
+          <StatCard
+            title="This Month Visits"
+            value={loading ? "…" : String(thisMonthVisits)}
+            icon={
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+              </svg>
+            }
+          />
+          <StatCard
+            title="Classes Attended"
+            value={loading ? "…" : String(classesAttended)}
+            icon={
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            }
+          />
+          <StatCard
+            title="Current Streak"
+            value={loading ? "…" : `${streak} days`}
+            icon={
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
+              </svg>
+            }
+          />
+          <StatCard
+            title="Membership Status"
+            value={loading ? "…" : memberActive ? "Active" : "Inactive"}
+            icon={
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+              </svg>
+            }
+          />
         </div>
 
-        {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Today's Workout */}
           <div className="lg:col-span-2 bg-card border border-border rounded-xl p-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold text-foreground">Today&apos;s Workout</h2>
+              <h2 className="text-lg font-semibold text-foreground">Latest Workout Plan</h2>
               <span className="text-primary text-sm font-medium">
-                {todayWorkout.exercises.filter(e => e.completed).length}/{todayWorkout.exercises.length} completed
+                {planExercises.length} exercises
               </span>
             </div>
-            
-            <h3 className="text-xl font-bold text-foreground mb-4">{todayWorkout.title}</h3>
-            
+
+            <h3 className="text-xl font-bold text-foreground mb-4">
+              {latestPlan?.name || "No workout plan assigned"}
+            </h3>
+
             <div className="space-y-3">
-              {todayWorkout.exercises.map((exercise, index) => (
-                <div
-                  key={index}
-                  className={`flex items-center justify-between p-4 rounded-lg border transition-colors ${
-                    exercise.completed 
-                      ? "bg-primary/10 border-primary/20" 
-                      : "bg-secondary/30 border-border"
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <button
-                      className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
-                        exercise.completed 
-                          ? "bg-primary border-primary text-primary-foreground" 
-                          : "border-muted-foreground"
-                      }`}
-                    >
-                      {exercise.completed && (
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                      )}
-                    </button>
-                    <span className={`font-medium ${exercise.completed ? "text-muted-foreground line-through" : "text-foreground"}`}>
-                      {exercise.name}
+              {planExercises.length > 0 ? (
+                planExercises.slice(0, 6).map((exercise: any, index: number) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-4 rounded-lg border bg-secondary/30 border-border"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="font-medium text-foreground">
+                        {exercise.name || `Exercise ${index + 1}`}
+                      </span>
+                    </div>
+                    <span className="text-muted-foreground text-sm">
+                      {exercise.sets ? `${exercise.sets} sets` : "Sets"} x {exercise.reps || "reps"}
                     </span>
                   </div>
-                  <span className="text-muted-foreground text-sm">
-                    {exercise.sets} sets x {exercise.reps}
-                  </span>
-                </div>
-              ))}
+                ))
+              ) : (
+                <div className="text-muted-foreground">No exercises available.</div>
+              )}
             </div>
 
             <div className="mt-6 flex gap-4">
-              <PrimaryButton className="flex-1">Continue Workout</PrimaryButton>
+              <PrimaryButton className="flex-1">View Plan</PrimaryButton>
               <button className="px-4 py-2 text-muted-foreground hover:text-foreground transition-colors">
                 Skip Today
               </button>
             </div>
           </div>
 
-          {/* Upcoming Classes */}
           <div className="bg-card border border-border rounded-xl p-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-semibold text-foreground">Upcoming Classes</h2>
@@ -173,18 +251,26 @@ export default function MemberDashboardPage() {
                 View All
               </Link>
             </div>
-            
+
             <div className="space-y-4">
-              {upcomingClasses.map((cls, index) => (
-                <div key={index} className="p-4 bg-secondary/30 rounded-lg">
-                  <h3 className="font-medium text-foreground">{cls.name}</h3>
-                  <p className="text-muted-foreground text-sm mt-1">{cls.trainer}</p>
-                  <div className="flex items-center justify-between mt-3">
-                    <span className="text-sm text-muted-foreground">{cls.time}</span>
-                    <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">{cls.duration}</span>
+              {bookings.length > 0 ? (
+                bookings.slice(0, 3).map((cls) => (
+                  <div key={cls.id} className="p-4 bg-secondary/30 rounded-lg">
+                    <h3 className="font-medium text-foreground">{cls.name}</h3>
+                    <p className="text-muted-foreground text-sm mt-1">{cls.trainer || "TBA"}</p>
+                    <div className="flex items-center justify-between mt-3">
+                      <span className="text-sm text-muted-foreground">
+                        {cls.startTime.toLocaleDateString()} {cls.startTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                      </span>
+                      <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
+                        {cls.duration} min
+                      </span>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <div className="text-muted-foreground">No upcoming classes.</div>
+              )}
             </div>
 
             <button className="w-full mt-4 py-3 border border-dashed border-border rounded-lg text-muted-foreground hover:text-foreground hover:border-primary/50 transition-colors">
@@ -193,16 +279,28 @@ export default function MemberDashboardPage() {
           </div>
         </div>
 
-        {/* Suggested Plans */}
         <div>
           <h2 className="text-lg font-semibold text-foreground mb-4">Recommended For You</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {suggestedPlans.map((plan) => (
-              <WorkoutPlanCard key={plan.title} {...plan} />
-            ))}
+            {suggestedPlans.length > 0 ? (
+              suggestedPlans.map((plan) => (
+                <WorkoutPlanCard
+                  key={plan.title}
+                  title={plan.title}
+                  goal={plan.goal}
+                  difficulty={plan.difficulty}
+                  duration={plan.duration}
+                  daysPerWeek={plan.daysPerWeek}
+                  exercises={plan.exercises}
+                  description={plan.description}
+                />
+              ))
+            ) : (
+              <div className="text-muted-foreground">No workout plans available.</div>
+            )}
           </div>
         </div>
       </div>
     </MemberLayout>
-  )
+  );
 }

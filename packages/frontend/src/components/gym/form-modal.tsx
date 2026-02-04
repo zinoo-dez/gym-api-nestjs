@@ -1,10 +1,8 @@
-'use client';
-
 import React from 'react';
 import { Modal } from './modal';
 import { PrimaryButton, SecondaryButton } from './index';
 
-interface FormModalProps {
+export interface FormModalProps {
   isOpen: boolean;
   onClose: () => void;
   title: string;

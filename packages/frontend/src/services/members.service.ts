@@ -47,4 +47,19 @@ export const membersService = {
         const response = await apiClient.get<ApiResponse<Member>>(`/members/${id}`);
         return response.data.data ?? response.data;
     },
+
+    async getMe() {
+        const response = await apiClient.get<ApiResponse<Member>>(`/members/me`);
+        return response.data.data ?? response.data;
+    },
+
+    async getMyBookings() {
+        const response = await apiClient.get<ApiResponse<any[]>>(`/members/me/bookings`);
+        return response.data.data ?? response.data;
+    },
+
+    async getMyWorkoutPlans() {
+        const response = await apiClient.get<ApiResponse<any[]>>(`/members/me/workout-plans`);
+        return response.data.data ?? response.data;
+    },
 };

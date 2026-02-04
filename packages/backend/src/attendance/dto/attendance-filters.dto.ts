@@ -1,4 +1,4 @@
-import { IsOptional, IsUUID, IsDateString, IsEnum } from 'class-validator';
+import { IsOptional, IsString, IsDateString, IsEnum } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { AttendanceType } from '@prisma/client';
 import { PaginationDto } from '../../common/dto';
@@ -9,7 +9,7 @@ export class AttendanceFiltersDto extends PaginationDto {
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
   @IsOptional()
-  @IsUUID()
+  @IsString()
   memberId?: string;
 
   @ApiPropertyOptional({
