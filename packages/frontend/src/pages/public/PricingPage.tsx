@@ -41,7 +41,7 @@ export default function PricingPage() {
   useEffect(() => {
     const fetchPlans = async () => {
       try {
-        const response = await membershipsService.getAllPlans({ limit: 10, isActive: true })
+        const response = await membershipsService.getAllPlans({ limit: 10 })
         setPlans(Array.isArray(response.data) ? response.data : [])
       } catch (error) {
         console.error('Error fetching membership plans:', error)

@@ -151,7 +151,7 @@ export default function HomePage() {
         const [trainersData, workoutPlansData, membershipPlansData] = await Promise.all([
           trainersService.getAll({ limit: 3 }),
           workoutPlansService.getAll({ limit: 3 }),
-          membershipsService.getAllPlans({ limit: 3, isActive: true }),
+          membershipsService.getAllPlans({ limit: 3 }),
         ])
         setTrainers(Array.isArray(trainersData.data) ? trainersData.data : [])
         setWorkoutPlans(Array.isArray(workoutPlansData.data) ? workoutPlansData.data : [])
