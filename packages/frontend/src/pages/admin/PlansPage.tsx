@@ -1,8 +1,9 @@
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AdminLayout } from "@/layouts";
-import { PrimaryButton, SecondaryButton } from "@/components/gym";
+import { PrimaryButton } from "@/components/gym";
 import { Badge } from "@/components/ui/badge";
+import { membershipsService, type MembershipPlan } from "@/services/memberships.service";
 import {
   Plus,
   Search,
@@ -15,143 +16,48 @@ import {
   X,
 } from "lucide-react";
 
-interface Plan {
-  id: string;
-  name: string;
-  price: number;
-  billingPeriod: "monthly" | "quarterly" | "yearly";
-  features: string[];
-  activeSubscribers: number;
-  status: "active" | "inactive" | "archived";
-  popular: boolean;
-  createdAt: string;
-}
-
-const mockPlans: Plan[] = [
-  {
-    id: "1",
-    name: "Basic",
-    price: 29,
-    billingPeriod: "monthly",
-    features: [
-      "Access to gym equipment",
-      "Locker room access",
-      "Free WiFi",
-      "2 guest passes/month",
-    ],
-    activeSubscribers: 245,
-    status: "active",
-    popular: false,
-    createdAt: "2023-01-01",
-  },
-  {
-    id: "2",
-    name: "Pro",
-    price: 59,
-    billingPeriod: "monthly",
-    features: [
-      "Everything in Basic",
-      "Unlimited group classes",
-      "Personal training session/month",
-      "Nutrition consultation",
-      "Priority booking",
-    ],
-    activeSubscribers: 412,
-    status: "active",
-    popular: true,
-    createdAt: "2023-01-01",
-  },
-  {
-    id: "3",
-    name: "Elite",
-    price: 99,
-    billingPeriod: "monthly",
-    features: [
-      "Everything in Pro",
-      "4 PT sessions/month",
-      "Access to premium areas",
-      "Free merchandise",
-      "Bring 2 friends free",
-      "Recovery room access",
-    ],
-    activeSubscribers: 156,
-    status: "active",
-    popular: false,
-    createdAt: "2023-01-01",
-  },
-  {
-    id: "4",
-    name: "Student",
-    price: 19,
-    billingPeriod: "monthly",
-    features: [
-      "Access to gym equipment",
-      "Locker room access",
-      "Free WiFi",
-      "Valid student ID required",
-    ],
-    activeSubscribers: 89,
-    status: "active",
-    popular: false,
-    createdAt: "2023-06-15",
-  },
-  {
-    id: "5",
-    name: "Corporate",
-    price: 499,
-    billingPeriod: "monthly",
-    features: [
-      "Up to 10 employees",
-      "Dedicated account manager",
-      "Custom wellness programs",
-      "On-site fitness events",
-    ],
-    activeSubscribers: 23,
-    status: "inactive",
-    popular: false,
-    createdAt: "2023-03-10",
-  },
-];
-
 export default function AdminPlansPage() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [plans, setPlans] = useState<MembershipPlan[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const filteredPlans = mockPlans.filter((plan) =>
-    plan.name.toLowerCase().includes(searchQuery.toLowerCase())
+  useEffect(() => {
+    const loadPlans = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await membershipsService.getAllPlans({ limit: 50 });
+        setPlans(Array.isArray(response.data) ? response.data : []);
+      } catch (err) {
+        console.error("Error loading plans:", err);
+        setError("Failed to load plans.");
+        setPlans([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadPlans();
+  }, []);
+
+  const filteredPlans = useMemo(
+    () =>
+      plans.filter((plan) =>
+        plan.name.toLowerCase().includes(searchQuery.toLowerCase()),
+      ),
+    [plans, searchQuery],
   );
 
-  const totalRevenue = mockPlans.reduce(
-    (acc, plan) => acc + plan.price * plan.activeSubscribers,
-    0
-  );
+  const totalRevenue = filteredPlans.reduce((acc, plan) => acc + plan.price, 0);
 
-  const totalSubscribers = mockPlans.reduce(
-    (acc, plan) => acc + plan.activeSubscribers,
-    0
-  );
+  const totalSubscribers = 0;
 
-  const getStatusBadge = (status: Plan["status"]) => {
-    switch (status) {
-      case "active":
-        return (
-          <Badge className="bg-primary/20 text-primary border-primary/30">
-            Active
-          </Badge>
-        );
-      case "inactive":
-        return (
-          <Badge className="bg-yellow-500/20 text-yellow-500 border-yellow-500/30">
-            Inactive
-          </Badge>
-        );
-      case "archived":
-        return (
-          <Badge className="bg-muted text-muted-foreground border-border">
-            Archived
-          </Badge>
-        );
-    }
-  };
+  const getStatusBadge = () => (
+    <Badge className="bg-primary/20 text-primary border-primary/30">
+      Active
+    </Badge>
+  );
 
   return (
     <AdminLayout>
@@ -209,7 +115,7 @@ export default function AdminPlansPage() {
               </div>
               <div>
                 <p className="text-2xl font-bold text-foreground">
-                  ${(totalRevenue / totalSubscribers).toFixed(0)}
+                  {totalSubscribers ? `$${(totalRevenue / totalSubscribers).toFixed(0)}` : "—"}
                 </p>
                 <p className="text-sm text-muted-foreground">Avg Revenue/User</p>
               </div>
@@ -222,7 +128,7 @@ export default function AdminPlansPage() {
               </div>
               <div>
                 <p className="text-2xl font-bold text-foreground">
-                  {mockPlans.filter((p) => p.status === "active").length}
+                  {plans.length}
                 </p>
                 <p className="text-sm text-muted-foreground">Active Plans</p>
               </div>
@@ -244,14 +150,27 @@ export default function AdminPlansPage() {
 
         {/* Plans Grid */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {filteredPlans.map((plan) => (
+          {loading ? (
+            <div className="col-span-full text-center text-muted-foreground">
+              Loading plans...
+            </div>
+          ) : error ? (
+            <div className="col-span-full text-center text-destructive">
+              {error}
+            </div>
+          ) : filteredPlans.length === 0 ? (
+            <div className="col-span-full text-center text-muted-foreground">
+              No plans found.
+            </div>
+          ) : (
+          filteredPlans.map((plan, index) => (
             <div
               key={plan.id}
               className={`relative rounded-lg border bg-card p-6 transition-all hover:border-primary/50 ${
-                plan.popular ? "border-primary" : "border-border"
+                index === 1 ? "border-primary" : "border-border"
               }`}
             >
-              {plan.popular && (
+              {index === 1 && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                   <Badge className="bg-primary text-primary-foreground">
                     Most Popular
@@ -269,16 +188,16 @@ export default function AdminPlansPage() {
                       ${plan.price}
                     </span>
                     <span className="text-muted-foreground">
-                      /{plan.billingPeriod}
+                      /month
                     </span>
                   </div>
                 </div>
-                {getStatusBadge(plan.status)}
+                {getStatusBadge()}
               </div>
 
               <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
                 <Users className="h-4 w-4" />
-                {plan.activeSubscribers} active subscribers
+                — active subscribers
               </div>
 
               <ul className="mt-4 space-y-2">
@@ -295,7 +214,7 @@ export default function AdminPlansPage() {
 
               <div className="mt-6 flex items-center justify-between border-t border-border pt-4">
                 <p className="text-sm text-muted-foreground">
-                  Revenue: ${(plan.price * plan.activeSubscribers).toLocaleString()}/mo
+                  Revenue: —/mo
                 </p>
                 <div className="flex gap-2">
                   <button
@@ -315,7 +234,7 @@ export default function AdminPlansPage() {
                 </div>
               </div>
             </div>
-          ))}
+          )))}
         </div>
       </div>
     </AdminLayout>

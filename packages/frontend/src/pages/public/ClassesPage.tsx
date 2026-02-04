@@ -5,22 +5,23 @@ import { Link } from "react-router-dom"
 import { PublicLayout } from "../../layouts"
 import { ClassScheduleTable, type ClassScheduleItem, SecondaryButton } from "@/components/gym"
 import { cn } from "@/lib/utils"
-import { classesService, type Class } from "@/services/classes.service"
+import { classesService, type ClassSchedule } from "@/services/classes.service"
 
-const convertClassToScheduleItem = (cls: Class): ClassScheduleItem => {
-  const startTime = new Date(cls.startTime)
-  const endTime = new Date(cls.endTime)
-  const duration = Math.round((endTime.getTime() - startTime.getTime()) / (1000 * 60))
+const convertClassToScheduleItem = (cls: ClassSchedule): ClassScheduleItem => {
+  const startTime = new Date(cls.schedule)
+  const duration = cls.duration
+  const endTime = new Date(startTime.getTime() + duration * 60000)
+  const enrolled = cls.availableSlots !== undefined ? cls.capacity - cls.availableSlots : 0
   
   return {
     id: cls.id,
     name: cls.name,
-    trainer: cls.trainer?.name || 'TBA',
+    trainer: cls.trainerName || 'TBA',
     time: startTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
     duration: `${duration} min`,
     day: startTime.toLocaleDateString('en-US', { weekday: 'long' }),
     capacity: cls.capacity,
-    enrolled: cls.enrolled,
+    enrolled,
     level: 'all' as const,
   }
 }

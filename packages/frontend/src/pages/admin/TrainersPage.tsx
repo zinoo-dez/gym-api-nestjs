@@ -1,8 +1,9 @@
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AdminLayout } from "@/layouts";
 import { PrimaryButton, SecondaryButton } from "@/components/gym";
 import { Badge } from "@/components/ui/badge";
+import { trainersService, type Trainer } from "@/services/trainers.service";
 import {
   Plus,
   Search,
@@ -11,119 +12,60 @@ import {
   Star,
   Users,
   Mail,
-  Phone,
   MoreVertical,
 } from "lucide-react";
-
-interface Trainer {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  avatar: string;
-  specializations: string[];
-  rating: number;
-  clients: number;
-  status: "active" | "inactive" | "on-leave";
-  joinedDate: string;
-}
-
-const mockTrainers: Trainer[] = [
-  {
-    id: "1",
-    name: "Sarah Johnson",
-    email: "sarah.j@powerfit.com",
-    phone: "+1 234-567-8901",
-    avatar: "/placeholder.svg?height=100&width=100",
-    specializations: ["HIIT", "Cardio", "Weight Loss"],
-    rating: 4.9,
-    clients: 45,
-    status: "active",
-    joinedDate: "2023-01-15",
-  },
-  {
-    id: "2",
-    name: "Mike Chen",
-    email: "mike.c@powerfit.com",
-    phone: "+1 234-567-8902",
-    avatar: "/placeholder.svg?height=100&width=100",
-    specializations: ["Yoga", "Meditation", "Flexibility"],
-    rating: 4.8,
-    clients: 38,
-    status: "active",
-    joinedDate: "2023-03-20",
-  },
-  {
-    id: "3",
-    name: "Emily Davis",
-    email: "emily.d@powerfit.com",
-    phone: "+1 234-567-8903",
-    avatar: "/placeholder.svg?height=100&width=100",
-    specializations: ["Spin", "Cycling", "Endurance"],
-    rating: 4.7,
-    clients: 52,
-    status: "active",
-    joinedDate: "2022-11-08",
-  },
-  {
-    id: "4",
-    name: "James Wilson",
-    email: "james.w@powerfit.com",
-    phone: "+1 234-567-8904",
-    avatar: "/placeholder.svg?height=100&width=100",
-    specializations: ["Strength", "Bodybuilding", "Powerlifting"],
-    rating: 4.9,
-    clients: 30,
-    status: "on-leave",
-    joinedDate: "2023-06-01",
-  },
-  {
-    id: "5",
-    name: "Maria Garcia",
-    email: "maria.g@powerfit.com",
-    phone: "+1 234-567-8905",
-    avatar: "/placeholder.svg?height=100&width=100",
-    specializations: ["Zumba", "Dance Fitness", "Aerobics"],
-    rating: 4.6,
-    clients: 60,
-    status: "inactive",
-    joinedDate: "2022-08-15",
-  },
-];
 
 export default function AdminTrainersPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [trainers, setTrainers] = useState<Trainer[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const filteredTrainers = mockTrainers.filter(
-    (trainer) =>
-      trainer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      trainer.specializations.some((spec) =>
-        spec.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-  );
+  useEffect(() => {
+    const loadTrainers = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await trainersService.getAll({ limit: 50 });
+        setTrainers(Array.isArray(response.data) ? response.data : []);
+      } catch (err) {
+        console.error("Error loading trainers:", err);
+        setError("Failed to load trainers.");
+        setTrainers([]);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const getStatusBadge = (status: Trainer["status"]) => {
-    switch (status) {
-      case "active":
-        return (
-          <Badge className="bg-primary/20 text-primary border-primary/30">
-            Active
-          </Badge>
-        );
-      case "on-leave":
-        return (
-          <Badge className="bg-yellow-500/20 text-yellow-500 border-yellow-500/30">
-            On Leave
-          </Badge>
-        );
-      case "inactive":
-        return (
-          <Badge className="bg-muted text-muted-foreground border-border">
-            Inactive
-          </Badge>
-        );
+    loadTrainers();
+  }, []);
+
+  const filteredTrainers = useMemo(() => {
+    const query = searchQuery.toLowerCase();
+    return trainers.filter((trainer) => {
+      const name = `${trainer.firstName} ${trainer.lastName}`.toLowerCase();
+      const matchesName = name.includes(query);
+      const matchesSpecialization = trainer.specializations.some((spec) =>
+        spec.toLowerCase().includes(query),
+      );
+      return matchesName || matchesSpecialization;
+    });
+  }, [trainers, searchQuery]);
+
+  const getStatusBadge = (isActive: boolean) => {
+    if (isActive) {
+      return (
+        <Badge className="bg-primary/20 text-primary border-primary/30">
+          Active
+        </Badge>
+      );
     }
+    return (
+      <Badge className="bg-muted text-muted-foreground border-border">
+        Inactive
+      </Badge>
+    );
   };
 
   return (
@@ -154,7 +96,7 @@ export default function AdminTrainersPage() {
               </div>
               <div>
                 <p className="text-2xl font-bold text-foreground">
-                  {mockTrainers.length}
+                  {trainers.length}
                 </p>
                 <p className="text-sm text-muted-foreground">Total Trainers</p>
               </div>
@@ -167,10 +109,7 @@ export default function AdminTrainersPage() {
               </div>
               <div>
                 <p className="text-2xl font-bold text-foreground">
-                  {(
-                    mockTrainers.reduce((acc, t) => acc + t.rating, 0) /
-                    mockTrainers.length
-                  ).toFixed(1)}
+                  {trainers.length ? "—" : "—"}
                 </p>
                 <p className="text-sm text-muted-foreground">Avg Rating</p>
               </div>
@@ -183,7 +122,7 @@ export default function AdminTrainersPage() {
               </div>
               <div>
                 <p className="text-2xl font-bold text-foreground">
-                  {mockTrainers.reduce((acc, t) => acc + t.clients, 0)}
+                  —
                 </p>
                 <p className="text-sm text-muted-foreground">Total Clients</p>
               </div>
@@ -196,7 +135,7 @@ export default function AdminTrainersPage() {
               </div>
               <div>
                 <p className="text-2xl font-bold text-foreground">
-                  {mockTrainers.filter((t) => t.status === "on-leave").length}
+                  —
                 </p>
                 <p className="text-sm text-muted-foreground">On Leave</p>
               </div>
@@ -237,7 +176,20 @@ export default function AdminTrainersPage() {
         {/* Trainers Grid */}
         {viewMode === "grid" ? (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredTrainers.map((trainer) => (
+            {loading ? (
+              <div className="col-span-full text-center text-muted-foreground">
+                Loading trainers...
+              </div>
+            ) : error ? (
+              <div className="col-span-full text-center text-destructive">
+                {error}
+              </div>
+            ) : filteredTrainers.length === 0 ? (
+              <div className="col-span-full text-center text-muted-foreground">
+                No trainers found.
+              </div>
+            ) : (
+            filteredTrainers.map((trainer) => (
               <div
                 key={trainer.id}
                 className="group rounded-lg border border-border bg-card p-6 transition-all hover:border-primary/50"
@@ -246,18 +198,18 @@ export default function AdminTrainersPage() {
                   <div className="flex items-center gap-4">
                     <div className="relative h-16 w-16 overflow-hidden rounded-full bg-muted">
                       <img
-                        src={trainer.avatar || "/placeholder.svg"}
-                        alt={trainer.name}
+                        src="/placeholder.svg"
+                        alt={`${trainer.firstName} ${trainer.lastName}`}
                         className="h-full w-full object-cover"
                       />
                     </div>
                     <div>
                       <h3 className="font-semibold text-foreground">
-                        {trainer.name}
+                        {trainer.firstName} {trainer.lastName}
                       </h3>
                       <div className="flex items-center gap-1 text-sm text-muted-foreground">
                         <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
-                        {trainer.rating} ({trainer.clients} clients)
+                        —
                       </div>
                     </div>
                   </div>
@@ -287,14 +239,10 @@ export default function AdminTrainersPage() {
                     <Mail className="h-4 w-4" />
                     {trainer.email}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Phone className="h-4 w-4" />
-                    {trainer.phone}
-                  </div>
                 </div>
 
                 <div className="mt-4 flex items-center justify-between">
-                  {getStatusBadge(trainer.status)}
+                  {getStatusBadge(trainer.isActive)}
                   <div className="flex gap-2">
                     <button
                       type="button"
@@ -313,7 +261,7 @@ export default function AdminTrainersPage() {
                   </div>
                 </div>
               </div>
-            ))}
+            )))}
           </div>
         ) : (
           <div className="overflow-hidden rounded-lg border border-border bg-card">
@@ -342,7 +290,26 @@ export default function AdminTrainersPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {filteredTrainers.map((trainer) => (
+                  {loading ? (
+                    <tr>
+                      <td colSpan={6} className="py-8 text-center text-muted-foreground">
+                        Loading trainers...
+                      </td>
+                    </tr>
+                  ) : error ? (
+                    <tr>
+                      <td colSpan={6} className="py-8 text-center text-destructive">
+                        {error}
+                      </td>
+                    </tr>
+                  ) : filteredTrainers.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="py-8 text-center text-muted-foreground">
+                        No trainers found.
+                      </td>
+                    </tr>
+                  ) : (
+                  filteredTrainers.map((trainer) => (
                     <tr
                       key={trainer.id}
                       className="transition-colors hover:bg-muted/30"
@@ -351,17 +318,17 @@ export default function AdminTrainersPage() {
                         <div className="flex items-center gap-3">
                           <div className="relative h-10 w-10 overflow-hidden rounded-full bg-muted">
                             <img
-                              src={trainer.avatar || "/placeholder.svg"}
-                              alt={trainer.name}
+                              src="/placeholder.svg"
+                              alt={`${trainer.firstName} ${trainer.lastName}`}
                               className="h-full w-full object-cover"
                             />
                           </div>
                           <div>
                             <p className="font-medium text-foreground">
-                              {trainer.name}
+                              {trainer.firstName} {trainer.lastName}
                             </p>
                             <p className="text-sm text-muted-foreground">
-                              {trainer.clients} clients
+                              —
                             </p>
                           </div>
                         </div>
@@ -397,12 +364,12 @@ export default function AdminTrainersPage() {
                         <div className="flex items-center gap-1">
                           <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
                           <span className="text-foreground">
-                            {trainer.rating}
+                            —
                           </span>
                         </div>
                       </td>
                       <td className="px-4 py-4">
-                        {getStatusBadge(trainer.status)}
+                        {getStatusBadge(trainer.isActive)}
                       </td>
                       <td className="px-4 py-4">
                         <div className="flex items-center justify-end gap-2">
@@ -423,7 +390,7 @@ export default function AdminTrainersPage() {
                         </div>
                       </td>
                     </tr>
-                  ))}
+                  )))}
                 </tbody>
               </table>
             </div>

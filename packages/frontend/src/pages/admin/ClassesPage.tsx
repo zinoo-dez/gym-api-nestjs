@@ -1,8 +1,9 @@
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AdminLayout } from "@/layouts";
-import { PrimaryButton, SecondaryButton } from "@/components/gym";
+import { PrimaryButton } from "@/components/gym";
 import { Badge } from "@/components/ui/badge";
+import { classesService, type ClassSchedule } from "@/services/classes.service";
 import {
   Plus,
   Search,
@@ -14,118 +15,78 @@ import {
   Filter,
 } from "lucide-react";
 
-interface GymClass {
-  id: string;
-  name: string;
-  instructor: string;
-  schedule: string;
-  time: string;
-  duration: string;
-  capacity: number;
-  enrolled: number;
-  status: "active" | "cancelled" | "full";
-  category: string;
-}
-
-const mockClasses: GymClass[] = [
-  {
-    id: "1",
-    name: "Morning HIIT",
-    instructor: "Sarah Johnson",
-    schedule: "Mon, Wed, Fri",
-    time: "6:00 AM",
-    duration: "45 min",
-    capacity: 20,
-    enrolled: 18,
-    status: "active",
-    category: "Cardio",
-  },
-  {
-    id: "2",
-    name: "Power Yoga",
-    instructor: "Mike Chen",
-    schedule: "Tue, Thu",
-    time: "7:00 AM",
-    duration: "60 min",
-    capacity: 15,
-    enrolled: 15,
-    status: "full",
-    category: "Yoga",
-  },
-  {
-    id: "3",
-    name: "Spin Class",
-    instructor: "Emily Davis",
-    schedule: "Mon, Wed, Fri",
-    time: "5:30 PM",
-    duration: "45 min",
-    capacity: 25,
-    enrolled: 22,
-    status: "active",
-    category: "Cardio",
-  },
-  {
-    id: "4",
-    name: "Strength Training",
-    instructor: "James Wilson",
-    schedule: "Tue, Thu, Sat",
-    time: "10:00 AM",
-    duration: "60 min",
-    capacity: 12,
-    enrolled: 8,
-    status: "active",
-    category: "Strength",
-  },
-  {
-    id: "5",
-    name: "Zumba",
-    instructor: "Maria Garcia",
-    schedule: "Sat, Sun",
-    time: "9:00 AM",
-    duration: "50 min",
-    capacity: 30,
-    enrolled: 0,
-    status: "cancelled",
-    category: "Dance",
-  },
-];
-
 export default function AdminClassesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
+  const [classes, setClasses] = useState<ClassSchedule[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const filteredClasses = mockClasses.filter((cls) => {
-    const matchesSearch =
-      cls.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      cls.instructor.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory =
-      filterCategory === "all" ||
-      cls.category.toLowerCase() === filterCategory.toLowerCase();
-    return matchesSearch && matchesCategory;
-  });
+  useEffect(() => {
+    const loadClasses = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await classesService.getAll({ limit: 50 });
+        setClasses(Array.isArray(response.data) ? response.data : []);
+      } catch (err) {
+        console.error("Error loading classes:", err);
+        setError("Failed to load classes.");
+        setClasses([]);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const getStatusBadge = (status: GymClass["status"]) => {
-    switch (status) {
-      case "active":
-        return (
-          <Badge className="bg-primary/20 text-primary border-primary/30">
-            Active
-          </Badge>
-        );
-      case "full":
-        return (
-          <Badge className="bg-yellow-500/20 text-yellow-500 border-yellow-500/30">
-            Full
-          </Badge>
-        );
-      case "cancelled":
-        return (
-          <Badge className="bg-destructive/20 text-destructive border-destructive/30">
-            Cancelled
-          </Badge>
-        );
+    loadClasses();
+  }, []);
+
+  const filteredClasses = useMemo(() => {
+    const query = searchQuery.toLowerCase();
+    return classes.filter((cls) => {
+      const matchesSearch =
+        cls.name.toLowerCase().includes(query) ||
+        (cls.trainerName || "").toLowerCase().includes(query);
+      const matchesCategory =
+        filterCategory === "all" ||
+        cls.classType.toLowerCase() === filterCategory.toLowerCase();
+      return matchesSearch && matchesCategory;
+    });
+  }, [classes, searchQuery, filterCategory]);
+
+  const getStatusBadge = (cls: ClassSchedule) => {
+    const enrolled = cls.availableSlots !== undefined
+      ? cls.capacity - cls.availableSlots
+      : 0;
+    if (!cls.isActive) {
+      return (
+        <Badge className="bg-destructive/20 text-destructive border-destructive/30">
+          Cancelled
+        </Badge>
+      );
     }
+    if (enrolled >= cls.capacity) {
+      return (
+        <Badge className="bg-yellow-500/20 text-yellow-500 border-yellow-500/30">
+          Full
+        </Badge>
+      );
+    }
+    return (
+      <Badge className="bg-primary/20 text-primary border-primary/30">
+        Active
+      </Badge>
+    );
   };
+
+  const formatTime = (value: string) =>
+    new Date(value).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+  const formatDate = (value: string) =>
+    new Date(value).toLocaleDateString();
 
   return (
     <AdminLayout>
@@ -155,7 +116,7 @@ export default function AdminClassesPage() {
               </div>
               <div>
                 <p className="text-2xl font-bold text-foreground">
-                  {mockClasses.length}
+                  {classes.length}
                 </p>
                 <p className="text-sm text-muted-foreground">Total Classes</p>
               </div>
@@ -168,7 +129,14 @@ export default function AdminClassesPage() {
               </div>
               <div>
                 <p className="text-2xl font-bold text-foreground">
-                  {mockClasses.reduce((acc, cls) => acc + cls.enrolled, 0)}
+                  {classes.reduce(
+                    (acc, cls) =>
+                      acc +
+                      (cls.availableSlots !== undefined
+                        ? cls.capacity - cls.availableSlots
+                        : 0),
+                    0,
+                  )}
                 </p>
                 <p className="text-sm text-muted-foreground">Total Enrolled</p>
               </div>
@@ -181,7 +149,11 @@ export default function AdminClassesPage() {
               </div>
               <div>
                 <p className="text-2xl font-bold text-foreground">
-                  {mockClasses.filter((c) => c.status === "full").length}
+                  {classes.filter(
+                    (cls) =>
+                      cls.availableSlots !== undefined &&
+                      cls.capacity - cls.availableSlots >= cls.capacity,
+                  ).length}
                 </p>
                 <p className="text-sm text-muted-foreground">Full Classes</p>
               </div>
@@ -194,7 +166,7 @@ export default function AdminClassesPage() {
               </div>
               <div>
                 <p className="text-2xl font-bold text-foreground">
-                  {mockClasses.filter((c) => c.status === "cancelled").length}
+                  {classes.filter((cls) => !cls.isActive).length}
                 </p>
                 <p className="text-sm text-muted-foreground">Cancelled</p>
               </div>
@@ -257,7 +229,26 @@ export default function AdminClassesPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {filteredClasses.map((cls) => (
+                {loading ? (
+                  <tr>
+                    <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
+                      Loading classes...
+                    </td>
+                  </tr>
+                ) : error ? (
+                  <tr>
+                    <td colSpan={6} className="px-4 py-8 text-center text-destructive">
+                      {error}
+                    </td>
+                  </tr>
+                ) : filteredClasses.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
+                      No classes found.
+                    </td>
+                  </tr>
+                ) : (
+                filteredClasses.map((cls) => (
                   <tr
                     key={cls.id}
                     className="transition-colors hover:bg-muted/30"
@@ -266,18 +257,18 @@ export default function AdminClassesPage() {
                       <div>
                         <p className="font-medium text-foreground">{cls.name}</p>
                         <p className="text-sm text-muted-foreground">
-                          {cls.category} - {cls.duration}
+                          {cls.classType} - {cls.duration} min
                         </p>
                       </div>
                     </td>
                     <td className="px-4 py-4 text-foreground">
-                      {cls.instructor}
+                      {cls.trainerName || "—"}
                     </td>
                     <td className="px-4 py-4">
                       <div>
-                        <p className="text-foreground">{cls.schedule}</p>
+                        <p className="text-foreground">{formatDate(cls.schedule)}</p>
                         <p className="text-sm text-muted-foreground">
-                          {cls.time}
+                          {formatTime(cls.schedule)}
                         </p>
                       </div>
                     </td>
@@ -287,16 +278,23 @@ export default function AdminClassesPage() {
                           <div
                             className="h-full bg-primary transition-all"
                             style={{
-                              width: `${(cls.enrolled / cls.capacity) * 100}%`,
+                              width: `${
+                                cls.availableSlots !== undefined
+                                  ? ((cls.capacity - cls.availableSlots) / cls.capacity) * 100
+                                  : 0
+                              }%`,
                             }}
                           />
                         </div>
                         <span className="text-sm text-muted-foreground">
-                          {cls.enrolled}/{cls.capacity}
+                          {cls.availableSlots !== undefined
+                            ? cls.capacity - cls.availableSlots
+                            : 0}
+                          /{cls.capacity}
                         </span>
                       </div>
                     </td>
-                    <td className="px-4 py-4">{getStatusBadge(cls.status)}</td>
+                    <td className="px-4 py-4">{getStatusBadge(cls)}</td>
                     <td className="px-4 py-4">
                       <div className="flex items-center justify-end gap-2">
                         <button
@@ -316,7 +314,7 @@ export default function AdminClassesPage() {
                       </div>
                     </td>
                   </tr>
-                ))}
+                )))}
               </tbody>
             </table>
           </div>

@@ -3,30 +3,52 @@ import * as React from "react"
 import { AdminLayout } from "../../layouts"
 import { PrimaryButton, SecondaryButton } from "@/components/gym"
 import { cn } from "@/lib/utils"
-
-const members = [
-  { id: 1, name: "John Smith", email: "john@example.com", phone: "(555) 123-4567", plan: "Pro", status: "active", joined: "Jan 15, 2024", lastVisit: "Today", visits: 45 },
-  { id: 2, name: "Sarah Johnson", email: "sarah@example.com", phone: "(555) 234-5678", plan: "Elite", status: "active", joined: "Dec 1, 2023", lastVisit: "Yesterday", visits: 78 },
-  { id: 3, name: "Mike Wilson", email: "mike@example.com", phone: "(555) 345-6789", plan: "Basic", status: "active", joined: "Feb 20, 2024", lastVisit: "3 days ago", visits: 12 },
-  { id: 4, name: "Emily Davis", email: "emily@example.com", phone: "(555) 456-7890", plan: "Pro", status: "active", joined: "Nov 10, 2023", lastVisit: "Today", visits: 92 },
-  { id: 5, name: "Chris Brown", email: "chris@example.com", phone: "(555) 567-8901", plan: "Basic", status: "pending", joined: "Mar 1, 2024", lastVisit: "Never", visits: 0 },
-  { id: 6, name: "Lisa Anderson", email: "lisa@example.com", phone: "(555) 678-9012", plan: "Elite", status: "active", joined: "Oct 5, 2023", lastVisit: "Today", visits: 120 },
-  { id: 7, name: "David Martinez", email: "david@example.com", phone: "(555) 789-0123", plan: "Pro", status: "expired", joined: "Aug 15, 2023", lastVisit: "2 weeks ago", visits: 65 },
-  { id: 8, name: "Amanda Taylor", email: "amanda@example.com", phone: "(555) 890-1234", plan: "Basic", status: "active", joined: "Jan 28, 2024", lastVisit: "Yesterday", visits: 23 },
-]
+import { membersService, type Member } from "@/services/members.service"
+import { membershipsService, type MembershipPlan } from "@/services/memberships.service"
 
 export default function AdminMembersPage() {
+  const [members, setMembers] = React.useState<Member[]>([])
+  const [plans, setPlans] = React.useState<MembershipPlan[]>([])
+  const [loading, setLoading] = React.useState(true)
+  const [error, setError] = React.useState<string | null>(null)
   const [searchQuery, setSearchQuery] = React.useState("")
   const [statusFilter, setStatusFilter] = React.useState("all")
   const [planFilter, setPlanFilter] = React.useState("all")
 
+  React.useEffect(() => {
+    const loadData = async () => {
+      setLoading(true)
+      setError(null)
+      try {
+        const [membersResponse, plansResponse] = await Promise.all([
+          membersService.getAll({ limit: 50 }),
+          membershipsService.getAllPlans({ limit: 50 }),
+        ])
+        setMembers(Array.isArray(membersResponse.data) ? membersResponse.data : [])
+        setPlans(Array.isArray(plansResponse.data) ? plansResponse.data : [])
+      } catch (err) {
+        console.error("Error loading members:", err)
+        setError("Failed to load members.")
+        setMembers([])
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadData()
+  }, [])
+
+  const selectedPlan = plans.find((plan) => plan.id === planFilter)
+
   const filteredMembers = members.filter((member) => {
-    const matchesSearch = 
-      member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      member.email.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesStatus = statusFilter === "all" || member.status === statusFilter
-    const matchesPlan = planFilter === "all" || member.plan === planFilter
-    return matchesSearch && matchesStatus && matchesPlan
+    const fullName = `${member.firstName} ${member.lastName}`.toLowerCase()
+    const query = searchQuery.toLowerCase()
+    const matchesSearch =
+      fullName.includes(query) || member.email.toLowerCase().includes(query)
+    const matchesStatus =
+      statusFilter === "all" ||
+      (statusFilter === "active" ? member.isActive : !member.isActive)
+    return matchesSearch && matchesStatus
   })
 
   return (
@@ -76,8 +98,7 @@ export default function AdminMembersPage() {
             >
               <option value="all">All Status</option>
               <option value="active">Active</option>
-              <option value="pending">Pending</option>
-              <option value="expired">Expired</option>
+              <option value="inactive">Inactive</option>
             </select>
 
             {/* Plan Filter */}
@@ -87,9 +108,11 @@ export default function AdminMembersPage() {
               className="px-4 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             >
               <option value="all">All Plans</option>
-              <option value="Basic">Basic</option>
-              <option value="Pro">Pro</option>
-              <option value="Elite">Elite</option>
+              {plans.map((plan) => (
+                <option key={plan.id} value={plan.id}>
+                  {plan.name}
+                </option>
+              ))}
             </select>
 
             <SecondaryButton variant="ghost">
@@ -118,47 +141,72 @@ export default function AdminMembersPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredMembers.map((member) => (
+                {loading ? (
+                  <tr>
+                    <td colSpan={8} className="py-8 text-center text-muted-foreground">
+                      Loading members...
+                    </td>
+                  </tr>
+                ) : error ? (
+                  <tr>
+                    <td colSpan={8} className="py-8 text-center text-destructive">
+                      {error}
+                    </td>
+                  </tr>
+                ) : filteredMembers.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="py-8 text-center text-muted-foreground">
+                      No members found.
+                    </td>
+                  </tr>
+                ) : (
+                filteredMembers.map((member) => (
                   <tr key={member.id} className="border-b border-border/50 hover:bg-secondary/20 transition-colors">
                     <td className="py-4 px-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center">
                           <span className="text-primary font-semibold">
-                            {member.name.split(" ").map((n) => n[0]).join("")}
+                            {member.firstName[0]}{member.lastName[0]}
                           </span>
                         </div>
-                        <span className="font-medium text-foreground">{member.name}</span>
+                        <span className="font-medium text-foreground">
+                          {member.firstName} {member.lastName}
+                        </span>
                       </div>
                     </td>
                     <td className="py-4 px-4">
                       <div>
                         <p className="text-foreground text-sm">{member.email}</p>
-                        <p className="text-muted-foreground text-sm">{member.phone}</p>
+                        <p className="text-muted-foreground text-sm">
+                          {member.phone || "—"}
+                        </p>
                       </div>
                     </td>
                     <td className="py-4 px-4">
                       <span className={cn(
                         "text-xs font-medium px-2 py-1 rounded-full",
-                        member.plan === "Elite" && "bg-primary/10 text-primary",
-                        member.plan === "Pro" && "bg-blue-500/10 text-blue-400",
-                        member.plan === "Basic" && "bg-secondary text-muted-foreground"
+                        planFilter !== "all" && selectedPlan?.name === "Elite" && "bg-primary/10 text-primary",
+                        planFilter !== "all" && selectedPlan?.name === "Pro" && "bg-blue-500/10 text-blue-400",
+                        planFilter !== "all" && selectedPlan?.name === "Basic" && "bg-secondary text-muted-foreground",
+                        planFilter === "all" && "bg-secondary text-muted-foreground"
                       )}>
-                        {member.plan}
+                        {planFilter !== "all" ? selectedPlan?.name ?? "—" : "—"}
                       </span>
                     </td>
                     <td className="py-4 px-4">
                       <span className={cn(
                         "text-xs font-medium px-2 py-1 rounded-full",
-                        member.status === "active" && "bg-green-500/10 text-green-400",
-                        member.status === "pending" && "bg-yellow-500/10 text-yellow-400",
-                        member.status === "expired" && "bg-red-500/10 text-red-400"
+                        member.isActive && "bg-green-500/10 text-green-400",
+                        !member.isActive && "bg-yellow-500/10 text-yellow-400"
                       )}>
-                        {member.status}
+                        {member.isActive ? "active" : "inactive"}
                       </span>
                     </td>
-                    <td className="py-4 px-4 text-muted-foreground text-sm">{member.joined}</td>
-                    <td className="py-4 px-4 text-muted-foreground text-sm">{member.lastVisit}</td>
-                    <td className="py-4 px-4 text-foreground font-medium">{member.visits}</td>
+                    <td className="py-4 px-4 text-muted-foreground text-sm">
+                      {new Date(member.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="py-4 px-4 text-muted-foreground text-sm">—</td>
+                    <td className="py-4 px-4 text-foreground font-medium">—</td>
                     <td className="py-4 px-4 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <button className="p-2 text-muted-foreground hover:text-foreground transition-colors" title="View">
@@ -180,7 +228,7 @@ export default function AdminMembersPage() {
                       </div>
                     </td>
                   </tr>
-                ))}
+                )))}
               </tbody>
             </table>
           </div>

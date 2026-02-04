@@ -1,26 +1,23 @@
 import { apiClient } from "@/lib/api-client";
 
-export interface Class {
+export interface ClassSchedule {
     id: string;
     name: string;
     description?: string;
     trainerId: string;
-    trainer?: {
-        id: string;
-        name: string;
-        specialization: string;
-    };
-    startTime: string;
-    endTime: string;
+    trainerName?: string;
+    schedule: string;
+    duration: number;
     capacity: number;
-    enrolled: number;
+    classType: string;
     isActive: boolean;
+    availableSlots?: number;
     createdAt: string;
     updatedAt: string;
 }
 
 export interface ClassesResponse {
-    data: Class[];
+    data: ClassSchedule[];
     page: number;
     limit: number;
     total: number;
@@ -41,6 +38,7 @@ export const classesService = {
         startDate?: string;
         endDate?: string;
         trainerId?: string;
+        classType?: string;
     }) {
         const response = await apiClient.get<ApiResponse<ClassesResponse>>("/classes", {
             params,
@@ -49,7 +47,7 @@ export const classesService = {
     },
 
     async getById(id: string) {
-        const response = await apiClient.get<ApiResponse<Class>>(`/classes/${id}`);
+        const response = await apiClient.get<ApiResponse<ClassSchedule>>(`/classes/${id}`);
         return response.data.data ?? response.data;
     },
 };
