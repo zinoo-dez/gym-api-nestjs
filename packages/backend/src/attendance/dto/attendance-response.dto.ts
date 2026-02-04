@@ -3,7 +3,7 @@ import { AttendanceType } from '@prisma/client';
 export class AttendanceResponseDto {
   id!: string;
   memberId!: string;
-  classId?: string;
+  classScheduleId?: string;
   checkInTime!: Date;
   checkOutTime?: Date;
   type!: AttendanceType;
@@ -14,9 +14,11 @@ export class AttendanceResponseDto {
     lastName: string;
     email: string;
   };
-  class?: {
+  classSchedule?: {
     id: string;
-    name: string;
-    schedule: Date;
+    classId: string;
+    className: string;
+    startTime: Date;
+    endTime: Date;
   };
 }

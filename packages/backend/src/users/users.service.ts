@@ -4,7 +4,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { Role } from '@prisma/client';
+import { UserRole } from '@prisma/client';
 import { ChangeRoleDto } from './dto/change-role.dto';
 
 @Injectable()
@@ -16,23 +16,22 @@ export class UsersService {
       select: {
         id: true,
         email: true,
+        firstName: true,
+        lastName: true,
         role: true,
         createdAt: true,
         updatedAt: true,
         member: {
           select: {
-            firstName: true,
-            lastName: true,
-            phone: true,
-            isActive: true,
+            id: true, // Need something to select if removing everything else?
+            // isActive removed
+            dateOfBirth: true, // keeping valid input
           },
         },
         trainer: {
           select: {
-            firstName: true,
-            lastName: true,
-            specializations: true,
-            isActive: true,
+            specialization: true,
+            // isActive removed
           },
         },
       },
@@ -44,6 +43,8 @@ export class UsersService {
     return users.map((user) => ({
       id: user.id,
       email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
       role: user.role,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
@@ -57,27 +58,25 @@ export class UsersService {
       select: {
         id: true,
         email: true,
+        firstName: true,
+        lastName: true,
+        phone: true, // Phone is on User now
         role: true,
         createdAt: true,
         updatedAt: true,
         member: {
           select: {
             id: true,
-            firstName: true,
-            lastName: true,
-            phone: true,
             dateOfBirth: true,
-            isActive: true,
+            // isActive removed
           },
         },
         trainer: {
           select: {
             id: true,
-            firstName: true,
-            lastName: true,
-            specializations: true,
-            certifications: true,
-            isActive: true,
+            specialization: true,
+            certification: true, // Fixed: singular
+            // isActive removed
           },
         },
       },
@@ -90,6 +89,9 @@ export class UsersService {
     return {
       id: user.id,
       email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      phone: user.phone,
       role: user.role,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
@@ -100,11 +102,11 @@ export class UsersService {
   async changeUserRole(
     userId: string,
     changeRoleDto: ChangeRoleDto,
-    requestingUserRole: Role,
+    requestingUserRole: UserRole, // Updated type
   ) {
-    // Only SUPERADMIN can change roles
-    if (requestingUserRole !== Role.SUPERADMIN) {
-      throw new ForbiddenException('Only superadmin can change user roles');
+    // Only ADMIN can change roles
+    if (requestingUserRole !== UserRole.ADMIN) {
+      throw new ForbiddenException('Only admin can change user roles');
     }
 
     const user = await this.prisma.user.findUnique({
@@ -119,14 +121,14 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
 
-    // Prevent changing SUPERADMIN role
-    if (user.role === Role.SUPERADMIN) {
-      throw new ForbiddenException('Cannot change superadmin role');
+    // Prevent changing ADMIN role
+    if (user.role === UserRole.ADMIN) {
+      throw new ForbiddenException('Cannot change admin role');
     }
 
-    // Prevent setting role to SUPERADMIN
-    if (changeRoleDto.role === Role.SUPERADMIN) {
-      throw new ForbiddenException('Cannot assign superadmin role');
+    // Prevent setting role to ADMIN
+    if (changeRoleDto.role === UserRole.ADMIN) {
+      throw new ForbiddenException('Cannot assign admin role');
     }
 
     const { role } = changeRoleDto;
@@ -138,6 +140,8 @@ export class UsersService {
       select: {
         id: true,
         email: true,
+        firstName: true,
+        lastName: true,
         role: true,
         createdAt: true,
         updatedAt: true,
@@ -145,24 +149,21 @@ export class UsersService {
     });
 
     // Handle profile creation/deletion based on role change
-    if (role === Role.MEMBER && !user.member) {
+    if (role === UserRole.MEMBER && !user.member) {
       // Create member profile if changing to MEMBER
       await this.prisma.member.create({
         data: {
           userId: user.id,
-          firstName: user.trainer?.firstName || 'New',
-          lastName: user.trainer?.lastName || 'Member',
         },
       });
-    } else if (role === Role.TRAINER && !user.trainer) {
+    } else if (role === UserRole.TRAINER && !user.trainer) {
       // Create trainer profile if changing to TRAINER
       await this.prisma.trainer.create({
         data: {
           userId: user.id,
-          firstName: user.member?.firstName || 'New',
-          lastName: user.member?.lastName || 'Trainer',
-          specializations: [],
-          certifications: [],
+          specialization: 'General',
+          experience: 0,
+          hourlyRate: 0,
         },
       });
     }
@@ -170,10 +171,10 @@ export class UsersService {
     return updatedUser;
   }
 
-  async deleteUser(userId: string, requestingUserRole: Role) {
-    // Only SUPERADMIN can delete users
-    if (requestingUserRole !== Role.SUPERADMIN) {
-      throw new ForbiddenException('Only superadmin can delete users');
+  async deleteUser(userId: string, requestingUserRole: UserRole) {
+    // Only ADMIN can delete users
+    if (requestingUserRole !== UserRole.ADMIN) {
+      throw new ForbiddenException('Only admin can delete users');
     }
 
     const user = await this.prisma.user.findUnique({
@@ -184,9 +185,9 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
 
-    // Prevent deleting SUPERADMIN
-    if (user.role === Role.SUPERADMIN) {
-      throw new ForbiddenException('Cannot delete superadmin');
+    // Prevent deleting ADMIN
+    if (user.role === UserRole.ADMIN) {
+      throw new ForbiddenException('Cannot delete admin');
     }
 
     await this.prisma.user.delete({

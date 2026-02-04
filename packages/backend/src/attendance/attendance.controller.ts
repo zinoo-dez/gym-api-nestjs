@@ -25,7 +25,7 @@ import {
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
-import { Role } from '@prisma/client';
+import { UserRole } from '@prisma/client';
 import { PaginatedResponseDto } from '../members/dto';
 
 @ApiTags('attendance')
@@ -36,7 +36,7 @@ export class AttendanceController {
   constructor(private readonly attendanceService: AttendanceService) {}
 
   @Post('check-in')
-  @Roles(Role.ADMIN, Role.TRAINER, Role.MEMBER)
+  @Roles(UserRole.ADMIN, UserRole.TRAINER, UserRole.MEMBER)
   @ApiOperation({
     summary: 'Check in member',
     description: 'Record a member check-in for gym visit or class attendance.',
@@ -57,7 +57,7 @@ export class AttendanceController {
   }
 
   @Post(':id/check-out')
-  @Roles(Role.ADMIN, Role.TRAINER, Role.MEMBER)
+  @Roles(UserRole.ADMIN, UserRole.TRAINER, UserRole.MEMBER)
   @ApiOperation({
     summary: 'Check out member',
     description: 'Record a member check-out.',
@@ -79,7 +79,7 @@ export class AttendanceController {
   }
 
   @Get()
-  @Roles(Role.ADMIN, Role.TRAINER)
+  @Roles(UserRole.ADMIN, UserRole.TRAINER)
   @ApiOperation({
     summary: 'Get all attendance records',
     description:
@@ -101,7 +101,7 @@ export class AttendanceController {
   }
 
   @Get('report/:memberId')
-  @Roles(Role.ADMIN, Role.TRAINER, Role.MEMBER)
+  @Roles(UserRole.ADMIN, UserRole.TRAINER, UserRole.MEMBER)
   @ApiOperation({
     summary: 'Generate attendance report',
     description:

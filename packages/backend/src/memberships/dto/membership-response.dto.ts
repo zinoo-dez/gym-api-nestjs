@@ -1,4 +1,4 @@
-import { MembershipStatus } from '@prisma/client';
+import { SubscriptionStatus } from '@prisma/client';
 import { MembershipPlanResponseDto } from './membership-plan-response.dto';
 
 export class MembershipResponseDto {
@@ -8,7 +8,7 @@ export class MembershipResponseDto {
   plan?: MembershipPlanResponseDto;
   startDate!: Date;
   endDate!: Date;
-  status!: MembershipStatus;
+  status!: SubscriptionStatus;
   createdAt!: Date;
   updatedAt!: Date;
 }

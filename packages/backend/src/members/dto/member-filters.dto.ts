@@ -1,6 +1,6 @@
-import { IsOptional, IsString, IsEnum } from 'class-validator';
+import { IsOptional, IsString, IsEnum, IsUUID } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { MembershipStatus, MembershipType } from '@prisma/client';
+import { SubscriptionStatus } from '@prisma/client';
 import { PaginationDto } from '../../common/dto';
 
 export class MemberFiltersDto extends PaginationDto {
@@ -22,19 +22,18 @@ export class MemberFiltersDto extends PaginationDto {
 
   @ApiPropertyOptional({
     description: 'Filter by membership status',
-    enum: MembershipStatus,
-    example: MembershipStatus.ACTIVE,
+    enum: SubscriptionStatus,
+    example: SubscriptionStatus.ACTIVE,
   })
   @IsOptional()
-  @IsEnum(MembershipStatus)
-  status?: MembershipStatus;
+  @IsEnum(SubscriptionStatus)
+  status?: SubscriptionStatus;
 
   @ApiPropertyOptional({
-    description: 'Filter by membership type',
-    enum: MembershipType,
-    example: MembershipType.PREMIUM,
+    description: 'Filter by membership plan ID',
+    example: '123e4567-e89b-12d3-a456-426614174000',
   })
   @IsOptional()
-  @IsEnum(MembershipType)
-  membershipType?: MembershipType;
+  @IsUUID()
+  planId?: string;
 }

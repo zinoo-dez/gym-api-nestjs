@@ -31,7 +31,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Public } from '../auth/decorators/public.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
-import { Role } from '@prisma/client';
+import { UserRole } from '@prisma/client';
 
 @ApiTags('memberships')
 @Controller()
@@ -42,7 +42,7 @@ export class MembershipsController {
   // Membership Plan endpoints
 
   @Post('membership-plans')
-  @Roles(Role.ADMIN, Role.SUPERADMIN)
+  @Roles(UserRole.ADMIN)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Create a membership plan',
@@ -105,7 +105,7 @@ export class MembershipsController {
   }
 
   @Patch('membership-plans/:id')
-  @Roles(Role.ADMIN, Role.SUPERADMIN)
+  @Roles(UserRole.ADMIN)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Update membership plan',
@@ -135,7 +135,7 @@ export class MembershipsController {
   // Membership assignment endpoints
 
   @Post('memberships')
-  @Roles(Role.ADMIN, Role.SUPERADMIN)
+  @Roles(UserRole.ADMIN)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Assign membership to member',
@@ -157,7 +157,7 @@ export class MembershipsController {
   }
 
   @Get('memberships/:id')
-  @Roles(Role.ADMIN, Role.MEMBER, Role.SUPERADMIN)
+  @Roles(UserRole.ADMIN, UserRole.MEMBER)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Get membership by ID',
@@ -183,7 +183,7 @@ export class MembershipsController {
   }
 
   @Post('memberships/:memberId/upgrade')
-  @Roles(Role.ADMIN, Role.MEMBER, Role.SUPERADMIN)
+  @Roles(UserRole.ADMIN, UserRole.MEMBER)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Upgrade membership',

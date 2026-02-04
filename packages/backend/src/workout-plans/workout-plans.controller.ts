@@ -30,7 +30,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Public } from '../auth/decorators/public.decorator';
-import { Role } from '@prisma/client';
+import { UserRole } from '@prisma/client';
 
 @ApiTags('workout-plans')
 @ApiBearerAuth('JWT-auth')
@@ -40,7 +40,7 @@ export class WorkoutPlansController {
   constructor(private readonly workoutPlansService: WorkoutPlansService) {}
 
   @Post()
-  @Roles(Role.ADMIN, Role.TRAINER)
+  @Roles(UserRole.ADMIN, UserRole.TRAINER)
   @ApiOperation({
     summary: 'Create a workout plan',
     description:
@@ -85,7 +85,7 @@ export class WorkoutPlansController {
   }
 
   @Get('member/:memberId')
-  @Roles(Role.ADMIN, Role.TRAINER, Role.MEMBER)
+  @Roles(UserRole.ADMIN, UserRole.TRAINER, UserRole.MEMBER)
   @ApiOperation({
     summary: 'Get workout plans by member',
     description: 'Retrieve all workout plans assigned to a specific member.',
@@ -131,7 +131,7 @@ export class WorkoutPlansController {
   }
 
   @Patch(':id')
-  @Roles(Role.ADMIN, Role.TRAINER)
+  @Roles(UserRole.ADMIN, UserRole.TRAINER)
   @ApiOperation({
     summary: 'Update workout plan',
     description:
@@ -162,7 +162,7 @@ export class WorkoutPlansController {
   }
 
   @Delete(':id')
-  @Roles(Role.ADMIN, Role.TRAINER)
+  @Roles(UserRole.ADMIN, UserRole.TRAINER)
   @ApiOperation({
     summary: 'Deactivate workout plan',
     description:
@@ -192,7 +192,7 @@ export class WorkoutPlansController {
   }
 
   @Get(':id/versions')
-  @Roles(Role.ADMIN, Role.TRAINER, Role.MEMBER)
+  @Roles(UserRole.ADMIN, UserRole.TRAINER, UserRole.MEMBER)
   @ApiOperation({
     summary: 'Get workout plan version history',
     description: 'Retrieve all versions of a workout plan.',
@@ -216,7 +216,7 @@ export class WorkoutPlansController {
   }
 
   @Get(':id/versions/:version')
-  @Roles(Role.ADMIN, Role.TRAINER, Role.MEMBER)
+  @Roles(UserRole.ADMIN, UserRole.TRAINER, UserRole.MEMBER)
   @ApiOperation({
     summary: 'Get specific workout plan version',
     description: 'Retrieve a specific version of a workout plan.',

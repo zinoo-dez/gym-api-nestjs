@@ -1,8 +1,8 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsOptional, IsBoolean } from 'class-validator';
 import { Transform } from 'class-transformer';
-import { PricingCategory } from '@prisma/client';
 import { PaginationDto } from '../../common/dto/pagination.dto';
+import { PricingCategory } from './create-pricing.dto';
 
 export class PricingFiltersDto extends PaginationDto {
   @ApiPropertyOptional({

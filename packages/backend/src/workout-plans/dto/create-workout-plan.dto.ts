@@ -9,7 +9,7 @@ import {
   ArrayMinSize,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { WorkoutGoal } from '@prisma/client';
+import { WorkoutGoal } from '../../common/enums';
 import { CreateExerciseDto } from './create-exercise.dto';
 
 export class CreateWorkoutPlanDto {

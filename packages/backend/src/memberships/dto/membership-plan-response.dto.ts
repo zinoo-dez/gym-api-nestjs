@@ -1,14 +1,14 @@
-import { MembershipType } from '@prisma/client';
-
 export class MembershipPlanResponseDto {
   id!: string;
   name!: string;
   description?: string;
   durationDays!: number;
   price!: number;
-  type!: MembershipType;
-  features!: string[];
-  isActive!: boolean;
+  unlimitedClasses!: boolean;
+  personalTrainingHours!: number;
+  accessToEquipment!: boolean;
+  accessToLocker!: boolean;
+  nutritionConsultation!: boolean;
   createdAt!: Date;
   updatedAt!: Date;
 }

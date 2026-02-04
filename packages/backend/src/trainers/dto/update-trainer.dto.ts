@@ -18,4 +18,10 @@ export class UpdateTrainerDto {
   @IsArray()
   @IsString({ each: true })
   certifications?: string[];
+
+  @IsOptional()
+  experience?: number;
+
+  @IsOptional()
+  hourlyRate?: number;
 }

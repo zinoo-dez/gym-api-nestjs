@@ -12,6 +12,6 @@ export class CheckInDto {
   type!: AttendanceType;
 
   @IsOptional()
-  @IsUUID('4', { message: 'Class ID must be a valid UUID' })
-  classId?: string;
+  @IsUUID('4', { message: 'Class schedule ID must be a valid UUID' })
+  classScheduleId?: string;
 }

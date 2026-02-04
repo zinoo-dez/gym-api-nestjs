@@ -16,7 +16,7 @@ export class PricingService {
   async create(
     createPricingDto: CreatePricingDto,
   ): Promise<PricingResponseDto> {
-    const pricing = await this.prisma.pricing.create({
+    const pricing = await (this.prisma as any).pricing.create({
       data: {
         ...createPricingDto,
         price: new Prisma.Decimal(createPricingDto.price),
@@ -44,17 +44,17 @@ export class PricingService {
     }
 
     const [data, total] = await Promise.all([
-      this.prisma.pricing.findMany({
+      (this.prisma as any).pricing.findMany({
         where,
         skip,
         take: limit,
         orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
       }),
-      this.prisma.pricing.count({ where }),
+      (this.prisma as any).pricing.count({ where }),
     ]);
 
     return {
-      data: data.map((pricing) => this.mapToResponseDto(pricing)),
+      data: data.map((pricing: any) => this.mapToResponseDto(pricing)),
       page,
       limit,
       total,
@@ -63,7 +63,7 @@ export class PricingService {
   }
 
   async findOne(id: string): Promise<PricingResponseDto> {
-    const pricing = await this.prisma.pricing.findUnique({
+    const pricing = await (this.prisma as any).pricing.findUnique({
       where: { id },
     });
 
@@ -78,7 +78,7 @@ export class PricingService {
     id: string,
     updatePricingDto: UpdatePricingDto,
   ): Promise<PricingResponseDto> {
-    const existing = await this.prisma.pricing.findUnique({
+    const existing = await (this.prisma as any).pricing.findUnique({
       where: { id },
     });
 
@@ -91,7 +91,7 @@ export class PricingService {
       updateData.price = new Prisma.Decimal(updatePricingDto.price);
     }
 
-    const pricing = await this.prisma.pricing.update({
+    const pricing = await (this.prisma as any).pricing.update({
       where: { id },
       data: updateData,
     });
@@ -100,7 +100,7 @@ export class PricingService {
   }
 
   async remove(id: string): Promise<void> {
-    const existing = await this.prisma.pricing.findUnique({
+    const existing = await (this.prisma as any).pricing.findUnique({
       where: { id },
     });
 
@@ -108,7 +108,7 @@ export class PricingService {
       throw new NotFoundException(`Pricing with ID ${id} not found`);
     }
 
-    await this.prisma.pricing.delete({
+    await (this.prisma as any).pricing.delete({
       where: { id },
     });
   }

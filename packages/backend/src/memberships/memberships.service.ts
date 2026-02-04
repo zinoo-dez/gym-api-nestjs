@@ -21,7 +21,7 @@ import {
   MembershipPlanFiltersDto,
 } from './dto';
 import { PaginatedResponseDto } from '../common/dto';
-import { MembershipStatus, Prisma, Role } from '@prisma/client';
+import { Prisma, UserRole, SubscriptionStatus } from '@prisma/client';
 
 @Injectable()
 export class MembershipsService {
@@ -40,7 +40,7 @@ export class MembershipsService {
     createPlanDto: CreateMembershipPlanDto,
   ): Promise<MembershipPlanResponseDto> {
     // Check if plan with same name already exists - only select id field
-    const existingPlan = await this.prisma.membershipPlan.findUnique({
+    const existingPlan = await this.prisma.membershipPlan.findFirst({
       where: { name: createPlanDto.name },
       select: { id: true },
     });
@@ -55,10 +55,13 @@ export class MembershipsService {
       data: {
         name: createPlanDto.name,
         description: createPlanDto.description,
-        durationDays: createPlanDto.durationDays,
+        duration: createPlanDto.durationDays, // Map durationDays to duration
         price: createPlanDto.price,
-        type: createPlanDto.type,
-        features: createPlanDto.features,
+        unlimitedClasses: createPlanDto.unlimitedClasses ?? false,
+        personalTrainingHours: createPlanDto.personalTrainingHours ?? 0,
+        accessToEquipment: createPlanDto.accessToEquipment ?? true,
+        accessToLocker: createPlanDto.accessToLocker ?? false,
+        nutritionConsultation: createPlanDto.nutritionConsultation ?? false,
       },
     });
 
@@ -78,15 +81,11 @@ export class MembershipsService {
     // Build where clause based on filters
     const where: Prisma.MembershipPlanWhereInput = {};
 
-    if (filters?.type) {
-      where.type = filters.type;
-    }
-
-    if (filters?.isActive !== undefined) {
-      where.isActive = filters.isActive;
-    } else {
-      // Default to active plans only if not specified
-      where.isActive = true;
+    if (filters?.name) {
+      where.name = {
+        contains: filters.name,
+        mode: 'insensitive',
+      };
     }
 
     // Create cache key based on filters
@@ -172,7 +171,7 @@ export class MembershipsService {
 
     // Check if name is being updated and if it conflicts
     if (updatePlanDto.name && updatePlanDto.name !== existingPlan.name) {
-      const nameConflict = await this.prisma.membershipPlan.findUnique({
+      const nameConflict = await this.prisma.membershipPlan.findFirst({
         where: { name: updatePlanDto.name },
         select: { id: true },
       });
@@ -189,10 +188,13 @@ export class MembershipsService {
       data: {
         name: updatePlanDto.name,
         description: updatePlanDto.description,
-        durationDays: updatePlanDto.durationDays,
+        duration: updatePlanDto.durationDays,
         price: updatePlanDto.price,
-        type: updatePlanDto.type,
-        features: updatePlanDto.features,
+        unlimitedClasses: updatePlanDto.unlimitedClasses,
+        personalTrainingHours: updatePlanDto.personalTrainingHours,
+        accessToEquipment: updatePlanDto.accessToEquipment,
+        accessToLocker: updatePlanDto.accessToLocker,
+        nutritionConsultation: updatePlanDto.nutritionConsultation,
       },
     });
 
@@ -222,7 +224,7 @@ export class MembershipsService {
     // Verify plan exists - only select needed fields
     const plan = await this.prisma.membershipPlan.findUnique({
       where: { id: assignDto.planId },
-      select: { id: true, durationDays: true },
+      select: { id: true, duration: true },
     });
 
     if (!plan) {
@@ -232,10 +234,10 @@ export class MembershipsService {
     }
 
     // Check if member already has an active membership
-    const activeMembership = await this.prisma.membership.findFirst({
+    const activeMembership = await this.prisma.subscription.findFirst({
       where: {
         memberId: assignDto.memberId,
-        status: MembershipStatus.ACTIVE,
+        status: SubscriptionStatus.ACTIVE,
         endDate: {
           gte: new Date(),
         },
@@ -252,19 +254,19 @@ export class MembershipsService {
     // Calculate end date
     const startDate = new Date(assignDto.startDate);
     const endDate = new Date(startDate);
-    endDate.setDate(endDate.getDate() + plan.durationDays);
+    endDate.setDate(endDate.getDate() + (plan.duration || 30));
 
     // Create membership
-    const membership = await this.prisma.membership.create({
+    const membership = await this.prisma.subscription.create({
       data: {
         memberId: assignDto.memberId,
-        planId: assignDto.planId,
+        membershipPlanId: assignDto.planId,
         startDate,
         endDate,
-        status: MembershipStatus.ACTIVE,
+        status: SubscriptionStatus.ACTIVE,
       },
       include: {
-        plan: true,
+        membershipPlan: true,
       },
     });
 
@@ -275,10 +277,10 @@ export class MembershipsService {
     id: string,
     currentUser?: any,
   ): Promise<MembershipResponseDto> {
-    const membership = await this.prisma.membership.findUnique({
+    const membership = await this.prisma.subscription.findUnique({
       where: { id },
       include: {
-        plan: true,
+        membershipPlan: true,
         member: {
           select: { userId: true },
         },
@@ -291,7 +293,7 @@ export class MembershipsService {
 
     // Authorization check - Members can only access their own membership
     if (
-      currentUser?.role === Role.MEMBER &&
+      currentUser?.role === UserRole.MEMBER &&
       membership.member.userId !== currentUser.userId
     ) {
       throw new ForbiddenException('You can only access your own membership');
@@ -317,7 +319,7 @@ export class MembershipsService {
 
     // Authorization check - Members can only upgrade their own membership
     if (
-      currentUser?.role === Role.MEMBER &&
+      currentUser?.role === UserRole.MEMBER &&
       member.userId !== currentUser.userId
     ) {
       throw new ForbiddenException('You can only upgrade your own membership');
@@ -326,7 +328,7 @@ export class MembershipsService {
     // Verify new plan exists - only select needed fields
     const newPlan = await this.prisma.membershipPlan.findUnique({
       where: { id: upgradeDto.newPlanId },
-      select: { id: true, durationDays: true },
+      select: { id: true, duration: true },
     });
 
     if (!newPlan) {
@@ -336,10 +338,10 @@ export class MembershipsService {
     }
 
     // Find current active membership
-    const currentMembership = await this.prisma.membership.findFirst({
+    const currentMembership = await this.prisma.subscription.findFirst({
       where: {
         memberId,
-        status: MembershipStatus.ACTIVE,
+        status: SubscriptionStatus.ACTIVE,
       },
       orderBy: {
         createdAt: 'desc',
@@ -356,28 +358,28 @@ export class MembershipsService {
     // Use transaction to cancel old membership and create new one
     const result = await this.prisma.$transaction(async (tx) => {
       // Cancel old membership
-      await tx.membership.update({
+      await tx.subscription.update({
         where: { id: currentMembership.id },
         data: {
-          status: MembershipStatus.CANCELLED,
+          status: SubscriptionStatus.CANCELLED,
         },
       });
 
       // Create new membership starting today
       const startDate = new Date();
       const endDate = new Date(startDate);
-      endDate.setDate(endDate.getDate() + newPlan.durationDays);
+      endDate.setDate(endDate.getDate() + (newPlan.duration || 30));
 
-      const newMembership = await tx.membership.create({
+      const newMembership = await tx.subscription.create({
         data: {
           memberId,
-          planId: upgradeDto.newPlanId,
+          membershipPlanId: upgradeDto.newPlanId,
           startDate,
           endDate,
-          status: MembershipStatus.ACTIVE,
+          status: SubscriptionStatus.ACTIVE,
         },
         include: {
-          plan: true,
+          membershipPlan: true,
         },
       });
 
@@ -388,7 +390,7 @@ export class MembershipsService {
   }
 
   async isValid(membershipId: string): Promise<boolean> {
-    const membership = await this.prisma.membership.findUnique({
+    const membership = await this.prisma.subscription.findUnique({
       where: { id: membershipId },
       select: { status: true, startDate: true, endDate: true },
     });
@@ -399,7 +401,7 @@ export class MembershipsService {
 
     const now = new Date();
     return (
-      membership.status === MembershipStatus.ACTIVE &&
+      membership.status === SubscriptionStatus.ACTIVE &&
       membership.startDate <= now &&
       membership.endDate >= now
     );
@@ -408,15 +410,15 @@ export class MembershipsService {
   async expireMemberships(): Promise<number> {
     const now = new Date();
 
-    const result = await this.prisma.membership.updateMany({
+    const result = await this.prisma.subscription.updateMany({
       where: {
-        status: MembershipStatus.ACTIVE,
+        status: SubscriptionStatus.ACTIVE,
         endDate: {
           lt: now,
         },
       },
       data: {
-        status: MembershipStatus.EXPIRED,
+        status: SubscriptionStatus.EXPIRED,
       },
     });
 
@@ -475,11 +477,13 @@ export class MembershipsService {
       id: plan.id,
       name: plan.name,
       description: plan.description,
-      durationDays: plan.durationDays,
+      durationDays: plan.duration, // Map duration back to durationDays for DTO
       price: Number(plan.price),
-      type: plan.type,
-      features: plan.features,
-      isActive: plan.isActive,
+      unlimitedClasses: plan.unlimitedClasses,
+      personalTrainingHours: plan.personalTrainingHours,
+      accessToEquipment: plan.accessToEquipment,
+      accessToLocker: plan.accessToLocker,
+      nutritionConsultation: plan.nutritionConsultation,
       createdAt: plan.createdAt,
       updatedAt: plan.updatedAt,
     };
@@ -489,9 +493,9 @@ export class MembershipsService {
     return {
       id: membership.id,
       memberId: membership.memberId,
-      planId: membership.planId,
-      plan: membership.plan
-        ? this.toPlanResponseDto(membership.plan)
+      planId: membership.membershipPlanId,
+      plan: membership.membershipPlan
+        ? this.toPlanResponseDto(membership.membershipPlan)
         : undefined,
       startDate: membership.startDate,
       endDate: membership.endDate,

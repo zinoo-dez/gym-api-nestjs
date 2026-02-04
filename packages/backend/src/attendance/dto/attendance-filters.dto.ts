@@ -13,14 +13,6 @@ export class AttendanceFiltersDto extends PaginationDto {
   memberId?: string;
 
   @ApiPropertyOptional({
-    description: 'Filter by class ID',
-    example: '123e4567-e89b-12d3-a456-426614174000',
-  })
-  @IsOptional()
-  @IsUUID()
-  classId?: string;
-
-  @ApiPropertyOptional({
     description: 'Filter by start date (ISO 8601 format)',
     example: '2024-01-01T00:00:00Z',
   })

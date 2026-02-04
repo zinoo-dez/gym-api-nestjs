@@ -28,4 +28,9 @@ export class CreateTrainerDto {
   @IsArray({ message: 'Certifications must be an array' })
   @IsString({ each: true, message: 'Each certification must be a string' })
   certifications?: string[];
+  @IsOptional()
+  experience?: number;
+
+  @IsOptional()
+  hourlyRate?: number;
 }

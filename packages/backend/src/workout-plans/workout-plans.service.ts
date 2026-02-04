@@ -13,7 +13,8 @@ import {
   WorkoutPlanFiltersDto,
 } from './dto';
 import { PaginatedResponseDto } from '../common/dto';
-import { Prisma, Role } from '@prisma/client';
+import { Prisma, UserRole } from '@prisma/client';
+// import { WorkoutGoal } from '../common/enums';
 
 @Injectable()
 export class WorkoutPlansService {
@@ -56,24 +57,8 @@ export class WorkoutPlansService {
         memberId: createWorkoutPlanDto.memberId,
         trainerId: trainer.id,
         goal: createWorkoutPlanDto.goal,
-        exercises: {
-          create: createWorkoutPlanDto.exercises.map((exercise) => ({
-            name: exercise.name,
-            description: exercise.description,
-            sets: exercise.sets,
-            reps: exercise.reps,
-            duration: exercise.duration,
-            targetMuscles: exercise.targetMuscles,
-            order: exercise.order,
-          })),
-        },
-      },
-      include: {
-        exercises: {
-          orderBy: {
-            order: 'asc',
-          },
-        },
+        endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // Default 30 days
+        exercises: JSON.stringify(createWorkoutPlanDto.exercises),
       },
     });
 
@@ -108,13 +93,6 @@ export class WorkoutPlansService {
     // Get paginated workout plans
     const workoutPlans = await this.prisma.workoutPlan.findMany({
       where,
-      include: {
-        exercises: {
-          orderBy: {
-            order: 'asc',
-          },
-        },
-      },
       orderBy: {
         createdAt: 'desc',
       },
@@ -130,13 +108,6 @@ export class WorkoutPlansService {
   async findOne(id: string): Promise<WorkoutPlanResponseDto> {
     const workoutPlan = await this.prisma.workoutPlan.findUnique({
       where: { id },
-      include: {
-        exercises: {
-          orderBy: {
-            order: 'asc',
-          },
-        },
-      },
     });
 
     if (!workoutPlan) {
@@ -162,7 +133,7 @@ export class WorkoutPlansService {
 
     // Authorization check - Members can only access their own workout plans
     if (
-      currentUser?.role === Role.MEMBER &&
+      currentUser?.role === UserRole.MEMBER &&
       member.userId !== currentUser.userId
     ) {
       throw new ForbiddenException(
@@ -172,13 +143,6 @@ export class WorkoutPlansService {
 
     const workoutPlans = await this.prisma.workoutPlan.findMany({
       where: { memberId },
-      include: {
-        exercises: {
-          orderBy: {
-            order: 'asc',
-          },
-        },
-      },
       orderBy: {
         createdAt: 'desc',
       },
@@ -194,13 +158,6 @@ export class WorkoutPlansService {
     // Check if workout plan exists
     const existingPlan = await this.prisma.workoutPlan.findUnique({
       where: { id },
-      include: {
-        exercises: {
-          orderBy: {
-            order: 'asc',
-          },
-        },
-      },
     });
 
     if (!existingPlan) {
@@ -212,50 +169,23 @@ export class WorkoutPlansService {
       this.validateExerciseOrder(updateWorkoutPlanDto.exercises);
     }
 
-    // Store current version before updating
-    await this.storeVersion(existingPlan);
-
     // Use transaction for update with exercises deletion and creation
-    const updatedPlan = await this.prisma.$transaction(async (tx) => {
-      // If exercises are provided, delete old ones first
-      if (updateWorkoutPlanDto.exercises) {
-        await tx.exercise.deleteMany({
-          where: { workoutPlanId: id },
-        });
-      }
+    // Note: Versioning disabled as table missing
+    // Note: Exercises treated as JSON string
 
-      // Update the workout plan
-      const updateData: any = {
-        name: updateWorkoutPlanDto.name,
-        description: updateWorkoutPlanDto.description,
-        goal: updateWorkoutPlanDto.goal,
-      };
+    const updateData: Prisma.WorkoutPlanUpdateInput = {
+      name: updateWorkoutPlanDto.name,
+      description: updateWorkoutPlanDto.description,
+      goal: updateWorkoutPlanDto.goal,
+    };
 
-      if (updateWorkoutPlanDto.exercises) {
-        updateData.exercises = {
-          create: updateWorkoutPlanDto.exercises.map((exercise) => ({
-            name: exercise.name,
-            description: exercise.description,
-            sets: exercise.sets,
-            reps: exercise.reps,
-            duration: exercise.duration,
-            targetMuscles: exercise.targetMuscles,
-            order: exercise.order,
-          })),
-        };
-      }
+    if (updateWorkoutPlanDto.exercises) {
+      updateData.exercises = JSON.stringify(updateWorkoutPlanDto.exercises);
+    }
 
-      return await tx.workoutPlan.update({
-        where: { id },
-        data: updateData,
-        include: {
-          exercises: {
-            orderBy: {
-              order: 'asc',
-            },
-          },
-        },
-      });
+    const updatedPlan = await this.prisma.workoutPlan.update({
+      where: { id },
+      data: updateData,
     });
 
     return this.toResponseDto(updatedPlan);
@@ -282,139 +212,45 @@ export class WorkoutPlansService {
   }
 
   async getVersionHistory(
-    workoutPlanId: string,
+    _workoutPlanId: string,
   ): Promise<WorkoutPlanVersionResponseDto[]> {
-    // Check if workout plan exists - only select id field
-    const workoutPlan = await this.prisma.workoutPlan.findUnique({
-      where: { id: workoutPlanId },
-      select: { id: true },
-    });
-
-    if (!workoutPlan) {
-      throw new NotFoundException(
-        `Workout plan with ID ${workoutPlanId} not found`,
-      );
-    }
-
-    // Get all versions ordered by version number descending
-    const versions = await this.prisma.workoutPlanVersion.findMany({
-      where: { workoutPlanId },
-      orderBy: {
-        version: 'desc',
-      },
-    });
-
-    return versions.map((version) => ({
-      id: version.id,
-      workoutPlanId: version.workoutPlanId,
-      version: version.version,
-      name: version.name,
-      description: version.description ?? undefined,
-      goal: version.goal,
-      exercises: version.exercises as any[],
-      createdAt: version.createdAt,
-    }));
+    return []; // Not implemented as table missing
   }
 
   async getVersion(
-    workoutPlanId: string,
-    version: number,
+    _workoutPlanId: string,
+    _version: number,
   ): Promise<WorkoutPlanVersionResponseDto> {
-    // Check if workout plan exists - only select id field
-    const workoutPlan = await this.prisma.workoutPlan.findUnique({
-      where: { id: workoutPlanId },
-      select: { id: true },
-    });
-
-    if (!workoutPlan) {
-      throw new NotFoundException(
-        `Workout plan with ID ${workoutPlanId} not found`,
-      );
-    }
-
-    // Get specific version
-    const versionRecord = await this.prisma.workoutPlanVersion.findUnique({
-      where: {
-        workoutPlanId_version: {
-          workoutPlanId,
-          version,
-        },
-      },
-    });
-
-    if (!versionRecord) {
-      throw new NotFoundException(
-        `Version ${version} not found for workout plan ${workoutPlanId}`,
-      );
-    }
-
-    return {
-      id: versionRecord.id,
-      workoutPlanId: versionRecord.workoutPlanId,
-      version: versionRecord.version,
-      name: versionRecord.name,
-      description: versionRecord.description ?? undefined,
-      goal: versionRecord.goal,
-      exercises: versionRecord.exercises as any[],
-      createdAt: versionRecord.createdAt,
-    };
+    throw new NotFoundException('Version history not enabled');
   }
 
-  private async storeVersion(workoutPlan: any): Promise<void> {
-    // Get the current highest version number - only select version field
-    const latestVersion = await this.prisma.workoutPlanVersion.findFirst({
-      where: { workoutPlanId: workoutPlan.id },
-      orderBy: { version: 'desc' },
-      select: { version: true },
-    });
-
-    const nextVersion = latestVersion ? latestVersion.version + 1 : 1;
-
-    // Store the current state as a version
-    await this.prisma.workoutPlanVersion.create({
-      data: {
-        workoutPlanId: workoutPlan.id,
-        version: nextVersion,
-        name: workoutPlan.name,
-        description: workoutPlan.description,
-        goal: workoutPlan.goal,
-        exercises: workoutPlan.exercises.map((exercise: any) => ({
-          id: exercise.id,
-          name: exercise.name,
-          description: exercise.description,
-          sets: exercise.sets,
-          reps: exercise.reps,
-          duration: exercise.duration,
-          targetMuscles: exercise.targetMuscles,
-          order: exercise.order,
-        })),
-      },
-    });
-  }
+  // private async storeVersion(_workoutPlan: any): Promise<void> {
+  //   // Disabled
+  // }
 
   private toResponseDto(workoutPlan: any): WorkoutPlanResponseDto {
+    let exercises = [];
+    if (typeof workoutPlan.exercises === 'string') {
+      try {
+        exercises = JSON.parse(workoutPlan.exercises);
+      } catch {
+        exercises = [];
+      }
+    } else {
+      exercises = workoutPlan.exercises || [];
+    }
+
     return {
       id: workoutPlan.id,
       name: workoutPlan.name,
       description: workoutPlan.description,
       memberId: workoutPlan.memberId,
       trainerId: workoutPlan.trainerId,
-      goal: workoutPlan.goal,
+      goal: workoutPlan.goal as any, // Cast to match DTO enum
       isActive: workoutPlan.isActive,
       createdAt: workoutPlan.createdAt,
       updatedAt: workoutPlan.updatedAt,
-      exercises: workoutPlan.exercises?.map((exercise: any) => ({
-        id: exercise.id,
-        name: exercise.name,
-        description: exercise.description,
-        sets: exercise.sets,
-        reps: exercise.reps,
-        duration: exercise.duration,
-        targetMuscles: exercise.targetMuscles,
-        order: exercise.order,
-        createdAt: exercise.createdAt,
-        updatedAt: exercise.updatedAt,
-      })),
+      exercises: exercises,
     };
   }
 

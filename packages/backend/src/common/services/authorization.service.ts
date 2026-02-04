@@ -1,10 +1,10 @@
 import { Injectable, ForbiddenException } from '@nestjs/common';
-import { Role } from '@prisma/client';
+import { UserRole } from '@prisma/client';
 
 export interface AuthUser {
   userId: string;
   email: string;
-  role: Role;
+  role: UserRole;
 }
 
 @Injectable()
@@ -17,11 +17,8 @@ export class AuthorizationService {
     resourceUserId: string,
     resourceType: string,
   ): void {
-    // Admins and SuperAdmins can access everything
-    if (
-      currentUser.role === Role.ADMIN ||
-      currentUser.role === Role.SUPERADMIN
-    ) {
+    // Admins can access everything
+    if (currentUser.role === UserRole.ADMIN) {
       return;
     }
 
@@ -41,11 +38,8 @@ export class AuthorizationService {
     resourceUserId: string,
     resourceType: string,
   ): void {
-    // Admins and SuperAdmins can modify everything
-    if (
-      currentUser.role === Role.ADMIN ||
-      currentUser.role === Role.SUPERADMIN
-    ) {
+    // Admins can modify everything
+    if (currentUser.role === UserRole.ADMIN) {
       return;
     }
 
@@ -61,14 +55,11 @@ export class AuthorizationService {
    * Check if trainer has access to a member (via workout plan assignment)
    */
   canTrainerAccessMember(currentUser: AuthUser, isAssigned: boolean): boolean {
-    if (
-      currentUser.role === Role.ADMIN ||
-      currentUser.role === Role.SUPERADMIN
-    ) {
+    if (currentUser.role === UserRole.ADMIN) {
       return true;
     }
 
-    if (currentUser.role === Role.TRAINER) {
+    if (currentUser.role === UserRole.TRAINER) {
       return isAssigned;
     }
 
@@ -76,25 +67,23 @@ export class AuthorizationService {
   }
 
   /**
-   * Check if user is admin or superadmin
+   * Check if user is admin
    */
   isAdmin(currentUser: AuthUser): boolean {
-    return (
-      currentUser.role === Role.ADMIN || currentUser.role === Role.SUPERADMIN
-    );
+    return currentUser.role === UserRole.ADMIN;
   }
 
   /**
    * Check if user is trainer
    */
   isTrainer(currentUser: AuthUser): boolean {
-    return currentUser.role === Role.TRAINER;
+    return currentUser.role === UserRole.TRAINER;
   }
 
   /**
    * Check if user is member
    */
   isMember(currentUser: AuthUser): boolean {
-    return currentUser.role === Role.MEMBER;
+    return currentUser.role === UserRole.MEMBER;
   }
 }

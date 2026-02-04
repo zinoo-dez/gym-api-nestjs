@@ -1,4 +1,4 @@
-import { WorkoutGoal } from '@prisma/client';
+import { WorkoutGoal } from '../../common/enums';
 
 export class ExerciseResponseDto {
   id!: string;

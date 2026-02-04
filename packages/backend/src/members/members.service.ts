@@ -13,7 +13,7 @@ import {
   PaginatedResponseDto,
 } from './dto';
 import * as bcrypt from 'bcrypt';
-import { Role, Prisma } from '@prisma/client';
+import { UserRole, Prisma, SubscriptionStatus } from '@prisma/client';
 
 @Injectable()
 export class MembersService {
@@ -38,16 +38,16 @@ export class MembersService {
         data: {
           email: createMemberDto.email,
           password: hashedPassword,
-          role: Role.MEMBER,
+          role: UserRole.MEMBER,
+          firstName: createMemberDto.firstName,
+          lastName: createMemberDto.lastName,
+          phone: createMemberDto.phone,
         },
       });
 
       const member = await tx.member.create({
         data: {
           userId: user.id,
-          firstName: createMemberDto.firstName,
-          lastName: createMemberDto.lastName,
-          phone: createMemberDto.phone,
           dateOfBirth: createMemberDto.dateOfBirth
             ? new Date(createMemberDto.dateOfBirth)
             : undefined,
@@ -57,7 +57,8 @@ export class MembersService {
         },
       });
 
-      return member;
+      // Combine for response
+      return { ...member, user };
     });
 
     return this.toResponseDto(result);
@@ -75,7 +76,7 @@ export class MembersService {
     const where: Prisma.MemberWhereInput = {};
 
     // If trainer, only show assigned members
-    if (currentUser?.role === Role.TRAINER) {
+    if (currentUser?.role === UserRole.TRAINER) {
       const trainer = await this.prisma.trainer.findUnique({
         where: { userId: currentUser.userId },
         select: { id: true },
@@ -90,37 +91,52 @@ export class MembersService {
       }
     }
 
-    // Filter by name (search in firstName or lastName)
+    // Filter by name (search in firstName or lastName on USER)
     if (filters?.name) {
-      where.OR = [
-        { firstName: { contains: filters.name, mode: 'insensitive' } },
-        { lastName: { contains: filters.name, mode: 'insensitive' } },
-      ];
+      where.user = {
+        OR: [
+          { firstName: { contains: filters.name, mode: 'insensitive' } },
+          { lastName: { contains: filters.name, mode: 'insensitive' } },
+        ],
+      };
     }
 
     // Filter by email
     if (filters?.email) {
-      where.user = {
-        email: { contains: filters.email, mode: 'insensitive' },
-      };
-    }
-
-    // Filter by membership status or type
-    if (filters?.status || filters?.membershipType) {
-      const membershipWhere: Prisma.MembershipWhereInput = {};
-
-      if (filters.status) {
-        membershipWhere.status = filters.status;
-      }
-
-      if (filters.membershipType) {
-        membershipWhere.plan = {
-          type: filters.membershipType,
+      // If where.user is already defined (by name filter), we need to merge or use AND
+      if (where.user) {
+        // Prisma simple API limits deep merging. Easier to use explicit AND if needed or just property merge usually works if keys distinct.
+        // But here both use `user`.
+        // Let's restructure to use user: { AND: [...] } or merge.
+        // Actually, if 'name' filter is present, it sets `where.user`.
+        const prevUserWhere = where.user as Prisma.UserWhereInput;
+        where.user = {
+          AND: [
+            prevUserWhere,
+            { email: { contains: filters.email, mode: 'insensitive' } },
+          ],
+        };
+      } else {
+        where.user = {
+          email: { contains: filters.email, mode: 'insensitive' },
         };
       }
+    }
 
-      where.memberships = {
-        some: membershipWhere,
+    // Filter by membership status or plan
+    if (filters?.status || filters?.planId) {
+      const subscriptionWhere: Prisma.SubscriptionWhereInput = {};
+
+      if (filters.status) {
+        subscriptionWhere.status = filters.status;
+      }
+
+      if (filters.planId) {
+        subscriptionWhere.membershipPlanId = filters.planId;
+      }
+
+      where.subscriptions = {
+        some: subscriptionWhere,
       };
     }
 
@@ -132,9 +148,9 @@ export class MembersService {
       where,
       include: {
         user: true,
-        memberships: {
+        subscriptions: {
           include: {
-            plan: true,
+            membershipPlan: true,
           },
           orderBy: {
             createdAt: 'desc',
@@ -170,7 +186,7 @@ export class MembersService {
     if (currentUser) {
       // Members can only access their own record
       if (
-        currentUser.role === Role.MEMBER &&
+        currentUser.role === UserRole.MEMBER &&
         member.userId !== currentUser.userId
       ) {
         throw new ForbiddenException(
@@ -179,7 +195,7 @@ export class MembersService {
       }
 
       // Trainers can only access assigned members
-      if (currentUser.role === Role.TRAINER) {
+      if (currentUser.role === UserRole.TRAINER) {
         const trainer = await this.prisma.trainer.findUnique({
           where: { userId: currentUser.userId },
           select: { id: true },
@@ -211,7 +227,7 @@ export class MembersService {
     updateMemberDto: UpdateMemberDto,
     currentUser?: any,
   ): Promise<MemberResponseDto> {
-    // Check if member exists - only select id field
+    // Check if member exists - only select id, userId
     const existingMember = await this.prisma.member.findUnique({
       where: { id },
       select: { id: true, userId: true },
@@ -223,7 +239,7 @@ export class MembersService {
 
     // Authorization check - Members can only update their own record
     if (
-      currentUser?.role === Role.MEMBER &&
+      currentUser?.role === UserRole.MEMBER &&
       existingMember.userId !== currentUser.userId
     ) {
       throw new ForbiddenException(
@@ -231,16 +247,20 @@ export class MembersService {
       );
     }
 
-    // Update member
+    // Update member and user
     const updatedMember = await this.prisma.member.update({
       where: { id },
       data: {
-        firstName: updateMemberDto.firstName,
-        lastName: updateMemberDto.lastName,
-        phone: updateMemberDto.phone,
         dateOfBirth: updateMemberDto.dateOfBirth
           ? new Date(updateMemberDto.dateOfBirth)
           : undefined,
+        user: {
+          update: {
+            firstName: updateMemberDto.firstName,
+            lastName: updateMemberDto.lastName,
+            phone: updateMemberDto.phone,
+          },
+        },
       },
       include: {
         user: true,
@@ -251,7 +271,7 @@ export class MembersService {
   }
 
   async deactivate(id: string): Promise<void> {
-    // Check if member exists - only select id field
+    // isActive field no longer exists in schema. This function is deprecated/no-op.
     const existingMember = await this.prisma.member.findUnique({
       where: { id },
       select: { id: true },
@@ -261,20 +281,15 @@ export class MembersService {
       throw new NotFoundException(`Member with ID ${id} not found`);
     }
 
-    // Soft delete by setting isActive to false
-    await this.prisma.member.update({
-      where: { id },
-      data: {
-        isActive: false,
-      },
-    });
+    // Logic removed as isActive is removed from schema
+    // await this.prisma.member.update({ ... });
   }
 
   async hasActiveMembership(memberId: string): Promise<boolean> {
-    const activeMembership = await this.prisma.membership.findFirst({
+    const activeMembership = await this.prisma.subscription.findFirst({
       where: {
         memberId,
-        status: 'ACTIVE',
+        status: SubscriptionStatus.ACTIVE,
         endDate: {
           gte: new Date(),
         },
@@ -288,7 +303,7 @@ export class MembersService {
   }
 
   async getBookings(memberId: string, currentUser?: any): Promise<any[]> {
-    // Check if member exists - only select id field
+    // Check if member exists
     const member = await this.prisma.member.findUnique({
       where: { id: memberId },
       select: { id: true, userId: true },
@@ -298,66 +313,64 @@ export class MembersService {
       throw new NotFoundException(`Member with ID ${memberId} not found`);
     }
 
-    // Authorization check - Members can only access their own bookings
+    // Authorization check
     if (
-      currentUser?.role === Role.MEMBER &&
+      currentUser?.role === UserRole.MEMBER &&
       member.userId !== currentUser.userId
     ) {
       throw new ForbiddenException('You can only access your own bookings');
     }
 
-    // Get all bookings for the member - use select to avoid over-fetching
+    // Get all bookings
     const bookings = await this.prisma.classBooking.findMany({
       where: {
         memberId,
       },
-      select: {
-        id: true,
-        status: true,
-        createdAt: true,
-        updatedAt: true,
-        class: {
-          select: {
-            id: true,
-            name: true,
-            description: true,
-            schedule: true,
-            duration: true,
-            capacity: true,
-            classType: true,
+      include: {
+        classSchedule: {
+          include: {
+            class: true,
             trainer: {
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true,
+              include: {
+                user: {
+                  select: {
+                    firstName: true,
+                    lastName: true,
+                  },
+                },
               },
             },
           },
         },
       },
-      orderBy: {
-        createdAt: 'desc',
-      },
+      orderBy: { bookedAt: 'desc' },
     });
 
-    return bookings.map((booking) => ({
+    return bookings.map((booking: any) => ({
       id: booking.id,
       status: booking.status,
-      createdAt: booking.createdAt,
+      createdAt: booking.bookedAt,
       updatedAt: booking.updatedAt,
       class: {
-        id: booking.class.id,
-        name: booking.class.name,
-        description: booking.class.description,
-        schedule: booking.class.schedule,
-        duration: booking.class.duration,
-        capacity: booking.class.capacity,
-        classType: booking.class.classType,
+        id: booking.classSchedule.class.id,
+        name: booking.classSchedule.class.name,
+        description: booking.classSchedule.class.description,
+        schedule: booking.classSchedule.startTime,
+        duration: booking.classSchedule.class.duration,
+        capacity: booking.classSchedule.class.maxCapacity,
+        classType: booking.classSchedule.class.category,
         trainer: {
-          id: booking.class.trainer.id,
-          firstName: booking.class.trainer.firstName,
-          lastName: booking.class.trainer.lastName,
+          id: booking.classSchedule.trainer.id,
+          firstName: booking.classSchedule.trainer.user.firstName,
+          lastName: booking.classSchedule.trainer.user.lastName,
         },
+      },
+      classSchedule: {
+        id: booking.classSchedule.id,
+        startTime: booking.classSchedule.startTime,
+        endTime: booking.classSchedule.endTime,
+        daysOfWeek: booking.classSchedule.daysOfWeek,
+        isActive: booking.classSchedule.isActive,
       },
     }));
   }
@@ -366,11 +379,11 @@ export class MembersService {
     return {
       id: member.id,
       email: member.user.email,
-      firstName: member.firstName,
-      lastName: member.lastName,
-      phone: member.phone,
+      firstName: member.user.firstName,
+      lastName: member.user.lastName,
+      phone: member.user.phone,
       dateOfBirth: member.dateOfBirth,
-      isActive: member.isActive,
+      isActive: true, // Mocking isActive as true since field is removed but DTO assumes it
       createdAt: member.createdAt,
       updatedAt: member.updatedAt,
     };

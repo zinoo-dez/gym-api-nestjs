@@ -28,7 +28,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Public } from '../auth/decorators/public.decorator';
-import { Role } from '@prisma/client';
+import { UserRole } from '@prisma/client';
 
 @ApiTags('pricing')
 @Controller('pricing')
@@ -37,7 +37,7 @@ export class PricingController {
   constructor(private readonly pricingService: PricingService) {}
 
   @Post()
-  @Roles(Role.ADMIN, Role.SUPERADMIN)
+  @Roles(UserRole.ADMIN)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Create pricing',
@@ -101,7 +101,7 @@ export class PricingController {
   }
 
   @Patch(':id')
-  @Roles(Role.ADMIN, Role.SUPERADMIN)
+  @Roles(UserRole.ADMIN)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Update pricing',
@@ -132,7 +132,7 @@ export class PricingController {
   }
 
   @Delete(':id')
-  @Roles(Role.ADMIN, Role.SUPERADMIN)
+  @Roles(UserRole.ADMIN)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Delete pricing',

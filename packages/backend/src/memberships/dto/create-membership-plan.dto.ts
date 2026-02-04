@@ -4,10 +4,8 @@ import {
   IsInt,
   Min,
   IsNumber,
-  IsEnum,
-  IsArray,
+  IsBoolean,
 } from 'class-validator';
-import { MembershipType } from '@prisma/client';
 
 export class CreateMembershipPlanDto {
   @IsString({ message: 'Name must be a string' })
@@ -25,12 +23,24 @@ export class CreateMembershipPlanDto {
   @Min(0, { message: 'Price must be non-negative' })
   price!: number;
 
-  @IsEnum(MembershipType, {
-    message: 'Type must be a valid membership type (BASIC, PREMIUM, VIP)',
-  })
-  type!: MembershipType;
+  @IsOptional()
+  @IsBoolean()
+  unlimitedClasses?: boolean;
 
-  @IsArray({ message: 'Features must be an array' })
-  @IsString({ each: true, message: 'Each feature must be a string' })
-  features!: string[];
+  @IsOptional()
+  @IsNumber({}, { message: 'Personal training hours must be a number' })
+  @Min(0, { message: 'Personal training hours must be non-negative' })
+  personalTrainingHours?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  accessToEquipment?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  accessToLocker?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  nutritionConsultation?: boolean;
 }

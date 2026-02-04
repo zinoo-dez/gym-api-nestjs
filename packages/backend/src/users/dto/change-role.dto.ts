@@ -1,8 +1,8 @@
 import { IsEnum, IsNotEmpty } from 'class-validator';
-import { Role } from '@prisma/client';
+import { UserRole } from '@prisma/client';
 
 export class ChangeRoleDto {
-  @IsEnum(Role)
+  @IsEnum(UserRole)
   @IsNotEmpty()
-  role!: Role;
+  role!: UserRole;
 }

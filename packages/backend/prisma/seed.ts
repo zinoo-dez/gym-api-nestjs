@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { PrismaClient, WorkoutGoal } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
 import * as bcrypt from 'bcrypt';
@@ -10,293 +10,28 @@ const pool = new Pool({
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
-// Configuration for seeding scale
-const SEED_CONFIG = {
-  TRAINERS: 100,
-  MEMBERS: 100000,
-  CLASSES: 10000,
-  ATTENDANCE_RECORDS: 200000,
-  WORKOUT_PLANS: 50000,
-  WORKOUT_PLAN_VERSIONS: 25000, // ~50% of workout plans will have version history
-  CLASS_BOOKINGS: 100000,
-  BATCH_SIZE: 1000,
-};
-
-// Helper functions for generating realistic data
-const firstNames = [
-  'James',
-  'Mary',
-  'John',
-  'Patricia',
-  'Robert',
-  'Jennifer',
-  'Michael',
-  'Linda',
-  'William',
-  'Barbara',
-  'David',
-  'Elizabeth',
-  'Richard',
-  'Susan',
-  'Joseph',
-  'Jessica',
-  'Thomas',
-  'Sarah',
-  'Charles',
-  'Karen',
-  'Christopher',
-  'Nancy',
-  'Daniel',
-  'Lisa',
-  'Matthew',
-  'Betty',
-  'Anthony',
-  'Margaret',
-  'Mark',
-  'Sandra',
-  'Donald',
-  'Ashley',
-  'Steven',
-  'Kimberly',
-  'Paul',
-  'Emily',
-  'Andrew',
-  'Donna',
-  'Joshua',
-  'Michelle',
-  'Kenneth',
-  'Carol',
-  'Kevin',
-  'Amanda',
-  'Brian',
-  'Dorothy',
-  'George',
-  'Melissa',
-];
-
-const lastNames = [
-  'Smith',
-  'Johnson',
-  'Williams',
-  'Brown',
-  'Jones',
-  'Garcia',
-  'Miller',
-  'Davis',
-  'Rodriguez',
-  'Martinez',
-  'Hernandez',
-  'Lopez',
-  'Gonzalez',
-  'Wilson',
-  'Anderson',
-  'Thomas',
-  'Taylor',
-  'Moore',
-  'Jackson',
-  'Martin',
-  'Lee',
-  'Perez',
-  'Thompson',
-  'White',
-  'Harris',
-  'Sanchez',
-  'Clark',
-  'Ramirez',
-  'Lewis',
-  'Robinson',
-  'Walker',
-  'Young',
-];
-
-const specializations = [
-  ['Yoga', 'Pilates', 'Flexibility'],
-  ['Strength Training', 'Bodybuilding', 'Powerlifting'],
-  ['Cardio', 'HIIT', 'Endurance'],
-  ['CrossFit', 'Functional Training', 'Athletic Performance'],
-  ['Boxing', 'Kickboxing', 'Martial Arts'],
-  ['Spinning', 'Cycling', 'Indoor Cycling'],
-  ['Swimming', 'Aqua Fitness', 'Water Sports'],
-  ['Dance', 'Zumba', 'Aerobics'],
-  ['Nutrition', 'Weight Management', 'Wellness'],
-  ['Rehabilitation', 'Injury Prevention', 'Mobility'],
-];
-
-const certifications = [
-  ['NASM-CPT', 'ACE-CPT'],
-  ['ISSA-CPT', 'ACSM-CPT'],
-  ['RYT-500', 'Pilates Instructor'],
-  ['CSCS', 'NSCA-CPT'],
-  ['CrossFit Level 2', 'CrossFit Level 3'],
-];
-
-const classTypes = [
-  'Yoga',
-  'Pilates',
-  'Strength',
-  'Cardio',
-  'HIIT',
-  'CrossFit',
-  'Boxing',
-  'Spinning',
-  'Zumba',
-  'Swimming',
-  'Bootcamp',
-  'Stretching',
-  'Core',
-];
-
-const classNames = [
-  'Morning Flow',
-  'Power Hour',
-  'Strength & Conditioning',
-  'Cardio Blast',
-  'HIIT Burn',
-  'CrossFit WOD',
-  'Boxing Basics',
-  'Spin Class',
-  'Zumba Party',
-  'Aqua Fitness',
-  'Bootcamp Challenge',
-  'Flexibility Focus',
-  'Core Crusher',
-];
-
-const exerciseLibrary = [
-  {
-    name: 'Barbell Squat',
-    muscles: ['Quadriceps', 'Glutes', 'Hamstrings'],
-    sets: 4,
-    reps: 10,
-  },
-  {
-    name: 'Bench Press',
-    muscles: ['Chest', 'Triceps', 'Shoulders'],
-    sets: 4,
-    reps: 8,
-  },
-  {
-    name: 'Deadlift',
-    muscles: ['Back', 'Glutes', 'Hamstrings'],
-    sets: 3,
-    reps: 6,
-  },
-  {
-    name: 'Overhead Press',
-    muscles: ['Shoulders', 'Triceps'],
-    sets: 3,
-    reps: 8,
-  },
-  { name: 'Bent Over Row', muscles: ['Back', 'Biceps'], sets: 4, reps: 10 },
-  { name: 'Pull-ups', muscles: ['Back', 'Biceps'], sets: 3, reps: 8 },
-  { name: 'Dips', muscles: ['Chest', 'Triceps'], sets: 3, reps: 10 },
-  { name: 'Lunges', muscles: ['Quadriceps', 'Glutes'], sets: 3, reps: 12 },
-  { name: 'Plank', muscles: ['Core', 'Abs'], sets: 3, reps: 1, duration: 60 },
-  {
-    name: 'Burpees',
-    muscles: ['Full Body', 'Cardiovascular'],
-    sets: 4,
-    reps: 15,
-  },
-  {
-    name: 'Jump Rope',
-    muscles: ['Calves', 'Cardiovascular'],
-    sets: 5,
-    reps: 1,
-    duration: 120,
-  },
-];
-
-const workoutGoals: WorkoutGoal[] = [
-  'WEIGHT_LOSS',
-  'MUSCLE_GAIN',
-  'ENDURANCE',
-  'FLEXIBILITY',
-];
-
-function randomElement<T>(arr: T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)];
-}
-
-function randomDate(start: Date, end: Date): Date {
-  return new Date(
-    start.getTime() + Math.random() * (end.getTime() - start.getTime()),
-  );
-}
-
-function generateEmail(
-  firstName: string,
-  lastName: string,
-  index: number,
-): string {
-  return `${firstName.toLowerCase()}.${lastName.toLowerCase()}${index}@gym.com`;
-}
-
-function generatePhone(): string {
-  return `+1${Math.floor(1000000000 + Math.random() * 9000000000)}`;
-}
-
-async function batchInsert<T>(
-  items: T[],
-  insertFn: (batch: T[]) => Promise<any>,
-  batchSize: number = SEED_CONFIG.BATCH_SIZE,
-  label: string = 'items',
-) {
-  const total = items.length;
-  let processed = 0;
-
-  for (let i = 0; i < items.length; i += batchSize) {
-    const batch = items.slice(i, i + batchSize);
-    await insertFn(batch);
-    processed += batch.length;
-    console.log(
-      `  ✓ ${label}: ${processed}/${total} (${Math.round((processed / total) * 100)}%)`,
-    );
-  }
-}
-
 async function main() {
-  console.log('🌱 Starting large-scale database seeding...');
-  console.log(
-    `📊 Target: ~${Object.values(SEED_CONFIG)
-      .reduce((a, b) => (typeof b === 'number' ? a + b : a), 0)
-      .toLocaleString()} records\n`,
-  );
+  console.log('🌱 Starting database seeding...');
 
   // Clear existing data
   console.log('🧹 Cleaning existing data...');
   await prisma.attendance.deleteMany();
-  await prisma.classBooking.deleteMany();
-  await prisma.exercise.deleteMany();
-  await prisma.workoutPlanVersion.deleteMany();
+  await prisma.userProgress.deleteMany();
+  await prisma.trainerSession.deleteMany();
   await prisma.workoutPlan.deleteMany();
+  await prisma.classBooking.deleteMany();
+  await prisma.classSchedule.deleteMany();
   await prisma.class.deleteMany();
-  await prisma.membership.deleteMany();
+  await prisma.subscription.deleteMany();
   await prisma.membershipPlan.deleteMany();
-  await prisma.pricing.deleteMany();
   await prisma.member.deleteMany();
   await prisma.trainer.deleteMany();
   await prisma.user.deleteMany();
+  await prisma.equipment.deleteMany();
   console.log('✓ Cleaned\n');
 
-  // Hash password for all users
+  // Hash password
   const hashedPassword = await bcrypt.hash('Password123!', 10);
-
-  // Create SuperAdmin User
-  console.log('👤 Creating superadmin user...');
-  const superadminEmail = process.env.SUPERADMIN_EMAIL || 'superadmin@gym.com';
-  const superadminPassword =
-    process.env.SUPERADMIN_PASSWORD || 'SuperAdmin123!';
-  const hashedSuperadminPassword = await bcrypt.hash(superadminPassword, 10);
-
-  await prisma.user.create({
-    data: {
-      email: superadminEmail,
-      password: hashedSuperadminPassword,
-      role: 'SUPERADMIN',
-    },
-  });
-  console.log(`✓ SuperAdmin created (${superadminEmail})\n`);
 
   // Create Admin User
   console.log('👤 Creating admin user...');
@@ -304,6 +39,8 @@ async function main() {
     data: {
       email: 'admin@gym.com',
       password: hashedPassword,
+      firstName: 'Admin',
+      lastName: 'User',
       role: 'ADMIN',
     },
   });
@@ -311,509 +48,336 @@ async function main() {
 
   // Create Membership Plans
   console.log('💳 Creating membership plans...');
-  const membershipPlans = await Promise.all([
-    prisma.membershipPlan.create({
-      data: {
-        name: 'Basic Monthly',
-        description: 'Access to gym facilities during regular hours',
-        durationDays: 30,
-        price: 49.99,
-        type: 'BASIC',
-        features: ['Gym access', 'Locker room', 'Free WiFi'],
-      },
-    }),
-    prisma.membershipPlan.create({
-      data: {
-        name: 'Premium Monthly',
-        description: 'Full access with group classes',
-        durationDays: 30,
-        price: 79.99,
-        type: 'PREMIUM',
-        features: [
-          'Gym access',
-          'Group classes',
-          'Locker room',
-          'Free WiFi',
-          'Towel service',
-        ],
-      },
-    }),
-    prisma.membershipPlan.create({
-      data: {
-        name: 'VIP Monthly',
-        description: 'Premium access with personal training',
-        durationDays: 30,
-        price: 149.99,
-        type: 'VIP',
-        features: [
-          'Gym access',
-          'Group classes',
-          'Personal training',
-          'Locker room',
-          'Free WiFi',
-          'Towel service',
-          'Nutrition consultation',
-        ],
-      },
-    }),
-  ]);
-  console.log('✓ 3 membership plans created\n');
-
-  // Create Pricing entries
-  console.log('💰 Creating pricing entries...');
-  await Promise.all([
-    // Membership pricing
-    prisma.pricing.create({
-      data: {
-        name: 'Basic Membership',
-        description: 'Essential gym access for casual fitness enthusiasts',
-        category: 'MEMBERSHIP',
-        price: 29.99,
-        currency: 'USD',
-        duration: 30,
-        features: [
-          'Access to gym floor',
-          'Locker room access',
-          'Free parking',
-          'Mobile app access',
-        ],
-        isActive: true,
-        sortOrder: 1,
-      },
-    }),
-    prisma.pricing.create({
-      data: {
-        name: 'Pro Membership',
-        description: 'Everything you need for serious training',
-        category: 'MEMBERSHIP',
-        price: 59.99,
-        currency: 'USD',
-        duration: 30,
-        features: [
-          'Everything in Basic',
-          'Unlimited group classes',
-          '1 personal training session/month',
-          'Nutrition consultation',
-          'Sauna & steam room',
-          'Guest passes (2/month)',
-        ],
-        isActive: true,
-        sortOrder: 2,
-      },
-    }),
-    prisma.pricing.create({
-      data: {
-        name: 'Elite Membership',
-        description: 'Premium experience for dedicated athletes',
-        category: 'MEMBERSHIP',
-        price: 99.99,
-        currency: 'USD',
-        duration: 30,
-        features: [
-          'Everything in Pro',
-          '4 personal training sessions/month',
-          'Custom workout plans',
-          'Recovery zone access',
-          'Priority class booking',
-          'Exclusive member events',
-        ],
-        isActive: true,
-        sortOrder: 3,
-      },
-    }),
-    // Class pricing
-    prisma.pricing.create({
-      data: {
-        name: 'Drop-in Class',
-        description: 'Single class pass',
-        category: 'CLASS',
-        price: 15.0,
-        currency: 'USD',
-        features: ['Access to one group class', 'Valid for 24 hours'],
-        isActive: true,
-        sortOrder: 4,
-      },
-    }),
-    prisma.pricing.create({
-      data: {
-        name: 'Class Pack - 10',
-        description: '10 class pass',
-        category: 'CLASS',
-        price: 120.0,
-        currency: 'USD',
-        duration: 90,
-        features: ['10 group classes', 'Valid for 90 days', 'Save $30'],
-        isActive: true,
-        sortOrder: 5,
-      },
-    }),
-    // Personal training pricing
-    prisma.pricing.create({
-      data: {
-        name: 'Personal Training - Single',
-        description: 'One-on-one training session',
-        category: 'PERSONAL_TRAINING',
-        price: 75.0,
-        currency: 'USD',
-        features: [
-          '60-minute session',
-          'Customized workout',
-          'Progress tracking',
-        ],
-        isActive: true,
-        sortOrder: 6,
-      },
-    }),
-    prisma.pricing.create({
-      data: {
-        name: 'Personal Training - 5 Pack',
-        description: '5 personal training sessions',
-        category: 'PERSONAL_TRAINING',
-        price: 350.0,
-        currency: 'USD',
-        duration: 60,
-        features: [
-          '5 x 60-minute sessions',
-          'Customized workout plan',
-          'Progress tracking',
-          'Valid for 60 days',
-          'Save $25',
-        ],
-        isActive: true,
-        sortOrder: 7,
-      },
-    }),
-    prisma.pricing.create({
-      data: {
-        name: 'Personal Training - 10 Pack',
-        description: '10 personal training sessions',
-        category: 'PERSONAL_TRAINING',
-        price: 650.0,
-        currency: 'USD',
-        duration: 90,
-        features: [
-          '10 x 60-minute sessions',
-          'Customized workout plan',
-          'Nutrition guidance',
-          'Progress tracking',
-          'Valid for 90 days',
-          'Save $100',
-        ],
-        isActive: true,
-        sortOrder: 8,
-      },
-    }),
-    // Facility pricing
-    prisma.pricing.create({
-      data: {
-        name: 'Day Pass',
-        description: 'Full day gym access',
-        category: 'FACILITY',
-        price: 20.0,
-        currency: 'USD',
-        features: ['Full gym access', 'Locker room', 'Valid for 24 hours'],
-        isActive: true,
-        sortOrder: 9,
-      },
-    }),
-    prisma.pricing.create({
-      data: {
-        name: 'Guest Pass',
-        description: 'Bring a friend',
-        category: 'FACILITY',
-        price: 10.0,
-        currency: 'USD',
-        features: ['Guest access for one day', 'Must accompany member'],
-        isActive: true,
-        sortOrder: 10,
-      },
-    }),
-  ]);
-  console.log('✓ 10 pricing entries created\n');
-
-  // Create Trainers
-  console.log(`🏋️ Creating ${SEED_CONFIG.TRAINERS} trainers...`);
-  const trainerData = [];
-  for (let i = 0; i < SEED_CONFIG.TRAINERS; i++) {
-    const firstName = randomElement(firstNames);
-    const lastName = randomElement(lastNames);
-    trainerData.push({
-      email: generateEmail(firstName, lastName, i),
-      password: hashedPassword,
-      role: 'TRAINER' as const,
-      trainer: {
-        create: {
-          firstName,
-          lastName,
-          specializations: randomElement(specializations),
-          certifications: randomElement(certifications),
-        },
-      },
-    });
-  }
-
-  await batchInsert(
-    trainerData,
-    async (batch) => {
-      await Promise.all(
-        batch.map((data) =>
-          prisma.user.create({ data, include: { trainer: true } }),
-        ),
-      );
+  const basicPlan = await prisma.membershipPlan.create({
+    data: {
+      name: 'Basic',
+      description: 'Perfect for beginners',
+      price: 29.99,
+      duration: 30,
+      unlimitedClasses: false,
+      personalTrainingHours: 0,
+      accessToEquipment: true,
+      accessToLocker: false,
+      nutritionConsultation: false,
     },
-    100,
-    'Trainers',
-  );
-
-  const trainers = await prisma.trainer.findMany();
-  console.log(`✓ ${trainers.length} trainers created\n`);
-
-  // Create Members
-  console.log(`👥 Creating ${SEED_CONFIG.MEMBERS} members...`);
-  const memberData = [];
-  for (let i = 0; i < SEED_CONFIG.MEMBERS; i++) {
-    const firstName = randomElement(firstNames);
-    const lastName = randomElement(lastNames);
-    memberData.push({
-      email: generateEmail(firstName, lastName, i),
-      password: hashedPassword,
-      role: 'MEMBER' as const,
-      member: {
-        create: {
-          firstName,
-          lastName,
-          phone: generatePhone(),
-          dateOfBirth: randomDate(
-            new Date('1960-01-01'),
-            new Date('2005-12-31'),
-          ),
-        },
-      },
-    });
-  }
-
-  await batchInsert(
-    memberData,
-    async (batch) => {
-      await Promise.all(
-        batch.map((data) =>
-          prisma.user.create({ data, include: { member: true } }),
-        ),
-      );
-    },
-    500,
-    'Members',
-  );
-
-  const members = await prisma.member.findMany();
-  console.log(`✓ ${members.length} members created\n`);
-
-  // Assign Memberships
-  console.log(`🎫 Assigning memberships to members...`);
-  const now = new Date();
-  const membershipData = members.map((member) => {
-    const plan = randomElement(membershipPlans);
-    const startDate = randomDate(
-      new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000),
-      now,
-    );
-    const endDate = new Date(
-      startDate.getTime() + plan.durationDays * 24 * 60 * 60 * 1000,
-    );
-    const isExpired = endDate < now;
-
-    return {
-      memberId: member.id,
-      planId: plan.id,
-      startDate,
-      endDate,
-      status: isExpired
-        ? ('EXPIRED' as const)
-        : Math.random() > 0.05
-          ? ('ACTIVE' as const)
-          : ('CANCELLED' as const),
-    };
   });
 
-  await batchInsert(
-    membershipData,
-    async (batch) => {
-      await prisma.membership.createMany({ data: batch });
+  const premiumPlan = await prisma.membershipPlan.create({
+    data: {
+      name: 'Premium',
+      description: 'Most popular choice',
+      price: 49.99,
+      duration: 30,
+      unlimitedClasses: true,
+      personalTrainingHours: 2,
+      accessToEquipment: true,
+      accessToLocker: true,
+      nutritionConsultation: false,
     },
-    SEED_CONFIG.BATCH_SIZE,
-    'Memberships',
-  );
-  console.log(`✓ ${membershipData.length} memberships assigned\n`);
+  });
+
+  await prisma.membershipPlan.create({
+    data: {
+      name: 'Elite',
+      description: 'Complete fitness package',
+      price: 79.99,
+      duration: 30,
+      unlimitedClasses: true,
+      personalTrainingHours: 4,
+      accessToEquipment: true,
+      accessToLocker: true,
+      nutritionConsultation: true,
+    },
+  });
+  console.log('✓ 3 membership plans created\n');
+
+  // Create Trainers
+  console.log('🏋️ Creating trainers...');
+  const trainer1 = await prisma.user.create({
+    data: {
+      email: 'john.trainer@gym.com',
+      password: hashedPassword,
+      firstName: 'John',
+      lastName: 'Smith',
+      role: 'TRAINER',
+      trainer: {
+        create: {
+          specialization: 'Strength Training',
+          certification: 'NASM-CPT, CSCS',
+          experience: 5,
+          bio: 'Specialized in strength training and bodybuilding',
+          hourlyRate: 50.0,
+        },
+      },
+    },
+    include: { trainer: true },
+  });
+
+  const trainer2 = await prisma.user.create({
+    data: {
+      email: 'sarah.trainer@gym.com',
+      password: hashedPassword,
+      firstName: 'Sarah',
+      lastName: 'Johnson',
+      role: 'TRAINER',
+      trainer: {
+        create: {
+          specialization: 'Yoga',
+          certification: 'RYT-500, PMA-CPT',
+          experience: 8,
+          bio: 'Yoga and Pilates expert',
+          hourlyRate: 45.0,
+        },
+      },
+    },
+    include: { trainer: true },
+  });
+
+  const trainer3 = await prisma.user.create({
+    data: {
+      email: 'mike.trainer@gym.com',
+      password: hashedPassword,
+      firstName: 'Mike',
+      lastName: 'Davis',
+      role: 'TRAINER',
+      trainer: {
+        create: {
+          specialization: 'CrossFit',
+          certification: 'CF-L2, NASM-CPT',
+          experience: 6,
+          bio: 'CrossFit and HIIT specialist',
+          hourlyRate: 55.0,
+        },
+      },
+    },
+    include: { trainer: true },
+  });
+  console.log('✓ 3 trainers created\n');
+
+  // Create Members
+  console.log('👥 Creating members...');
+  const member1 = await prisma.user.create({
+    data: {
+      email: 'alice.member@gym.com',
+      password: hashedPassword,
+      firstName: 'Alice',
+      lastName: 'Williams',
+      phone: '+1234567890',
+      role: 'MEMBER',
+      member: {
+        create: {
+          dateOfBirth: new Date('1990-05-15'),
+          gender: 'Female',
+          currentWeight: 65.0,
+          targetWeight: 60.0,
+          height: 165.0,
+        },
+      },
+    },
+    include: { member: true },
+  });
+
+  const member2 = await prisma.user.create({
+    data: {
+      email: 'bob.member@gym.com',
+      password: hashedPassword,
+      firstName: 'Bob',
+      lastName: 'Brown',
+      phone: '+1234567891',
+      role: 'MEMBER',
+      member: {
+        create: {
+          dateOfBirth: new Date('1985-08-22'),
+          gender: 'Male',
+          currentWeight: 80.0,
+          targetWeight: 75.0,
+          height: 180.0,
+        },
+      },
+    },
+    include: { member: true },
+  });
+  console.log('✓ 2 members created\n');
+
+  // Create Subscriptions
+  console.log('📝 Creating subscriptions...');
+  const now = new Date();
+  await prisma.subscription.create({
+    data: {
+      memberId: member1.member!.id,
+      membershipPlanId: premiumPlan.id,
+      startDate: now,
+      endDate: new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000),
+      status: 'ACTIVE',
+      autoRenew: true,
+    },
+  });
+
+  await prisma.subscription.create({
+    data: {
+      memberId: member2.member!.id,
+      membershipPlanId: basicPlan.id,
+      startDate: now,
+      endDate: new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000),
+      status: 'ACTIVE',
+      autoRenew: true,
+    },
+  });
+  console.log('✓ 2 subscriptions created\n');
 
   // Create Classes
-  console.log(`📅 Creating ${SEED_CONFIG.CLASSES} classes...`);
-  const classData = [];
-  const startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-  const endDate = new Date(now.getTime() + 60 * 24 * 60 * 60 * 1000);
-
-  for (let i = 0; i < SEED_CONFIG.CLASSES; i++) {
-    const schedule = randomDate(startDate, endDate);
-    schedule.setMinutes(0, 0, 0);
-
-    classData.push({
-      name: `${randomElement(classNames)} ${i + 1}`,
-      description: `Join us for an amazing ${randomElement(classTypes)} session`,
-      trainerId: randomElement(trainers).id,
-      schedule,
-      duration: [30, 45, 60, 90][Math.floor(Math.random() * 4)],
-      capacity: Math.floor(Math.random() * 20) + 10,
-      classType: randomElement(classTypes),
-    });
-  }
-
-  await batchInsert(
-    classData,
-    async (batch) => {
-      await prisma.class.createMany({ data: batch });
+  console.log('🏃 Creating classes...');
+  const yogaClass = await prisma.class.create({
+    data: {
+      name: 'Morning Yoga Flow',
+      description: 'A relaxing yoga session to start your day',
+      category: 'Yoga',
+      level: 'ALL_LEVELS',
+      duration: 60,
+      maxCapacity: 20,
     },
-    SEED_CONFIG.BATCH_SIZE,
-    'Classes',
-  );
+  });
 
-  const classes = await prisma.class.findMany();
-  console.log(`✓ ${classes.length} classes created\n`);
+  const hiitClass = await prisma.class.create({
+    data: {
+      name: 'HIIT Blast',
+      description: 'High intensity interval training',
+      category: 'HIIT',
+      level: 'INTERMEDIATE',
+      duration: 45,
+      maxCapacity: 15,
+    },
+  });
+
+  const strengthClass = await prisma.class.create({
+    data: {
+      name: 'Strength Training 101',
+      description: 'Learn the basics of strength training',
+      category: 'Strength',
+      level: 'BEGINNER',
+      duration: 60,
+      maxCapacity: 12,
+    },
+  });
+  console.log('✓ 3 classes created\n');
+
+  // Create Class Schedules
+  console.log('� Creating class schedules...');
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  tomorrow.setHours(8, 0, 0, 0);
+
+  const yogaSchedule = await prisma.classSchedule.create({
+    data: {
+      classId: yogaClass.id,
+      trainerId: trainer2.trainer!.id,
+      startTime: tomorrow,
+      endTime: new Date(tomorrow.getTime() + 60 * 60 * 1000),
+      daysOfWeek: JSON.stringify(['Monday', 'Wednesday', 'Friday']),
+      isActive: true,
+    },
+  });
+
+  await prisma.classSchedule.create({
+    data: {
+      classId: hiitClass.id,
+      trainerId: trainer3.trainer!.id,
+      startTime: new Date(tomorrow.getTime() + 2 * 60 * 60 * 1000),
+      endTime: new Date(tomorrow.getTime() + 2.75 * 60 * 60 * 1000),
+      daysOfWeek: JSON.stringify(['Tuesday', 'Thursday']),
+      isActive: true,
+    },
+  });
+
+  const strengthSchedule = await prisma.classSchedule.create({
+    data: {
+      classId: strengthClass.id,
+      trainerId: trainer1.trainer!.id,
+      startTime: new Date(tomorrow.getTime() + 4 * 60 * 60 * 1000),
+      endTime: new Date(tomorrow.getTime() + 5 * 60 * 60 * 1000),
+      daysOfWeek: JSON.stringify(['Monday', 'Wednesday', 'Friday']),
+      isActive: true,
+    },
+  });
+  console.log('✓ 3 class schedules created\n');
 
   // Create Class Bookings
-  console.log(`📝 Creating ${SEED_CONFIG.CLASS_BOOKINGS} class bookings...`);
-  const bookingData = [];
-  const bookingSet = new Set<string>();
-
-  for (let i = 0; i < SEED_CONFIG.CLASS_BOOKINGS; i++) {
-    let member, classItem, key;
-    let attempts = 0;
-
-    do {
-      member = randomElement(members);
-      classItem = randomElement(classes);
-      key = `${member.id}-${classItem.id}`;
-      attempts++;
-    } while (bookingSet.has(key) && attempts < 10);
-
-    if (!bookingSet.has(key)) {
-      bookingSet.add(key);
-      bookingData.push({
-        memberId: member.id,
-        classId: classItem.id,
-        status:
-          Math.random() > 0.1
-            ? ('CONFIRMED' as const)
-            : Math.random() > 0.5
-              ? ('ATTENDED' as const)
-              : ('CANCELLED' as const),
-      });
-    }
-  }
-
-  await batchInsert(
-    bookingData,
-    async (batch) => {
-      await prisma.classBooking.createMany({
-        data: batch,
-        skipDuplicates: true,
-      });
+  console.log('� Creat.ing class bookings...');
+  await prisma.classBooking.create({
+    data: {
+      memberId: member1.member!.id,
+      classScheduleId: yogaSchedule.id,
+      status: 'CONFIRMED',
     },
-    SEED_CONFIG.BATCH_SIZE,
-    'Class Bookings',
-  );
-  console.log(`✓ ${bookingData.length} class bookings created\n`);
+  });
 
-  // Create Attendance Records
-  console.log(
-    `✅ Creating ${SEED_CONFIG.ATTENDANCE_RECORDS} attendance records...`,
-  );
-  const attendanceData = [];
-  const attendanceStartDate = new Date(
-    now.getTime() - 90 * 24 * 60 * 60 * 1000,
-  );
-
-  for (let i = 0; i < SEED_CONFIG.ATTENDANCE_RECORDS; i++) {
-    const member = randomElement(members);
-    const checkInTime = randomDate(attendanceStartDate, now);
-    const checkOutTime = new Date(
-      checkInTime.getTime() + (Math.random() * 3 + 0.5) * 60 * 60 * 1000,
-    );
-
-    attendanceData.push({
-      memberId: member.id,
-      classId: Math.random() > 0.7 ? randomElement(classes).id : null,
-      checkInTime,
-      checkOutTime: Math.random() > 0.1 ? checkOutTime : null,
-      type:
-        Math.random() > 0.3
-          ? ('GYM_VISIT' as const)
-          : ('CLASS_ATTENDANCE' as const),
-    });
-  }
-
-  await batchInsert(
-    attendanceData,
-    async (batch) => {
-      await prisma.attendance.createMany({ data: batch });
+  await prisma.classBooking.create({
+    data: {
+      memberId: member2.member!.id,
+      classScheduleId: strengthSchedule.id,
+      status: 'CONFIRMED',
     },
-    SEED_CONFIG.BATCH_SIZE,
-    'Attendance Records',
-  );
-  console.log(`✓ ${attendanceData.length} attendance records created\n`);
+  });
+  console.log('✓ 2 class bookings created\n');
 
-  // Create Workout Plans with Exercises
-  console.log(`💪 Creating ${SEED_CONFIG.WORKOUT_PLANS} workout plans...`);
-  let workoutPlansCreated = 0;
+  // Create Workout Plans
+  console.log('💪 Creating workout plans...');
+  await prisma.workoutPlan.create({
+    data: {
+      memberId: member1.member!.id,
+      trainerId: trainer1.trainer!.id,
+      name: 'Weight Loss Program',
+      description: 'Customized weight loss workout plan',
+      goal: 'Weight Loss',
+      startDate: now,
+      endDate: new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000),
+      isActive: true,
+      exercises: JSON.stringify([
+        {
+          name: 'Squats',
+          sets: 3,
+          reps: 12,
+          description: 'Bodyweight squats',
+        },
+        {
+          name: 'Push-ups',
+          sets: 3,
+          reps: 10,
+          description: 'Standard push-ups',
+        },
+      ]),
+    },
+  });
+  console.log('✓ 1 workout plan created\n');
 
-  for (let i = 0; i < SEED_CONFIG.WORKOUT_PLANS; i += SEED_CONFIG.BATCH_SIZE) {
-    const batchSize = Math.min(
-      SEED_CONFIG.BATCH_SIZE,
-      SEED_CONFIG.WORKOUT_PLANS - i,
-    );
-    const workoutPromises = [];
-
-    for (let j = 0; j < batchSize; j++) {
-      const member = randomElement(members);
-      const trainer = randomElement(trainers);
-      const goal = randomElement(workoutGoals);
-      const numExercises = Math.floor(Math.random() * 5) + 3;
-
-      const exercises = [];
-      for (let k = 0; k < numExercises; k++) {
-        const exercise = randomElement(exerciseLibrary);
-        exercises.push({
-          name: exercise.name,
-          description: `${exercise.name} exercise`,
-          sets: exercise.sets,
-          reps: exercise.reps,
-          duration: exercise.duration || null,
-          targetMuscles: exercise.muscles,
-          order: k + 1,
-        });
-      }
-
-      workoutPromises.push(
-        prisma.workoutPlan.create({
-          data: {
-            name: `${goal} Program ${i + j + 1}`,
-            description: `Customized ${goal.toLowerCase().replace('_', ' ')} workout plan`,
-            memberId: member.id,
-            trainerId: trainer.id,
-            goal,
-            exercises: {
-              create: exercises,
-            },
-          },
-        }),
-      );
-    }
-
-    await Promise.all(workoutPromises);
-    workoutPlansCreated += batchSize;
-    console.log(
-      `  ✓ Workout Plans: ${workoutPlansCreated}/${SEED_CONFIG.WORKOUT_PLANS} (${Math.round((workoutPlansCreated / SEED_CONFIG.WORKOUT_PLANS) * 100)}%)`,
-    );
-  }
-  console.log(`✓ ${workoutPlansCreated} workout plans created\n`);
+  // Create Equipment
+  console.log('🏋️ Creating equipment...');
+  await prisma.equipment.createMany({
+    data: [
+      {
+        name: 'Treadmill',
+        category: 'Cardio',
+        description: 'Commercial grade treadmill',
+        quantity: 10,
+        isActive: true,
+      },
+      {
+        name: 'Bench Press',
+        category: 'Strength',
+        description: 'Olympic bench press station',
+        quantity: 5,
+        isActive: true,
+      },
+      {
+        name: 'Yoga Mat',
+        category: 'Functional',
+        description: 'Premium yoga mat',
+        quantity: 30,
+        isActive: true,
+      },
+    ],
+  });
+  console.log('✓ 3 equipment items created\n');
 
   // Final Summary
   const finalCounts = {
@@ -821,50 +385,30 @@ async function main() {
     trainers: await prisma.trainer.count(),
     members: await prisma.member.count(),
     membershipPlans: await prisma.membershipPlan.count(),
-    memberships: await prisma.membership.count(),
-    pricing: await prisma.pricing.count(),
+    subscriptions: await prisma.subscription.count(),
     classes: await prisma.class.count(),
+    classSchedules: await prisma.classSchedule.count(),
     classBookings: await prisma.classBooking.count(),
-    attendance: await prisma.attendance.count(),
     workoutPlans: await prisma.workoutPlan.count(),
-    workoutPlanVersions: await prisma.workoutPlanVersion.count(),
-    exercises: await prisma.exercise.count(),
+    equipment: await prisma.equipment.count(),
   };
 
   console.log('✅ Database seeding completed successfully!\n');
   console.log('📊 Final Summary:');
-  console.log(`- Total Users: ${finalCounts.users.toLocaleString()}`);
-  console.log(`- Admin Users: 1`);
-  console.log(`- Trainers: ${finalCounts.trainers.toLocaleString()}`);
-  console.log(`- Members: ${finalCounts.members.toLocaleString()}`);
+  console.log(`- Total Users: ${finalCounts.users}`);
+  console.log(`- Trainers: ${finalCounts.trainers}`);
+  console.log(`- Members: ${finalCounts.members}`);
   console.log(`- Membership Plans: ${finalCounts.membershipPlans}`);
-  console.log(
-    `- Active Memberships: ${finalCounts.memberships.toLocaleString()}`,
-  );
-  console.log(`- Pricing Entries: ${finalCounts.pricing}`);
-  console.log(`- Classes: ${finalCounts.classes.toLocaleString()}`);
-  console.log(
-    `- Class Bookings: ${finalCounts.classBookings.toLocaleString()}`,
-  );
-  console.log(
-    `- Attendance Records: ${finalCounts.attendance.toLocaleString()}`,
-  );
-  console.log(`- Workout Plans: ${finalCounts.workoutPlans.toLocaleString()}`);
-  console.log(
-    `- Workout Plan Versions: ${finalCounts.workoutPlanVersions.toLocaleString()}`,
-  );
-  console.log(`- Exercises: ${finalCounts.exercises.toLocaleString()}`);
-  console.log(
-    `\n📈 Total Records: ${Object.values(finalCounts)
-      .reduce((a, b) => a + b, 0)
-      .toLocaleString()}`,
-  );
+  console.log(`- Active Subscriptions: ${finalCounts.subscriptions}`);
+  console.log(`- Classes: ${finalCounts.classes}`);
+  console.log(`- Class Schedules: ${finalCounts.classSchedules}`);
+  console.log(`- Class Bookings: ${finalCounts.classBookings}`);
+  console.log(`- Workout Plans: ${finalCounts.workoutPlans}`);
+  console.log(`- Equipment: ${finalCounts.equipment}`);
   console.log('\n🔑 Login credentials:');
-  console.log('- Email: admin@gym.com');
-  console.log('- Password: Password123!');
-  console.log(
-    '\nAll other users (trainers/members) use the same password: Password123!',
-  );
+  console.log('- Admin: admin@gym.com / Password123!');
+  console.log('- Trainer: john.trainer@gym.com / Password123!');
+  console.log('- Member: alice.member@gym.com / Password123!');
 }
 
 main()

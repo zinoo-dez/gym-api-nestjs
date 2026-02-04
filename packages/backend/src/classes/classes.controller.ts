@@ -31,7 +31,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Public } from '../auth/decorators/public.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
-import { Role } from '@prisma/client';
+import { UserRole } from '@prisma/client';
 
 @ApiTags('classes')
 @Controller('classes')
@@ -40,7 +40,7 @@ export class ClassesController {
   constructor(private readonly classesService: ClassesService) {}
 
   @Post()
-  @Roles(Role.ADMIN, Role.TRAINER, Role.SUPERADMIN)
+  @Roles(UserRole.ADMIN, UserRole.TRAINER)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Create a new class',
@@ -105,7 +105,7 @@ export class ClassesController {
   }
 
   @Patch(':id')
-  @Roles(Role.ADMIN, Role.TRAINER, Role.SUPERADMIN)
+  @Roles(UserRole.ADMIN, UserRole.TRAINER)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Update class information',
@@ -133,7 +133,7 @@ export class ClassesController {
   }
 
   @Delete(':id')
-  @Roles(Role.ADMIN, Role.SUPERADMIN)
+  @Roles(UserRole.ADMIN)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Deactivate class',
@@ -161,7 +161,7 @@ export class ClassesController {
   }
 
   @Post(':id/book')
-  @Roles(Role.ADMIN, Role.MEMBER, Role.SUPERADMIN)
+  @Roles(UserRole.ADMIN, UserRole.MEMBER)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Book a class',
@@ -182,21 +182,21 @@ export class ClassesController {
   @ApiResponse({ status: 404, description: 'Class or member not found' })
   @ApiResponse({ status: 409, description: 'Already booked' })
   async bookClass(
-    @Param('id') classId: string,
-    @Body() bookDto: Omit<BookClassDto, 'classId'>,
+    @Param('id') classScheduleId: string,
+    @Body() bookDto: Omit<BookClassDto, 'classScheduleId'>,
     @CurrentUser() user: any,
   ): Promise<ClassBookingResponseDto> {
     return this.classesService.bookClass(
       {
         ...bookDto,
-        classId,
+        classScheduleId,
       } as BookClassDto,
       user,
     );
   }
 
   @Delete('bookings/:id')
-  @Roles(Role.ADMIN, Role.MEMBER, Role.SUPERADMIN)
+  @Roles(UserRole.ADMIN, UserRole.MEMBER)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Cancel class booking',

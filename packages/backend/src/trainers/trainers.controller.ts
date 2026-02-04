@@ -29,7 +29,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Public } from '../auth/decorators/public.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
-import { Role } from '@prisma/client';
+import { UserRole } from '@prisma/client';
 
 @ApiTags('trainers')
 @ApiBearerAuth('JWT-auth')
@@ -39,7 +39,7 @@ export class TrainersController {
   constructor(private readonly trainersService: TrainersService) {}
 
   @Post()
-  @Roles(Role.ADMIN, Role.SUPERADMIN)
+  @Roles(UserRole.ADMIN)
   @ApiOperation({
     summary: 'Create a new trainer',
     description: 'Create a new trainer account. Requires ADMIN role.',
@@ -99,7 +99,7 @@ export class TrainersController {
   }
 
   @Patch(':id')
-  @Roles(Role.ADMIN, Role.TRAINER, Role.SUPERADMIN)
+  @Roles(UserRole.ADMIN, UserRole.TRAINER)
   @ApiOperation({
     summary: 'Update trainer information',
     description:
@@ -127,7 +127,7 @@ export class TrainersController {
   }
 
   @Delete(':id')
-  @Roles(Role.ADMIN, Role.SUPERADMIN)
+  @Roles(UserRole.ADMIN)
   @ApiOperation({
     summary: 'Deactivate trainer',
     description:

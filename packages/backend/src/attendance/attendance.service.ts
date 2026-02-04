@@ -11,7 +11,7 @@ import {
   AttendanceReportDto,
   AttendanceFiltersDto,
 } from './dto';
-import { AttendanceType, Prisma } from '@prisma/client';
+import { AttendanceType, Prisma, SubscriptionStatus } from '@prisma/client';
 import { PaginatedResponseDto } from '../common/dto';
 
 @Injectable()
@@ -24,9 +24,13 @@ export class AttendanceService {
       where: { id: checkInDto.memberId },
       select: {
         id: true,
-        firstName: true,
-        lastName: true,
-        user: { select: { email: true } },
+        user: {
+          select: {
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
       },
     });
 
@@ -46,30 +50,47 @@ export class AttendanceService {
     }
 
     // If type is CLASS_ATTENDANCE, verify class exists and member has booking
+    let classScheduleForResponse:
+      | {
+          id: string;
+          classId: string;
+          className: string;
+          startTime: Date;
+          endTime: Date;
+        }
+      | undefined;
+
     if (checkInDto.type === AttendanceType.CLASS_ATTENDANCE) {
-      if (!checkInDto.classId) {
+      if (!checkInDto.classScheduleId) {
         throw new BadRequestException(
-          'Class ID is required for class attendance',
+          'Class schedule ID is required for class attendance',
         );
       }
 
-      const classExists = await this.prisma.class.findUnique({
-        where: { id: checkInDto.classId },
-        select: { id: true },
+      const classSchedule = await this.prisma.classSchedule.findUnique({
+        where: { id: checkInDto.classScheduleId },
+        include: {
+          class: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
       });
 
-      if (!classExists) {
+      if (!classSchedule) {
         throw new NotFoundException(
-          `Class with ID ${checkInDto.classId} not found`,
+          `Class schedule with ID ${checkInDto.classScheduleId} not found`,
         );
       }
 
       // Verify member has a booking for this class
       const booking = await this.prisma.classBooking.findUnique({
         where: {
-          memberId_classId: {
+          memberId_classScheduleId: {
             memberId: checkInDto.memberId,
-            classId: checkInDto.classId,
+            classScheduleId: checkInDto.classScheduleId,
           },
         },
         select: { status: true },
@@ -80,13 +101,32 @@ export class AttendanceService {
           'Member does not have a confirmed booking for this class',
         );
       }
+
+      await this.prisma.classBooking.update({
+        where: {
+          memberId_classScheduleId: {
+            memberId: checkInDto.memberId,
+            classScheduleId: checkInDto.classScheduleId,
+          },
+        },
+        data: {
+          checkedInAt: new Date(),
+        },
+      });
+
+      classScheduleForResponse = {
+        id: classSchedule.id,
+        classId: classSchedule.class.id,
+        className: classSchedule.class.name,
+        startTime: classSchedule.startTime,
+        endTime: classSchedule.endTime,
+      };
     }
 
     // Create attendance record
     const attendance = await this.prisma.attendance.create({
       data: {
         memberId: checkInDto.memberId,
-        classId: checkInDto.classId,
         type: checkInDto.type,
         checkInTime: new Date(),
       },
@@ -96,11 +136,10 @@ export class AttendanceService {
             user: true,
           },
         },
-        class: true,
       },
     });
 
-    return this.toResponseDto(attendance);
+    return this.toResponseDto(attendance, classScheduleForResponse);
   }
 
   async checkOut(attendanceId: string): Promise<AttendanceResponseDto> {
@@ -133,7 +172,6 @@ export class AttendanceService {
             user: true,
           },
         },
-        class: true,
       },
     });
 
@@ -152,10 +190,6 @@ export class AttendanceService {
 
     if (filters?.memberId) {
       where.memberId = filters.memberId;
-    }
-
-    if (filters?.classId) {
-      where.classId = filters.classId;
     }
 
     if (filters?.type) {
@@ -187,7 +221,6 @@ export class AttendanceService {
             user: true,
           },
         },
-        class: true,
       },
       orderBy: {
         checkInTime: 'desc',
@@ -213,9 +246,13 @@ export class AttendanceService {
       where: { id: memberId },
       select: {
         id: true,
-        firstName: true,
-        lastName: true,
-        user: { select: { email: true } },
+        user: {
+          select: {
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
       },
     });
 
@@ -297,7 +334,7 @@ export class AttendanceService {
 
     return {
       memberId,
-      memberName: `${member.firstName} ${member.lastName}`,
+      memberName: `${member.user.firstName} ${member.user.lastName}`,
       startDate,
       endDate,
       totalGymVisits,
@@ -310,10 +347,10 @@ export class AttendanceService {
   }
 
   private async hasActiveMembership(memberId: string): Promise<boolean> {
-    const activeMembership = await this.prisma.membership.findFirst({
+    const activeMembership = await this.prisma.subscription.findFirst({
       where: {
         memberId,
-        status: 'ACTIVE',
+        status: SubscriptionStatus.ACTIVE,
         endDate: {
           gte: new Date(),
         },
@@ -326,11 +363,20 @@ export class AttendanceService {
     return !!activeMembership;
   }
 
-  private toResponseDto(attendance: any): AttendanceResponseDto {
+  private toResponseDto(
+    attendance: any,
+    classSchedule?: {
+      id: string;
+      classId: string;
+      className: string;
+      startTime: Date;
+      endTime: Date;
+    },
+  ): AttendanceResponseDto {
     return {
       id: attendance.id,
       memberId: attendance.memberId,
-      classId: attendance.classId,
+      classScheduleId: classSchedule?.id,
       checkInTime: attendance.checkInTime,
       checkOutTime: attendance.checkOutTime,
       type: attendance.type,
@@ -338,18 +384,12 @@ export class AttendanceService {
       member: attendance.member
         ? {
             id: attendance.member.id,
-            firstName: attendance.member.firstName,
-            lastName: attendance.member.lastName,
+            firstName: attendance.member.user.firstName,
+            lastName: attendance.member.user.lastName,
             email: attendance.member.user.email,
           }
         : undefined,
-      class: attendance.class
-        ? {
-            id: attendance.class.id,
-            name: attendance.class.name,
-            schedule: attendance.class.schedule,
-          }
-        : undefined,
+      classSchedule: classSchedule,
     };
   }
 }

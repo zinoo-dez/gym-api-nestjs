@@ -1,7 +1,6 @@
 export class ClassSummaryDto {
   id!: string;
   name!: string;
-  schedule!: Date;
   duration!: number;
   capacity!: number;
   classType!: string;

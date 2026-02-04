@@ -9,7 +9,11 @@ import {
   IsBoolean,
   Min,
 } from 'class-validator';
-import { PricingCategory } from '@prisma/client';
+export enum PricingCategory {
+  MEMBERSHIP = 'MEMBERSHIP',
+  CLASS = 'CLASS',
+  MERCHANDISE = 'MERCHANDISE',
+}
 
 export class CreatePricingDto {
   @ApiProperty({ description: 'Pricing name', example: 'Premium Membership' })

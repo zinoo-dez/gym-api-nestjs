@@ -1,4 +1,4 @@
-import { PrismaClient, Role } from '@prisma/client';
+import { PrismaClient, UserRole } from '@prisma/client';
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
 import * as bcrypt from 'bcrypt';
@@ -20,6 +20,9 @@ async function resetSuperadmin() {
   const superadminEmail = process.env.SUPERADMIN_EMAIL || 'superadmin@gym.com';
   const superadminPassword =
     process.env.SUPERADMIN_PASSWORD || 'SuperAdmin123!';
+  const superadminFirstName =
+    process.env.SUPERADMIN_FIRST_NAME || 'Super';
+  const superadminLastName = process.env.SUPERADMIN_LAST_NAME || 'Admin';
 
   // Delete existing superadmin if exists
   const existing = await prisma.user.findUnique({
@@ -40,7 +43,9 @@ async function resetSuperadmin() {
     data: {
       email: superadminEmail,
       password: hashedPassword,
-      role: Role.SUPERADMIN,
+      firstName: superadminFirstName,
+      lastName: superadminLastName,
+      role: UserRole.ADMIN,
     },
   });
 

@@ -28,7 +28,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
-import { Role } from '@prisma/client';
+import { UserRole } from '@prisma/client';
 import { WorkoutPlansService } from '../workout-plans/workout-plans.service';
 import { WorkoutPlanResponseDto } from '../workout-plans/dto';
 
@@ -43,7 +43,7 @@ export class MembersController {
   ) {}
 
   @Post()
-  @Roles(Role.ADMIN, Role.SUPERADMIN)
+  @Roles(UserRole.ADMIN)
   @ApiOperation({
     summary: 'Create a new member',
     description: 'Create a new gym member account. Requires ADMIN role.',
@@ -64,7 +64,7 @@ export class MembersController {
   }
 
   @Get()
-  @Roles(Role.ADMIN, Role.TRAINER, Role.SUPERADMIN)
+  @Roles(UserRole.ADMIN, UserRole.TRAINER)
   @ApiOperation({
     summary: 'Get all members',
     description:
@@ -87,7 +87,7 @@ export class MembersController {
   }
 
   @Get(':id')
-  @Roles(Role.ADMIN, Role.TRAINER, Role.MEMBER, Role.SUPERADMIN)
+  @Roles(UserRole.ADMIN, UserRole.TRAINER, UserRole.MEMBER)
   @ApiOperation({
     summary: 'Get member by ID',
     description: 'Retrieve detailed information about a specific member.',
@@ -112,7 +112,7 @@ export class MembersController {
   }
 
   @Patch(':id')
-  @Roles(Role.ADMIN, Role.MEMBER, Role.SUPERADMIN)
+  @Roles(UserRole.ADMIN, UserRole.MEMBER)
   @ApiOperation({
     summary: 'Update member information',
     description:
@@ -140,7 +140,7 @@ export class MembersController {
   }
 
   @Delete(':id')
-  @Roles(Role.ADMIN, Role.SUPERADMIN)
+  @Roles(UserRole.ADMIN)
   @ApiOperation({
     summary: 'Deactivate member',
     description:
@@ -167,7 +167,7 @@ export class MembersController {
   }
 
   @Get(':id/bookings')
-  @Roles(Role.ADMIN, Role.TRAINER, Role.MEMBER, Role.SUPERADMIN)
+  @Roles(UserRole.ADMIN, UserRole.TRAINER, UserRole.MEMBER)
   @ApiOperation({
     summary: 'Get member bookings',
     description: 'Retrieve all class bookings for a specific member.',
@@ -191,7 +191,7 @@ export class MembersController {
   }
 
   @Get(':id/workout-plans')
-  @Roles(Role.ADMIN, Role.TRAINER, Role.MEMBER, Role.SUPERADMIN)
+  @Roles(UserRole.ADMIN, UserRole.TRAINER, UserRole.MEMBER)
   @ApiOperation({
     summary: 'Get member workout plans',
     description: 'Retrieve all workout plans assigned to a specific member.',

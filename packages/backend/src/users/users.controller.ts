@@ -14,7 +14,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
-import { Role } from '@prisma/client';
+import { UserRole } from '@prisma/client';
 import { ChangeRoleDto } from './dto';
 
 @Controller('users')
@@ -23,17 +23,17 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
-  @Roles(Role.SUPERADMIN, Role.ADMIN)
+  @Roles(UserRole.ADMIN)
   async getAllUsers() {
     return this.usersService.getAllUsers();
   }
 
   @Get(':id')
-  @Roles(Role.SUPERADMIN, Role.ADMIN, Role.TRAINER, Role.MEMBER)
+  @Roles(UserRole.ADMIN, UserRole.TRAINER, UserRole.MEMBER)
   async getUserById(@Param('id') id: string, @CurrentUser() user: any) {
     // Members and Trainers can only access their own user record
     if (
-      (user.role === Role.MEMBER || user.role === Role.TRAINER) &&
+      (user.role === UserRole.MEMBER || user.role === UserRole.TRAINER) &&
       user.userId !== id
     ) {
       throw new ForbiddenException('You can only access your own user record');
@@ -42,7 +42,7 @@ export class UsersController {
   }
 
   @Patch(':id/role')
-  @Roles(Role.SUPERADMIN)
+  @Roles(UserRole.ADMIN)
   async changeUserRole(
     @Param('id') id: string,
     @Body() changeRoleDto: ChangeRoleDto,
@@ -52,7 +52,7 @@ export class UsersController {
   }
 
   @Delete(':id')
-  @Roles(Role.SUPERADMIN)
+  @Roles(UserRole.ADMIN)
   async deleteUser(@Param('id') id: string, @Request() req: any) {
     return this.usersService.deleteUser(id, req.user.role);
   }

@@ -19,7 +19,7 @@ import {
   ClassFiltersDto,
 } from './dto';
 import { PaginatedResponseDto } from '../common/dto';
-import { Prisma, BookingStatus, Role } from '@prisma/client';
+import { Prisma, BookingStatus, UserRole } from '@prisma/client';
 
 @Injectable()
 export class ClassesService {
@@ -36,10 +36,9 @@ export class ClassesService {
     createClassDto: CreateClassDto,
     currentUser?: any,
   ): Promise<ClassResponseDto> {
-    // Verify trainer exists - only select needed fields
     const trainer = await this.prisma.trainer.findUnique({
       where: { id: createClassDto.trainerId },
-      select: { id: true, isActive: true, userId: true },
+      select: { id: true, userId: true },
     });
 
     if (!trainer) {
@@ -48,12 +47,7 @@ export class ClassesService {
       );
     }
 
-    if (!trainer.isActive) {
-      throw new BadRequestException('Trainer is not active');
-    }
-
-    // Authorization check - Trainers can only create classes for themselves
-    if (currentUser?.role === Role.TRAINER) {
+    if (currentUser?.role === UserRole.TRAINER) {
       const currentTrainer = await this.prisma.trainer.findUnique({
         where: { userId: currentUser.userId },
         select: { id: true },
@@ -66,13 +60,15 @@ export class ClassesService {
       }
     }
 
-    const schedule = new Date(createClassDto.schedule);
+    const startTime = new Date(createClassDto.schedule);
+    const endTime = new Date(
+      startTime.getTime() + createClassDto.duration * 60000,
+    );
 
-    // Check for trainer schedule conflicts
     const hasConflict = await this.hasScheduleConflict(
       createClassDto.trainerId,
-      schedule,
-      createClassDto.duration,
+      startTime,
+      endTime,
     );
 
     if (hasConflict) {
@@ -81,26 +77,40 @@ export class ClassesService {
       );
     }
 
-    // Create the class
-    const newClass = await this.prisma.class.create({
-      data: {
-        name: createClassDto.name,
-        description: createClassDto.description,
-        trainerId: createClassDto.trainerId,
-        schedule,
-        duration: createClassDto.duration,
-        capacity: createClassDto.capacity,
-        classType: createClassDto.classType,
-      },
-      include: {
-        trainer: true,
-      },
+    const classSchedule = await this.prisma.$transaction(async (tx) => {
+      const newClass = await tx.class.create({
+        data: {
+          name: createClassDto.name,
+          description: createClassDto.description,
+          category: createClassDto.classType,
+          duration: createClassDto.duration,
+          maxCapacity: createClassDto.capacity,
+        },
+      });
+
+      return tx.classSchedule.create({
+        data: {
+          classId: newClass.id,
+          trainerId: createClassDto.trainerId,
+          startTime,
+          endTime,
+          daysOfWeek: JSON.stringify([this.getDayOfWeek(startTime)]),
+          isActive: true,
+        },
+        include: {
+          class: true,
+          trainer: { include: { user: true } },
+          bookings: {
+            where: { status: BookingStatus.CONFIRMED },
+            select: { id: true },
+          },
+        },
+      });
     });
 
-    // Invalidate cache when a new class is created
     this.invalidateClassesCache();
 
-    return this.toResponseDto(newClass);
+    return this.toResponseDto(classSchedule);
   }
 
   async findAll(
@@ -110,39 +120,35 @@ export class ClassesService {
     const limit = filters?.limit || 10;
     const skip = filters?.skip || 0;
 
-    // Build where clause based on filters
-    const where: Prisma.ClassWhereInput = {
+    const where: Prisma.ClassScheduleWhereInput = {
       isActive: true,
     };
 
-    // Filter by date range
     if (filters?.startDate || filters?.endDate) {
-      where.schedule = {};
+      where.startTime = {};
       if (filters.startDate) {
-        where.schedule.gte = new Date(filters.startDate);
+        where.startTime.gte = new Date(filters.startDate);
       }
       if (filters.endDate) {
-        where.schedule.lte = new Date(filters.endDate);
+        where.startTime.lte = new Date(filters.endDate);
       }
     }
 
-    // Filter by trainer
     if (filters?.trainerId) {
       where.trainerId = filters.trainerId;
     }
 
-    // Filter by class type
     if (filters?.classType) {
-      where.classType = {
-        contains: filters.classType,
-        mode: 'insensitive',
+      where.class = {
+        category: {
+          contains: filters.classType,
+          mode: 'insensitive',
+        },
       };
     }
 
-    // Create cache key based on filters
     const cacheKey = `${this.CLASSES_CACHE_KEY}:${JSON.stringify({ where, page, limit, skip })}`;
 
-    // Try to get from cache
     const cachedResult =
       await this.cacheManager.get<PaginatedResponseDto<ClassResponseDto>>(
         cacheKey,
@@ -155,32 +161,31 @@ export class ClassesService {
 
     this.logger.debug(`Cache miss for class schedules: ${cacheKey}`);
 
-    // Get total count
-    const total = await this.prisma.class.count({ where });
+    const total = await this.prisma.classSchedule.count({ where });
 
-    // Get paginated classes
-    const classes = await this.prisma.class.findMany({
+    const classSchedules = await this.prisma.classSchedule.findMany({
       where,
       include: {
-        trainer: true,
+        class: true,
+        trainer: { include: { user: true } },
         bookings: {
-          where: {
-            status: BookingStatus.CONFIRMED,
-          },
+          where: { status: BookingStatus.CONFIRMED },
+          select: { id: true },
         },
       },
       orderBy: {
-        schedule: 'asc',
+        startTime: 'asc',
       },
       skip,
       take: limit,
     });
 
-    const classDtos = classes.map((cls) => this.toResponseDto(cls));
+    const classDtos = classSchedules.map((schedule) =>
+      this.toResponseDto(schedule),
+    );
 
     const result = new PaginatedResponseDto(classDtos, page, limit, total);
 
-    // Store in cache with 15 minutes TTL
     await this.cacheManager.set(cacheKey, result, this.CACHE_TTL);
 
     return result;
@@ -189,7 +194,6 @@ export class ClassesService {
   async findOne(id: string): Promise<ClassResponseDto> {
     const cacheKey = `${this.CLASSES_CACHE_KEY}:${id}`;
 
-    // Try to get from cache
     const cachedClass = await this.cacheManager.get<ClassResponseDto>(cacheKey);
 
     if (cachedClass) {
@@ -199,32 +203,24 @@ export class ClassesService {
 
     this.logger.debug(`Cache miss for class: ${id}`);
 
-    const classEntity = await this.prisma.class.findUnique({
+    const classSchedule = await this.prisma.classSchedule.findUnique({
       where: { id },
       include: {
-        trainer: true,
+        class: true,
+        trainer: { include: { user: true } },
         bookings: {
-          where: {
-            status: BookingStatus.CONFIRMED,
-          },
-          include: {
-            member: {
-              include: {
-                user: true,
-              },
-            },
-          },
+          where: { status: BookingStatus.CONFIRMED },
+          select: { id: true },
         },
       },
     });
 
-    if (!classEntity) {
-      throw new NotFoundException(`Class with ID ${id} not found`);
+    if (!classSchedule) {
+      throw new NotFoundException(`Class schedule with ID ${id} not found`);
     }
 
-    const classDto = this.toResponseDto(classEntity);
+    const classDto = this.toResponseDto(classSchedule);
 
-    // Store in cache with 15 minutes TTL
     await this.cacheManager.set(cacheKey, classDto, this.CACHE_TTL);
 
     return classDto;
@@ -235,35 +231,29 @@ export class ClassesService {
     updateClassDto: UpdateClassDto,
     currentUser?: any,
   ): Promise<ClassResponseDto> {
-    // Check if class exists - only select needed fields
-    const existingClass = await this.prisma.class.findUnique({
+    const existingSchedule = await this.prisma.classSchedule.findUnique({
       where: { id },
-      select: {
-        id: true,
-        trainerId: true,
-        schedule: true,
-        duration: true,
+      include: {
+        class: true,
         trainer: { select: { userId: true } },
       },
     });
 
-    if (!existingClass) {
-      throw new NotFoundException(`Class with ID ${id} not found`);
+    if (!existingSchedule) {
+      throw new NotFoundException(`Class schedule with ID ${id} not found`);
     }
 
-    // Authorization check - Trainers can only update their own classes
     if (
-      currentUser?.role === Role.TRAINER &&
-      existingClass.trainer.userId !== currentUser.userId
+      currentUser?.role === UserRole.TRAINER &&
+      existingSchedule.trainer.userId !== currentUser.userId
     ) {
       throw new ForbiddenException('You can only update your own classes');
     }
 
-    // If trainer is being updated, verify new trainer exists
     if (updateClassDto.trainerId) {
       const trainer = await this.prisma.trainer.findUnique({
         where: { id: updateClassDto.trainerId },
-        select: { id: true, isActive: true, userId: true },
+        select: { id: true, userId: true },
       });
 
       if (!trainer) {
@@ -272,25 +262,24 @@ export class ClassesService {
         );
       }
 
-      if (!trainer.isActive) {
-        throw new BadRequestException('Trainer is not active');
-      }
-
-      // Trainers can only assign classes to themselves
       if (
-        currentUser?.role === Role.TRAINER &&
+        currentUser?.role === UserRole.TRAINER &&
         trainer.userId !== currentUser.userId
       ) {
         throw new ForbiddenException('You can only assign classes to yourself');
       }
     }
 
-    // Check for schedule conflicts if schedule or duration is being updated
-    const trainerId = updateClassDto.trainerId || existingClass.trainerId;
-    const schedule = updateClassDto.schedule
+    const updatedDuration =
+      updateClassDto.duration ?? existingSchedule.class.duration;
+    const updatedStartTime = updateClassDto.schedule
       ? new Date(updateClassDto.schedule)
-      : existingClass.schedule;
-    const duration = updateClassDto.duration || existingClass.duration;
+      : existingSchedule.startTime;
+    const updatedEndTime = new Date(
+      updatedStartTime.getTime() + updatedDuration * 60000,
+    );
+    const updatedTrainerId =
+      updateClassDto.trainerId ?? existingSchedule.trainerId;
 
     if (
       updateClassDto.schedule ||
@@ -298,10 +287,10 @@ export class ClassesService {
       updateClassDto.trainerId
     ) {
       const hasConflict = await this.hasScheduleConflict(
-        trainerId,
-        schedule,
-        duration,
-        id, // Exclude current class from conflict check
+        updatedTrainerId,
+        updatedStartTime,
+        updatedEndTime,
+        id,
       );
 
       if (hasConflict) {
@@ -311,51 +300,72 @@ export class ClassesService {
       }
     }
 
-    // Update the class
-    const updatedClass = await this.prisma.class.update({
+    await this.prisma.$transaction(async (tx) => {
+      await tx.class.update({
+        where: { id: existingSchedule.classId },
+        data: {
+          name: updateClassDto.name,
+          description: updateClassDto.description,
+          category: updateClassDto.classType,
+          duration: updateClassDto.duration,
+          maxCapacity: updateClassDto.capacity,
+        },
+      });
+
+      await tx.classSchedule.update({
+        where: { id },
+        data: {
+          trainerId: updateClassDto.trainerId,
+          startTime: updateClassDto.schedule ? updatedStartTime : undefined,
+          endTime:
+            updateClassDto.schedule || updateClassDto.duration
+              ? updatedEndTime
+              : undefined,
+          daysOfWeek: updateClassDto.schedule
+            ? JSON.stringify([this.getDayOfWeek(updatedStartTime)])
+            : undefined,
+        },
+      });
+    });
+
+    const updatedSchedule = await this.prisma.classSchedule.findUnique({
       where: { id },
-      data: {
-        name: updateClassDto.name,
-        description: updateClassDto.description,
-        trainerId: updateClassDto.trainerId,
-        schedule: updateClassDto.schedule
-          ? new Date(updateClassDto.schedule)
-          : undefined,
-        duration: updateClassDto.duration,
-        capacity: updateClassDto.capacity,
-        classType: updateClassDto.classType,
-      },
       include: {
-        trainer: true,
+        class: true,
+        trainer: { include: { user: true } },
+        bookings: {
+          where: { status: BookingStatus.CONFIRMED },
+          select: { id: true },
+        },
       },
     });
 
-    // Invalidate cache when a class is updated
+    if (!updatedSchedule) {
+      throw new NotFoundException(`Class schedule with ID ${id} not found`);
+    }
+
     this.invalidateClassesCache();
 
-    return this.toResponseDto(updatedClass);
+    return this.toResponseDto(updatedSchedule);
   }
 
   async deactivate(id: string): Promise<void> {
-    // Check if class exists - only select id field
-    const existingClass = await this.prisma.class.findUnique({
+    const existingSchedule = await this.prisma.classSchedule.findUnique({
       where: { id },
       select: { id: true },
     });
 
-    if (!existingClass) {
-      throw new NotFoundException(`Class with ID ${id} not found`);
+    if (!existingSchedule) {
+      throw new NotFoundException(`Class schedule with ID ${id} not found`);
     }
 
-    // Soft delete by setting isActive to false
-    await this.prisma.class.update({
+    await this.prisma.classSchedule.update({
       where: { id },
       data: {
         isActive: false,
       },
     });
 
-    // Invalidate cache when a class is deactivated
     this.invalidateClassesCache();
   }
 
@@ -363,10 +373,9 @@ export class ClassesService {
     bookDto: BookClassDto,
     currentUser?: any,
   ): Promise<ClassBookingResponseDto> {
-    // Verify member exists - only select needed fields
     const member = await this.prisma.member.findUnique({
       where: { id: bookDto.memberId },
-      select: { id: true, isActive: true, userId: true },
+      select: { id: true, userId: true },
     });
 
     if (!member) {
@@ -375,38 +384,33 @@ export class ClassesService {
       );
     }
 
-    if (!member.isActive) {
-      throw new BadRequestException('Member is not active');
-    }
-
-    // Authorization check - Members can only book for themselves
     if (
-      currentUser?.role === Role.MEMBER &&
+      currentUser?.role === UserRole.MEMBER &&
       member.userId !== currentUser.userId
     ) {
       throw new ForbiddenException('You can only book classes for yourself');
     }
 
-    // Verify class exists - only select needed fields
-    const classEntity = await this.prisma.class.findUnique({
-      where: { id: bookDto.classId },
+    const classSchedule = await this.prisma.classSchedule.findUnique({
+      where: { id: bookDto.classScheduleId },
       select: { id: true, isActive: true },
     });
 
-    if (!classEntity) {
-      throw new NotFoundException(`Class with ID ${bookDto.classId} not found`);
+    if (!classSchedule) {
+      throw new NotFoundException(
+        `Class schedule with ID ${bookDto.classScheduleId} not found`,
+      );
     }
 
-    if (!classEntity.isActive) {
-      throw new BadRequestException('Class is not active');
+    if (!classSchedule.isActive) {
+      throw new BadRequestException('Class schedule is not active');
     }
 
-    // Check if member already has a booking for this class
     const existingBooking = await this.prisma.classBooking.findUnique({
       where: {
-        memberId_classId: {
+        memberId_classScheduleId: {
           memberId: bookDto.memberId,
-          classId: bookDto.classId,
+          classScheduleId: bookDto.classScheduleId,
         },
       },
     });
@@ -417,17 +421,14 @@ export class ClassesService {
       );
     }
 
-    // Check if class has available capacity
-    const hasCapacity = await this.hasCapacity(bookDto.classId);
+    const hasCapacity = await this.hasCapacity(bookDto.classScheduleId);
 
     if (!hasCapacity) {
       throw new ConflictException('Class is at full capacity');
     }
 
-    // Create or update booking
     let booking;
     if (existingBooking) {
-      // Reactivate cancelled booking
       booking = await this.prisma.classBooking.update({
         where: { id: existingBooking.id },
         data: {
@@ -435,24 +436,21 @@ export class ClassesService {
         },
       });
     } else {
-      // Create new booking
       booking = await this.prisma.classBooking.create({
         data: {
           memberId: bookDto.memberId,
-          classId: bookDto.classId,
+          classScheduleId: bookDto.classScheduleId,
           status: BookingStatus.CONFIRMED,
         },
       });
     }
 
-    // Invalidate cache when a booking is made (affects available slots)
     this.invalidateClassesCache();
 
     return this.toBookingResponseDto(booking);
   }
 
   async cancelBooking(bookingId: string, currentUser?: any): Promise<void> {
-    // Check if booking exists - only select needed fields
     const booking = await this.prisma.classBooking.findUnique({
       where: { id: bookingId },
       select: { id: true, status: true, member: { select: { userId: true } } },
@@ -466,15 +464,13 @@ export class ClassesService {
       throw new BadRequestException('Booking is already cancelled');
     }
 
-    // Authorization check - Members can only cancel their own bookings
     if (
-      currentUser?.role === Role.MEMBER &&
+      currentUser?.role === UserRole.MEMBER &&
       booking.member.userId !== currentUser.userId
     ) {
       throw new ForbiddenException('You can only cancel your own bookings');
     }
 
-    // Cancel the booking
     await this.prisma.classBooking.update({
       where: { id: bookingId },
       data: {
@@ -482,116 +478,62 @@ export class ClassesService {
       },
     });
 
-    // Invalidate cache when a booking is cancelled (affects available slots)
     this.invalidateClassesCache();
   }
 
-  async hasCapacity(classId: string): Promise<boolean> {
-    const classEntity = await this.prisma.class.findUnique({
-      where: { id: classId },
-      select: {
-        capacity: true,
+  async hasCapacity(classScheduleId: string): Promise<boolean> {
+    const classSchedule = await this.prisma.classSchedule.findUnique({
+      where: { id: classScheduleId },
+      include: {
+        class: { select: { maxCapacity: true } },
         bookings: {
-          where: {
-            status: BookingStatus.CONFIRMED,
-          },
-          select: {
-            id: true,
-          },
+          where: { status: BookingStatus.CONFIRMED },
+          select: { id: true },
         },
       },
     });
 
-    if (!classEntity) {
+    if (!classSchedule) {
       return false;
     }
 
-    const confirmedBookings = classEntity.bookings.length;
-    return confirmedBookings < classEntity.capacity;
+    const confirmedBookings = classSchedule.bookings.length;
+    return confirmedBookings < classSchedule.class.maxCapacity;
   }
 
   async hasScheduleConflict(
     trainerId: string,
-    schedule: Date,
-    duration: number,
-    excludeClassId?: string,
+    startTime: Date,
+    endTime: Date,
+    excludeScheduleId?: string,
   ): Promise<boolean> {
-    const classEndTime = new Date(schedule.getTime() + duration * 60000);
-
-    // Find overlapping classes for the trainer
-    const where: Prisma.ClassWhereInput = {
+    const where: Prisma.ClassScheduleWhereInput = {
       trainerId,
       isActive: true,
-      OR: [
-        // New class starts during existing class
-        {
-          AND: [
-            { schedule: { lte: schedule } },
-            {
-              schedule: {
-                gte: new Date(schedule.getTime() - 24 * 60 * 60000), // Look back 24 hours
-              },
-            },
-          ],
-        },
-        // New class ends during existing class
-        {
-          AND: [
-            { schedule: { lte: classEndTime } },
-            {
-              schedule: {
-                gte: schedule,
-              },
-            },
-          ],
-        },
-      ],
+      startTime: { lt: endTime },
+      endTime: { gt: startTime },
     };
 
-    if (excludeClassId) {
-      where.id = { not: excludeClassId };
+    if (excludeScheduleId) {
+      where.id = { not: excludeScheduleId };
     }
 
-    const overlappingClasses = await this.prisma.class.findMany({
+    const conflict = await this.prisma.classSchedule.findFirst({
       where,
+      select: { id: true },
     });
 
-    // Check for actual time overlap
-    for (const existingClass of overlappingClasses) {
-      const existingEnd = new Date(
-        existingClass.schedule.getTime() + existingClass.duration * 60000,
-      );
-
-      // Check if times overlap
-      if (
-        (schedule >= existingClass.schedule && schedule < existingEnd) ||
-        (classEndTime > existingClass.schedule &&
-          classEndTime <= existingEnd) ||
-        (schedule <= existingClass.schedule && classEndTime >= existingEnd)
-      ) {
-        return true;
-      }
-    }
-
-    return false;
+    return !!conflict;
   }
-
-  // Cache management methods
 
   /**
    * Invalidate all class schedules cache entries
    */
   private invalidateClassesCache(): void {
     try {
-      // Since cache-manager doesn't provide a direct way to delete by pattern,
-      // we'll need to track keys or use a simpler approach
-      // For now, we'll just log that cache will expire naturally
       this.logger.debug(
         'Class schedules cache will expire naturally after 15 minutes',
       );
-
-      // Note: In production, consider using Redis with pattern-based deletion
-      // or maintaining a list of cache keys to invalidate
     } catch (error) {
       this.logger.error(
         'Error invalidating classes cache',
@@ -600,29 +542,41 @@ export class ClassesService {
     }
   }
 
-  private toResponseDto(classEntity: any): ClassResponseDto {
-    const confirmedBookings = classEntity.bookings
-      ? classEntity.bookings.filter(
-          (b: any) => b.status === BookingStatus.CONFIRMED,
-        ).length
+  private getDayOfWeek(date: Date): string {
+    const dayNames = [
+      'Sunday',
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+    ];
+
+    return dayNames[date.getDay()];
+  }
+
+  private toResponseDto(classSchedule: any): ClassResponseDto {
+    const confirmedBookings = classSchedule.bookings
+      ? classSchedule.bookings.length
       : 0;
 
     return {
-      id: classEntity.id,
-      name: classEntity.name,
-      description: classEntity.description,
-      trainerId: classEntity.trainerId,
-      trainerName: classEntity.trainer
-        ? `${classEntity.trainer.firstName} ${classEntity.trainer.lastName}`
+      id: classSchedule.id,
+      name: classSchedule.class.name,
+      description: classSchedule.class.description,
+      trainerId: classSchedule.trainerId,
+      trainerName: classSchedule.trainer
+        ? `${classSchedule.trainer.user.firstName} ${classSchedule.trainer.user.lastName}`
         : undefined,
-      schedule: classEntity.schedule,
-      duration: classEntity.duration,
-      capacity: classEntity.capacity,
-      classType: classEntity.classType,
-      isActive: classEntity.isActive,
-      availableSlots: classEntity.capacity - confirmedBookings,
-      createdAt: classEntity.createdAt,
-      updatedAt: classEntity.updatedAt,
+      schedule: classSchedule.startTime,
+      duration: classSchedule.class.duration,
+      capacity: classSchedule.class.maxCapacity,
+      classType: classSchedule.class.category,
+      isActive: classSchedule.isActive,
+      availableSlots: classSchedule.class.maxCapacity - confirmedBookings,
+      createdAt: classSchedule.createdAt,
+      updatedAt: classSchedule.updatedAt,
     };
   }
 
@@ -630,9 +584,9 @@ export class ClassesService {
     return {
       id: booking.id,
       memberId: booking.memberId,
-      classId: booking.classId,
+      classScheduleId: booking.classScheduleId,
       status: booking.status,
-      createdAt: booking.createdAt,
+      createdAt: booking.bookedAt,
       updatedAt: booking.updatedAt,
     };
   }

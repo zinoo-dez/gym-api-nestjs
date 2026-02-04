@@ -1,0 +1,20 @@
+export enum MembershipStatus {
+  ACTIVE = 'ACTIVE',
+  INACTIVE = 'INACTIVE',
+  CANCELLED = 'CANCELLED',
+  EXPIRED = 'EXPIRED',
+  PENDING = 'PENDING',
+}
+
+export enum MembershipType {
+  MONTHLY = 'MONTHLY',
+  YEARLY = 'YEARLY',
+  LIFETIME = 'LIFETIME',
+}
+
+export enum WorkoutGoal {
+  WEIGHT_LOSS = 'WEIGHT_LOSS',
+  MUSCLE_GAIN = 'MUSCLE_GAIN',
+  ENDURANCE = 'ENDURANCE',
+  FLEXIBILITY = 'FLEXIBILITY',
+}

@@ -1,36 +1,47 @@
 'use client';
 
 import React from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
 
-interface FormTextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
-  label?: string;
-  error?: string;
-  helperText?: string;
-  fullWidth?: boolean;
+interface ModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  title: string;
+  children: React.ReactNode;
+  footer?: React.ReactNode;
+  size?: 'sm' | 'md' | 'lg' | 'xl';
 }
 
-export const FormTextarea = React.forwardRef<HTMLTextAreaElement, FormTextareaProps>(
-  ({ label, error, helperText, fullWidth = true, className, ...props }, ref) => {
-    return (
-      <div className={fullWidth ? 'w-full' : ''}>
-        {label && (
-          <label className="block text-sm font-medium text-foreground mb-2">
-            {label}
-            {props.required && <span className="text-destructive ml-1">*</span>}
-          </label>
-        )}
-        <textarea
-          ref={ref}
-          className={`w-full px-4 py-2.5 bg-card border border-border rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors resize-none ${
-            error ? 'border-destructive focus:ring-destructive/50' : ''
-          } ${className || ''}`}
-          {...props}
-        />
-        {error && <p className="text-destructive text-sm mt-1">{error}</p>}
-        {helperText && !error && <p className="text-muted-foreground text-sm mt-1">{helperText}</p>}
-      </div>
-    );
-  }
-);
+const sizeClasses = {
+  sm: 'sm:max-w-sm',
+  md: 'sm:max-w-md',
+  lg: 'sm:max-w-lg',
+  xl: 'sm:max-w-xl',
+};
 
-FormTextarea.displayName = 'FormTextarea';
+export const Modal: React.FC<ModalProps> = ({
+  isOpen,
+  onClose,
+  title,
+  children,
+  footer,
+  size = 'md',
+}) => {
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className={sizeClasses[size]}>
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+        </DialogHeader>
+        <div className="py-4">{children}</div>
+        {footer && <DialogFooter>{footer}</DialogFooter>}
+      </DialogContent>
+    </Dialog>
+  );
+};

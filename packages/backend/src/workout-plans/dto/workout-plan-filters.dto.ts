@@ -1,6 +1,6 @@
 import { IsOptional, IsUUID, IsEnum } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { WorkoutGoal } from '@prisma/client';
+import { WorkoutGoal } from '../../common/enums';
 import { PaginationDto } from '../../common/dto';
 
 export class WorkoutPlanFiltersDto extends PaginationDto {

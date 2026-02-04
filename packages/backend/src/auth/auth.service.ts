@@ -9,7 +9,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { LoginDto, RegisterDto } from './dto';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { UserResponse } from './interfaces/user-response.interface';
-import { Role } from '@prisma/client';
+import { UserRole } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -40,27 +40,27 @@ export class AuthService {
       data: {
         email: registerDto.email,
         password: hashedPassword,
+        firstName: registerDto.firstName,
+        lastName: registerDto.lastName,
         role: registerDto.role,
       },
     });
 
     // Create associated profile based on role
-    if (registerDto.role === Role.MEMBER) {
+    // Create associated profile based on role
+    if (registerDto.role === UserRole.MEMBER) {
       await this.prisma.member.create({
         data: {
           userId: user.id,
-          firstName: registerDto.firstName,
-          lastName: registerDto.lastName,
         },
       });
-    } else if (registerDto.role === Role.TRAINER) {
+    } else if (registerDto.role === UserRole.TRAINER) {
       await this.prisma.trainer.create({
         data: {
           userId: user.id,
-          firstName: registerDto.firstName,
-          lastName: registerDto.lastName,
-          specializations: [],
-          certifications: [],
+          specialization: 'General', // Default value as it is required string
+          experience: 0, // Default value
+          hourlyRate: 0, // Default value
         },
       });
     }
@@ -119,7 +119,7 @@ export class AuthService {
   private generateToken(user: {
     id: string;
     email: string;
-    role: Role;
+    role: UserRole;
   }): string {
     const payload: JwtPayload = {
       sub: user.id,
@@ -133,13 +133,17 @@ export class AuthService {
   private sanitizeUser(user: {
     id: string;
     email: string;
-    role: Role;
+    firstName: string;
+    lastName: string;
+    role: UserRole; // Using UserRole enum from schema
     createdAt: Date;
     updatedAt: Date;
   }): UserResponse {
     return {
       id: user.id,
       email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
       role: user.role,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
