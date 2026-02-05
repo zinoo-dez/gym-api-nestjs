@@ -1,9 +1,20 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { AdminLayout } from "@/layouts";
-import { PrimaryButton } from "@/components/gym";
+import { PrimaryButton, FormInput } from "@/components/gym";
+import { FormTextarea } from "@/components/gym/form-textarea";
+import { FormSelect } from "@/components/gym/form-select";
+import { FormModal } from "@/components/gym/form-modal";
+import { ConfirmationDialog } from "@/components/gym/confirmation-dialog";
 import { Badge } from "@/components/ui/badge";
-import { classesService, type ClassSchedule } from "@/services/classes.service";
+import {
+  classesService,
+  type ClassSchedule,
+  type CreateClassRequest,
+  type UpdateClassRequest,
+} from "@/services/classes.service";
+import { trainersService, type Trainer } from "@/services/trainers.service";
+import { toast } from "sonner";
 import {
   Plus,
   Search,
@@ -19,16 +30,45 @@ export default function AdminClassesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
   const [classes, setClasses] = useState<ClassSchedule[]>([]);
+  const [trainers, setTrainers] = useState<Trainer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [selectedClass, setSelectedClass] = useState<ClassSchedule | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [createForm, setCreateForm] = useState({
+    name: "",
+    description: "",
+    trainerId: "",
+    schedule: "",
+    duration: "",
+    capacity: "",
+    classType: "",
+  });
+  const [editForm, setEditForm] = useState({
+    name: "",
+    description: "",
+    trainerId: "",
+    schedule: "",
+    duration: "",
+    capacity: "",
+    classType: "",
+  });
 
   useEffect(() => {
     const loadClasses = async () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await classesService.getAll({ limit: 50 });
-        setClasses(Array.isArray(response.data) ? response.data : []);
+        const [classesResponse, trainersResponse] = await Promise.all([
+          classesService.getAll({ limit: 50 }),
+          trainersService.getAll({ limit: 200 }),
+        ]);
+        setClasses(Array.isArray(classesResponse.data) ? classesResponse.data : []);
+        setTrainers(Array.isArray(trainersResponse.data) ? trainersResponse.data : []);
       } catch (err) {
         console.error("Error loading classes:", err);
         setError("Failed to load classes.");
@@ -88,6 +128,126 @@ export default function AdminClassesPage() {
   const formatDate = (value: string) =>
     new Date(value).toLocaleDateString();
 
+  const toLocalInput = (value: string) => {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "";
+    const pad = (n: number) => n.toString().padStart(2, "0");
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(
+      date.getHours(),
+    )}:${pad(date.getMinutes())}`;
+  };
+
+  const openCreate = () => {
+    setCreateForm({
+      name: "",
+      description: "",
+      trainerId: trainers[0]?.id || "",
+      schedule: "",
+      duration: "",
+      capacity: "",
+      classType: "",
+    });
+    setIsCreateOpen(true);
+  };
+
+  const openEdit = (cls: ClassSchedule) => {
+    setSelectedClass(cls);
+    setEditForm({
+      name: cls.name,
+      description: cls.description || "",
+      trainerId: cls.trainerId || "",
+      schedule: toLocalInput(cls.schedule),
+      duration: cls.duration.toString(),
+      capacity: cls.capacity.toString(),
+      classType: cls.classType,
+    });
+    setIsEditOpen(true);
+  };
+
+  const openDelete = (cls: ClassSchedule) => {
+    setSelectedClass(cls);
+    setIsDeleteOpen(true);
+  };
+
+  const handleCreate = async () => {
+    setIsSaving(true);
+    try {
+      const payload: CreateClassRequest = {
+        name: createForm.name.trim(),
+        description: createForm.description.trim() || undefined,
+        trainerId: createForm.trainerId,
+        schedule: new Date(createForm.schedule).toISOString(),
+        duration: Number(createForm.duration),
+        capacity: Number(createForm.capacity),
+        classType: createForm.classType.trim(),
+      };
+      const created = await classesService.create(payload);
+      setClasses((prev) => [created, ...prev]);
+      setIsCreateOpen(false);
+      toast.success("Class created successfully");
+    } catch (err: any) {
+      const message = err?.response?.data?.message || "Failed to create class.";
+      toast.error(message);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleUpdate = async () => {
+    if (!selectedClass) return;
+    setIsSaving(true);
+    try {
+      const payload: UpdateClassRequest = {
+        name: editForm.name.trim(),
+        description: editForm.description.trim() || undefined,
+        trainerId: editForm.trainerId,
+        schedule: editForm.schedule
+          ? new Date(editForm.schedule).toISOString()
+          : undefined,
+        duration: editForm.duration ? Number(editForm.duration) : undefined,
+        capacity: editForm.capacity ? Number(editForm.capacity) : undefined,
+        classType: editForm.classType.trim(),
+      };
+      const updated = await classesService.update(selectedClass.id, payload);
+      setClasses((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
+      setIsEditOpen(false);
+      setSelectedClass(null);
+      toast.success("Class updated successfully");
+    } catch (err: any) {
+      const message = err?.response?.data?.message || "Failed to update class.";
+      toast.error(message);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!selectedClass) return;
+    setIsDeleting(true);
+    try {
+      await classesService.deactivate(selectedClass.id);
+      setClasses((prev) =>
+        prev.map((c) => (c.id === selectedClass.id ? { ...c, isActive: false } : c)),
+      );
+      setIsDeleteOpen(false);
+      setSelectedClass(null);
+      toast.success("Class deactivated");
+    } catch (err: any) {
+      const message = err?.response?.data?.message || "Failed to deactivate class.";
+      toast.error(message);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const trainerOptions = [
+    { label: "Select trainer", value: "" },
+    ...trainers.map((trainer) => ({
+      label: `${trainer.firstName} ${trainer.lastName}`,
+      value: trainer.id,
+    })),
+  ];
+
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -101,7 +261,7 @@ export default function AdminClassesPage() {
               Manage gym classes and schedules
             </p>
           </div>
-          <PrimaryButton>
+          <PrimaryButton onClick={openCreate}>
             <Plus className="mr-2 h-4 w-4" />
             Add New Class
           </PrimaryButton>
@@ -301,6 +461,7 @@ export default function AdminClassesPage() {
                           type="button"
                           className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                           aria-label="Edit class"
+                          onClick={() => openEdit(cls)}
                         >
                           <Edit className="h-4 w-4" />
                         </button>
@@ -308,6 +469,7 @@ export default function AdminClassesPage() {
                           type="button"
                           className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
                           aria-label="Delete class"
+                          onClick={() => openDelete(cls)}
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
@@ -320,6 +482,141 @@ export default function AdminClassesPage() {
           </div>
         </div>
       </div>
+
+      <FormModal
+        isOpen={isCreateOpen}
+        onClose={() => setIsCreateOpen(false)}
+        title="Add New Class"
+        onSubmit={handleCreate}
+        submitText="Create Class"
+        isLoading={isSaving}
+      >
+        <FormInput
+          label="Class Name"
+          name="name"
+          value={createForm.name}
+          onChange={(e) => setCreateForm((prev) => ({ ...prev, name: e.target.value }))}
+          required
+        />
+        <FormTextarea
+          label="Description"
+          name="description"
+          value={createForm.description}
+          onChange={(e) => setCreateForm((prev) => ({ ...prev, description: e.target.value }))}
+          rows={3}
+        />
+        <FormSelect
+          label="Trainer"
+          value={createForm.trainerId}
+          onChange={(e) => setCreateForm((prev) => ({ ...prev, trainerId: e.target.value }))}
+          options={trainerOptions}
+          required
+        />
+        <FormInput
+          label="Schedule"
+          type="datetime-local"
+          name="schedule"
+          value={createForm.schedule}
+          onChange={(e) => setCreateForm((prev) => ({ ...prev, schedule: e.target.value }))}
+          required
+        />
+        <FormInput
+          label="Duration (minutes)"
+          type="number"
+          name="duration"
+          value={createForm.duration}
+          onChange={(e) => setCreateForm((prev) => ({ ...prev, duration: e.target.value }))}
+          min={15}
+          required
+        />
+        <FormInput
+          label="Capacity"
+          type="number"
+          name="capacity"
+          value={createForm.capacity}
+          onChange={(e) => setCreateForm((prev) => ({ ...prev, capacity: e.target.value }))}
+          min={1}
+          required
+        />
+        <FormInput
+          label="Class Type"
+          name="classType"
+          value={createForm.classType}
+          onChange={(e) => setCreateForm((prev) => ({ ...prev, classType: e.target.value }))}
+          required
+        />
+      </FormModal>
+
+      <FormModal
+        isOpen={isEditOpen}
+        onClose={() => setIsEditOpen(false)}
+        title="Edit Class"
+        onSubmit={handleUpdate}
+        submitText="Save Changes"
+        isLoading={isSaving}
+      >
+        <FormInput
+          label="Class Name"
+          name="name"
+          value={editForm.name}
+          onChange={(e) => setEditForm((prev) => ({ ...prev, name: e.target.value }))}
+          required
+        />
+        <FormTextarea
+          label="Description"
+          name="description"
+          value={editForm.description}
+          onChange={(e) => setEditForm((prev) => ({ ...prev, description: e.target.value }))}
+          rows={3}
+        />
+        <FormSelect
+          label="Trainer"
+          value={editForm.trainerId}
+          onChange={(e) => setEditForm((prev) => ({ ...prev, trainerId: e.target.value }))}
+          options={trainerOptions}
+          required
+        />
+        <FormInput
+          label="Schedule"
+          type="datetime-local"
+          name="schedule"
+          value={editForm.schedule}
+          onChange={(e) => setEditForm((prev) => ({ ...prev, schedule: e.target.value }))}
+        />
+        <FormInput
+          label="Duration (minutes)"
+          type="number"
+          name="duration"
+          value={editForm.duration}
+          onChange={(e) => setEditForm((prev) => ({ ...prev, duration: e.target.value }))}
+          min={15}
+        />
+        <FormInput
+          label="Capacity"
+          type="number"
+          name="capacity"
+          value={editForm.capacity}
+          onChange={(e) => setEditForm((prev) => ({ ...prev, capacity: e.target.value }))}
+          min={1}
+        />
+        <FormInput
+          label="Class Type"
+          name="classType"
+          value={editForm.classType}
+          onChange={(e) => setEditForm((prev) => ({ ...prev, classType: e.target.value }))}
+        />
+      </FormModal>
+
+      <ConfirmationDialog
+        isOpen={isDeleteOpen}
+        title="Deactivate Class"
+        description="This will deactivate the class schedule. You can re-activate later from the backend."
+        confirmText="Deactivate"
+        type="danger"
+        onCancel={() => setIsDeleteOpen(false)}
+        onConfirm={handleDelete}
+        isLoading={isDeleting}
+      />
     </AdminLayout>
   );
 }

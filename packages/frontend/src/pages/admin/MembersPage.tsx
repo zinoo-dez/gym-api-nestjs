@@ -1,10 +1,13 @@
 
 import * as React from "react"
 import { AdminLayout } from "../../layouts"
-import { PrimaryButton, SecondaryButton } from "@/components/gym"
+import { PrimaryButton, SecondaryButton, FormInput } from "@/components/gym"
 import { cn } from "@/lib/utils"
-import { membersService, type Member } from "@/services/members.service"
+import { membersService, type Member, type CreateMemberRequest, type UpdateMemberRequest } from "@/services/members.service"
 import { membershipsService, type MembershipPlan } from "@/services/memberships.service"
+import { FormModal } from "@/components/gym/form-modal"
+import { ConfirmationDialog } from "@/components/gym/confirmation-dialog"
+import { toast } from "sonner"
 
 export default function AdminMembersPage() {
   const [members, setMembers] = React.useState<Member[]>([])
@@ -14,6 +17,26 @@ export default function AdminMembersPage() {
   const [searchQuery, setSearchQuery] = React.useState("")
   const [statusFilter, setStatusFilter] = React.useState("all")
   const [planFilter, setPlanFilter] = React.useState("all")
+  const [isCreateOpen, setIsCreateOpen] = React.useState(false)
+  const [isEditOpen, setIsEditOpen] = React.useState(false)
+  const [isDeleteOpen, setIsDeleteOpen] = React.useState(false)
+  const [selectedMember, setSelectedMember] = React.useState<Member | null>(null)
+  const [isSaving, setIsSaving] = React.useState(false)
+  const [isDeleting, setIsDeleting] = React.useState(false)
+  const [createForm, setCreateForm] = React.useState<CreateMemberRequest>({
+    email: "",
+    password: "",
+    firstName: "",
+    lastName: "",
+    phone: "",
+    dateOfBirth: "",
+  })
+  const [editForm, setEditForm] = React.useState<UpdateMemberRequest>({
+    firstName: "",
+    lastName: "",
+    phone: "",
+    dateOfBirth: "",
+  })
 
   React.useEffect(() => {
     const loadData = async () => {
@@ -51,6 +74,99 @@ export default function AdminMembersPage() {
     return matchesSearch && matchesStatus
   })
 
+  const openCreate = () => {
+    setCreateForm({
+      email: "",
+      password: "",
+      firstName: "",
+      lastName: "",
+      phone: "",
+      dateOfBirth: "",
+    })
+    setIsCreateOpen(true)
+  }
+
+  const openEdit = (member: Member) => {
+    setSelectedMember(member)
+    setEditForm({
+      firstName: member.firstName,
+      lastName: member.lastName,
+      phone: member.phone || "",
+      dateOfBirth: member.dateOfBirth
+        ? new Date(member.dateOfBirth).toISOString().split("T")[0]
+        : "",
+    })
+    setIsEditOpen(true)
+  }
+
+  const openDelete = (member: Member) => {
+    setSelectedMember(member)
+    setIsDeleteOpen(true)
+  }
+
+  const handleCreate = async () => {
+    setIsSaving(true)
+    try {
+      const payload: CreateMemberRequest = {
+        ...createForm,
+        phone: createForm.phone?.trim() || undefined,
+        dateOfBirth: createForm.dateOfBirth || undefined,
+      }
+      const created = await membersService.create(payload)
+      setMembers((prev) => [created, ...prev])
+      setIsCreateOpen(false)
+      toast.success("Member created successfully")
+    } catch (err: any) {
+      const message = err?.response?.data?.message || "Failed to create member."
+      toast.error(message)
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const handleUpdate = async () => {
+    if (!selectedMember) return
+    setIsSaving(true)
+    try {
+      const payload: UpdateMemberRequest = {
+        ...editForm,
+        phone: editForm.phone?.trim() || undefined,
+        dateOfBirth: editForm.dateOfBirth || undefined,
+      }
+      const updated = await membersService.update(selectedMember.id, payload)
+      setMembers((prev) => prev.map((m) => (m.id === updated.id ? updated : m)))
+      setIsEditOpen(false)
+      setSelectedMember(null)
+      toast.success("Member updated successfully")
+    } catch (err: any) {
+      const message = err?.response?.data?.message || "Failed to update member."
+      toast.error(message)
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!selectedMember) return
+    setIsDeleting(true)
+    try {
+      await membersService.deactivate(selectedMember.id)
+      setMembers((prev) =>
+        prev.map((m) =>
+          m.id === selectedMember.id ? { ...m, isActive: false } : m,
+        ),
+      )
+      toast.success("Member deactivated")
+      setIsDeleteOpen(false)
+      setSelectedMember(null)
+    } catch (err: any) {
+      const message = err?.response?.data?.message || "Failed to deactivate member."
+      toast.error(message)
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -60,7 +176,7 @@ export default function AdminMembersPage() {
             <h1 className="text-2xl font-bold text-foreground">Members Management</h1>
             <p className="text-muted-foreground">Manage all gym members and their memberships.</p>
           </div>
-          <PrimaryButton>
+          <PrimaryButton onClick={openCreate}>
             <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
             </svg>
@@ -215,12 +331,20 @@ export default function AdminMembersPage() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                           </svg>
                         </button>
-                        <button className="p-2 text-muted-foreground hover:text-foreground transition-colors" title="Edit">
+                        <button
+                          className="p-2 text-muted-foreground hover:text-foreground transition-colors"
+                          title="Edit"
+                          onClick={() => openEdit(member)}
+                        >
                           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                           </svg>
                         </button>
-                        <button className="p-2 text-muted-foreground hover:text-destructive transition-colors" title="Delete">
+                        <button
+                          className="p-2 text-muted-foreground hover:text-destructive transition-colors"
+                          title="Deactivate"
+                          onClick={() => openDelete(member)}
+                        >
                           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                           </svg>
@@ -252,6 +376,113 @@ export default function AdminMembersPage() {
           </div>
         </div>
       </div>
+
+      <FormModal
+        isOpen={isCreateOpen}
+        onClose={() => setIsCreateOpen(false)}
+        title="Add New Member"
+        onSubmit={handleCreate}
+        submitText="Create Member"
+        isLoading={isSaving}
+      >
+        <FormInput
+          label="First Name"
+          name="firstName"
+          value={createForm.firstName}
+          onChange={(e) => setCreateForm((prev) => ({ ...prev, firstName: e.target.value }))}
+          required
+        />
+        <FormInput
+          label="Last Name"
+          name="lastName"
+          value={createForm.lastName}
+          onChange={(e) => setCreateForm((prev) => ({ ...prev, lastName: e.target.value }))}
+          required
+        />
+        <FormInput
+          label="Email"
+          type="email"
+          name="email"
+          value={createForm.email}
+          onChange={(e) => setCreateForm((prev) => ({ ...prev, email: e.target.value }))}
+          required
+        />
+        <FormInput
+          label="Password"
+          type="password"
+          name="password"
+          value={createForm.password}
+          onChange={(e) => setCreateForm((prev) => ({ ...prev, password: e.target.value }))}
+          required
+        />
+        <FormInput
+          label="Phone"
+          name="phone"
+          value={createForm.phone}
+          onChange={(e) => setCreateForm((prev) => ({ ...prev, phone: e.target.value }))}
+          placeholder="+1 (555) 000-0000"
+          required={false}
+        />
+        <FormInput
+          label="Date of Birth"
+          type="date"
+          name="dateOfBirth"
+          value={createForm.dateOfBirth}
+          onChange={(e) => setCreateForm((prev) => ({ ...prev, dateOfBirth: e.target.value }))}
+          required={false}
+        />
+      </FormModal>
+
+      <FormModal
+        isOpen={isEditOpen}
+        onClose={() => setIsEditOpen(false)}
+        title="Edit Member"
+        onSubmit={handleUpdate}
+        submitText="Save Changes"
+        isLoading={isSaving}
+      >
+        <FormInput
+          label="First Name"
+          name="firstName"
+          value={editForm.firstName || ""}
+          onChange={(e) => setEditForm((prev) => ({ ...prev, firstName: e.target.value }))}
+          required
+        />
+        <FormInput
+          label="Last Name"
+          name="lastName"
+          value={editForm.lastName || ""}
+          onChange={(e) => setEditForm((prev) => ({ ...prev, lastName: e.target.value }))}
+          required
+        />
+        <FormInput
+          label="Phone"
+          name="phone"
+          value={editForm.phone || ""}
+          onChange={(e) => setEditForm((prev) => ({ ...prev, phone: e.target.value }))}
+          placeholder="+1 (555) 000-0000"
+          required={false}
+        />
+        <FormInput
+          label="Date of Birth"
+          type="date"
+          name="dateOfBirth"
+          value={editForm.dateOfBirth || ""}
+          onChange={(e) => setEditForm((prev) => ({ ...prev, dateOfBirth: e.target.value }))}
+          required={false}
+        />
+      </FormModal>
+
+      <ConfirmationDialog
+        isOpen={isDeleteOpen}
+        title="Deactivate Member"
+        description="This will deactivate the member account. You can re-activate later from the backend."
+        confirmText="Deactivate"
+        type="danger"
+        onCancel={() => setIsDeleteOpen(false)}
+        onConfirm={handleDelete}
+        isLoading={isDeleting}
+      />
     </AdminLayout>
   )
 }

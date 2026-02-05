@@ -1,9 +1,18 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { AdminLayout } from "@/layouts";
-import { PrimaryButton } from "@/components/gym";
+import { PrimaryButton, FormInput, FormCheckbox } from "@/components/gym";
+import { FormTextarea } from "@/components/gym/form-textarea";
+import { FormModal } from "@/components/gym/form-modal";
+import { ConfirmationDialog } from "@/components/gym/confirmation-dialog";
 import { Badge } from "@/components/ui/badge";
-import { membershipsService, type MembershipPlan } from "@/services/memberships.service";
+import {
+  membershipsService,
+  type MembershipPlan,
+  type CreateMembershipPlanRequest,
+  type UpdateMembershipPlanRequest,
+} from "@/services/memberships.service";
+import { toast } from "sonner";
 import {
   Plus,
   Search,
@@ -13,7 +22,6 @@ import {
   Users,
   TrendingUp,
   Check,
-  X,
 } from "lucide-react";
 
 export default function AdminPlansPage() {
@@ -21,6 +29,34 @@ export default function AdminPlansPage() {
   const [plans, setPlans] = useState<MembershipPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<MembershipPlan | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [createForm, setCreateForm] = useState({
+    name: "",
+    description: "",
+    durationDays: "",
+    price: "",
+    unlimitedClasses: false,
+    personalTrainingHours: "",
+    accessToEquipment: true,
+    accessToLocker: false,
+    nutritionConsultation: false,
+  });
+  const [editForm, setEditForm] = useState({
+    name: "",
+    description: "",
+    durationDays: "",
+    price: "",
+    unlimitedClasses: false,
+    personalTrainingHours: "",
+    accessToEquipment: true,
+    accessToLocker: false,
+    nutritionConsultation: false,
+  });
 
   useEffect(() => {
     const loadPlans = async () => {
@@ -59,6 +95,119 @@ export default function AdminPlansPage() {
     </Badge>
   );
 
+  const openCreate = () => {
+    setCreateForm({
+      name: "",
+      description: "",
+      durationDays: "",
+      price: "",
+      unlimitedClasses: false,
+      personalTrainingHours: "",
+      accessToEquipment: true,
+      accessToLocker: false,
+      nutritionConsultation: false,
+    });
+    setIsCreateOpen(true);
+  };
+
+  const openEdit = (plan: MembershipPlan) => {
+    setSelectedPlan(plan);
+    setEditForm({
+      name: plan.name,
+      description: plan.description || "",
+      durationDays: plan.durationDays.toString(),
+      price: plan.price.toString(),
+      unlimitedClasses: plan.unlimitedClasses,
+      personalTrainingHours: plan.personalTrainingHours.toString(),
+      accessToEquipment: plan.accessToEquipment,
+      accessToLocker: plan.accessToLocker,
+      nutritionConsultation: plan.nutritionConsultation,
+    });
+    setIsEditOpen(true);
+  };
+
+  const openDelete = (plan: MembershipPlan) => {
+    setSelectedPlan(plan);
+    setIsDeleteOpen(true);
+  };
+
+  const handleCreate = async () => {
+    setIsSaving(true);
+    try {
+      const payload: CreateMembershipPlanRequest = {
+        name: createForm.name.trim(),
+        description: createForm.description.trim() || undefined,
+        durationDays: Number(createForm.durationDays),
+        price: Number(createForm.price),
+        unlimitedClasses: createForm.unlimitedClasses,
+        personalTrainingHours: createForm.personalTrainingHours
+          ? Number(createForm.personalTrainingHours)
+          : 0,
+        accessToEquipment: createForm.accessToEquipment,
+        accessToLocker: createForm.accessToLocker,
+        nutritionConsultation: createForm.nutritionConsultation,
+      };
+      const created = await membershipsService.createPlan(payload);
+      setPlans((prev) => [created, ...prev]);
+      setIsCreateOpen(false);
+      toast.success("Plan created successfully");
+    } catch (err: any) {
+      const message = err?.response?.data?.message || "Failed to create plan.";
+      toast.error(message);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleUpdate = async () => {
+    if (!selectedPlan) return;
+    setIsSaving(true);
+    try {
+      const payload: UpdateMembershipPlanRequest = {
+        name: editForm.name.trim(),
+        description: editForm.description.trim() || undefined,
+        durationDays: editForm.durationDays
+          ? Number(editForm.durationDays)
+          : undefined,
+        price: editForm.price ? Number(editForm.price) : undefined,
+        unlimitedClasses: editForm.unlimitedClasses,
+        personalTrainingHours: editForm.personalTrainingHours
+          ? Number(editForm.personalTrainingHours)
+          : undefined,
+        accessToEquipment: editForm.accessToEquipment,
+        accessToLocker: editForm.accessToLocker,
+        nutritionConsultation: editForm.nutritionConsultation,
+      };
+      const updated = await membershipsService.updatePlan(selectedPlan.id, payload);
+      setPlans((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
+      setIsEditOpen(false);
+      setSelectedPlan(null);
+      toast.success("Plan updated successfully");
+    } catch (err: any) {
+      const message = err?.response?.data?.message || "Failed to update plan.";
+      toast.error(message);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!selectedPlan) return;
+    setIsDeleting(true);
+    try {
+      await membershipsService.deletePlan(selectedPlan.id);
+      setPlans((prev) => prev.filter((plan) => plan.id !== selectedPlan.id));
+      setIsDeleteOpen(false);
+      setSelectedPlan(null);
+      toast.success("Plan deleted");
+    } catch (err: any) {
+      const message = err?.response?.data?.message || "Failed to delete plan.";
+      toast.error(message);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -72,7 +221,7 @@ export default function AdminPlansPage() {
               Manage pricing plans and subscriptions
             </p>
           </div>
-          <PrimaryButton>
+          <PrimaryButton onClick={openCreate}>
             <Plus className="mr-2 h-4 w-4" />
             Create New Plan
           </PrimaryButton>
@@ -221,6 +370,7 @@ export default function AdminPlansPage() {
                     type="button"
                     className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                     aria-label="Edit plan"
+                    onClick={() => openEdit(plan)}
                   >
                     <Edit className="h-4 w-4" />
                   </button>
@@ -228,6 +378,7 @@ export default function AdminPlansPage() {
                     type="button"
                     className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
                     aria-label="Delete plan"
+                    onClick={() => openDelete(plan)}
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -237,6 +388,161 @@ export default function AdminPlansPage() {
           )))}
         </div>
       </div>
+
+      <FormModal
+        isOpen={isCreateOpen}
+        onClose={() => setIsCreateOpen(false)}
+        title="Create Membership Plan"
+        onSubmit={handleCreate}
+        submitText="Create Plan"
+        isLoading={isSaving}
+      >
+        <FormInput
+          label="Plan Name"
+          name="name"
+          value={createForm.name}
+          onChange={(e) => setCreateForm((prev) => ({ ...prev, name: e.target.value }))}
+          required
+        />
+        <FormTextarea
+          label="Description"
+          name="description"
+          value={createForm.description}
+          onChange={(e) => setCreateForm((prev) => ({ ...prev, description: e.target.value }))}
+          rows={3}
+        />
+        <FormInput
+          label="Duration (days)"
+          type="number"
+          name="durationDays"
+          value={createForm.durationDays}
+          onChange={(e) => setCreateForm((prev) => ({ ...prev, durationDays: e.target.value }))}
+          min={1}
+          required
+        />
+        <FormInput
+          label="Price (monthly)"
+          type="number"
+          name="price"
+          value={createForm.price}
+          onChange={(e) => setCreateForm((prev) => ({ ...prev, price: e.target.value }))}
+          min={0}
+          step="0.01"
+          required
+        />
+        <FormInput
+          label="Personal Training Hours"
+          type="number"
+          name="personalTrainingHours"
+          value={createForm.personalTrainingHours}
+          onChange={(e) => setCreateForm((prev) => ({ ...prev, personalTrainingHours: e.target.value }))}
+          min={0}
+        />
+        <div className="grid gap-2">
+          <FormCheckbox
+            label="Unlimited Classes"
+            checked={createForm.unlimitedClasses}
+            onChange={(e) => setCreateForm((prev) => ({ ...prev, unlimitedClasses: e.target.checked }))}
+          />
+          <FormCheckbox
+            label="Access to Equipment"
+            checked={createForm.accessToEquipment}
+            onChange={(e) => setCreateForm((prev) => ({ ...prev, accessToEquipment: e.target.checked }))}
+          />
+          <FormCheckbox
+            label="Locker Access"
+            checked={createForm.accessToLocker}
+            onChange={(e) => setCreateForm((prev) => ({ ...prev, accessToLocker: e.target.checked }))}
+          />
+          <FormCheckbox
+            label="Nutrition Consultation"
+            checked={createForm.nutritionConsultation}
+            onChange={(e) => setCreateForm((prev) => ({ ...prev, nutritionConsultation: e.target.checked }))}
+          />
+        </div>
+      </FormModal>
+
+      <FormModal
+        isOpen={isEditOpen}
+        onClose={() => setIsEditOpen(false)}
+        title="Edit Membership Plan"
+        onSubmit={handleUpdate}
+        submitText="Save Changes"
+        isLoading={isSaving}
+      >
+        <FormInput
+          label="Plan Name"
+          name="name"
+          value={editForm.name}
+          onChange={(e) => setEditForm((prev) => ({ ...prev, name: e.target.value }))}
+          required
+        />
+        <FormTextarea
+          label="Description"
+          name="description"
+          value={editForm.description}
+          onChange={(e) => setEditForm((prev) => ({ ...prev, description: e.target.value }))}
+          rows={3}
+        />
+        <FormInput
+          label="Duration (days)"
+          type="number"
+          name="durationDays"
+          value={editForm.durationDays}
+          onChange={(e) => setEditForm((prev) => ({ ...prev, durationDays: e.target.value }))}
+          min={1}
+        />
+        <FormInput
+          label="Price (monthly)"
+          type="number"
+          name="price"
+          value={editForm.price}
+          onChange={(e) => setEditForm((prev) => ({ ...prev, price: e.target.value }))}
+          min={0}
+          step="0.01"
+        />
+        <FormInput
+          label="Personal Training Hours"
+          type="number"
+          name="personalTrainingHours"
+          value={editForm.personalTrainingHours}
+          onChange={(e) => setEditForm((prev) => ({ ...prev, personalTrainingHours: e.target.value }))}
+          min={0}
+        />
+        <div className="grid gap-2">
+          <FormCheckbox
+            label="Unlimited Classes"
+            checked={editForm.unlimitedClasses}
+            onChange={(e) => setEditForm((prev) => ({ ...prev, unlimitedClasses: e.target.checked }))}
+          />
+          <FormCheckbox
+            label="Access to Equipment"
+            checked={editForm.accessToEquipment}
+            onChange={(e) => setEditForm((prev) => ({ ...prev, accessToEquipment: e.target.checked }))}
+          />
+          <FormCheckbox
+            label="Locker Access"
+            checked={editForm.accessToLocker}
+            onChange={(e) => setEditForm((prev) => ({ ...prev, accessToLocker: e.target.checked }))}
+          />
+          <FormCheckbox
+            label="Nutrition Consultation"
+            checked={editForm.nutritionConsultation}
+            onChange={(e) => setEditForm((prev) => ({ ...prev, nutritionConsultation: e.target.checked }))}
+          />
+        </div>
+      </FormModal>
+
+      <ConfirmationDialog
+        isOpen={isDeleteOpen}
+        title="Delete Plan"
+        description="This will delete the plan permanently. Plans with active subscriptions cannot be deleted."
+        confirmText="Delete"
+        type="danger"
+        onCancel={() => setIsDeleteOpen(false)}
+        onConfirm={handleDelete}
+        isLoading={isDeleting}
+      />
     </AdminLayout>
   );
 }

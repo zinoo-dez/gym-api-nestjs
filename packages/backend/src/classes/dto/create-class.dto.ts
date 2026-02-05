@@ -1,6 +1,5 @@
 import {
   IsString,
-  IsUUID,
   IsDateString,
   IsInt,
   Min,
@@ -16,7 +15,7 @@ export class CreateClassDto {
   @IsString({ message: 'Description must be a string' })
   description?: string;
 
-  @IsUUID('4', { message: 'Trainer ID must be a valid UUID' })
+  @IsString({ message: 'Trainer ID must be a string' })
   trainerId!: string;
 
   @IsDateString({}, { message: 'Schedule must be a valid ISO 8601 date' })

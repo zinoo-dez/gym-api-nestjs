@@ -2,10 +2,12 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { UserRole } from '@prisma/client';
 import { ChangeRoleDto } from './dto/change-role.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -195,5 +197,55 @@ export class UsersService {
     });
 
     return { message: 'User deleted successfully' };
+  }
+
+  async updateUser(
+    userId: string,
+    updateUserDto: UpdateUserDto,
+    requestingUserRole: UserRole,
+  ) {
+    if (requestingUserRole !== UserRole.ADMIN &&
+        requestingUserRole !== UserRole.MEMBER &&
+        requestingUserRole !== UserRole.TRAINER) {
+      throw new ForbiddenException('Not authorized to update user');
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (updateUserDto.email && updateUserDto.email !== user.email) {
+      const emailExists = await this.prisma.user.findUnique({
+        where: { email: updateUserDto.email },
+        select: { id: true },
+      });
+      if (emailExists && emailExists.id !== userId) {
+        throw new ConflictException('Email already in use');
+      }
+    }
+
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        email: updateUserDto.email,
+        firstName: updateUserDto.firstName,
+        lastName: updateUserDto.lastName,
+        phone: updateUserDto.phone,
+      },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        phone: true,
+        role: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
   }
 }

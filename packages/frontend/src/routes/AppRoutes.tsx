@@ -25,6 +25,7 @@ import AdminAttendancePage from '../pages/admin/AttendancePage';
 import ReportsPage from '../pages/admin/ReportsPage';
 import SettingsPage from '../pages/admin/SettingsPage';
 import AdminWorkoutPlansPage from '../pages/admin/WorkoutPlansPage';
+import AdminProfilePage from '../pages/admin/ProfilePage';
 
 // Member Pages
 import MemberDashboardPage from '../pages/member/MemberDashboardPage';
@@ -60,6 +61,7 @@ const AppRoutes = () => {
       <Route path="/admin/workoutplans" element={<Navigate to="/admin/workout-plans" replace />} />
       <Route path="/admin/reports" element={<ProtectedRoute allowedRoles={['ADMIN', 'SUPERADMIN']}><ReportsPage /></ProtectedRoute>} />
       <Route path="/admin/settings" element={<ProtectedRoute allowedRoles={['ADMIN', 'SUPERADMIN']}><SettingsPage /></ProtectedRoute>} />
+      <Route path="/admin/profile" element={<ProtectedRoute allowedRoles={['ADMIN', 'SUPERADMIN']}><AdminProfilePage /></ProtectedRoute>} />
 
       {/* Member Routes - Protected */}
       <Route path="/member" element={<ProtectedRoute allowedRoles={['MEMBER']}><MemberDashboardPage /></ProtectedRoute>} />

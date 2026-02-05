@@ -7,6 +7,7 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   setAuth: (data: AuthResponse) => void;
+  setUser: (user: AuthResponse["user"]) => void;
   clearAuth: () => void;
   initAuth: () => void;
 }
@@ -25,6 +26,15 @@ export const useAuthStore = create<AuthState>((set) => ({
       isAuthenticated: true,
       isLoading: false,
     });
+  },
+
+  setUser: (user: AuthResponse["user"]) => {
+    const token = authService.getStoredToken();
+    authService.storeAuth({
+      accessToken: token || "",
+      user,
+    });
+    set({ user });
   },
 
   clearAuth: () => {

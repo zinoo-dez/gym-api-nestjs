@@ -16,6 +16,30 @@ export interface MembershipPlan {
     updatedAt: string;
 }
 
+export interface CreateMembershipPlanRequest {
+    name: string;
+    description?: string;
+    durationDays: number;
+    price: number;
+    unlimitedClasses?: boolean;
+    personalTrainingHours?: number;
+    accessToEquipment?: boolean;
+    accessToLocker?: boolean;
+    nutritionConsultation?: boolean;
+}
+
+export interface UpdateMembershipPlanRequest {
+    name?: string;
+    description?: string;
+    durationDays?: number;
+    price?: number;
+    unlimitedClasses?: boolean;
+    personalTrainingHours?: number;
+    accessToEquipment?: boolean;
+    accessToLocker?: boolean;
+    nutritionConsultation?: boolean;
+}
+
 interface MembershipPlanApi {
     id: string;
     name: string;
@@ -69,6 +93,31 @@ export const membershipsService = {
         );
         const payload = response.data.data ?? response.data;
         return normalizePlan(payload);
+    },
+
+    async createPlan(data: CreateMembershipPlanRequest) {
+        const response = await apiClient.post<ApiResponse<MembershipPlanApi>>(
+            "/membership-plans",
+            data,
+        );
+        const payload = response.data.data ?? response.data;
+        return normalizePlan(payload);
+    },
+
+    async updatePlan(id: string, data: UpdateMembershipPlanRequest) {
+        const response = await apiClient.patch<ApiResponse<MembershipPlanApi>>(
+            `/membership-plans/${id}`,
+            data,
+        );
+        const payload = response.data.data ?? response.data;
+        return normalizePlan(payload);
+    },
+
+    async deletePlan(id: string) {
+        const response = await apiClient.delete<ApiResponse<{ message: string }>>(
+            `/membership-plans/${id}`,
+        );
+        return response.data.data ?? response.data;
     },
 };
 

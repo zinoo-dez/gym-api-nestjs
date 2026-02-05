@@ -15,7 +15,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { UserRole } from '@prisma/client';
-import { ChangeRoleDto } from './dto';
+import { ChangeRoleDto, UpdateUserDto } from './dto';
 
 @Controller('users')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -49,6 +49,22 @@ export class UsersController {
     @Request() req: any,
   ) {
     return this.usersService.changeUserRole(id, changeRoleDto, req.user.role);
+  }
+
+  @Patch(':id')
+  @Roles(UserRole.ADMIN, UserRole.TRAINER, UserRole.MEMBER)
+  async updateUser(
+    @Param('id') id: string,
+    @Body() updateUserDto: UpdateUserDto,
+    @CurrentUser() user: any,
+  ) {
+    if (
+      (user.role === UserRole.MEMBER || user.role === UserRole.TRAINER) &&
+      user.userId !== id
+    ) {
+      throw new ForbiddenException('You can only update your own user record');
+    }
+    return this.usersService.updateUser(id, updateUserDto, user.role);
   }
 
   @Delete(':id')

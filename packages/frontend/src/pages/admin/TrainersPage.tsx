@@ -1,9 +1,18 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { AdminLayout } from "@/layouts";
-import { PrimaryButton, SecondaryButton } from "@/components/gym";
+import { PrimaryButton, SecondaryButton, FormInput } from "@/components/gym";
+import { FormTextarea } from "@/components/gym/form-textarea";
+import { FormModal } from "@/components/gym/form-modal";
+import { ConfirmationDialog } from "@/components/gym/confirmation-dialog";
 import { Badge } from "@/components/ui/badge";
-import { trainersService, type Trainer } from "@/services/trainers.service";
+import {
+  trainersService,
+  type Trainer,
+  type CreateTrainerRequest,
+  type UpdateTrainerRequest,
+} from "@/services/trainers.service";
+import { toast } from "sonner";
 import {
   Plus,
   Search,
@@ -21,6 +30,30 @@ export default function AdminTrainersPage() {
   const [trainers, setTrainers] = useState<Trainer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [selectedTrainer, setSelectedTrainer] = useState<Trainer | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [createForm, setCreateForm] = useState({
+    email: "",
+    password: "",
+    firstName: "",
+    lastName: "",
+    specializations: "",
+    certifications: "",
+    experience: "",
+    hourlyRate: "",
+  });
+  const [editForm, setEditForm] = useState({
+    firstName: "",
+    lastName: "",
+    specializations: "",
+    certifications: "",
+    experience: "",
+    hourlyRate: "",
+  });
 
   useEffect(() => {
     const loadTrainers = async () => {
@@ -53,6 +86,113 @@ export default function AdminTrainersPage() {
     });
   }, [trainers, searchQuery]);
 
+  const parseList = (value: string) =>
+    value
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
+
+  const openCreate = () => {
+    setCreateForm({
+      email: "",
+      password: "",
+      firstName: "",
+      lastName: "",
+      specializations: "",
+      certifications: "",
+      experience: "",
+      hourlyRate: "",
+    });
+    setIsCreateOpen(true);
+  };
+
+  const openEdit = (trainer: Trainer) => {
+    setSelectedTrainer(trainer);
+    setEditForm({
+      firstName: trainer.firstName,
+      lastName: trainer.lastName,
+      specializations: trainer.specializations.join(", "),
+      certifications: trainer.certifications.join(", "),
+      experience: "",
+      hourlyRate: "",
+    });
+    setIsEditOpen(true);
+  };
+
+  const openDelete = (trainer: Trainer) => {
+    setSelectedTrainer(trainer);
+    setIsDeleteOpen(true);
+  };
+
+  const handleCreate = async () => {
+    setIsSaving(true);
+    try {
+      const payload: CreateTrainerRequest = {
+        email: createForm.email.trim(),
+        password: createForm.password,
+        firstName: createForm.firstName.trim(),
+        lastName: createForm.lastName.trim(),
+        specializations: parseList(createForm.specializations),
+        certifications: parseList(createForm.certifications),
+        experience: createForm.experience ? Number(createForm.experience) : undefined,
+        hourlyRate: createForm.hourlyRate ? Number(createForm.hourlyRate) : undefined,
+      };
+      const created = await trainersService.create(payload);
+      setTrainers((prev) => [created, ...prev]);
+      setIsCreateOpen(false);
+      toast.success("Trainer created successfully");
+    } catch (err: any) {
+      const message = err?.response?.data?.message || "Failed to create trainer.";
+      toast.error(message);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleUpdate = async () => {
+    if (!selectedTrainer) return;
+    setIsSaving(true);
+    try {
+      const payload: UpdateTrainerRequest = {
+        firstName: editForm.firstName.trim(),
+        lastName: editForm.lastName.trim(),
+        specializations: parseList(editForm.specializations),
+        certifications: parseList(editForm.certifications),
+        experience: editForm.experience ? Number(editForm.experience) : undefined,
+        hourlyRate: editForm.hourlyRate ? Number(editForm.hourlyRate) : undefined,
+      };
+      const updated = await trainersService.update(selectedTrainer.id, payload);
+      setTrainers((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
+      setIsEditOpen(false);
+      setSelectedTrainer(null);
+      toast.success("Trainer updated successfully");
+    } catch (err: any) {
+      const message = err?.response?.data?.message || "Failed to update trainer.";
+      toast.error(message);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!selectedTrainer) return;
+    setIsDeleting(true);
+    try {
+      await trainersService.deactivate(selectedTrainer.id);
+      setTrainers((prev) =>
+        prev.map((t) => (t.id === selectedTrainer.id ? { ...t, isActive: false } : t)),
+      );
+      setIsDeleteOpen(false);
+      setSelectedTrainer(null);
+      toast.success("Trainer deactivated");
+    } catch (err: any) {
+      const message = err?.response?.data?.message || "Failed to deactivate trainer.";
+      toast.error(message);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const getStatusBadge = (isActive: boolean) => {
     if (isActive) {
       return (
@@ -81,7 +221,7 @@ export default function AdminTrainersPage() {
               Manage your gym trainers and staff
             </p>
           </div>
-          <PrimaryButton>
+          <PrimaryButton onClick={openCreate}>
             <Plus className="mr-2 h-4 w-4" />
             Add New Trainer
           </PrimaryButton>
@@ -248,6 +388,7 @@ export default function AdminTrainersPage() {
                       type="button"
                       className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                       aria-label="Edit trainer"
+                      onClick={() => openEdit(trainer)}
                     >
                       <Edit className="h-4 w-4" />
                     </button>
@@ -255,6 +396,7 @@ export default function AdminTrainersPage() {
                       type="button"
                       className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
                       aria-label="Delete trainer"
+                      onClick={() => openDelete(trainer)}
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -336,7 +478,7 @@ export default function AdminTrainersPage() {
                       <td className="px-4 py-4">
                         <p className="text-foreground">{trainer.email}</p>
                         <p className="text-sm text-muted-foreground">
-                          {trainer.phone}
+                          —
                         </p>
                       </td>
                       <td className="px-4 py-4">
@@ -377,6 +519,7 @@ export default function AdminTrainersPage() {
                             type="button"
                             className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                             aria-label="Edit trainer"
+                            onClick={() => openEdit(trainer)}
                           >
                             <Edit className="h-4 w-4" />
                           </button>
@@ -384,6 +527,7 @@ export default function AdminTrainersPage() {
                             type="button"
                             className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
                             aria-label="Delete trainer"
+                            onClick={() => openDelete(trainer)}
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -397,6 +541,149 @@ export default function AdminTrainersPage() {
           </div>
         )}
       </div>
+
+      <FormModal
+        isOpen={isCreateOpen}
+        onClose={() => setIsCreateOpen(false)}
+        title="Add New Trainer"
+        onSubmit={handleCreate}
+        submitText="Create Trainer"
+        isLoading={isSaving}
+      >
+        <FormInput
+          label="First Name"
+          name="firstName"
+          value={createForm.firstName}
+          onChange={(e) => setCreateForm((prev) => ({ ...prev, firstName: e.target.value }))}
+          required
+        />
+        <FormInput
+          label="Last Name"
+          name="lastName"
+          value={createForm.lastName}
+          onChange={(e) => setCreateForm((prev) => ({ ...prev, lastName: e.target.value }))}
+          required
+        />
+        <FormInput
+          label="Email"
+          type="email"
+          name="email"
+          value={createForm.email}
+          onChange={(e) => setCreateForm((prev) => ({ ...prev, email: e.target.value }))}
+          required
+        />
+        <FormInput
+          label="Password"
+          type="password"
+          name="password"
+          value={createForm.password}
+          onChange={(e) => setCreateForm((prev) => ({ ...prev, password: e.target.value }))}
+          required
+        />
+        <FormTextarea
+          label="Specializations"
+          name="specializations"
+          value={createForm.specializations}
+          onChange={(e) => setCreateForm((prev) => ({ ...prev, specializations: e.target.value }))}
+          placeholder="e.g. Strength, HIIT, Yoga"
+          required
+          rows={3}
+        />
+        <FormTextarea
+          label="Certifications"
+          name="certifications"
+          value={createForm.certifications}
+          onChange={(e) => setCreateForm((prev) => ({ ...prev, certifications: e.target.value }))}
+          placeholder="e.g. NASM CPT, ACE"
+          rows={2}
+        />
+        <FormInput
+          label="Experience (years)"
+          type="number"
+          name="experience"
+          value={createForm.experience}
+          onChange={(e) => setCreateForm((prev) => ({ ...prev, experience: e.target.value }))}
+          min={0}
+        />
+        <FormInput
+          label="Hourly Rate"
+          type="number"
+          name="hourlyRate"
+          value={createForm.hourlyRate}
+          onChange={(e) => setCreateForm((prev) => ({ ...prev, hourlyRate: e.target.value }))}
+          min={0}
+          step="0.01"
+        />
+      </FormModal>
+
+      <FormModal
+        isOpen={isEditOpen}
+        onClose={() => setIsEditOpen(false)}
+        title="Edit Trainer"
+        onSubmit={handleUpdate}
+        submitText="Save Changes"
+        isLoading={isSaving}
+      >
+        <FormInput
+          label="First Name"
+          name="firstName"
+          value={editForm.firstName}
+          onChange={(e) => setEditForm((prev) => ({ ...prev, firstName: e.target.value }))}
+          required
+        />
+        <FormInput
+          label="Last Name"
+          name="lastName"
+          value={editForm.lastName}
+          onChange={(e) => setEditForm((prev) => ({ ...prev, lastName: e.target.value }))}
+          required
+        />
+        <FormTextarea
+          label="Specializations"
+          name="specializations"
+          value={editForm.specializations}
+          onChange={(e) => setEditForm((prev) => ({ ...prev, specializations: e.target.value }))}
+          placeholder="e.g. Strength, HIIT, Yoga"
+          required
+          rows={3}
+        />
+        <FormTextarea
+          label="Certifications"
+          name="certifications"
+          value={editForm.certifications}
+          onChange={(e) => setEditForm((prev) => ({ ...prev, certifications: e.target.value }))}
+          placeholder="e.g. NASM CPT, ACE"
+          rows={2}
+        />
+        <FormInput
+          label="Experience (years)"
+          type="number"
+          name="experience"
+          value={editForm.experience}
+          onChange={(e) => setEditForm((prev) => ({ ...prev, experience: e.target.value }))}
+          min={0}
+        />
+        <FormInput
+          label="Hourly Rate"
+          type="number"
+          name="hourlyRate"
+          value={editForm.hourlyRate}
+          onChange={(e) => setEditForm((prev) => ({ ...prev, hourlyRate: e.target.value }))}
+          min={0}
+          step="0.01"
+        />
+      </FormModal>
+
+      <ConfirmationDialog
+        isOpen={isDeleteOpen}
+        title="Deactivate Trainer"
+        description="This will deactivate the trainer account. You can re-activate later from the backend."
+        confirmText="Deactivate"
+        type="danger"
+        onCancel={() => setIsDeleteOpen(false)}
+        onConfirm={handleDelete}
+        isLoading={isDeleting}
+      />
     </AdminLayout>
   );
 }

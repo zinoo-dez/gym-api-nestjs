@@ -24,6 +24,26 @@ export interface ClassesResponse {
     totalPages: number;
 }
 
+export interface CreateClassRequest {
+    name: string;
+    description?: string;
+    trainerId: string;
+    schedule: string;
+    duration: number;
+    capacity: number;
+    classType: string;
+}
+
+export interface UpdateClassRequest {
+    name?: string;
+    description?: string;
+    trainerId?: string;
+    schedule?: string;
+    duration?: number;
+    capacity?: number;
+    classType?: string;
+}
+
 interface ApiResponse<T> {
     data: T;
     statusCode: number;
@@ -48,6 +68,21 @@ export const classesService = {
 
     async getById(id: string) {
         const response = await apiClient.get<ApiResponse<ClassSchedule>>(`/classes/${id}`);
+        return response.data.data ?? response.data;
+    },
+
+    async create(data: CreateClassRequest) {
+        const response = await apiClient.post<ApiResponse<ClassSchedule>>(`/classes`, data);
+        return response.data.data ?? response.data;
+    },
+
+    async update(id: string, data: UpdateClassRequest) {
+        const response = await apiClient.patch<ApiResponse<ClassSchedule>>(`/classes/${id}`, data);
+        return response.data.data ?? response.data;
+    },
+
+    async deactivate(id: string) {
+        const response = await apiClient.delete<ApiResponse<{ message: string }>>(`/classes/${id}`);
         return response.data.data ?? response.data;
     },
 };

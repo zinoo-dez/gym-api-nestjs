@@ -1,6 +1,5 @@
 import {
   IsString,
-  IsUUID,
   IsDateString,
   IsInt,
   Min,
@@ -17,7 +16,7 @@ export class UpdateClassDto {
   description?: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsString()
   trainerId?: string;
 
   @IsOptional()

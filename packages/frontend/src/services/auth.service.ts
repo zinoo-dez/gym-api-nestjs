@@ -20,6 +20,7 @@ export interface AuthResponse {
     email: string;
     firstName: string;
     lastName: string;
+    phone?: string;
     role: string;
     createdAt: string;
     updatedAt: string;
@@ -42,6 +43,11 @@ export const authService = {
   async logout(): Promise<void> {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("user");
+  },
+
+  async changePassword(data: { currentPassword: string; newPassword: string }) {
+    const response = await apiClient.post<any>("/auth/change-password", data);
+    return response.data.data ?? response.data;
   },
 
   getStoredToken(): string | null {

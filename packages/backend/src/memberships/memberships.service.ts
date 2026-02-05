@@ -204,6 +204,34 @@ export class MembershipsService {
     return this.toPlanResponseDto(updatedPlan);
   }
 
+  async deletePlan(id: string): Promise<void> {
+    const existingPlan = await this.prisma.membershipPlan.findUnique({
+      where: { id },
+      select: { id: true },
+    });
+
+    if (!existingPlan) {
+      throw new NotFoundException(`Membership plan with ID ${id} not found`);
+    }
+
+    const activeSubscriptions = await this.prisma.subscription.count({
+      where: {
+        membershipPlanId: id,
+        status: SubscriptionStatus.ACTIVE,
+      },
+    });
+
+    if (activeSubscriptions > 0) {
+      throw new BadRequestException(
+        'Cannot delete a plan with active subscriptions',
+      );
+    }
+
+    await this.prisma.membershipPlan.delete({ where: { id } });
+
+    this.invalidatePlansCache();
+  }
+
   // Membership assignment and management
 
   async assignMembership(

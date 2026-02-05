@@ -5,6 +5,7 @@ import {
   Body,
   Patch,
   Param,
+  Delete,
   UseGuards,
   Query,
 } from '@nestjs/common';
@@ -130,6 +131,34 @@ export class MembershipsController {
     @Body() updatePlanDto: UpdateMembershipPlanDto,
   ): Promise<MembershipPlanResponseDto> {
     return this.membershipsService.updatePlan(id, updatePlanDto);
+  }
+
+  @Delete('membership-plans/:id')
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'Delete membership plan',
+    description: 'Delete a membership plan. Requires ADMIN role.',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'Membership plan UUID',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Membership plan deleted successfully',
+    schema: {
+      example: { message: 'Membership plan deleted successfully' },
+    },
+  })
+  @ApiResponse({ status: 400, description: 'Plan has active subscriptions' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden - Admin role required' })
+  @ApiResponse({ status: 404, description: 'Membership plan not found' })
+  async deletePlan(@Param('id') id: string): Promise<{ message: string }> {
+    await this.membershipsService.deletePlan(id);
+    return { message: 'Membership plan deleted successfully' };
   }
 
   // Membership assignment endpoints
