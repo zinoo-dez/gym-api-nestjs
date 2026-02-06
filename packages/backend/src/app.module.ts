@@ -15,6 +15,7 @@ import { AttendanceModule } from './attendance/attendance.module';
 import { WorkoutPlansModule } from './workout-plans/workout-plans.module';
 import { UsersModule } from './users/users.module';
 import { PricingModule } from './pricing/pricing.module';
+import { GymSettingsModule } from './gym-settings/gym-settings.module';
 import { SanitizationMiddleware } from './common/middleware';
 import { LoggingModule } from './logging/logging.module';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
@@ -49,6 +50,7 @@ import { LoggingInterceptor } from './common/interceptors';
     WorkoutPlansModule,
     UsersModule,
     PricingModule,
+    GymSettingsModule,
   ],
   controllers: [AppController],
   providers: [

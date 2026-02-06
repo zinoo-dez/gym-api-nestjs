@@ -69,8 +69,9 @@ model User {
     avatar String?
 
     // Relationships
-    member  Member?
-    trainer Trainer?
+    member      Member?
+    trainer     Trainer?
+    userSetting UserSetting?
 
     // Timestamps
     createdAt DateTime @default(now()) @map("created_at")
@@ -436,4 +437,62 @@ model Equipment {
     @@index([category])
     @@index([isActive])
     @@map("equipment")
+}
+
+// ============================================
+// Gym Setting
+// ============================================
+
+model GymSetting {
+    id             String @id @default(cuid())
+    name           String @unique @map("gym_name")
+    tagLine        String @map("tag_line")
+    address        String @map("address")
+    phone          String @unique @map("phone")
+    email          String @unique @map("email")
+    logo           String @map("logo")
+    description    String @map("description")
+    favicon        String @map("favicon")
+    primaryColor   String @map("primary_color")
+    secondaryColor String @map("secondary_color")
+
+    emailNotification          Boolean @default(true) @map("email_notification")
+    smsNotification            Boolean @default(true) @map("sms_notification")
+    newMemberNotification      Boolean @default(true) @map("new_member_notification")
+    newTrainerNotification     Boolean @default(true) @map("new_trainer_notification")
+    newMembershipNotification  Boolean @default(true) @map("new_membership_notification")
+    newPaymentNotification     Boolean @default(true) @map("new_payment_notification")
+    newSessionNotification     Boolean @default(true) @map("new_session_notification")
+    newWorkoutPlanNotification Boolean @default(true) @map("new_workout_plan_notification")
+    newProgressNotification    Boolean @default(true) @map("new_progress_notification")
+    newAttendanceNotification  Boolean @default(true) @map("new_attendance_notification")
+    newEquipmentNotification   Boolean @default(true) @map("new_equipment_notification")
+    newGymSettingNotification  Boolean @default(true) @map("new_gym_setting_notification")
+    newUserSettingNotification Boolean @default(true) @map("new_user_setting_notification")
+
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
+
+    @@map("gym_settings")
+}
+
+// ============================================
+// User Setting
+// ============================================
+
+model UserSetting {
+    id String @id @default(cuid())
+
+    userId       String  @unique @map("user_id")
+    language     String  @default("en")
+    theme        String  @default("system")
+    notification Boolean @default(true)
+
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
+
+    // Relationships
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@map("user_settings")
 }

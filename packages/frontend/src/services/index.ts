@@ -7,3 +7,4 @@ export * from "./members.service";
 export * from "./attendance.service";
 export * from "./users.service";
 export * from "./dashboard.service";
+export * from "./gym-settings.service";

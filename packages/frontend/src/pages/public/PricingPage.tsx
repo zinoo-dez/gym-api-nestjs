@@ -1,58 +1,68 @@
-
-import * as React from "react"
-import { useEffect, useState } from "react"
-import { PublicLayout } from "../../layouts"
-import { PricingCard, SecondaryButton } from "@/components/gym"
-import { cn } from "@/lib/utils"
-import { membershipsService, type MembershipPlan } from "@/services/memberships.service"
+import * as React from "react";
+import { useEffect, useState } from "react";
+import { PublicLayout } from "../../layouts";
+import { PricingCard, SecondaryButton } from "@/components/gym";
+import { cn } from "@/lib/utils";
+import {
+  membershipsService,
+  type MembershipPlan,
+} from "@/services/memberships.service";
 
 const faqs = [
   {
     question: "Can I cancel my membership anytime?",
-    answer: "Yes, you can cancel your membership at any time with no cancellation fees. Your access will continue until the end of your billing period.",
+    answer:
+      "Yes, you can cancel your membership at any time with no cancellation fees. Your access will continue until the end of your billing period.",
   },
   {
     question: "Is there a trial period?",
-    answer: "Yes! We offer a 7-day free trial for all new members. You can explore all our facilities and classes before committing to a membership.",
+    answer:
+      "Yes! We offer a 7-day free trial for all new members. You can explore all our facilities and classes before committing to a membership.",
   },
   {
     question: "Can I upgrade or downgrade my plan?",
-    answer: "Absolutely. You can change your plan at any time. The new rate will be prorated from your next billing cycle.",
+    answer:
+      "Absolutely. You can change your plan at any time. The new rate will be prorated from your next billing cycle.",
   },
   {
     question: "Are personal training sessions transferable?",
-    answer: "Personal training sessions are non-transferable but can be rolled over to the next month (up to 4 sessions maximum).",
+    answer:
+      "Personal training sessions are non-transferable but can be rolled over to the next month (up to 4 sessions maximum).",
   },
   {
     question: "What's included in the group classes?",
-    answer: "Our group classes include HIIT, Spin, Yoga, Pilates, Boxing, CrossFit, and more. Pro and Elite members get unlimited access to all classes.",
+    answer:
+      "Our group classes include HIIT, Spin, Yoga, Pilates, Boxing, CrossFit, and more. Pro and Elite members get unlimited access to all classes.",
   },
   {
     question: "Do you offer student or corporate discounts?",
-    answer: "Yes! We offer 15% off for students with valid ID and custom corporate packages. Contact us for more details.",
+    answer:
+      "Yes! We offer 15% off for students with valid ID and custom corporate packages. Contact us for more details.",
   },
-]
+];
 
 export default function PricingPage() {
-  const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">("monthly")
-  const [plans, setPlans] = useState<MembershipPlan[]>([])
-  const [loading, setLoading] = useState(true)
+  const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">(
+    "monthly",
+  );
+  const [plans, setPlans] = useState<MembershipPlan[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchPlans = async () => {
       try {
-        const response = await membershipsService.getAllPlans({ limit: 10 })
-        setPlans(Array.isArray(response.data) ? response.data : [])
+        const response = await membershipsService.getAllPlans({ limit: 10 });
+        setPlans(Array.isArray(response.data) ? response.data : []);
       } catch (error) {
-        console.error('Error fetching membership plans:', error)
-        setPlans([]) // Ensure it's always an array
+        console.error("Error fetching membership plans:", error);
+        setPlans([]); // Ensure it's always an array
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchPlans()
-  }, [])
+    fetchPlans();
+  }, []);
 
   if (loading) {
     return (
@@ -64,14 +74,24 @@ export default function PricingPage() {
           </div>
         </div>
       </PublicLayout>
-    )
+    );
   }
 
-  const displayPlans = (plans || []).map((plan, index) => ({
-    ...plan,
-    period: billingPeriod,
-    isPopular: index === 1,
-  }))
+  const displayPlans = (plans || []).map((plan, index) => {
+    // Calculate price based on billing period
+    // Assuming API returns monthly price, calculate yearly with 30% discount
+    const monthlyPrice = plan.price;
+    const yearlyPrice = Math.round(monthlyPrice * 12 * 0.7); // 30% discount
+    const displayPrice =
+      billingPeriod === "monthly" ? monthlyPrice : yearlyPrice;
+
+    return {
+      ...plan,
+      price: displayPrice,
+      period: billingPeriod === "monthly" ? "month" : "year",
+      isPopular: index === 1,
+    };
+  });
 
   return (
     <PublicLayout>
@@ -83,34 +103,47 @@ export default function PricingPage() {
               Choose Your <span className="text-primary">Membership</span>
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Flexible plans designed to fit your lifestyle. Start your fitness journey today with our transparent pricing.
+              Flexible plans designed to fit your lifestyle. Start your fitness
+              journey today with our transparent pricing.
             </p>
           </div>
 
           {/* Billing Toggle */}
           <div className="flex items-center justify-center gap-4 mb-12">
-            <span className={cn(
-              "text-sm font-medium transition-colors",
-              billingPeriod === "monthly" ? "text-foreground" : "text-muted-foreground"
-            )}>
+            <span
+              className={cn(
+                "text-sm font-medium transition-colors",
+                billingPeriod === "monthly"
+                  ? "text-foreground"
+                  : "text-muted-foreground",
+              )}
+            >
               Monthly
             </span>
             <button
-              onClick={() => setBillingPeriod(billingPeriod === "monthly" ? "yearly" : "monthly")}
+              onClick={() =>
+                setBillingPeriod(
+                  billingPeriod === "monthly" ? "yearly" : "monthly",
+                )
+              }
               className="relative w-14 h-7 bg-secondary rounded-full transition-colors"
               aria-label="Toggle billing period"
             >
               <span
                 className={cn(
                   "absolute top-1 w-5 h-5 bg-primary rounded-full transition-all",
-                  billingPeriod === "yearly" ? "left-8" : "left-1"
+                  billingPeriod === "yearly" ? "left-8" : "left-1",
                 )}
               />
             </button>
-            <span className={cn(
-              "text-sm font-medium transition-colors",
-              billingPeriod === "yearly" ? "text-foreground" : "text-muted-foreground"
-            )}>
+            <span
+              className={cn(
+                "text-sm font-medium transition-colors",
+                billingPeriod === "yearly"
+                  ? "text-foreground"
+                  : "text-muted-foreground",
+              )}
+            >
               Yearly
             </span>
             {billingPeriod === "yearly" && (
@@ -136,49 +169,141 @@ export default function PricingPage() {
               <table className="w-full max-w-4xl mx-auto">
                 <thead>
                   <tr className="border-b border-border">
-                    <th className="text-left py-4 px-4 text-foreground font-semibold">Feature</th>
-                    <th className="text-center py-4 px-4 text-foreground font-semibold">Basic</th>
-                    <th className="text-center py-4 px-4 text-foreground font-semibold">Pro</th>
-                    <th className="text-center py-4 px-4 text-foreground font-semibold">Elite</th>
+                    <th className="text-left py-4 px-4 text-foreground font-semibold">
+                      Feature
+                    </th>
+                    <th className="text-center py-4 px-4 text-foreground font-semibold">
+                      Basic
+                    </th>
+                    <th className="text-center py-4 px-4 text-foreground font-semibold">
+                      Pro
+                    </th>
+                    <th className="text-center py-4 px-4 text-foreground font-semibold">
+                      Elite
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {[
-                    { feature: "Gym Floor Access", basic: true, pro: true, elite: true },
-                    { feature: "Group Classes", basic: false, pro: true, elite: true },
-                    { feature: "Personal Training", basic: false, pro: "1/month", elite: "4/month" },
-                    { feature: "Sauna & Steam", basic: false, pro: true, elite: true },
-                    { feature: "Guest Passes", basic: false, pro: "2/month", elite: "4/month" },
-                    { feature: "Custom Workout Plans", basic: false, pro: false, elite: true },
-                    { feature: "Recovery Zone", basic: false, pro: false, elite: true },
-                    { feature: "Priority Booking", basic: false, pro: false, elite: true },
+                    {
+                      feature: "Gym Floor Access",
+                      basic: true,
+                      pro: true,
+                      elite: true,
+                    },
+                    {
+                      feature: "Group Classes",
+                      basic: false,
+                      pro: true,
+                      elite: true,
+                    },
+                    {
+                      feature: "Personal Training",
+                      basic: false,
+                      pro: "1/month",
+                      elite: "4/month",
+                    },
+                    {
+                      feature: "Sauna & Steam",
+                      basic: false,
+                      pro: true,
+                      elite: true,
+                    },
+                    {
+                      feature: "Guest Passes",
+                      basic: false,
+                      pro: "2/month",
+                      elite: "4/month",
+                    },
+                    {
+                      feature: "Custom Workout Plans",
+                      basic: false,
+                      pro: false,
+                      elite: true,
+                    },
+                    {
+                      feature: "Recovery Zone",
+                      basic: false,
+                      pro: false,
+                      elite: true,
+                    },
+                    {
+                      feature: "Priority Booking",
+                      basic: false,
+                      pro: false,
+                      elite: true,
+                    },
                   ].map((row) => (
                     <tr key={row.feature} className="border-b border-border/50">
-                      <td className="py-4 px-4 text-foreground">{row.feature}</td>
+                      <td className="py-4 px-4 text-foreground">
+                        {row.feature}
+                      </td>
                       <td className="py-4 px-4 text-center">
                         {typeof row.basic === "boolean" ? (
                           row.basic ? (
-                            <svg className="w-5 h-5 text-primary mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            <svg
+                              className="w-5 h-5 text-primary mx-auto"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M5 13l4 4L19 7"
+                              />
                             </svg>
                           ) : (
-                            <svg className="w-5 h-5 text-muted-foreground mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            <svg
+                              className="w-5 h-5 text-muted-foreground mx-auto"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M6 18L18 6M6 6l12 12"
+                              />
                             </svg>
                           )
                         ) : (
-                          <span className="text-muted-foreground">{row.basic}</span>
+                          <span className="text-muted-foreground">
+                            {row.basic}
+                          </span>
                         )}
                       </td>
                       <td className="py-4 px-4 text-center">
                         {typeof row.pro === "boolean" ? (
                           row.pro ? (
-                            <svg className="w-5 h-5 text-primary mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            <svg
+                              className="w-5 h-5 text-primary mx-auto"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M5 13l4 4L19 7"
+                              />
                             </svg>
                           ) : (
-                            <svg className="w-5 h-5 text-muted-foreground mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            <svg
+                              className="w-5 h-5 text-muted-foreground mx-auto"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M6 18L18 6M6 6l12 12"
+                              />
                             </svg>
                           )
                         ) : (
@@ -188,12 +313,32 @@ export default function PricingPage() {
                       <td className="py-4 px-4 text-center">
                         {typeof row.elite === "boolean" ? (
                           row.elite ? (
-                            <svg className="w-5 h-5 text-primary mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            <svg
+                              className="w-5 h-5 text-primary mx-auto"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M5 13l4 4L19 7"
+                              />
                             </svg>
                           ) : (
-                            <svg className="w-5 h-5 text-muted-foreground mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            <svg
+                              className="w-5 h-5 text-muted-foreground mx-auto"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M6 18L18 6M6 6l12 12"
+                              />
                             </svg>
                           )
                         ) : (
@@ -226,7 +371,12 @@ export default function PricingPage() {
                       viewBox="0 0 24 24"
                       stroke="currentColor"
                     >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
                     </svg>
                   </summary>
                   <p className="px-6 pb-6 text-muted-foreground">
@@ -242,12 +392,10 @@ export default function PricingPage() {
             <p className="text-muted-foreground mb-4">
               Still have questions? We&apos;re here to help.
             </p>
-            <SecondaryButton>
-              Contact Our Team
-            </SecondaryButton>
+            <SecondaryButton>Contact Our Team</SecondaryButton>
           </div>
         </div>
       </div>
     </PublicLayout>
-  )
+  );
 }
