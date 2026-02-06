@@ -25,6 +25,19 @@ export default function AdminSettingsPage() {
   );
   const [formData, setFormData] = useState<Partial<GymSettings>>({});
 
+  const getCssVar = (name: string, fallback: string) => {
+    if (typeof window === "undefined") return fallback;
+    const value = getComputedStyle(document.documentElement)
+      .getPropertyValue(name)
+      .trim();
+    return value || fallback;
+  };
+
+  const primaryFallback = getCssVar("--primary", "#22c55e");
+  const secondaryFallback = getCssVar("--accent", "#4ade80");
+  const backgroundFallback = getCssVar("--background", "#0a0a0a");
+  const textFallback = getCssVar("--foreground", "#ffffff");
+
   useEffect(() => {
     if (settings) {
       setFormData(settings);
@@ -387,7 +400,7 @@ export default function AdminSettingsPage() {
                         <input
                           id="primaryColor"
                           type="color"
-                          value={formData.primaryColor || "#22c55e"}
+                          value={formData.primaryColor || primaryFallback}
                           onChange={(e) =>
                             handleInputChange("primaryColor", e.target.value)
                           }
@@ -395,7 +408,7 @@ export default function AdminSettingsPage() {
                         />
                         <input
                           type="text"
-                          value={formData.primaryColor || "#22c55e"}
+                          value={formData.primaryColor || primaryFallback}
                           onChange={(e) =>
                             handleInputChange("primaryColor", e.target.value)
                           }
@@ -415,7 +428,7 @@ export default function AdminSettingsPage() {
                         <input
                           id="secondaryColor"
                           type="color"
-                          value={formData.secondaryColor || "#4ade80"}
+                          value={formData.secondaryColor || secondaryFallback}
                           onChange={(e) =>
                             handleInputChange("secondaryColor", e.target.value)
                           }
@@ -423,9 +436,65 @@ export default function AdminSettingsPage() {
                         />
                         <input
                           type="text"
-                          value={formData.secondaryColor || "#4ade80"}
+                          value={formData.secondaryColor || secondaryFallback}
                           onChange={(e) =>
                             handleInputChange("secondaryColor", e.target.value)
+                          }
+                          className="flex-1 rounded-lg border border-border bg-background px-4 py-2 text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="backgroundColor"
+                        className="block text-sm font-medium text-foreground"
+                      >
+                        Background Color
+                      </label>
+                      <div className="mt-1 flex items-center gap-2">
+                        <input
+                          id="backgroundColor"
+                          type="color"
+                          value={formData.backgroundColor || backgroundFallback}
+                          onChange={(e) =>
+                            handleInputChange("backgroundColor", e.target.value)
+                          }
+                          className="h-10 w-10 cursor-pointer rounded border-0"
+                        />
+                        <input
+                          type="text"
+                          value={formData.backgroundColor || backgroundFallback}
+                          onChange={(e) =>
+                            handleInputChange("backgroundColor", e.target.value)
+                          }
+                          className="flex-1 rounded-lg border border-border bg-background px-4 py-2 text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="textColor"
+                        className="block text-sm font-medium text-foreground"
+                      >
+                        Text Color
+                      </label>
+                      <div className="mt-1 flex items-center gap-2">
+                        <input
+                          id="textColor"
+                          type="color"
+                          value={formData.textColor || textFallback}
+                          onChange={(e) =>
+                            handleInputChange("textColor", e.target.value)
+                          }
+                          className="h-10 w-10 cursor-pointer rounded border-0"
+                        />
+                        <input
+                          type="text"
+                          value={formData.textColor || textFallback}
+                          onChange={(e) =>
+                            handleInputChange("textColor", e.target.value)
                           }
                           className="flex-1 rounded-lg border border-border bg-background px-4 py-2 text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                         />

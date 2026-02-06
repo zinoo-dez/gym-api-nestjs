@@ -12,6 +12,8 @@ export interface GymSettings {
   favicon: string;
   primaryColor: string;
   secondaryColor: string;
+  backgroundColor: string;
+  textColor: string;
   emailNotification: boolean;
   smsNotification: boolean;
   newMemberNotification: boolean;
@@ -40,6 +42,8 @@ export interface UpdateGymSettingsRequest {
   favicon?: string;
   primaryColor?: string;
   secondaryColor?: string;
+  backgroundColor?: string;
+  textColor?: string;
   emailNotification?: boolean;
   smsNotification?: boolean;
   newMemberNotification?: boolean;

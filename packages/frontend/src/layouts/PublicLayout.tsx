@@ -1,6 +1,8 @@
 import { Link, useNavigate } from "react-router-dom";
 import { TopNavbar } from "@/components/gym";
 import { useGymSettings } from "@/hooks/use-gym-settings";
+import { useAuthStore } from "@/store/auth.store";
+import { toast } from "sonner";
 
 const navLinks = [
   { label: "Home", href: "/" },
@@ -18,13 +20,34 @@ interface PublicLayoutProps {
 export function PublicLayout({ children }: PublicLayoutProps) {
   const navigate = useNavigate();
   const { gymName, tagLine, email, phone, address, logo } = useGymSettings();
+  const { user, clearAuth } = useAuthStore();
+
+  const handleLogout = () => {
+    clearAuth();
+    toast.success("Logged out successfully");
+    navigate("/");
+  };
+
+  const handleDashboard = () => {
+    if (user?.role === "ADMIN" || user?.role === "SUPER_ADMIN") {
+      navigate("/admin");
+    } else if (user?.role === "MEMBER") {
+      navigate("/member");
+    } else if (user?.role === "TRAINER") {
+      navigate("/trainer");
+    }
+  };
 
   // Split gym name into words for styling
   const renderGymName = () => {
+    if (!gymName) {
+      return null;
+    }
+
     const words = gymName.trim().split(/\s+/);
 
     if (words.length === 0) {
-      return <span className="text-2xl font-bold text-foreground">Gym</span>;
+      return null;
     }
 
     if (words.length === 1) {
@@ -48,8 +71,19 @@ export function PublicLayout({ children }: PublicLayoutProps) {
     <div className="min-h-screen bg-background">
       <TopNavbar
         links={navLinks}
-        onLogin={() => navigate("/auth/login")}
-        onSignUp={() => navigate("/register")}
+        onLogin={user ? undefined : () => navigate("/auth/login")}
+        onSignUp={user ? undefined : () => navigate("/register")}
+        user={
+          user
+            ? {
+                name: user.email?.split("@")[0] || "User",
+                email: user.email || "",
+                role: user.role || "MEMBER",
+              }
+            : undefined
+        }
+        onLogout={handleLogout}
+        onDashboard={handleDashboard}
       />
 
       <main>{children}</main>
@@ -60,13 +94,13 @@ export function PublicLayout({ children }: PublicLayoutProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {/* Brand */}
             <div className="space-y-4">
-              {logo && logo !== "/logo.png" ? (
+              {logo ? (
                 <img src={logo} alt={gymName} className="h-10 w-auto" />
               ) : (
                 renderGymName()
               )}
               <p className="text-muted-foreground text-sm">
-                {tagLine || "Transform your body, transform your life."}
+                {tagLine}
               </p>
               <div className="flex gap-4">
                 <a
@@ -154,7 +188,7 @@ export function PublicLayout({ children }: PublicLayoutProps) {
                       d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
                     />
                   </svg>
-                  <span>123 Fitness Street, Gym City, GC 12345</span>
+                  <span>{address}</span>
                 </li>
                 <li className="flex items-center gap-3 text-muted-foreground">
                   <svg
@@ -170,7 +204,12 @@ export function PublicLayout({ children }: PublicLayoutProps) {
                       d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
                     />
                   </svg>
-                  <span>hello@powerfit.com</span>
+                  <a
+                    href={email ? `mailto:${email}` : undefined}
+                    className="hover:text-primary transition-colors"
+                  >
+                    {email}
+                  </a>
                 </li>
                 <li className="flex items-center gap-3 text-muted-foreground">
                   <svg
@@ -186,7 +225,12 @@ export function PublicLayout({ children }: PublicLayoutProps) {
                       d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
                     />
                   </svg>
-                  <span>(555) 123-4567</span>
+                  <a
+                    href={phone ? `tel:${phone}` : undefined}
+                    className="hover:text-primary transition-colors"
+                  >
+                    {phone}
+                  </a>
                 </li>
               </ul>
             </div>

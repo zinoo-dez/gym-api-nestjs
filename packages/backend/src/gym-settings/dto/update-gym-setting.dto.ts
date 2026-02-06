@@ -42,6 +42,14 @@ export class UpdateGymSettingDto {
   secondaryColor?: string;
 
   @IsOptional()
+  @IsString()
+  backgroundColor?: string;
+
+  @IsOptional()
+  @IsString()
+  textColor?: string;
+
+  @IsOptional()
   @IsBoolean()
   emailNotification?: boolean;
 

@@ -10,20 +10,21 @@ export class GymSettingsService {
     const settings = await this.prisma.gymSetting.findFirst();
 
     if (!settings) {
-      // Create default settings if none exist
+      // Create settings with environment-driven defaults to avoid hardcoded values
       return this.prisma.gymSetting.create({
         data: {
-          name: 'PowerFit Gym',
-          tagLine: 'Transform Your Body, Transform Your Life',
-          address: '123 Fitness Street, Workout City, WC 12345',
-          phone: '+1 (555) 123-4567',
-          email: 'info@powerfit.com',
-          logo: '/logo.png',
-          description:
-            'State-of-the-art fitness facility with world-class equipment and expert trainers.',
-          favicon: '/favicon.ico',
-          primaryColor: '#22c55e',
-          secondaryColor: '#4ade80',
+          name: process.env.GYM_NAME ?? '',
+          tagLine: process.env.GYM_TAGLINE ?? '',
+          address: process.env.GYM_ADDRESS ?? '',
+          phone: process.env.GYM_PHONE ?? '',
+          email: process.env.GYM_EMAIL ?? '',
+          logo: process.env.GYM_LOGO ?? '',
+          description: process.env.GYM_DESCRIPTION ?? '',
+          favicon: process.env.GYM_FAVICON ?? '',
+          primaryColor: process.env.GYM_PRIMARY_COLOR ?? '',
+          secondaryColor: process.env.GYM_SECONDARY_COLOR ?? '',
+          backgroundColor: process.env.GYM_BACKGROUND_COLOR ?? '',
+          textColor: process.env.GYM_TEXT_COLOR ?? '',
         },
       });
     }

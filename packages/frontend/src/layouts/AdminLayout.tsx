@@ -250,10 +250,14 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   };
 
   const renderGymName = () => {
+    if (!gymName) {
+      return null;
+    }
+
     const words = gymName.trim().split(/\s+/);
 
     if (words.length === 0) {
-      return <span className="text-xl font-bold text-foreground">Gym</span>;
+      return null;
     }
 
     if (words.length === 1) {
@@ -279,7 +283,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         onToggleCollapse={() => setCollapsed(!collapsed)}
         logo={
           <Link to="/admin" className="flex items-center gap-2">
-            {logo && logo !== "/logo.png" ? (
+            {logo ? (
               <img src={logo} alt={gymName} className="h-8 w-auto" />
             ) : (
               renderGymName()
@@ -361,7 +365,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                   {user?.role || "Admin"}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {user?.email || "admin@powerfit.com"}
+                  {user?.email || "admin@gym.com"}
                 </p>
               </div>
             </div>

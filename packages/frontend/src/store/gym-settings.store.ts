@@ -21,8 +21,13 @@ export const useGymSettingsStore = create<GymSettingsState>((set, get) => ({
       set({ settings, isLoading: false });
 
       // Apply theme colors to CSS variables
-      if (settings.primaryColor) {
-        applyThemeColors(settings.primaryColor, settings.secondaryColor);
+      if (settings.primaryColor || settings.secondaryColor || settings.backgroundColor || settings.textColor) {
+        applyThemeColors(
+          settings.primaryColor,
+          settings.secondaryColor,
+          settings.backgroundColor,
+          settings.textColor,
+        );
       }
 
       // Update document title and favicon
@@ -45,10 +50,12 @@ export const useGymSettingsStore = create<GymSettingsState>((set, get) => ({
       set({ settings: updatedSettings });
 
       // Apply theme colors if updated
-      if (data.primaryColor || data.secondaryColor) {
+      if (data.primaryColor || data.secondaryColor || data.backgroundColor || data.textColor) {
         applyThemeColors(
           data.primaryColor || currentSettings.primaryColor,
           data.secondaryColor || currentSettings.secondaryColor,
+          data.backgroundColor || currentSettings.backgroundColor,
+          data.textColor || currentSettings.textColor,
         );
       }
 
@@ -66,41 +73,72 @@ export const useGymSettingsStore = create<GymSettingsState>((set, get) => ({
 }));
 
 // Helper function to apply theme colors to all CSS variables
-function applyThemeColors(primaryColor: string, secondaryColor: string) {
+function applyThemeColors(
+  primaryColor?: string,
+  secondaryColor?: string,
+  backgroundColor?: string,
+  textColor?: string,
+) {
   const root = document.documentElement;
 
   // Update primary color and all its variants
-  root.style.setProperty("--primary", primaryColor);
-  root.style.setProperty("--color-primary", primaryColor);
-  root.style.setProperty("--sidebar-primary", primaryColor);
-  root.style.setProperty("--color-sidebar-primary", primaryColor);
-  root.style.setProperty("--ring", primaryColor);
-  root.style.setProperty("--color-ring", primaryColor);
-  root.style.setProperty("--sidebar-ring", primaryColor);
-  root.style.setProperty("--color-sidebar-ring", primaryColor);
-  root.style.setProperty("--chart-1", primaryColor);
-  root.style.setProperty("--color-chart-1", primaryColor);
+  if (primaryColor) {
+    root.style.setProperty("--primary", primaryColor);
+    root.style.setProperty("--color-primary", primaryColor);
+    root.style.setProperty("--sidebar-primary", primaryColor);
+    root.style.setProperty("--color-sidebar-primary", primaryColor);
+    root.style.setProperty("--ring", primaryColor);
+    root.style.setProperty("--color-ring", primaryColor);
+    root.style.setProperty("--sidebar-ring", primaryColor);
+    root.style.setProperty("--color-sidebar-ring", primaryColor);
+    root.style.setProperty("--chart-1", primaryColor);
+    root.style.setProperty("--color-chart-1", primaryColor);
+  }
 
   // Update secondary/accent color
-  root.style.setProperty("--accent", secondaryColor);
-  root.style.setProperty("--color-accent", secondaryColor);
-  root.style.setProperty("--chart-2", secondaryColor);
-  root.style.setProperty("--color-chart-2", secondaryColor);
+  if (secondaryColor) {
+    root.style.setProperty("--accent", secondaryColor);
+    root.style.setProperty("--color-accent", secondaryColor);
+    root.style.setProperty("--chart-2", secondaryColor);
+    root.style.setProperty("--color-chart-2", secondaryColor);
+  }
 
   // Calculate darker shade for primary-dark (approximately 20% darker)
-  const primaryDark = adjustColorBrightness(primaryColor, -20);
-  root.style.setProperty("--primary-dark", primaryDark);
-  root.style.setProperty("--color-primary-dark", primaryDark);
-  root.style.setProperty("--chart-3", primaryDark);
-  root.style.setProperty("--color-chart-3", primaryDark);
+  if (primaryColor) {
+    const primaryDark = adjustColorBrightness(primaryColor, -20);
+    root.style.setProperty("--primary-dark", primaryDark);
+    root.style.setProperty("--color-primary-dark", primaryDark);
+    root.style.setProperty("--chart-3", primaryDark);
+    root.style.setProperty("--color-chart-3", primaryDark);
+  }
 
   // Update neon glow effect with primary color
-  const rgb = hexToRgb(primaryColor);
-  if (rgb) {
-    root.style.setProperty(
-      "--neon-glow",
-      `0 0 20px rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.3)`,
-    );
+  if (primaryColor) {
+    const rgb = hexToRgb(primaryColor);
+    if (rgb) {
+      root.style.setProperty(
+        "--neon-glow",
+        `0 0 20px rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.3)`,
+      );
+    }
+  }
+
+  if (backgroundColor) {
+    root.style.setProperty("--background", backgroundColor);
+    root.style.setProperty("--color-background", backgroundColor);
+    root.style.setProperty("--card", backgroundColor);
+    root.style.setProperty("--popover", backgroundColor);
+    root.style.setProperty("--sidebar", backgroundColor);
+    root.style.setProperty("--surface", backgroundColor);
+  }
+
+  if (textColor) {
+    root.style.setProperty("--foreground", textColor);
+    root.style.setProperty("--color-foreground", textColor);
+    root.style.setProperty("--card-foreground", textColor);
+    root.style.setProperty("--popover-foreground", textColor);
+    root.style.setProperty("--sidebar-foreground", textColor);
+    root.style.setProperty("--text-primary", textColor);
   }
 }
 

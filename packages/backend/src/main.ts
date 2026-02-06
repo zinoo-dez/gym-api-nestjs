@@ -31,13 +31,16 @@ async function bootstrap() {
   // Configure CORS
   const configService = app.get(ConfigService);
   const corsOrigins = configService.get<string>('CORS_ORIGINS');
-  const allowedOrigins = corsOrigins
-    ? corsOrigins.split(',')
-    : [
-        'http://localhost:3000',
-        'http://localhost:3001',
-        'http://localhost:5173',
-      ];
+  const defaultOrigins = [
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'http://localhost:5173',
+  ];
+  const envOrigins = corsOrigins
+    ? corsOrigins.split(',').map((origin) => origin.trim())
+    : [];
+  const allowAll = envOrigins.includes('*');
+  const allowedOrigins = new Set([...defaultOrigins, ...envOrigins].filter(Boolean));
 
   app.enableCors({
     origin: (
@@ -45,11 +48,11 @@ async function bootstrap() {
       callback: (err: Error | null, allow?: boolean) => void,
     ) => {
       // Allow requests with no origin (like mobile apps or curl requests)
-      if (!origin) {
+      if (!origin || allowAll) {
         return callback(null, true);
       }
 
-      if (allowedOrigins.includes(origin)) {
+      if (allowedOrigins.has(origin)) {
         callback(null, true);
       } else {
         callback(new Error('Not allowed by CORS'));

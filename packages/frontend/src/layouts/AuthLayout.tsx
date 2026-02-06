@@ -1,13 +1,16 @@
-import React from "react"
-import { Link } from "react-router-dom"
+import React from "react";
+import { Link } from "react-router-dom";
+import { useGymSettings } from "@/hooks/use-gym-settings";
 
 interface AuthLayoutProps {
-  children: React.ReactNode
-  title: string
-  subtitle?: string
+  children: React.ReactNode;
+  title: string;
+  subtitle?: string;
 }
 
 export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
+  const { gymName } = useGymSettings();
+
   return (
     <div className="min-h-screen bg-background flex">
       {/* Left Side - Form */}
@@ -15,17 +18,20 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
         <div className="w-full max-w-md mx-auto">
           {/* Logo */}
           <Link to="/" className="inline-block mb-8">
-            <span className="text-3xl font-bold text-foreground">
-              Power<span className="text-primary">Fit</span>
-            </span>
+            {gymName ? (
+              <span className="text-3xl font-bold text-foreground">
+                {gymName.split(" ").slice(0, -1).join(" ")}
+                <span className="text-primary">
+                  {gymName.split(" ").slice(-1)[0] || gymName}
+                </span>
+              </span>
+            ) : null}
           </Link>
 
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-foreground mb-2">{title}</h1>
-            {subtitle && (
-              <p className="text-muted-foreground">{subtitle}</p>
-            )}
+            {subtitle && <p className="text-muted-foreground">{subtitle}</p>}
           </div>
 
           {/* Form Content */}
@@ -42,19 +48,24 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
           className="absolute inset-0 w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
-        
+
         {/* Overlay Content */}
         <div className="absolute bottom-0 left-0 right-0 p-12">
           <blockquote className="space-y-4">
-            <p className="text-2xl font-semibold text-foreground leading-relaxed">
-              &ldquo;The only bad workout is the one that didn&apos;t happen. Join PowerFit and start your transformation today.&rdquo;
-            </p>
-            <footer className="text-primary font-medium">
-              - PowerFit Team
-            </footer>
+            {gymName ? (
+              <>
+                <p className="text-2xl font-semibold text-foreground leading-relaxed">
+                  &ldquo;The only bad workout is the one that didn&apos;t happen.
+                  Join {gymName} and start your transformation today.&rdquo;
+                </p>
+                <footer className="text-primary font-medium">
+                  - {gymName} Team
+                </footer>
+              </>
+            ) : null}
           </blockquote>
         </div>
       </div>
     </div>
-  )
+  );
 }

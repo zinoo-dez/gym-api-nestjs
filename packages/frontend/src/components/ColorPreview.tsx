@@ -6,7 +6,8 @@ import { useGymSettings } from "@/hooks/use-gym-settings";
  * Use this in the settings page to preview color changes
  */
 export function ColorPreview() {
-  const { primaryColor, secondaryColor } = useGymSettings();
+  const { primaryColor, secondaryColor, backgroundColor, textColor } =
+    useGymSettings();
 
   return (
     <div className="space-y-4">
@@ -17,10 +18,10 @@ export function ColorPreview() {
           <div className="flex items-center gap-2">
             <div
               className="h-12 w-12 rounded-lg border border-border"
-              style={{ backgroundColor: primaryColor }}
+              style={{ backgroundColor: primaryColor || "var(--primary)" }}
             />
             <code className="text-xs text-muted-foreground">
-              {primaryColor}
+              {primaryColor || "var(--primary)"}
             </code>
           </div>
         </div>
@@ -31,10 +32,38 @@ export function ColorPreview() {
           <div className="flex items-center gap-2">
             <div
               className="h-12 w-12 rounded-lg border border-border"
-              style={{ backgroundColor: secondaryColor }}
+              style={{ backgroundColor: secondaryColor || "var(--accent)" }}
             />
             <code className="text-xs text-muted-foreground">
-              {secondaryColor}
+              {secondaryColor || "var(--accent)"}
+            </code>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <p className="text-sm font-medium text-foreground">Background</p>
+          <div className="flex items-center gap-2">
+            <div
+              className="h-12 w-12 rounded-lg border border-border"
+              style={{ backgroundColor: backgroundColor || "var(--background)" }}
+            />
+            <code className="text-xs text-muted-foreground">
+              {backgroundColor || "var(--background)"}
+            </code>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <p className="text-sm font-medium text-foreground">Text</p>
+          <div className="flex items-center gap-2">
+            <div
+              className="h-12 w-12 rounded-lg border border-border"
+              style={{ backgroundColor: textColor || "var(--foreground)" }}
+            />
+            <code className="text-xs text-muted-foreground">
+              {textColor || "var(--foreground)"}
             </code>
           </div>
         </div>
