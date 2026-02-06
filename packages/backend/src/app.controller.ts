@@ -60,4 +60,44 @@ export class AppController {
   }> {
     return this.appService.checkHealth();
   }
+
+  @Get('dashboard/stats')
+  @ApiOperation({ summary: 'Get dashboard statistics' })
+  @ApiResponse({
+    status: 200,
+    description: 'Dashboard statistics retrieved successfully',
+  })
+  async getDashboardStats() {
+    return this.appService.getDashboardStats();
+  }
+
+  @Get('dashboard/recent-members')
+  @ApiOperation({ summary: 'Get recent members' })
+  @ApiResponse({
+    status: 200,
+    description: 'Recent members retrieved successfully',
+  })
+  async getRecentMembers() {
+    return this.appService.getRecentMembers();
+  }
+
+  @Get('dashboard/popular-classes')
+  @ApiOperation({ summary: 'Get popular classes today' })
+  @ApiResponse({
+    status: 200,
+    description: 'Popular classes retrieved successfully',
+  })
+  async getPopularClasses() {
+    return this.appService.getPopularClasses();
+  }
+
+  @Get('dashboard/recent-activity')
+  @ApiOperation({ summary: 'Get recent activity' })
+  @ApiResponse({
+    status: 200,
+    description: 'Recent activity retrieved successfully',
+  })
+  async getRecentActivity() {
+    return this.appService.getRecentActivity();
+  }
 }
