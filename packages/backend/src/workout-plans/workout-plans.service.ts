@@ -70,7 +70,7 @@ export class WorkoutPlansService {
   ): Promise<PaginatedResponseDto<WorkoutPlanResponseDto>> {
     const page = filters?.page || 1;
     const limit = filters?.limit || 10;
-    const skip = filters?.skip || 0;
+    const skip = (page - 1) * limit;
 
     // Build where clause based on filters
     const where: Prisma.WorkoutPlanWhereInput = {};

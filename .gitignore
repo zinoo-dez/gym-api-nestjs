@@ -86,3 +86,5 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 pnpm-install-verfication.log
 pnpm-install.log
 pnpm-workspace.yaml
+
+*.md

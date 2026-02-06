@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { AdminLayout } from "../../layouts/AdminLayout";
 import { PrimaryButton } from "@/components/gym";
+import { ColorPreview } from "@/components/ColorPreview";
 import {
   Building,
   Bell,
@@ -12,30 +13,23 @@ import {
   MapPin,
 } from "lucide-react";
 import { gymSettingsService, type GymSettings } from "@/services";
+import { useGymSettingsStore } from "@/store/gym-settings.store";
 import { toast } from "sonner";
 
 export default function AdminSettingsPage() {
   const [activeTab, setActiveTab] = useState("general");
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const { settings, isLoading } = useGymSettingsStore();
+  const updateStoreSettings = useGymSettingsStore(
+    (state) => state.updateSettings,
+  );
   const [formData, setFormData] = useState<Partial<GymSettings>>({});
 
   useEffect(() => {
-    loadSettings();
-  }, []);
-
-  const loadSettings = async () => {
-    try {
-      setLoading(true);
-      const data = await gymSettingsService.getSettings();
-      setFormData(data);
-    } catch (error) {
-      toast.error("Failed to load settings");
-      console.error(error);
-    } finally {
-      setLoading(false);
+    if (settings) {
+      setFormData(settings);
     }
-  };
+  }, [settings]);
 
   const handleInputChange = (field: keyof GymSettings, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -50,6 +44,7 @@ export default function AdminSettingsPage() {
 
       const updated = await gymSettingsService.updateSettings(updateData);
       setFormData(updated);
+      updateStoreSettings(updated); // Update global store
       toast.success("Settings saved successfully");
     } catch (error) {
       toast.error("Failed to save settings");
@@ -59,7 +54,7 @@ export default function AdminSettingsPage() {
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <AdminLayout>
         <div className="flex h-96 items-center justify-center">
@@ -486,6 +481,16 @@ export default function AdminSettingsPage() {
                       />
                     </div>
                   </div>
+                </div>
+
+                <div className="rounded-lg border border-border bg-card p-6">
+                  <h3 className="text-lg font-semibold text-foreground">
+                    Color Preview
+                  </h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    See how your colors look in action
+                  </p>
+                  <ColorPreview />
                 </div>
 
                 <div className="flex justify-end">

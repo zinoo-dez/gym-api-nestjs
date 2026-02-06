@@ -1,7 +1,9 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { SidebarNavigation } from "@/components/gym";
+import { SidebarNavigation, NotificationPopup } from "@/components/gym";
 import { useAuthStore } from "@/store/auth.store";
+import { useGymSettings } from "@/hooks/use-gym-settings";
+import { useNotifications } from "@/hooks/use-notifications";
 import { toast } from "sonner";
 
 const adminNavGroups = [
@@ -230,6 +232,14 @@ interface AdminLayoutProps {
 export function AdminLayout({ children }: AdminLayoutProps) {
   const navigate = useNavigate();
   const { user, clearAuth } = useAuthStore();
+  const { gymName, logo } = useGymSettings();
+  const {
+    notifications,
+    markAsRead,
+    markAllAsRead,
+    clearNotification,
+    clearAll,
+  } = useNotifications();
   const [collapsed, setCollapsed] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
 
@@ -239,6 +249,28 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     navigate("/auth/login");
   };
 
+  const renderGymName = () => {
+    const words = gymName.trim().split(/\s+/);
+
+    if (words.length === 0) {
+      return <span className="text-xl font-bold text-foreground">Gym</span>;
+    }
+
+    if (words.length === 1) {
+      return <span className="text-xl font-bold text-primary">{words[0]}</span>;
+    }
+
+    const lastWord = words[words.length - 1];
+    const firstWords = words.slice(0, -1).join(" ");
+
+    return (
+      <span className="text-xl font-bold text-foreground">
+        {firstWords}
+        <span className="text-primary">{lastWord}</span>
+      </span>
+    );
+  };
+
   return (
     <div className="flex h-screen bg-background">
       <SidebarNavigation
@@ -246,8 +278,12 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         collapsed={collapsed}
         onToggleCollapse={() => setCollapsed(!collapsed)}
         logo={
-          <Link to="/admin" className="text-xl font-bold text-foreground">
-            Power<span className="text-primary">Fit</span>
+          <Link to="/admin" className="flex items-center gap-2">
+            {logo && logo !== "/logo.png" ? (
+              <img src={logo} alt={gymName} className="h-8 w-auto" />
+            ) : (
+              renderGymName()
+            )}
             <span className="text-xs ml-2 text-muted-foreground">Admin</span>
           </Link>
         }
@@ -305,25 +341,13 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
           <div className="flex items-center gap-4">
             {/* Notifications */}
-            <button
-              className="relative p-2 text-muted-foreground hover:text-foreground transition-colors"
-              aria-label="Notifications"
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                />
-              </svg>
-              <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full" />
-            </button>
+            <NotificationPopup
+              notifications={notifications}
+              onMarkAsRead={markAsRead}
+              onMarkAllAsRead={markAllAsRead}
+              onClear={clearNotification}
+              onClearAll={clearAll}
+            />
 
             {/* Profile Dropdown */}
             <div className="flex items-center gap-3 pl-4 border-l border-border">

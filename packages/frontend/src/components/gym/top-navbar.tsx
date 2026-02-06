@@ -1,22 +1,22 @@
-
-import * as React from "react"
-import { Link } from "react-router-dom"
-import { cn } from "@/lib/utils"
-import { PrimaryButton } from "./primary-button"
-import { SecondaryButton } from "./secondary-button"
+import * as React from "react";
+import { Link } from "react-router-dom";
+import { cn } from "@/lib/utils";
+import { useGymSettings } from "@/hooks/use-gym-settings";
+import { PrimaryButton } from "./primary-button";
+import { SecondaryButton } from "./secondary-button";
 
 interface NavLink {
-  label: string
-  href: string
+  label: string;
+  href: string;
 }
 
 interface TopNavbarProps {
-  links: NavLink[]
-  logo?: React.ReactNode
-  showAuthButtons?: boolean
-  onLogin?: () => void
-  onSignUp?: () => void
-  className?: string
+  links: NavLink[];
+  logo?: React.ReactNode;
+  showAuthButtons?: boolean;
+  onLogin?: () => void;
+  onSignUp?: () => void;
+  className?: string;
 }
 
 export function TopNavbar({
@@ -27,16 +27,44 @@ export function TopNavbar({
   onSignUp,
   className,
 }: TopNavbarProps) {
-  const [isMenuOpen, setIsMenuOpen] = React.useState(false)
-  const [isScrolled, setIsScrolled] = React.useState(false)
+  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+  const [isScrolled, setIsScrolled] = React.useState(false);
+  const { gymName, logo: gymLogo } = useGymSettings();
 
   React.useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10)
+      setIsScrolled(window.scrollY > 10);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Split gym name into words for styling
+  const renderGymName = () => {
+    const words = gymName.trim().split(/\s+/);
+
+    if (words.length === 0) {
+      return <span className="text-2xl font-bold text-foreground">Gym</span>;
     }
-    window.addEventListener("scroll", handleScroll)
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
+
+    if (words.length === 1) {
+      // Single word - show it in primary color
+      return (
+        <span className="text-2xl font-bold text-primary">{words[0]}</span>
+      );
+    }
+
+    // Multiple words - first word(s) in foreground, last word in primary
+    const lastWord = words[words.length - 1];
+    const firstWords = words.slice(0, -1).join(" ");
+
+    return (
+      <span className="text-2xl font-bold text-foreground">
+        {firstWords}
+        <span className="text-primary">{lastWord}</span>
+      </span>
+    );
+  };
 
   return (
     <header
@@ -46,17 +74,19 @@ export function TopNavbar({
         isScrolled
           ? "bg-background/95 backdrop-blur-md border-b border-border shadow-lg"
           : "bg-transparent",
-        className
+        className,
       )}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <nav className="flex items-center justify-between h-20">
           {/* Logo */}
-          <Link to="/" className="flex items-center">
-            {logo || (
-              <span className="text-2xl font-bold text-foreground">
-                Power<span className="text-primary">Fit</span>
-              </span>
+          <Link to="/" className="flex items-center gap-2">
+            {logo ? (
+              logo
+            ) : gymLogo && gymLogo !== "/logo.png" ? (
+              <img src={gymLogo} alt={gymName} className="h-8 w-auto" />
+            ) : (
+              renderGymName()
             )}
           </Link>
 
@@ -151,5 +181,5 @@ export function TopNavbar({
         )}
       </div>
     </header>
-  )
+  );
 }
