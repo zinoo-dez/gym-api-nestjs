@@ -5,7 +5,11 @@ import {
   Min,
   IsNumber,
   IsBoolean,
+  IsArray,
+  ValidateNested,
 } from 'class-validator';
+import { Type } from 'class-transformer';
+import { MembershipPlanFeatureInputDto } from './membership-plan-feature.dto';
 
 export class CreateMembershipPlanDto {
   @IsString({ message: 'Name must be a string' })
@@ -43,4 +47,10 @@ export class CreateMembershipPlanDto {
   @IsOptional()
   @IsBoolean()
   nutritionConsultation?: boolean;
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => MembershipPlanFeatureInputDto)
+  features?: MembershipPlanFeatureInputDto[];
 }

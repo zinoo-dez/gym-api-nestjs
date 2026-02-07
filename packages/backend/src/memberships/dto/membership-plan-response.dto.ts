@@ -1,3 +1,5 @@
+import { MembershipPlanFeatureResponseDto } from './membership-plan-feature.dto';
+
 export class MembershipPlanResponseDto {
   id!: string;
   name!: string;
@@ -9,6 +11,7 @@ export class MembershipPlanResponseDto {
   accessToEquipment!: boolean;
   accessToLocker!: boolean;
   nutritionConsultation!: boolean;
+  planFeatures?: MembershipPlanFeatureResponseDto[];
   createdAt!: Date;
   updatedAt!: Date;
 }

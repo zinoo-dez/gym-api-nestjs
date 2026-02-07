@@ -23,7 +23,7 @@ import {
   SubscribeMembershipDto,
 } from './dto';
 import { PaginatedResponseDto } from '../common/dto';
-import { Prisma, UserRole, SubscriptionStatus } from '@prisma/client';
+import { Prisma, UserRole, SubscriptionStatus, FeatureLevel } from '@prisma/client';
 import PDFDocument from 'pdfkit';
 
 @Injectable()
@@ -56,19 +56,43 @@ export class MembershipsService {
       );
     }
 
-    const plan = await this.prisma.membershipPlan.create({
-      data: {
-        name: createPlanDto.name,
-        description: createPlanDto.description,
-        duration: createPlanDto.durationDays, // Map durationDays to duration
-        price: createPlanDto.price,
-        unlimitedClasses: createPlanDto.unlimitedClasses ?? false,
-        personalTrainingHours: createPlanDto.personalTrainingHours ?? 0,
-        accessToEquipment: createPlanDto.accessToEquipment ?? true,
-        accessToLocker: createPlanDto.accessToLocker ?? false,
-        nutritionConsultation: createPlanDto.nutritionConsultation ?? false,
-      },
+    const featureInputs = createPlanDto.features ?? [];
+    await this.ensurePlanFeaturesValid(featureInputs);
+
+    const plan = await this.prisma.$transaction(async (tx) => {
+      const created = await tx.membershipPlan.create({
+        data: {
+          name: createPlanDto.name,
+          description: createPlanDto.description,
+          duration: createPlanDto.durationDays, // Map durationDays to duration
+          price: createPlanDto.price,
+          unlimitedClasses: createPlanDto.unlimitedClasses ?? false,
+          personalTrainingHours: createPlanDto.personalTrainingHours ?? 0,
+          accessToEquipment: createPlanDto.accessToEquipment ?? true,
+          accessToLocker: createPlanDto.accessToLocker ?? false,
+          nutritionConsultation: createPlanDto.nutritionConsultation ?? false,
+        },
+      });
+
+      if (featureInputs.length > 0) {
+        await tx.membershipPlanFeature.createMany({
+          data: featureInputs.map((feature) => ({
+            membershipPlanId: created.id,
+            featureId: feature.featureId,
+            level: feature.level ?? FeatureLevel.BASIC,
+          })),
+        });
+      }
+
+      return tx.membershipPlan.findUnique({
+        where: { id: created.id },
+        include: { planFeatures: { include: { feature: true } } },
+      });
     });
+
+    if (!plan) {
+      throw new NotFoundException('Membership plan not found after creation');
+    }
 
     const settings = await this.prisma.gymSetting.findFirst({
       select: { newPaymentNotification: true },
@@ -131,6 +155,7 @@ export class MembershipsService {
       orderBy: { createdAt: 'desc' },
       skip,
       take: limit,
+      include: { planFeatures: { include: { feature: true } } },
     });
 
     const planDtos = plans.map((plan) => this.toPlanResponseDto(plan));
@@ -159,6 +184,7 @@ export class MembershipsService {
 
     const plan = await this.prisma.membershipPlan.findUnique({
       where: { id },
+      include: { planFeatures: { include: { feature: true } } },
     });
 
     if (!plan) {
@@ -201,20 +227,52 @@ export class MembershipsService {
       }
     }
 
-    const updatedPlan = await this.prisma.membershipPlan.update({
-      where: { id },
-      data: {
-        name: updatePlanDto.name,
-        description: updatePlanDto.description,
-        duration: updatePlanDto.durationDays,
-        price: updatePlanDto.price,
-        unlimitedClasses: updatePlanDto.unlimitedClasses,
-        personalTrainingHours: updatePlanDto.personalTrainingHours,
-        accessToEquipment: updatePlanDto.accessToEquipment,
-        accessToLocker: updatePlanDto.accessToLocker,
-        nutritionConsultation: updatePlanDto.nutritionConsultation,
-      },
+    const featureInputs = updatePlanDto.features;
+    if (featureInputs) {
+      await this.ensurePlanFeaturesValid(featureInputs);
+    }
+
+    const updatedPlan = await this.prisma.$transaction(async (tx) => {
+      await tx.membershipPlan.update({
+        where: { id },
+        data: {
+          name: updatePlanDto.name,
+          description: updatePlanDto.description,
+          duration: updatePlanDto.durationDays,
+          price: updatePlanDto.price,
+          unlimitedClasses: updatePlanDto.unlimitedClasses,
+          personalTrainingHours: updatePlanDto.personalTrainingHours,
+          accessToEquipment: updatePlanDto.accessToEquipment,
+          accessToLocker: updatePlanDto.accessToLocker,
+          nutritionConsultation: updatePlanDto.nutritionConsultation,
+        },
+      });
+
+      if (featureInputs) {
+        await tx.membershipPlanFeature.deleteMany({
+          where: { membershipPlanId: id },
+        });
+
+        if (featureInputs.length > 0) {
+          await tx.membershipPlanFeature.createMany({
+            data: featureInputs.map((feature) => ({
+              membershipPlanId: id,
+              featureId: feature.featureId,
+              level: feature.level ?? FeatureLevel.BASIC,
+            })),
+          });
+        }
+      }
+
+      return tx.membershipPlan.findUnique({
+        where: { id },
+        include: { planFeatures: { include: { feature: true } } },
+      });
     });
+
+    if (!updatedPlan) {
+      throw new NotFoundException(`Membership plan with ID ${id} not found`);
+    }
 
     const settings = await this.prisma.gymSetting.findFirst({
       select: { newPaymentNotification: true },
@@ -977,9 +1035,32 @@ export class MembershipsService {
       accessToEquipment: plan.accessToEquipment,
       accessToLocker: plan.accessToLocker,
       nutritionConsultation: plan.nutritionConsultation,
+      planFeatures: Array.isArray(plan.planFeatures)
+        ? plan.planFeatures.map((planFeature: any) => ({
+            featureId: planFeature.featureId,
+            name: planFeature.feature?.name ?? '',
+            description: planFeature.feature?.description ?? undefined,
+            level: planFeature.level,
+          }))
+        : [],
       createdAt: plan.createdAt,
       updatedAt: plan.updatedAt,
     };
+  }
+
+  private async ensurePlanFeaturesValid(
+    features: { featureId: string; level: FeatureLevel }[],
+  ): Promise<void> {
+    if (!features || features.length === 0) return;
+    const featureIds = features.map((feature) => feature.featureId);
+    const uniqueIds = Array.from(new Set(featureIds));
+    const existing = await this.prisma.feature.findMany({
+      where: { id: { in: uniqueIds } },
+      select: { id: true },
+    });
+    if (existing.length !== uniqueIds.length) {
+      throw new BadRequestException('One or more features are invalid');
+    }
   }
 
   private toMembershipResponseDto(membership: any): MembershipResponseDto {

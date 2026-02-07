@@ -6,3 +6,4 @@ export * from './membership-plan-response.dto';
 export * from './membership-response.dto';
 export * from './upgrade-membership.dto';
 export * from './membership-plan-filters.dto';
+export * from './membership-plan-feature.dto';

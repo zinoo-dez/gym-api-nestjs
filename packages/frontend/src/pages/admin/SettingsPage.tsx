@@ -27,6 +27,28 @@ export default function AdminSettingsPage() {
     (state) => state.updateSettings,
   );
   const [formData, setFormData] = useState<Partial<GymSettings>>({});
+  const defaultFeatures = [
+    {
+      title: "State-of-the-Art Equipment",
+      description: "Access to premium fitness machines and free weights",
+      icon: "💪",
+    },
+    {
+      title: "Expert Personal Trainers",
+      description: "Certified professionals to guide your fitness journey",
+      icon: "🏋️",
+    },
+    {
+      title: "Diverse Group Classes",
+      description: "From HIIT to yoga, find your perfect workout style",
+      icon: "🧘",
+    },
+    {
+      title: "24/7 Access",
+      description: "Work out on your schedule, any time day or night",
+      icon: "⏰",
+    },
+  ];
   const [hoursData, setHoursData] = useState<any[]>([]);
   const [newClosure, setNewClosure] = useState({ date: "", reason: "" });
   const [addingClosure, setAddingClosure] = useState(false);
@@ -46,7 +68,11 @@ export default function AdminSettingsPage() {
 
   useEffect(() => {
     if (settings) {
-      setFormData(settings);
+      const features =
+        Array.isArray(settings.features) && settings.features.length > 0
+          ? settings.features
+          : defaultFeatures;
+      setFormData({ ...settings, features });
     }
   }, [settings]);
 
@@ -61,6 +87,15 @@ export default function AdminSettingsPage() {
 
   const handleInputChange = (field: keyof GymSettings, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const updateFeature = (index: number, patch: Partial<{ title: string; description: string; icon?: string }>) => {
+    setFormData((prev) => {
+      const features = Array.isArray(prev.features) ? [...prev.features] : [...defaultFeatures];
+      const existing = features[index] || { title: "", description: "", icon: "" };
+      features[index] = { ...existing, ...patch };
+      return { ...prev, features };
+    });
   };
 
   const handleFileUpload = async (
@@ -520,6 +555,44 @@ export default function AdminSettingsPage() {
                         />
                       </div>
                     </div>
+
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div>
+                        <label
+                          htmlFor="heroBadgeText"
+                          className="block text-sm font-medium text-foreground"
+                        >
+                          Hero Badge Text
+                        </label>
+                        <input
+                          id="heroBadgeText"
+                          type="text"
+                          value={formData.heroBadgeText || ""}
+                          onChange={(e) =>
+                            handleInputChange("heroBadgeText", e.target.value)
+                          }
+                          className="mt-1 w-full rounded-lg border border-border bg-background px-4 py-2 text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                        />
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="heroBgImage"
+                          className="block text-sm font-medium text-foreground"
+                        >
+                          Hero Background Image URL
+                        </label>
+                        <input
+                          id="heroBgImage"
+                          type="text"
+                          value={formData.heroBgImage || ""}
+                          onChange={(e) =>
+                            handleInputChange("heroBgImage", e.target.value)
+                          }
+                          placeholder="https://..."
+                          className="mt-1 w-full rounded-lg border border-border bg-background px-4 py-2 text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -593,6 +666,68 @@ export default function AdminSettingsPage() {
                           placeholder="Features subtitle..."
                           height={110}
                         />
+                      </div>
+                    </div>
+                    <div className="sm:col-span-2">
+                      <p className="text-sm font-medium text-foreground">
+                        Feature Cards (Home Page)
+                      </p>
+                      <div className="mt-2 grid gap-3">
+                        {(Array.isArray(formData.features) ? formData.features : defaultFeatures).map(
+                          (feature, index) => (
+                            <div
+                              key={`${feature?.title || "feature"}-${index}`}
+                              className="grid gap-3 rounded-lg border border-border bg-background p-3 sm:grid-cols-12"
+                            >
+                              <div className="sm:col-span-2">
+                                <label className="block text-xs font-medium text-muted-foreground">
+                                  Icon
+                                </label>
+                                <input
+                                  type="text"
+                                  value={feature?.icon || ""}
+                                  onChange={(e) =>
+                                    updateFeature(index, {
+                                      icon: e.target.value,
+                                    })
+                                  }
+                                  className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-foreground"
+                                  placeholder="💪"
+                                />
+                              </div>
+                              <div className="sm:col-span-4">
+                                <label className="block text-xs font-medium text-muted-foreground">
+                                  Title
+                                </label>
+                                <input
+                                  type="text"
+                                  value={feature?.title || ""}
+                                  onChange={(e) =>
+                                    updateFeature(index, {
+                                      title: e.target.value,
+                                    })
+                                  }
+                                  className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-foreground"
+                                />
+                              </div>
+                              <div className="sm:col-span-6">
+                                <label className="block text-xs font-medium text-muted-foreground">
+                                  Description
+                                </label>
+                                <input
+                                  type="text"
+                                  value={feature?.description || ""}
+                                  onChange={(e) =>
+                                    updateFeature(index, {
+                                      description: e.target.value,
+                                    })
+                                  }
+                                  className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-foreground"
+                                />
+                              </div>
+                            </div>
+                          ),
+                        )}
                       </div>
                     </div>
                     <div>
@@ -723,6 +858,23 @@ export default function AdminSettingsPage() {
                     </div>
                     <div>
                       <label
+                        htmlFor="trainersCtaLabel"
+                        className="block text-sm font-medium text-foreground"
+                      >
+                        Trainers CTA Label
+                      </label>
+                      <input
+                        id="trainersCtaLabel"
+                        type="text"
+                        value={formData.trainersCtaLabel || ""}
+                        onChange={(e) =>
+                          handleInputChange("trainersCtaLabel", e.target.value)
+                        }
+                        className="mt-1 w-full rounded-lg border border-border bg-background px-4 py-2 text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                      />
+                    </div>
+                    <div>
+                      <label
                         htmlFor="workoutsTitle"
                         className="block text-sm font-medium text-foreground"
                       >
@@ -783,6 +935,23 @@ export default function AdminSettingsPage() {
                           height={110}
                         />
                       </div>
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="workoutsCtaLabel"
+                        className="block text-sm font-medium text-foreground"
+                      >
+                        Workouts CTA Label
+                      </label>
+                      <input
+                        id="workoutsCtaLabel"
+                        type="text"
+                        value={formData.workoutsCtaLabel || ""}
+                        onChange={(e) =>
+                          handleInputChange("workoutsCtaLabel", e.target.value)
+                        }
+                        className="mt-1 w-full rounded-lg border border-border bg-background px-4 py-2 text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                      />
                     </div>
                     <div>
                       <label

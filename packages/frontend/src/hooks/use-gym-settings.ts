@@ -5,13 +5,15 @@ import { useGymSettingsStore } from "@/store/gym-settings.store";
  * @returns Gym settings object with name, colors, contact info, etc.
  */
 export const useGymSettings = () => {
-  const { settings, isLoading, error } = useGymSettingsStore();
+  const { settings, operatingHours, isLoading, error } = useGymSettingsStore();
 
   return {
     settings,
     isLoading,
     error,
+    operatingHours,
     // Convenience accessors
+
     gymName: settings?.name || "",
     tagLine: settings?.tagLine || "",
     logo: settings?.logo || "",
@@ -23,14 +25,19 @@ export const useGymSettings = () => {
     heroSubtitle: settings?.heroSubtitle || "",
     heroCtaPrimary: settings?.heroCtaPrimary || "",
     heroCtaSecondary: settings?.heroCtaSecondary || "",
+    heroBadgeText: settings?.heroBadgeText || "",
+    heroBackgroundImage: settings?.heroBgImage || "",
     featuresTitle: settings?.featuresTitle || "",
     featuresSubtitle: settings?.featuresSubtitle || "",
+    features: settings?.features || [],
     classesTitle: settings?.classesTitle || "",
     classesSubtitle: settings?.classesSubtitle || "",
     trainersTitle: settings?.trainersTitle || "",
     trainersSubtitle: settings?.trainersSubtitle || "",
+    trainersCtaLabel: settings?.trainersCtaLabel || "",
     workoutsTitle: settings?.workoutsTitle || "",
     workoutsSubtitle: settings?.workoutsSubtitle || "",
+    workoutsCtaLabel: settings?.workoutsCtaLabel || "",
     pricingTitle: settings?.pricingTitle || "",
     pricingSubtitle: settings?.pricingSubtitle || "",
     footerTagline: settings?.footerTagline || "",

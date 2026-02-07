@@ -14,6 +14,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '@prisma/client';
 import { GymOperatingHoursService } from './gym-operating-hours.service';
 import { CreateGymClosureDto, UpdateOperatingHoursDto } from './dto';
+import { Public } from '../auth/decorators/public.decorator';
 
 @Controller('operating-hours')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -21,6 +22,7 @@ export class GymOperatingHoursController {
   constructor(private readonly service: GymOperatingHoursService) {}
 
   @Get()
+  @Public()
   getOperatingHours() {
     return this.service.getOperatingHours();
   }
@@ -32,6 +34,7 @@ export class GymOperatingHoursController {
   }
 
   @Get('closures')
+  @Public()
   getClosures() {
     return this.service.getClosures();
   }

@@ -28,6 +28,7 @@ async function main() {
   await prisma.trainer.deleteMany();
   await prisma.user.deleteMany();
   await prisma.equipment.deleteMany();
+  await prisma.feature.deleteMany();
   console.log('✓ Cleaned\n');
 
   // Hash password
@@ -46,6 +47,48 @@ async function main() {
   });
   console.log('✓ Admin created\n');
 
+  // Create System Features
+  console.log('✨ Creating system features...');
+  const systemFeatures = [
+    {
+      name: 'Full equipment access',
+      description: 'Access to all gym equipment',
+      isSystem: true,
+      defaultName: 'Full equipment access',
+    },
+    {
+      name: 'Unlimited group classes',
+      description: 'Access to all group fitness classes',
+      isSystem: true,
+      defaultName: 'Unlimited group classes',
+    },
+    {
+      name: '4 personal training hours',
+      description: 'Monthly personal training sessions',
+      isSystem: true,
+      defaultName: '4 personal training hours',
+    },
+    {
+      name: 'Locker access',
+      description: 'Private locker for your belongings',
+      isSystem: true,
+      defaultName: 'Locker access',
+    },
+    {
+      name: 'Nutrition consultation',
+      description: 'Monthly session with a nutritionist',
+      isSystem: true,
+      defaultName: 'Nutrition consultation',
+    },
+  ];
+
+  const createdFeatures: any = {};
+  for (const feature of systemFeatures) {
+    const created = await prisma.feature.create({ data: feature });
+    createdFeatures[feature.name] = created.id;
+  }
+  console.log('✓ 5 system features created\n');
+
   // Create Membership Plans
   console.log('💳 Creating membership plans...');
   const basicPlan = await prisma.membershipPlan.create({
@@ -59,6 +102,14 @@ async function main() {
       accessToEquipment: true,
       accessToLocker: false,
       nutritionConsultation: false,
+      planFeatures: {
+        create: [
+          {
+            featureId: createdFeatures['Full equipment access'],
+            level: 'BASIC',
+          },
+        ],
+      },
     },
   });
 
@@ -73,6 +124,19 @@ async function main() {
       accessToEquipment: true,
       accessToLocker: true,
       nutritionConsultation: false,
+      planFeatures: {
+        create: [
+          {
+            featureId: createdFeatures['Full equipment access'],
+            level: 'STANDARD',
+          },
+          {
+            featureId: createdFeatures['Unlimited group classes'],
+            level: 'BASIC',
+          },
+          { featureId: createdFeatures['Locker access'], level: 'BASIC' },
+        ],
+      },
     },
   });
 
@@ -87,6 +151,27 @@ async function main() {
       accessToEquipment: true,
       accessToLocker: true,
       nutritionConsultation: true,
+      planFeatures: {
+        create: [
+          {
+            featureId: createdFeatures['Full equipment access'],
+            level: 'PREMIUM',
+          },
+          {
+            featureId: createdFeatures['Unlimited group classes'],
+            level: 'PREMIUM',
+          },
+          {
+            featureId: createdFeatures['4 personal training hours'],
+            level: 'BASIC',
+          },
+          { featureId: createdFeatures['Locker access'], level: 'STANDARD' },
+          {
+            featureId: createdFeatures['Nutrition consultation'],
+            level: 'BASIC',
+          },
+        ],
+      },
     },
   });
   console.log('✓ 3 membership plans created\n');

@@ -32,18 +32,43 @@ export class GymSettingsService {
         'World-class training, expert coaches, and a community that pushes you forward.',
       heroCtaPrimary: 'Start Free Trial',
       heroCtaSecondary: 'View Membership Plans',
+      heroBadgeText: 'Now Open 24/7',
       featuresTitle: 'World-Class Facilities',
       featuresSubtitle:
         'Premium equipment, expert guidance, and a space built for results.',
+      features: [
+        {
+          title: 'State-of-the-Art Equipment',
+          description: 'Access to premium fitness machines and free weights',
+          icon: '💪',
+        },
+        {
+          title: 'Expert Personal Trainers',
+          description: 'Certified professionals to guide your fitness journey',
+          icon: '🏋️',
+        },
+        {
+          title: 'Diverse Group Classes',
+          description: 'From HIIT to yoga, find your perfect workout style',
+          icon: '🧘',
+        },
+        {
+          title: '24/7 Access',
+          description: 'Work out on your schedule, any time day or night',
+          icon: '⏰',
+        },
+      ],
       classesTitle: 'Group Fitness Classes',
       classesSubtitle:
         'Find the perfect class to match your goals and schedule.',
       trainersTitle: 'Expert Trainers',
       trainersSubtitle:
         'Certified professionals focused on your progress and performance.',
+      trainersCtaLabel: 'View All Trainers',
       workoutsTitle: 'Workout Plans',
       workoutsSubtitle:
         'Structured programs designed to help you reach your goals.',
+      workoutsCtaLabel: 'Browse All Plans',
       pricingTitle: 'Transparent Pricing',
       pricingSubtitle: 'Choose a plan that fits your lifestyle and goals.',
       footerTagline: 'Train smarter. Live stronger.',
@@ -90,10 +115,13 @@ export class GymSettingsService {
             process.env.GYM_HERO_CTA_PRIMARY ?? defaults.heroCtaPrimary,
           heroCtaSecondary:
             process.env.GYM_HERO_CTA_SECONDARY ?? defaults.heroCtaSecondary,
+          heroBadgeText:
+            process.env.GYM_HERO_BADGE_TEXT ?? defaults.heroBadgeText,
           featuresTitle:
             process.env.GYM_FEATURES_TITLE ?? defaults.featuresTitle,
           featuresSubtitle:
             process.env.GYM_FEATURES_SUBTITLE ?? defaults.featuresSubtitle,
+          features: defaults.features,
           classesTitle: process.env.GYM_CLASSES_TITLE ?? defaults.classesTitle,
           classesSubtitle:
             process.env.GYM_CLASSES_SUBTITLE ?? defaults.classesSubtitle,
@@ -101,10 +129,14 @@ export class GymSettingsService {
             process.env.GYM_TRAINERS_TITLE ?? defaults.trainersTitle,
           trainersSubtitle:
             process.env.GYM_TRAINERS_SUBTITLE ?? defaults.trainersSubtitle,
+          trainersCtaLabel:
+            process.env.GYM_TRAINERS_CTA_LABEL ?? defaults.trainersCtaLabel,
           workoutsTitle:
             process.env.GYM_WORKOUTS_TITLE ?? defaults.workoutsTitle,
           workoutsSubtitle:
             process.env.GYM_WORKOUTS_SUBTITLE ?? defaults.workoutsSubtitle,
+          workoutsCtaLabel:
+            process.env.GYM_WORKOUTS_CTA_LABEL ?? defaults.workoutsCtaLabel,
           pricingTitle: process.env.GYM_PRICING_TITLE ?? defaults.pricingTitle,
           pricingSubtitle:
             process.env.GYM_PRICING_SUBTITLE ?? defaults.pricingSubtitle,
@@ -149,14 +181,20 @@ export class GymSettingsService {
       heroSubtitle: settings.heroSubtitle || defaults.heroSubtitle,
       heroCtaPrimary: settings.heroCtaPrimary || defaults.heroCtaPrimary,
       heroCtaSecondary: settings.heroCtaSecondary || defaults.heroCtaSecondary,
+      heroBadgeText: settings.heroBadgeText || defaults.heroBadgeText,
       featuresTitle: settings.featuresTitle || defaults.featuresTitle,
       featuresSubtitle: settings.featuresSubtitle || defaults.featuresSubtitle,
+      features: settings.features || defaults.features,
       classesTitle: settings.classesTitle || defaults.classesTitle,
       classesSubtitle: settings.classesSubtitle || defaults.classesSubtitle,
       trainersTitle: settings.trainersTitle || defaults.trainersTitle,
       trainersSubtitle: settings.trainersSubtitle || defaults.trainersSubtitle,
+      trainersCtaLabel:
+        settings.trainersCtaLabel || defaults.trainersCtaLabel,
       workoutsTitle: settings.workoutsTitle || defaults.workoutsTitle,
       workoutsSubtitle: settings.workoutsSubtitle || defaults.workoutsSubtitle,
+      workoutsCtaLabel:
+        settings.workoutsCtaLabel || defaults.workoutsCtaLabel,
       pricingTitle: settings.pricingTitle || defaults.pricingTitle,
       pricingSubtitle: settings.pricingSubtitle || defaults.pricingSubtitle,
       footerTagline: settings.footerTagline || defaults.footerTagline,
@@ -219,6 +257,14 @@ export class GymSettingsService {
       });
     };
 
+    const sanitizedFeatures = Array.isArray(dto.features)
+      ? dto.features.map((feature: any) => ({
+          title: sanitizeContent(feature?.title || ''),
+          description: sanitizeContent(feature?.description || ''),
+          icon: feature?.icon || '',
+        }))
+      : undefined;
+
     const sanitizedDto: UpdateGymSettingDto = {
       ...dto,
       description: sanitizeContent(dto.description),
@@ -231,6 +277,7 @@ export class GymSettingsService {
       appShowcaseSubtitle: sanitizeContent(dto.appShowcaseSubtitle),
       ctaSubtitle: sanitizeContent(dto.ctaSubtitle),
       footerTagline: sanitizeContent(dto.footerTagline),
+      features: sanitizedFeatures ?? dto.features,
     };
 
     const updated = await this.prisma.gymSetting.update({

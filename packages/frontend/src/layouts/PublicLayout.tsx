@@ -30,9 +30,32 @@ export function PublicLayout({ children }: PublicLayoutProps) {
     primaryColor,
     secondaryColor,
     backgroundColor,
-    textColor
+    textColor,
+    operatingHours
   } = useGymSettings();
   const { user, clearAuth } = useAuthStore();
+
+  const getDayName = (day: number) => {
+    const days = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
+    return days[day];
+  };
+
+  const formatTime = (time: string) => {
+    if (!time) return "";
+    const [hours, minutes] = time.split(":").map(Number);
+    const ampm = hours >= 12 ? "PM" : "AM";
+    const formattedHours = hours % 12 || 12;
+    return `${formattedHours}:${minutes.toString().padStart(2, "0")} ${ampm}`;
+  };
+
 
   const handleLogout = () => {
     clearAuth();
@@ -281,21 +304,51 @@ export function PublicLayout({ children }: PublicLayoutProps) {
                 Opening Hours
               </h4>
               <ul className="space-y-2 text-sm" role="list">
-                <li className="flex justify-between text-muted-foreground">
-                  <span>Monday - Friday</span>
-                  <span className="text-foreground">5:00 AM - 11:00 PM</span>
-                </li>
-                <li className="flex justify-between text-muted-foreground">
-                  <span>Saturday</span>
-                  <span className="text-foreground">6:00 AM - 10:00 PM</span>
-                </li>
-                <li className="flex justify-between text-muted-foreground">
-                  <span>Sunday</span>
-                  <span className="text-foreground">7:00 AM - 9:00 PM</span>
-                </li>
+                {operatingHours && operatingHours.length > 0 ? (
+                  operatingHours
+                    .sort((a, b) => {
+                      // Sort days starting from Monday (1) to Sunday (0)
+                      const dayA = a.dayOfWeek === 0 ? 7 : a.dayOfWeek;
+                      const dayB = b.dayOfWeek === 0 ? 7 : b.dayOfWeek;
+                      return dayA - dayB;
+                    })
+                    .map((hour) => (
+                      <li
+                        key={hour.id}
+                        className="flex justify-between text-muted-foreground"
+                      >
+                        <span>{getDayName(hour.dayOfWeek)}</span>
+                        <span className="text-foreground">
+                          {hour.isClosed
+                            ? "Closed"
+                            : `${formatTime(hour.openTime)} - ${formatTime(hour.closeTime)}`}
+                        </span>
+                      </li>
+                    ))
+                ) : (
+                  <>
+                    <li className="flex justify-between text-muted-foreground">
+                      <span>Monday - Friday</span>
+                      <span className="text-foreground">
+                        5:00 AM - 11:00 PM
+                      </span>
+                    </li>
+                    <li className="flex justify-between text-muted-foreground">
+                      <span>Saturday</span>
+                      <span className="text-foreground">
+                        6:00 AM - 10:00 PM
+                      </span>
+                    </li>
+                    <li className="flex justify-between text-muted-foreground">
+                      <span>Sunday</span>
+                      <span className="text-foreground">7:00 AM - 9:00 PM</span>
+                    </li>
+                  </>
+                )}
               </ul>
             </div>
           </div>
+
 
           {/* Copyright */}
           <div className="mt-12 pt-8 border-t border-border">

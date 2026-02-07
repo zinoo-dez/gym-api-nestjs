@@ -11,9 +11,19 @@ export interface MembershipPlan {
   accessToEquipment: boolean;
   accessToLocker: boolean;
   nutritionConsultation: boolean;
+  planFeatures?: MembershipPlanFeature[];
   features: string[];
   createdAt: string;
   updatedAt: string;
+}
+
+export type FeatureLevel = "BASIC" | "STANDARD" | "PREMIUM";
+
+export interface MembershipPlanFeature {
+  featureId: string;
+  name: string;
+  description?: string;
+  level: FeatureLevel;
 }
 
 export interface CreateMembershipPlanRequest {
@@ -26,6 +36,7 @@ export interface CreateMembershipPlanRequest {
   accessToEquipment?: boolean;
   accessToLocker?: boolean;
   nutritionConsultation?: boolean;
+  features?: { featureId: string; level: FeatureLevel }[];
 }
 
 export interface UpdateMembershipPlanRequest {
@@ -38,6 +49,7 @@ export interface UpdateMembershipPlanRequest {
   accessToEquipment?: boolean;
   accessToLocker?: boolean;
   nutritionConsultation?: boolean;
+  features?: { featureId: string; level: FeatureLevel }[];
 }
 
 export interface SubscribeMembershipRequest {
@@ -73,6 +85,7 @@ interface MembershipPlanApi {
   accessToEquipment: boolean;
   accessToLocker: boolean;
   nutritionConsultation: boolean;
+  planFeatures?: MembershipPlanFeature[];
   createdAt: string;
   updatedAt: string;
 }
@@ -192,6 +205,12 @@ function normalizePlan(plan: MembershipPlanApi): MembershipPlan {
 }
 
 function buildPlanFeatures(plan: MembershipPlanApi): string[] {
+  if (Array.isArray(plan.planFeatures) && plan.planFeatures.length > 0) {
+    return plan.planFeatures.map((feature) =>
+      feature.level ? `${feature.name} (${feature.level})` : feature.name,
+    );
+  }
+
   const features: string[] = [];
 
   if (plan.accessToEquipment) {

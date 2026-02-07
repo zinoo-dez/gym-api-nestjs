@@ -74,6 +74,13 @@ export class UpdateGymSettingDto {
 
   @IsOptional()
   @IsString()
+  heroBadgeText?: string;
+
+  @IsOptional()
+  features?: any;
+
+  @IsOptional()
+  @IsString()
   featuresTitle?: string;
 
   @IsOptional()
@@ -98,11 +105,19 @@ export class UpdateGymSettingDto {
 
   @IsOptional()
   @IsString()
+  trainersCtaLabel?: string;
+
+  @IsOptional()
+  @IsString()
   workoutsTitle?: string;
 
   @IsOptional()
   @IsString()
   workoutsSubtitle?: string;
+
+  @IsOptional()
+  @IsString()
+  workoutsCtaLabel?: string;
 
   @IsOptional()
   @IsString()

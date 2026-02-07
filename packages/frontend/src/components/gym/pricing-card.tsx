@@ -4,12 +4,15 @@ import { cn } from "@/lib/utils"
 import { PrimaryButton } from "./primary-button"
 import { SecondaryButton } from "./secondary-button"
 
+type FeatureLevel = "BASIC" | "STANDARD" | "PREMIUM";
+
 interface PricingCardProps {
   name: string
   price: number
   period?: "month" | "year"
   description?: string
-  features: string[]
+  features?: string[]
+  planFeatures?: { name: string; level?: FeatureLevel }[]
   isPopular?: boolean
   onSelect?: () => void
   className?: string
@@ -20,7 +23,8 @@ export function PricingCard({
   price,
   period = "month",
   description,
-  features,
+  features = [],
+  planFeatures = [],
   isPopular = false,
   onSelect,
   className,
@@ -56,8 +60,13 @@ export function PricingCard({
       </div>
 
       <ul className="space-y-4 mb-8 flex-1" role="list">
-        {features.map((feature, index) => (
-          <li key={index} className="flex items-start gap-3">
+        {(planFeatures.length > 0
+          ? planFeatures.map((feature) => ({
+              label: feature.name,
+              level: feature.level,
+            }))
+          : features.map((feature) => ({ label: feature }))).map((feature, index) => (
+          <li key={`${feature.label}-${index}`} className="flex items-start gap-3">
             <svg
               className="w-5 h-5 text-primary flex-shrink-0 mt-0.5"
               fill="none"
@@ -72,7 +81,23 @@ export function PricingCard({
                 d="M5 13l4 4L19 7"
               />
             </svg>
-            <span className="text-foreground text-sm">{feature}</span>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-foreground text-sm">{feature.label}</span>
+              {feature.level && (
+                <span
+                  className={cn(
+                    "text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full border",
+                    feature.level === "PREMIUM"
+                      ? "bg-primary/15 text-primary border-primary/30"
+                      : feature.level === "STANDARD"
+                      ? "bg-accent/15 text-accent-foreground border-accent/30"
+                      : "bg-muted text-muted-foreground border-border"
+                  )}
+                >
+                  {feature.level}
+                </span>
+              )}
+            </div>
           </li>
         ))}
       </ul>

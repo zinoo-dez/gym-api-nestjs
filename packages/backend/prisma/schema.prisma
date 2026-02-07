@@ -40,10 +40,47 @@ model MembershipPlan {
     personalTrainingHours Float          @default(0) @map("personal_training_hours")
     unlimitedClasses      Boolean        @default(false) @map("unlimited_classes")
     updatedAt             DateTime       @updatedAt @map("updated_at")
+    planFeatures          MembershipPlanFeature[]
     subscriptions         Subscription[]
 
     @@index([name])
     @@map("membership_plans")
+}
+
+model Feature {
+    id            String                    @id @default(cuid())
+    name          String                    @unique
+    description   String?
+    isSystem      Boolean                   @default(false) @map("is_system")
+    defaultName   String?                   @map("default_name")
+    createdAt     DateTime                  @default(now()) @map("created_at")
+    updatedAt     DateTime                  @updatedAt @map("updated_at")
+    planFeatures  MembershipPlanFeature[]
+
+    @@index([name])
+    @@map("features")
+}
+
+model MembershipPlanFeature {
+    id               String         @id @default(cuid())
+    membershipPlanId String         @map("membership_plan_id")
+    featureId        String         @map("feature_id")
+    level            FeatureLevel   @default(BASIC) @map("level")
+    createdAt        DateTime       @default(now()) @map("created_at")
+    updatedAt        DateTime       @updatedAt @map("updated_at")
+    membershipPlan   MembershipPlan @relation(fields: [membershipPlanId], references: [id], onDelete: Cascade)
+    feature          Feature        @relation(fields: [featureId], references: [id], onDelete: Cascade)
+
+    @@unique([membershipPlanId, featureId])
+    @@index([membershipPlanId])
+    @@index([featureId])
+    @@map("membership_plan_features")
+}
+
+enum FeatureLevel {
+    BASIC
+    STANDARD
+    PREMIUM
 }
 
 model Subscription {
@@ -292,46 +329,50 @@ model Equipment {
 
 model GymSetting {
     id                         String   @id @default(cuid())
-    name                       String   @unique @map("gym_name")
-    tagLine                    String   @map("tag_line")
-    address                    String   @map("address")
-    phone                      String   @unique @map("phone")
-    email                      String   @unique @map("email")
-    logo                       String   @map("logo")
-    description                String   @map("description")
-    favicon                    String   @map("favicon")
-    primaryColor               String   @map("primary_color")
-    secondaryColor             String   @map("secondary_color")
-    backgroundColor            String   @map("background_color")
-    textColor                  String   @map("text_color")
-    heroTitle                  String   @map("hero_title")
-    heroSubtitle               String   @map("hero_subtitle")
-    heroCtaPrimary             String   @map("hero_cta_primary")
-    heroCtaSecondary           String   @map("hero_cta_secondary")
-    featuresTitle              String   @map("features_title")
-    featuresSubtitle           String   @map("features_subtitle")
-    classesTitle               String   @map("classes_title")
-    classesSubtitle            String   @map("classes_subtitle")
-    trainersTitle              String   @map("trainers_title")
-    trainersSubtitle           String   @map("trainers_subtitle")
-    workoutsTitle              String   @map("workouts_title")
-    workoutsSubtitle           String   @map("workouts_subtitle")
-    pricingTitle               String   @map("pricing_title")
-    pricingSubtitle            String   @map("pricing_subtitle")
-    footerTagline              String   @map("footer_tagline")
-    appShowcaseTitle           String   @map("app_showcase_title")
-    appShowcaseSubtitle        String   @map("app_showcase_subtitle")
-    ctaTitle                   String   @map("cta_title")
-    ctaSubtitle                String   @map("cta_subtitle")
-    ctaButtonLabel             String   @map("cta_button_label")
+    name                       String   @unique @default("My Gym") @map("gym_name")
+    tagLine                    String   @default("") @map("tag_line")
+    address                    String   @default("") @map("address")
+    phone                      String   @unique @default("") @map("phone")
+    email                      String   @unique @default("") @map("email")
+    logo                       String   @default("") @map("logo")
+    description                String   @default("") @map("description")
+    favicon                    String   @default("") @map("favicon")
+    primaryColor               String   @default("#22c55e") @map("primary_color")
+    secondaryColor             String   @default("#4ade80") @map("secondary_color")
+    backgroundColor            String   @default("#0a0a0a") @map("background_color")
+    textColor                  String   @default("#ffffff") @map("text_color")
+    heroTitle                  String   @default("") @map("hero_title")
+    heroSubtitle               String   @default("") @map("hero_subtitle")
+    heroCtaPrimary             String   @default("") @map("hero_cta_primary")
+    heroCtaSecondary           String   @default("") @map("hero_cta_secondary")
+    heroBadgeText              String   @default("") @map("hero_badge_text")
+    featuresTitle              String   @default("") @map("features_title")
+    featuresSubtitle           String   @default("") @map("features_subtitle")
+    features                   Json?    @default("[]") @map("features")
+    classesTitle               String   @default("") @map("classes_title")
+    classesSubtitle            String   @default("") @map("classes_subtitle")
+    trainersTitle              String   @default("") @map("trainers_title")
+    trainersSubtitle           String   @default("") @map("trainers_subtitle")
+    trainersCtaLabel           String   @default("") @map("trainers_cta_label")
+    workoutsTitle              String   @default("") @map("workouts_title")
+    workoutsSubtitle           String   @default("") @map("workouts_subtitle")
+    workoutsCtaLabel           String   @default("") @map("workouts_cta_label")
+    pricingTitle               String   @default("") @map("pricing_title")
+    pricingSubtitle            String   @default("") @map("pricing_subtitle")
+    footerTagline              String   @default("") @map("footer_tagline")
+    appShowcaseTitle           String   @default("") @map("app_showcase_title")
+    appShowcaseSubtitle        String   @default("") @map("app_showcase_subtitle")
+    ctaTitle                   String   @default("") @map("cta_title")
+    ctaSubtitle                String   @default("") @map("cta_subtitle")
+    ctaButtonLabel             String   @default("") @map("cta_button_label")
     fontFamily                 String   @default("Inter") @map("font_family")
-    heroBgImage                String?  @map("hero_bg_image")
-    featuresBgImage            String?  @map("features_bg_image")
-    classesBgImage             String?  @map("classes_bg_image")
-    trainersBgImage            String?  @map("trainers_bg_image")
-    workoutsBgImage            String?  @map("workouts_bg_image")
-    pricingBgImage             String?  @map("pricing_bg_image")
-    ctaBgImage                 String?  @map("cta_bg_image")
+    heroBgImage                String?  @default("") @map("hero_bg_image")
+    featuresBgImage            String?  @default("") @map("features_bg_image")
+    classesBgImage             String?  @default("") @map("classes_bg_image")
+    trainersBgImage            String?  @default("") @map("trainers_bg_image")
+    workoutsBgImage            String?  @default("") @map("workouts_bg_image")
+    pricingBgImage             String?  @default("") @map("pricing_bg_image")
+    ctaBgImage                 String?  @default("") @map("cta_bg_image")
     emailNotification          Boolean  @default(true) @map("email_notification")
     smsNotification            Boolean  @default(true) @map("sms_notification")
     newMemberNotification      Boolean  @default(true) @map("new_member_notification")

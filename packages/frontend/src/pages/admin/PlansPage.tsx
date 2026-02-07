@@ -1,7 +1,7 @@
 
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { AdminLayout } from "@/layouts";
-import { PrimaryButton, FormInput, FormCheckbox } from "@/components/gym";
+import { PrimaryButton, SecondaryButton, FormInput, FormCheckbox, Modal } from "@/components/gym";
 import { FormTextarea } from "@/components/gym/form-textarea";
 import { FormModal } from "@/components/gym/form-modal";
 import { ConfirmationDialog } from "@/components/gym/confirmation-dialog";
@@ -11,7 +11,12 @@ import {
   type MembershipPlan,
   type CreateMembershipPlanRequest,
   type UpdateMembershipPlanRequest,
+  type FeatureLevel,
 } from "@/services/memberships.service";
+import {
+  featuresService,
+  type Feature,
+} from "@/services/features.service";
 import { toast } from "sonner";
 import {
   Plus,
@@ -22,19 +27,28 @@ import {
   Users,
   TrendingUp,
   Check,
+  RotateCcw,
 } from "lucide-react";
 
 export default function AdminPlansPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [plans, setPlans] = useState<MembershipPlan[]>([]);
+  const [features, setFeatures] = useState<Feature[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<MembershipPlan | null>(null);
+  const [isFeatureModalOpen, setIsFeatureModalOpen] = useState(false);
+  const [isFeatureCreateOpen, setIsFeatureCreateOpen] = useState(false);
+  const [isFeatureEditOpen, setIsFeatureEditOpen] = useState(false);
+  const [isFeatureDeleteOpen, setIsFeatureDeleteOpen] = useState(false);
+  const [selectedFeature, setSelectedFeature] = useState<Feature | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isFeatureSaving, setIsFeatureSaving] = useState(false);
+  const [isFeatureDeleting, setIsFeatureDeleting] = useState(false);
   const [createForm, setCreateForm] = useState({
     name: "",
     description: "",
@@ -45,6 +59,7 @@ export default function AdminPlansPage() {
     accessToEquipment: true,
     accessToLocker: false,
     nutritionConsultation: false,
+    planFeatures: [] as { featureId: string; level: FeatureLevel }[],
   });
   const [editForm, setEditForm] = useState({
     name: "",
@@ -56,6 +71,11 @@ export default function AdminPlansPage() {
     accessToEquipment: true,
     accessToLocker: false,
     nutritionConsultation: false,
+    planFeatures: [] as { featureId: string; level: FeatureLevel }[],
+  });
+  const [featureForm, setFeatureForm] = useState({
+    name: "",
+    description: "",
   });
 
   const loadPlans = useCallback(async () => {
@@ -73,9 +93,20 @@ export default function AdminPlansPage() {
     }
   }, []);
 
+  const loadFeatures = useCallback(async () => {
+    try {
+      const response = await featuresService.getAll({ limit: 200 });
+      setFeatures(Array.isArray(response.data) ? response.data : []);
+    } catch (err) {
+      console.error("Error loading features:", err);
+      setFeatures([]);
+    }
+  }, []);
+
   useEffect(() => {
     loadPlans();
-  }, [loadPlans]);
+    loadFeatures();
+  }, [loadPlans, loadFeatures]);
 
   const filteredPlans = useMemo(
     () =>
@@ -106,6 +137,7 @@ export default function AdminPlansPage() {
       accessToEquipment: true,
       accessToLocker: false,
       nutritionConsultation: false,
+      planFeatures: [],
     });
     setIsCreateOpen(true);
   };
@@ -122,6 +154,12 @@ export default function AdminPlansPage() {
       accessToEquipment: plan.accessToEquipment,
       accessToLocker: plan.accessToLocker,
       nutritionConsultation: plan.nutritionConsultation,
+      planFeatures: plan.planFeatures
+        ? plan.planFeatures.map((feature) => ({
+            featureId: feature.featureId,
+            level: feature.level,
+          }))
+        : [],
     });
     setIsEditOpen(true);
   };
@@ -146,6 +184,7 @@ export default function AdminPlansPage() {
         accessToEquipment: createForm.accessToEquipment,
         accessToLocker: createForm.accessToLocker,
         nutritionConsultation: createForm.nutritionConsultation,
+        features: createForm.planFeatures,
       };
       await membershipsService.createPlan(payload);
       await loadPlans();
@@ -177,6 +216,7 @@ export default function AdminPlansPage() {
         accessToEquipment: editForm.accessToEquipment,
         accessToLocker: editForm.accessToLocker,
         nutritionConsultation: editForm.nutritionConsultation,
+        features: editForm.planFeatures,
       };
       const updated = await membershipsService.updatePlan(selectedPlan.id, payload);
       setPlans((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
@@ -208,6 +248,155 @@ export default function AdminPlansPage() {
     }
   };
 
+  const togglePlanFeature = (
+    formType: "create" | "edit",
+    featureId: string,
+    checked: boolean,
+  ) => {
+    const updater = (prev: typeof createForm) => {
+      const current = Array.isArray(prev.planFeatures)
+        ? [...prev.planFeatures]
+        : [];
+      if (checked) {
+        if (!current.find((item) => item.featureId === featureId)) {
+          current.push({ featureId, level: "BASIC" });
+        }
+      } else {
+        const next = current.filter((item) => item.featureId !== featureId);
+        return { ...prev, planFeatures: next };
+      }
+      return { ...prev, planFeatures: current };
+    };
+
+    if (formType === "create") {
+      setCreateForm(updater);
+    } else {
+      setEditForm(updater);
+    }
+  };
+
+  const updatePlanFeatureLevel = (
+    formType: "create" | "edit",
+    featureId: string,
+    level: FeatureLevel,
+  ) => {
+    const updater = (prev: typeof createForm) => {
+      const current = Array.isArray(prev.planFeatures)
+        ? [...prev.planFeatures]
+        : [];
+      const idx = current.findIndex((item) => item.featureId === featureId);
+      if (idx >= 0) {
+        current[idx] = { ...current[idx], level };
+      }
+      return { ...prev, planFeatures: current };
+    };
+
+    if (formType === "create") {
+      setCreateForm(updater);
+    } else {
+      setEditForm(updater);
+    }
+  };
+
+  const openFeatureManager = () => {
+    setIsFeatureModalOpen(true);
+  };
+
+  const openFeatureCreate = () => {
+    setFeatureForm({ name: "", description: "" });
+    setIsFeatureModalOpen(false);
+    setIsFeatureCreateOpen(true);
+  };
+
+  const openFeatureEdit = (feature: Feature) => {
+    setSelectedFeature(feature);
+    setFeatureForm({
+      name: feature.name,
+      description: feature.description || "",
+    });
+    setIsFeatureModalOpen(false);
+    setIsFeatureEditOpen(true);
+  };
+
+  const openFeatureDelete = (feature: Feature) => {
+    setSelectedFeature(feature);
+    setIsFeatureModalOpen(false);
+    setIsFeatureDeleteOpen(true);
+  };
+
+  const handleFeatureCreate = async () => {
+    setIsFeatureSaving(true);
+    try {
+      await featuresService.create({
+        name: featureForm.name.trim(),
+        description: featureForm.description.trim() || undefined,
+      });
+      await loadFeatures();
+      setIsFeatureCreateOpen(false);
+      toast.success("Feature created");
+    } catch (err: any) {
+      const message = err?.response?.data?.message || "Failed to create feature.";
+      toast.error(message);
+    } finally {
+      setIsFeatureSaving(false);
+    }
+  };
+
+  const handleFeatureUpdate = async () => {
+    if (!selectedFeature) return;
+    setIsFeatureSaving(true);
+    try {
+      const updated = await featuresService.update(selectedFeature.id, {
+        name: featureForm.name.trim(),
+        description: featureForm.description.trim() || undefined,
+      });
+      setFeatures((prev) =>
+        prev.map((item) => (item.id === updated.id ? updated : item)),
+      );
+      setIsFeatureEditOpen(false);
+      setSelectedFeature(null);
+      toast.success("Feature updated");
+    } catch (err: any) {
+      const message = err?.response?.data?.message || "Failed to update feature.";
+      toast.error(message);
+    } finally {
+      setIsFeatureSaving(false);
+    }
+  };
+
+  const handleFeatureDelete = async () => {
+    if (!selectedFeature) return;
+    setIsFeatureDeleting(true);
+    try {
+      await featuresService.remove(selectedFeature.id);
+      setFeatures((prev) => prev.filter((item) => item.id !== selectedFeature.id));
+      setIsFeatureDeleteOpen(false);
+      setSelectedFeature(null);
+      toast.success("Feature deleted");
+    } catch (err: any) {
+      const message = err?.response?.data?.message || "Failed to delete feature.";
+      toast.error(message);
+    } finally {
+      setIsFeatureDeleting(false);
+    }
+  };
+
+  const handleFeatureRestoreDefault = async (feature: Feature) => {
+    try {
+      const updated = await featuresService.restoreDefaultName(feature.id);
+      setFeatures((prev) =>
+        prev.map((item) => (item.id === updated.id ? updated : item)),
+      );
+      toast.success("Feature name restored to default");
+      if (selectedFeature?.id === feature.id) {
+        setFeatureForm((prev) => ({ ...prev, name: updated.name }));
+      }
+    } catch (err: any) {
+      const message = err?.response?.data?.message || "Failed to restore default name.";
+      toast.error(message);
+    }
+  };
+
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -221,10 +410,15 @@ export default function AdminPlansPage() {
               Manage pricing plans and subscriptions
             </p>
           </div>
-          <PrimaryButton onClick={openCreate}>
-            <Plus className="mr-2 h-4 w-4" />
-            Create New Plan
-          </PrimaryButton>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <SecondaryButton onClick={openFeatureManager}>
+              Manage Features
+            </SecondaryButton>
+            <PrimaryButton onClick={openCreate}>
+              <Plus className="mr-2 h-4 w-4" />
+              Create New Plan
+            </PrimaryButton>
+          </div>
         </div>
 
         {/* Stats */}
@@ -350,13 +544,37 @@ export default function AdminPlansPage() {
               </div>
 
               <ul className="mt-4 space-y-2">
-                {plan.features.map((feature) => (
+                {(plan.planFeatures && plan.planFeatures.length > 0
+                  ? plan.planFeatures.map((feature) => ({
+                      label: feature.name,
+                      level: feature.level,
+                    }))
+                  : plan.features.map((feature) => ({
+                      label: feature,
+                      level: undefined as string | undefined,
+                    }))
+                ).map((feature, idx) => (
                   <li
-                    key={feature}
+                    key={`${feature.label}-${idx}`}
                     className="flex items-start gap-2 text-sm text-foreground"
                   >
                     <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                    {feature}
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span>{feature.label}</span>
+                      {feature.level && (
+                        <span
+                          className={`text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full border ${
+                            feature.level === "PREMIUM"
+                              ? "bg-primary/15 text-primary border-primary/30"
+                              : feature.level === "STANDARD"
+                              ? "bg-accent/15 text-accent-foreground border-accent/30"
+                              : "bg-muted text-muted-foreground border-border"
+                          }`}
+                        >
+                          {feature.level}
+                        </span>
+                      )}
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -460,6 +678,61 @@ export default function AdminPlansPage() {
             onChange={(e) => setCreateForm((prev) => ({ ...prev, nutritionConsultation: e.target.checked }))}
           />
         </div>
+        <div className="mt-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <h4 className="text-sm font-semibold text-foreground">Plan Features</h4>
+            <button
+              type="button"
+              className="text-xs font-medium text-primary hover:underline"
+              onClick={openFeatureManager}
+            >
+              Manage Features
+            </button>
+          </div>
+          {features.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              No features available yet.
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {features.map((feature) => {
+                const selected = createForm.planFeatures.find(
+                  (item) => item.featureId === feature.id,
+                );
+                return (
+                  <div
+                    key={feature.id}
+                    className="flex items-center justify-between gap-3 rounded-lg border border-border bg-card px-3 py-2"
+                  >
+                    <FormCheckbox
+                      label={feature.name}
+                      checked={Boolean(selected)}
+                      onChange={(e) =>
+                        togglePlanFeature("create", feature.id, e.target.checked)
+                      }
+                    />
+                    <select
+                      className="rounded-md border border-border bg-background px-2 py-1 text-sm"
+                      value={selected?.level ?? "BASIC"}
+                      onChange={(e) =>
+                        updatePlanFeatureLevel(
+                          "create",
+                          feature.id,
+                          e.target.value as FeatureLevel,
+                        )
+                      }
+                      disabled={!selected}
+                    >
+                      <option value="BASIC">Basic</option>
+                      <option value="STANDARD">Standard</option>
+                      <option value="PREMIUM">Premium</option>
+                    </select>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </FormModal>
 
       <FormModal
@@ -531,6 +804,61 @@ export default function AdminPlansPage() {
             onChange={(e) => setEditForm((prev) => ({ ...prev, nutritionConsultation: e.target.checked }))}
           />
         </div>
+        <div className="mt-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <h4 className="text-sm font-semibold text-foreground">Plan Features</h4>
+            <button
+              type="button"
+              className="text-xs font-medium text-primary hover:underline"
+              onClick={openFeatureManager}
+            >
+              Manage Features
+            </button>
+          </div>
+          {features.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              No features available yet.
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {features.map((feature) => {
+                const selected = editForm.planFeatures.find(
+                  (item) => item.featureId === feature.id,
+                );
+                return (
+                  <div
+                    key={feature.id}
+                    className="flex items-center justify-between gap-3 rounded-lg border border-border bg-card px-3 py-2"
+                  >
+                    <FormCheckbox
+                      label={feature.name}
+                      checked={Boolean(selected)}
+                      onChange={(e) =>
+                        togglePlanFeature("edit", feature.id, e.target.checked)
+                      }
+                    />
+                    <select
+                      className="rounded-md border border-border bg-background px-2 py-1 text-sm"
+                      value={selected?.level ?? "BASIC"}
+                      onChange={(e) =>
+                        updatePlanFeatureLevel(
+                          "edit",
+                          feature.id,
+                          e.target.value as FeatureLevel,
+                        )
+                      }
+                      disabled={!selected}
+                    >
+                      <option value="BASIC">Basic</option>
+                      <option value="STANDARD">Standard</option>
+                      <option value="PREMIUM">Premium</option>
+                    </select>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </FormModal>
 
       <ConfirmationDialog
@@ -542,6 +870,142 @@ export default function AdminPlansPage() {
         onCancel={() => setIsDeleteOpen(false)}
         onConfirm={handleDelete}
         isLoading={isDeleting}
+      />
+
+      <Modal
+        isOpen={isFeatureModalOpen}
+        onClose={() => setIsFeatureModalOpen(false)}
+        title="Manage Features"
+        size="lg"
+        footer={
+          <PrimaryButton onClick={openFeatureCreate}>
+            Add Feature
+          </PrimaryButton>
+        }
+      >
+        <div className="space-y-3">
+          {features.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              No features created yet.
+            </p>
+          ) : (
+            features.map((feature) => (
+              <div
+                key={feature.id}
+                className="flex items-center justify-between gap-3 rounded-lg border border-border bg-card px-3 py-2"
+              >
+                <div>
+                  <p className="text-sm font-medium text-foreground">
+                    {feature.name}
+                  </p>
+                  {feature.description && (
+                    <p className="text-xs text-muted-foreground">
+                      {feature.description}
+                    </p>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  {feature.isSystem && (
+                    <Badge className="bg-primary/20 text-primary border-primary/30 text-[10px]">
+                      System
+                    </Badge>
+                  )}
+                  <div className="flex gap-1">
+                    {feature.isSystem && feature.name !== feature.defaultName && (
+                      <button
+                        type="button"
+                        className="rounded-md p-2 text-primary hover:bg-primary/10"
+                        title="Restore Default Name"
+                        onClick={() => handleFeatureRestoreDefault(feature)}
+                      >
+                        <RotateCcw className="h-4 w-4" />
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      className="rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground"
+                      onClick={() => openFeatureEdit(feature)}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      className="rounded-md p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive disabled:opacity-30 disabled:hover:bg-transparent"
+                      onClick={() => openFeatureDelete(feature)}
+                      disabled={feature.isSystem}
+                      title={feature.isSystem ? "System features cannot be deleted" : "Delete feature"}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </Modal>
+
+      <FormModal
+        isOpen={isFeatureCreateOpen}
+        onClose={() => setIsFeatureCreateOpen(false)}
+        title="Create Feature"
+        onSubmit={handleFeatureCreate}
+        submitText="Save Feature"
+        isLoading={isFeatureSaving}
+      >
+        <FormInput
+          label="Feature Name"
+          name="featureName"
+          value={featureForm.name}
+          onChange={(e) => setFeatureForm((prev) => ({ ...prev, name: e.target.value }))}
+          required
+        />
+        <FormTextarea
+          label="Description"
+          name="featureDescription"
+          value={featureForm.description}
+          onChange={(e) =>
+            setFeatureForm((prev) => ({ ...prev, description: e.target.value }))
+          }
+          rows={3}
+        />
+      </FormModal>
+
+      <FormModal
+        isOpen={isFeatureEditOpen}
+        onClose={() => setIsFeatureEditOpen(false)}
+        title="Edit Feature"
+        onSubmit={handleFeatureUpdate}
+        submitText="Save Changes"
+        isLoading={isFeatureSaving}
+      >
+        <FormInput
+          label="Feature Name"
+          name="featureName"
+          value={featureForm.name}
+          onChange={(e) => setFeatureForm((prev) => ({ ...prev, name: e.target.value }))}
+          required
+        />
+        <FormTextarea
+          label="Description"
+          name="featureDescription"
+          value={featureForm.description}
+          onChange={(e) =>
+            setFeatureForm((prev) => ({ ...prev, description: e.target.value }))
+          }
+          rows={3}
+        />
+      </FormModal>
+
+      <ConfirmationDialog
+        isOpen={isFeatureDeleteOpen}
+        title="Delete Feature"
+        description="This will remove the feature from all plans."
+        confirmText="Delete"
+        type="danger"
+        onCancel={() => setIsFeatureDeleteOpen(false)}
+        onConfirm={handleFeatureDelete}
+        isLoading={isFeatureDeleting}
       />
     </AdminLayout>
   );

@@ -32,6 +32,9 @@ export const useGymSettingsStore = create<GymSettingsState>((set, get) => ({
       const decodedSettings = decodeRichTextFields(settings);
       set({ settings: decodedSettings, isLoading: false });
 
+      // Fetch operating hours as well
+      get().fetchOperatingHours();
+
       // Apply theme colors to CSS variables
       if (
         decodedSettings.primaryColor ||
