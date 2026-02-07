@@ -54,6 +54,7 @@ export class AppService {
       currentMonthMembers,
       lastMonthMembers,
       activeMemberships,
+      expiringMemberships,
       todayCheckIns,
       yesterdayCheckIns,
       currentMonthSubscriptions,
@@ -67,6 +68,15 @@ export class AppService {
         where: { createdAt: { gte: startOfLastMonth, lt: startOfMonth } },
       }),
       this.prisma.subscription.count({ where: { status: 'ACTIVE' } }),
+      this.prisma.subscription.count({
+        where: {
+          status: 'ACTIVE',
+          endDate: {
+            gte: now,
+            lte: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000),
+          },
+        },
+      }),
       this.prisma.attendance.count({
         where: { checkInTime: { gte: startOfToday } },
       }),
@@ -108,6 +118,11 @@ export class AppService {
         value: activeMemberships,
         change: 0,
         type: 'increase',
+      },
+      expiringMemberships: {
+        value: expiringMemberships,
+        change: 0,
+        type: 'decrease',
       },
       todayCheckIns: {
         value: todayCheckIns,
@@ -184,6 +199,61 @@ export class AppService {
       capacity: schedule.class.maxCapacity,
       time: schedule.startTime.toISOString(),
     }));
+  }
+
+  async getUpcomingClasses(days = 7) {
+    const now = new Date();
+    const end = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
+
+    const schedules = await this.prisma.classSchedule.findMany({
+      where: {
+        startTime: { gte: now, lte: end },
+        isActive: true,
+      },
+      include: {
+        class: true,
+        trainer: { include: { user: true } },
+        bookings: {
+          where: { status: 'CONFIRMED' },
+          select: { id: true },
+        },
+      },
+      orderBy: { startTime: 'asc' },
+    });
+
+    const totalUpcomingClasses = schedules.length;
+    const totalCapacity = schedules.reduce(
+      (sum, schedule) => sum + (schedule.class?.maxCapacity ?? 0),
+      0,
+    );
+    const totalBookings = schedules.reduce(
+      (sum, schedule) => sum + schedule.bookings.length,
+      0,
+    );
+
+    const topClasses = schedules
+      .map((schedule) => ({
+        id: schedule.id,
+        name: schedule.class.name,
+        trainer: `${schedule.trainer.user.firstName} ${schedule.trainer.user.lastName}`,
+        booked: schedule.bookings.length,
+        capacity: schedule.class.maxCapacity,
+        startTime: schedule.startTime.toISOString(),
+      }))
+      .sort((a, b) => b.booked - a.booked)
+      .slice(0, 5);
+
+    return {
+      windowDays: days,
+      totalUpcomingClasses,
+      totalCapacity,
+      totalBookings,
+      utilization:
+        totalCapacity > 0
+          ? Number(((totalBookings / totalCapacity) * 100).toFixed(1))
+          : 0,
+      topClasses,
+    };
   }
 
   async getRecentActivity() {

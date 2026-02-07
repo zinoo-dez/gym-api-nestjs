@@ -3,9 +3,10 @@ import { AttendanceService } from './attendance.service';
 import { AttendanceController } from './attendance.controller';
 import { PrismaModule } from '../prisma/prisma.module';
 import { MembersModule } from '../members/members.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
-  imports: [PrismaModule, MembersModule],
+  imports: [PrismaModule, MembersModule, NotificationsModule],
   controllers: [AttendanceController],
   providers: [AttendanceService],
   exports: [AttendanceService],

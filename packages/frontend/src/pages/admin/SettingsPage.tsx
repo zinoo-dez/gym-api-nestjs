@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { AdminLayout } from "../../layouts/AdminLayout";
-import { PrimaryButton } from "@/components/gym";
+import { PrimaryButton, RichTextEditor } from "@/components/gym";
 import { ColorPreview } from "@/components/ColorPreview";
 import {
   Building,
@@ -11,6 +11,7 @@ import {
   Mail,
   Phone,
   MapPin,
+  LayoutGrid,
 } from "lucide-react";
 import { gymSettingsService, type GymSettings } from "@/services";
 import { useGymSettingsStore } from "@/store/gym-settings.store";
@@ -48,6 +49,64 @@ export default function AdminSettingsPage() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  const handleFileUpload = async (
+    field: "logo" | "favicon",
+    file?: File | null,
+  ) => {
+    if (!file) return;
+
+    const maxBytes = field === "favicon" ? 256 * 1024 : 1024 * 1024;
+    if (file.size > maxBytes) {
+      toast.error(
+        `${field === "favicon" ? "Favicon" : "Logo"} is too large. Max ${
+          field === "favicon" ? "256KB" : "1MB"
+        }.`,
+      );
+      return;
+    }
+
+    try {
+      const maxSize = field === "favicon" ? 128 : 512;
+      const dataUrl = await resizeImage(file, maxSize);
+      handleInputChange(field, dataUrl);
+    } catch (error) {
+      console.error("Failed to process image:", error);
+      toast.error("Failed to process image.");
+    }
+  };
+
+  const resizeImage = (file: File, maxSize: number): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          const scale = Math.min(
+            1,
+            maxSize / Math.max(img.width, img.height),
+          );
+          const width = Math.max(1, Math.round(img.width * scale));
+          const height = Math.max(1, Math.round(img.height * scale));
+
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          if (!ctx) {
+            reject(new Error("Canvas context not available"));
+            return;
+          }
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL("image/png", 0.92));
+        };
+        img.onerror = () => reject(new Error("Image load failed"));
+        img.src = String(reader.result);
+      };
+      reader.onerror = () => reject(new Error("File read failed"));
+      reader.readAsDataURL(file);
+    });
+  };
+
   const handleSave = async () => {
     try {
       setSaving(true);
@@ -79,6 +138,7 @@ export default function AdminSettingsPage() {
 
   const tabs = [
     { id: "general", label: "General", icon: Building },
+    { id: "public", label: "Public Content", icon: LayoutGrid },
     { id: "notifications", label: "Notifications", icon: Bell },
     { id: "appearance", label: "Appearance", icon: Palette },
   ];
@@ -169,15 +229,16 @@ export default function AdminSettingsPage() {
                       >
                         Description
                       </label>
-                      <textarea
-                        id="description"
-                        rows={3}
-                        value={formData.description || ""}
-                        onChange={(e) =>
-                          handleInputChange("description", e.target.value)
-                        }
-                        className="mt-1 w-full rounded-lg border border-border bg-background px-4 py-2 text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                      />
+                      <div className="mt-1">
+                        <RichTextEditor
+                          value={formData.description || ""}
+                          onChange={(value) =>
+                            handleInputChange("description", value)
+                          }
+                          placeholder="Describe your gym..."
+                          height={140}
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -246,6 +307,418 @@ export default function AdminSettingsPage() {
                         }
                         className="mt-1 w-full rounded-lg border border-border bg-background px-4 py-2 text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                       />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-end">
+                  <PrimaryButton onClick={handleSave} disabled={saving}>
+                    {saving ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="mr-2 h-4 w-4" />
+                        Save Changes
+                      </>
+                    )}
+                  </PrimaryButton>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "public" && (
+              <div className="space-y-6">
+                <div className="rounded-lg border border-border bg-card p-6">
+                  <h3 className="text-lg font-semibold text-foreground">
+                    Homepage Content
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    Control hero, section headings, and calls to action across public pages.
+                  </p>
+
+                  <div className="mt-6 grid gap-4">
+                    <div>
+                      <label
+                        htmlFor="heroTitle"
+                        className="block text-sm font-medium text-foreground"
+                      >
+                        Hero Title
+                      </label>
+                      <input
+                        id="heroTitle"
+                        type="text"
+                        value={formData.heroTitle || ""}
+                        onChange={(e) =>
+                          handleInputChange("heroTitle", e.target.value)
+                        }
+                        className="mt-1 w-full rounded-lg border border-border bg-background px-4 py-2 text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                      />
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="heroSubtitle"
+                        className="block text-sm font-medium text-foreground"
+                      >
+                        Hero Subtitle
+                      </label>
+                      <div className="mt-1">
+                        <RichTextEditor
+                          value={formData.heroSubtitle || ""}
+                          onChange={(value) =>
+                            handleInputChange("heroSubtitle", value)
+                          }
+                          placeholder="Hero subtitle..."
+                          height={120}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div>
+                        <label
+                          htmlFor="heroCtaPrimary"
+                          className="block text-sm font-medium text-foreground"
+                        >
+                          Hero CTA Primary
+                        </label>
+                        <input
+                          id="heroCtaPrimary"
+                          type="text"
+                          value={formData.heroCtaPrimary || ""}
+                          onChange={(e) =>
+                            handleInputChange("heroCtaPrimary", e.target.value)
+                          }
+                          className="mt-1 w-full rounded-lg border border-border bg-background px-4 py-2 text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                        />
+                      </div>
+
+                      <div>
+                        <label
+                          htmlFor="heroCtaSecondary"
+                          className="block text-sm font-medium text-foreground"
+                        >
+                          Hero CTA Secondary
+                        </label>
+                        <input
+                          id="heroCtaSecondary"
+                          type="text"
+                          value={formData.heroCtaSecondary || ""}
+                          onChange={(e) =>
+                            handleInputChange("heroCtaSecondary", e.target.value)
+                          }
+                          className="mt-1 w-full rounded-lg border border-border bg-background px-4 py-2 text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-lg border border-border bg-card p-6">
+                  <h3 className="text-lg font-semibold text-foreground">
+                    Section Headings
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    Titles and subtitles for public pages.
+                  </p>
+
+                  <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <label
+                        htmlFor="featuresTitle"
+                        className="block text-sm font-medium text-foreground"
+                      >
+                        Features Title
+                      </label>
+                      <input
+                        id="featuresTitle"
+                        type="text"
+                        value={formData.featuresTitle || ""}
+                        onChange={(e) =>
+                          handleInputChange("featuresTitle", e.target.value)
+                        }
+                        className="mt-1 w-full rounded-lg border border-border bg-background px-4 py-2 text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                      />
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="featuresSubtitle"
+                        className="block text-sm font-medium text-foreground"
+                      >
+                        Features Subtitle
+                      </label>
+                      <div className="mt-1">
+                        <RichTextEditor
+                          value={formData.featuresSubtitle || ""}
+                          onChange={(value) =>
+                            handleInputChange("featuresSubtitle", value)
+                          }
+                          placeholder="Features subtitle..."
+                          height={110}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="classesTitle"
+                        className="block text-sm font-medium text-foreground"
+                      >
+                        Classes Title
+                      </label>
+                      <input
+                        id="classesTitle"
+                        type="text"
+                        value={formData.classesTitle || ""}
+                        onChange={(e) =>
+                          handleInputChange("classesTitle", e.target.value)
+                        }
+                        className="mt-1 w-full rounded-lg border border-border bg-background px-4 py-2 text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                      />
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="classesSubtitle"
+                        className="block text-sm font-medium text-foreground"
+                      >
+                        Classes Subtitle
+                      </label>
+                      <div className="mt-1">
+                        <RichTextEditor
+                          value={formData.classesSubtitle || ""}
+                          onChange={(value) =>
+                            handleInputChange("classesSubtitle", value)
+                          }
+                          placeholder="Classes subtitle..."
+                          height={110}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="trainersTitle"
+                        className="block text-sm font-medium text-foreground"
+                      >
+                        Trainers Title
+                      </label>
+                      <input
+                        id="trainersTitle"
+                        type="text"
+                        value={formData.trainersTitle || ""}
+                        onChange={(e) =>
+                          handleInputChange("trainersTitle", e.target.value)
+                        }
+                        className="mt-1 w-full rounded-lg border border-border bg-background px-4 py-2 text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                      />
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="trainersSubtitle"
+                        className="block text-sm font-medium text-foreground"
+                      >
+                        Trainers Subtitle
+                      </label>
+                      <div className="mt-1">
+                        <RichTextEditor
+                          value={formData.trainersSubtitle || ""}
+                          onChange={(value) =>
+                            handleInputChange("trainersSubtitle", value)
+                          }
+                          placeholder="Trainers subtitle..."
+                          height={110}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="workoutsTitle"
+                        className="block text-sm font-medium text-foreground"
+                      >
+                        Workouts Title
+                      </label>
+                      <input
+                        id="workoutsTitle"
+                        type="text"
+                        value={formData.workoutsTitle || ""}
+                        onChange={(e) =>
+                          handleInputChange("workoutsTitle", e.target.value)
+                        }
+                        className="mt-1 w-full rounded-lg border border-border bg-background px-4 py-2 text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                      />
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="workoutsSubtitle"
+                        className="block text-sm font-medium text-foreground"
+                      >
+                        Workouts Subtitle
+                      </label>
+                      <div className="mt-1">
+                        <RichTextEditor
+                          value={formData.workoutsSubtitle || ""}
+                          onChange={(value) =>
+                            handleInputChange("workoutsSubtitle", value)
+                          }
+                          placeholder="Workouts subtitle..."
+                          height={110}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="pricingTitle"
+                        className="block text-sm font-medium text-foreground"
+                      >
+                        Pricing Title
+                      </label>
+                      <input
+                        id="pricingTitle"
+                        type="text"
+                        value={formData.pricingTitle || ""}
+                        onChange={(e) =>
+                          handleInputChange("pricingTitle", e.target.value)
+                        }
+                        className="mt-1 w-full rounded-lg border border-border bg-background px-4 py-2 text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                      />
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="pricingSubtitle"
+                        className="block text-sm font-medium text-foreground"
+                      >
+                        Pricing Subtitle
+                      </label>
+                      <div className="mt-1">
+                        <RichTextEditor
+                          value={formData.pricingSubtitle || ""}
+                          onChange={(value) =>
+                            handleInputChange("pricingSubtitle", value)
+                          }
+                          placeholder="Pricing subtitle..."
+                          height={110}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-lg border border-border bg-card p-6">
+                  <h3 className="text-lg font-semibold text-foreground">
+                    App Showcase & CTA
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    App promo and global call-to-action copy used across public pages.
+                  </p>
+
+                  <div className="mt-6 grid gap-4">
+                    <div>
+                      <label
+                        htmlFor="appShowcaseTitle"
+                        className="block text-sm font-medium text-foreground"
+                      >
+                        App Showcase Title
+                      </label>
+                      <input
+                        id="appShowcaseTitle"
+                        type="text"
+                        value={formData.appShowcaseTitle || ""}
+                        onChange={(e) =>
+                          handleInputChange("appShowcaseTitle", e.target.value)
+                        }
+                        className="mt-1 w-full rounded-lg border border-border bg-background px-4 py-2 text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                      />
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="appShowcaseSubtitle"
+                        className="block text-sm font-medium text-foreground"
+                      >
+                        App Showcase Subtitle
+                      </label>
+                      <div className="mt-1">
+                        <RichTextEditor
+                          value={formData.appShowcaseSubtitle || ""}
+                          onChange={(value) =>
+                            handleInputChange("appShowcaseSubtitle", value)
+                          }
+                          placeholder="App showcase subtitle..."
+                          height={120}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="ctaTitle"
+                        className="block text-sm font-medium text-foreground"
+                      >
+                        CTA Title
+                      </label>
+                      <input
+                        id="ctaTitle"
+                        type="text"
+                        value={formData.ctaTitle || ""}
+                        onChange={(e) =>
+                          handleInputChange("ctaTitle", e.target.value)
+                        }
+                        className="mt-1 w-full rounded-lg border border-border bg-background px-4 py-2 text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                      />
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="ctaSubtitle"
+                        className="block text-sm font-medium text-foreground"
+                      >
+                        CTA Subtitle
+                      </label>
+                      <div className="mt-1">
+                        <RichTextEditor
+                          value={formData.ctaSubtitle || ""}
+                          onChange={(value) =>
+                            handleInputChange("ctaSubtitle", value)
+                          }
+                          placeholder="CTA subtitle..."
+                          height={120}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div>
+                        <label
+                          htmlFor="ctaButtonLabel"
+                          className="block text-sm font-medium text-foreground"
+                        >
+                          CTA Button Label
+                        </label>
+                        <input
+                          id="ctaButtonLabel"
+                          type="text"
+                          value={formData.ctaButtonLabel || ""}
+                          onChange={(e) =>
+                            handleInputChange("ctaButtonLabel", e.target.value)
+                          }
+                          className="mt-1 w-full rounded-lg border border-border bg-background px-4 py-2 text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                        />
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="footerTagline"
+                          className="block text-sm font-medium text-foreground"
+                        >
+                          Footer Tagline
+                        </label>
+                        <div className="mt-1">
+                          <RichTextEditor
+                            value={formData.footerTagline || ""}
+                            onChange={(value) =>
+                              handleInputChange("footerTagline", value)
+                            }
+                            placeholder="Footer tagline..."
+                            height={90}
+                          />
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -512,6 +985,35 @@ export default function AdminSettingsPage() {
                   </p>
 
                   <div className="mt-6 space-y-4">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
+                      <div className="flex items-center gap-3">
+                        <div className="h-12 w-12 rounded-lg border border-border bg-background flex items-center justify-center overflow-hidden">
+                          {formData.logo ? (
+                            <img
+                              src={formData.logo}
+                              alt="Logo preview"
+                              className="h-full w-full object-contain"
+                            />
+                          ) : (
+                            <span className="text-xs text-muted-foreground">
+                              Logo
+                            </span>
+                          )}
+                        </div>
+                        <label className="text-sm font-medium text-foreground">
+                          Logo Upload
+                        </label>
+                      </div>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) =>
+                          handleFileUpload("logo", e.target.files?.[0])
+                        }
+                        className="block w-full text-sm text-muted-foreground file:mr-4 file:rounded-lg file:border-0 file:bg-primary/10 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-primary hover:file:bg-primary/20"
+                      />
+                    </div>
+
                     <div>
                       <label
                         htmlFor="logo"
@@ -528,6 +1030,35 @@ export default function AdminSettingsPage() {
                         }
                         placeholder="/logo.png"
                         className="mt-1 w-full rounded-lg border border-border bg-background px-4 py-2 text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-md border border-border bg-background flex items-center justify-center overflow-hidden">
+                          {formData.favicon ? (
+                            <img
+                              src={formData.favicon}
+                              alt="Favicon preview"
+                              className="h-full w-full object-contain"
+                            />
+                          ) : (
+                            <span className="text-xs text-muted-foreground">
+                              Icon
+                            </span>
+                          )}
+                        </div>
+                        <label className="text-sm font-medium text-foreground">
+                          Favicon Upload
+                        </label>
+                      </div>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) =>
+                          handleFileUpload("favicon", e.target.files?.[0])
+                        }
+                        className="block w-full text-sm text-muted-foreground file:mr-4 file:rounded-lg file:border-0 file:bg-primary/10 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-primary hover:file:bg-primary/20"
                       />
                     </div>
 

@@ -2,7 +2,9 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { MemberLayout } from '../../layouts';
 import { PrimaryButton } from '@/components/gym';
 import { membersService } from '@/services/members.service';
-import { Calendar, Clock, User, Plus } from 'lucide-react';
+import { classesService, type ClassSchedule } from '@/services/classes.service';
+import { Calendar, Clock, User, Plus, Search } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface BookingView {
   id: string;
@@ -15,18 +17,30 @@ interface BookingView {
 
 export default function MemberBookingsPage() {
   const [bookings, setBookings] = useState<BookingView[]>([]);
+  const [availableClasses, setAvailableClasses] = useState<ClassSchedule[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingClasses, setLoadingClasses] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [memberId, setMemberId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [bookingClassId, setBookingClassId] = useState<string | null>(null);
 
   useEffect(() => {
-    const loadBookings = async () => {
+    const loadData = async () => {
       setLoading(true);
+      setLoadingClasses(true);
       setError(null);
       try {
-        const response = await membersService.getMyBookings();
+        const [member, bookingsResponse, classesResponse] = await Promise.all([
+          membersService.getMe(),
+          membersService.getMyBookings(),
+          classesService.getAll({ limit: 50 }),
+        ]);
+        setMemberId(member.id);
+
         const now = new Date();
-        const normalized = Array.isArray(response)
-          ? response.map((booking: any) => {
+        const normalized = Array.isArray(bookingsResponse)
+          ? bookingsResponse.map((booking: any) => {
               const start = booking.classSchedule?.startTime
                 ? new Date(booking.classSchedule.startTime)
                 : new Date();
@@ -47,16 +61,22 @@ export default function MemberBookingsPage() {
             })
           : [];
         setBookings(normalized);
+
+        setAvailableClasses(
+          Array.isArray(classesResponse.data) ? classesResponse.data : [],
+        );
       } catch (err) {
         console.error('Error loading bookings:', err);
         setError('Failed to load bookings.');
         setBookings([]);
+        setAvailableClasses([]);
       } finally {
         setLoading(false);
+        setLoadingClasses(false);
       }
     };
 
-    loadBookings();
+    loadData();
   }, []);
 
   const upcomingBookings = useMemo(
@@ -71,6 +91,60 @@ export default function MemberBookingsPage() {
     () => bookings.filter((b) => b.status === 'cancelled'),
     [bookings],
   );
+
+  const filteredClasses = useMemo(() => {
+    const query = searchQuery.toLowerCase();
+    return availableClasses.filter((cls) => {
+      const name = cls.name.toLowerCase();
+      const trainer = (cls.trainerName || '').toLowerCase();
+      const type = cls.classType.toLowerCase();
+      return (
+        name.includes(query) ||
+        trainer.includes(query) ||
+        type.includes(query)
+      );
+    });
+  }, [availableClasses, searchQuery]);
+
+  const handleBookClass = async (classScheduleId: string) => {
+    if (!memberId) {
+      toast.error('Member profile not loaded');
+      return;
+    }
+    setBookingClassId(classScheduleId);
+    try {
+      await classesService.bookClass(classScheduleId, memberId);
+      toast.success('Class booked successfully');
+      const response = await membersService.getMyBookings();
+      const now = new Date();
+      const normalized = Array.isArray(response)
+        ? response.map((booking: any) => {
+            const start = booking.classSchedule?.startTime
+              ? new Date(booking.classSchedule.startTime)
+              : new Date();
+            return {
+              id: booking.id,
+              title: booking.class?.name || 'Class',
+              trainer: booking.class?.trainer
+                ? `${booking.class.trainer.firstName} ${booking.class.trainer.lastName}`
+                : undefined,
+              startTime: start,
+              duration: booking.class?.duration || 0,
+              status: booking.status === 'CONFIRMED'
+                ? start >= now ? 'upcoming' : 'completed'
+                : booking.status === 'CANCELLED'
+                ? 'cancelled'
+                : 'completed',
+            } as BookingView;
+          })
+        : [];
+      setBookings(normalized);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Failed to book class');
+    } finally {
+      setBookingClassId(null);
+    }
+  };
 
   const BookingCard = ({ booking }: { booking: BookingView }) => (
     <div className="bg-card border border-border rounded-lg p-6 hover:border-primary/50 transition-colors">
@@ -133,6 +207,61 @@ export default function MemberBookingsPage() {
             {error}
           </div>
         )}
+
+        <div className="bg-card border border-border rounded-lg p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-foreground">Available Classes</h2>
+          </div>
+          <div className="relative mb-4">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Search classes, trainers, or type..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full rounded-lg border border-border bg-background py-2 pl-10 pr-4 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            />
+          </div>
+
+          {loadingClasses ? (
+            <div className="text-muted-foreground">Loading classes...</div>
+          ) : filteredClasses.length === 0 ? (
+            <div className="text-muted-foreground">No classes found.</div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {filteredClasses.map((cls) => (
+                <div key={cls.id} className="border border-border rounded-lg p-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <h3 className="text-lg font-semibold text-foreground">{cls.name}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {cls.classType} • {cls.duration} min
+                      </p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {cls.trainerName || 'Trainer TBA'}
+                      </p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {new Date(cls.schedule).toLocaleDateString()}{" "}
+                        {new Date(cls.schedule).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {cls.availableSlots !== undefined
+                          ? `${cls.availableSlots} slots left`
+                          : 'Availability unknown'}
+                      </p>
+                    </div>
+                    <PrimaryButton
+                      onClick={() => handleBookClass(cls.id)}
+                      disabled={bookingClassId === cls.id || cls.availableSlots === 0}
+                    >
+                      {bookingClassId === cls.id ? 'Booking...' : 'Book'}
+                    </PrimaryButton>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
         {!loading && !error && upcomingBookings.length === 0 && (
           <div className="bg-card border border-border rounded-lg p-12 text-center">

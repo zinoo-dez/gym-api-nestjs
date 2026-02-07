@@ -92,6 +92,25 @@ const adminNavGroups = [
         ),
       },
       {
+        label: "Discount Codes",
+        href: "/admin/discount-codes",
+        icon: (
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 14l6-6m-5 11H6a2 2 0 01-2-2v-4a1 1 0 011-1h3m10-1V7a2 2 0 00-2-2h-4m-1 14a2 2 0 002-2v-3m-6 6l3-3m-6 0l3 3"
+            />
+          </svg>
+        ),
+      },
+      {
         label: "Classes",
         href: "/admin/classes",
         icon: (

@@ -32,4 +32,13 @@ export class CreateClassDto {
 
   @IsString({ message: 'Class type must be a string' })
   classType!: string;
+
+  @IsOptional()
+  @IsString({ message: 'Recurrence rule must be a string' })
+  recurrenceRule?: string;
+
+  @IsOptional()
+  @IsInt({ message: 'Occurrences must be an integer' })
+  @Min(1, { message: 'Occurrences must be at least 1' })
+  occurrences?: number;
 }

@@ -1,5 +1,5 @@
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { AdminLayout } from "@/layouts";
 import { PrimaryButton, SecondaryButton, FormInput } from "@/components/gym";
 import { FormTextarea } from "@/components/gym/form-textarea";
@@ -55,24 +55,24 @@ export default function AdminTrainersPage() {
     hourlyRate: "",
   });
 
-  useEffect(() => {
-    const loadTrainers = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await trainersService.getAll({ limit: 50 });
-        setTrainers(Array.isArray(response.data) ? response.data : []);
-      } catch (err) {
-        console.error("Error loading trainers:", err);
-        setError("Failed to load trainers.");
-        setTrainers([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadTrainers();
+  const loadTrainers = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await trainersService.getAll({ limit: 50 });
+      setTrainers(Array.isArray(response.data) ? response.data : []);
+    } catch (err) {
+      console.error("Error loading trainers:", err);
+      setError("Failed to load trainers.");
+      setTrainers([]);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    loadTrainers();
+  }, [loadTrainers]);
 
   const filteredTrainers = useMemo(() => {
     const query = searchQuery.toLowerCase();
@@ -137,8 +137,8 @@ export default function AdminTrainersPage() {
         experience: createForm.experience ? Number(createForm.experience) : undefined,
         hourlyRate: createForm.hourlyRate ? Number(createForm.hourlyRate) : undefined,
       };
-      const created = await trainersService.create(payload);
-      setTrainers((prev) => [created, ...prev]);
+      await trainersService.create(payload);
+      await loadTrainers();
       setIsCreateOpen(false);
       toast.success("Trainer created successfully");
     } catch (err: any) {

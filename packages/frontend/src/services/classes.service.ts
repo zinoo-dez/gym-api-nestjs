@@ -32,6 +32,8 @@ export interface CreateClassRequest {
     duration: number;
     capacity: number;
     classType: string;
+    recurrenceRule?: string;
+    occurrences?: number;
 }
 
 export interface UpdateClassRequest {
@@ -83,6 +85,21 @@ export const classesService = {
 
     async deactivate(id: string) {
         const response = await apiClient.delete<ApiResponse<{ message: string }>>(`/classes/${id}`);
+        return response.data.data ?? response.data;
+    },
+
+    async bookClass(classScheduleId: string, memberId: string) {
+        const response = await apiClient.post<ApiResponse<any>>(
+            `/classes/${classScheduleId}/book`,
+            { memberId },
+        );
+        return response.data.data ?? response.data;
+    },
+
+    async cancelBooking(bookingId: string) {
+        const response = await apiClient.delete<ApiResponse<{ message: string }>>(
+            `/classes/bookings/${bookingId}`,
+        );
         return response.data.data ?? response.data;
     },
 };

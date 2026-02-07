@@ -10,6 +10,7 @@ import {
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import type { Cache } from 'cache-manager';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import {
   CreateClassDto,
   UpdateClassDto,
@@ -30,6 +31,7 @@ export class ClassesService {
   constructor(
     private readonly prisma: PrismaService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async create(
@@ -88,29 +90,212 @@ export class ClassesService {
         },
       });
 
-      return tx.classSchedule.create({
-        data: {
-          classId: newClass.id,
-          trainerId: createClassDto.trainerId,
-          startTime,
-          endTime,
-          daysOfWeek: JSON.stringify([this.getDayOfWeek(startTime)]),
-          isActive: true,
-        },
-        include: {
-          class: true,
-          trainer: { include: { user: true } },
-          bookings: {
-            where: { status: BookingStatus.CONFIRMED },
-            select: { id: true },
-          },
-        },
-      });
+      const occurrences = this.buildOccurrences(
+        startTime,
+        createClassDto.duration,
+        createClassDto.recurrenceRule,
+        createClassDto.occurrences,
+      );
+
+      const schedules = await Promise.all(
+        occurrences.map((occurrence) =>
+          tx.classSchedule.create({
+            data: {
+              classId: newClass.id,
+              trainerId: createClassDto.trainerId,
+              startTime: occurrence.start,
+              endTime: occurrence.end,
+              daysOfWeek: JSON.stringify([this.getDayOfWeek(occurrence.start)]),
+              isActive: true,
+            },
+            include: {
+              class: true,
+              trainer: { include: { user: true } },
+              bookings: {
+                where: { status: BookingStatus.CONFIRMED },
+                select: { id: true },
+              },
+            },
+          }),
+        ),
+      );
+
+      return schedules[0];
     });
+
+    const settings = await this.prisma.gymSetting.findFirst({
+      select: { newSessionNotification: true },
+    });
+    if (settings?.newSessionNotification !== false) {
+      await this.notificationsService.createForRole({
+        role: UserRole.ADMIN,
+        title: 'New class created',
+        message: `Class "${classSchedule.class.name}" was created.`,
+        type: 'success',
+        actionUrl: '/admin/classes',
+      });
+    }
 
     this.invalidateClassesCache();
 
     return this.toResponseDto(classSchedule);
+  }
+
+  private buildOccurrences(
+    startTime: Date,
+    durationMinutes: number,
+    recurrenceRule?: string,
+    occurrencesLimit?: number,
+  ): Array<{ start: Date; end: Date }> {
+    if (!recurrenceRule) {
+      return [
+        {
+          start: startTime,
+          end: new Date(startTime.getTime() + durationMinutes * 60000),
+        },
+      ];
+    }
+
+    const rule = this.parseRRule(recurrenceRule);
+    if (!rule) {
+      throw new BadRequestException('Invalid recurrence rule');
+    }
+
+    if (rule.freq !== 'WEEKLY') {
+      throw new BadRequestException('Only WEEKLY recurrence is supported');
+    }
+
+    const byDays = rule.byDay.length > 0 ? rule.byDay : [this.getDayOfWeek(startTime)];
+    const byHour = rule.byHour ?? startTime.getHours();
+    const byMinute = rule.byMinute ?? startTime.getMinutes();
+
+    const occurrences: Array<{ start: Date; end: Date }> = [];
+    const startDate = new Date(startTime);
+    const until = rule.until ?? new Date(startTime.getTime() + 84 * 24 * 60 * 60 * 1000);
+    const maxCount = occurrencesLimit ?? rule.count ?? 24;
+
+    const dayMap: Record<string, number> = {
+      Sunday: 0,
+      Monday: 1,
+      Tuesday: 2,
+      Wednesday: 3,
+      Thursday: 4,
+      Friday: 5,
+      Saturday: 6,
+    };
+
+    const byDayIndexes = byDays.map((day) => dayMap[day]).filter((d) => d !== undefined);
+    const cursor = new Date(
+      startDate.getFullYear(),
+      startDate.getMonth(),
+      startDate.getDate(),
+      0,
+      0,
+      0,
+      0,
+    );
+
+    while (cursor <= until && occurrences.length < maxCount) {
+      if (byDayIndexes.includes(cursor.getDay())) {
+        const occurrenceStart = new Date(
+          cursor.getFullYear(),
+          cursor.getMonth(),
+          cursor.getDate(),
+          byHour,
+          byMinute,
+          0,
+          0,
+        );
+        if (occurrenceStart >= startTime && occurrenceStart <= until) {
+          const occurrenceEnd = new Date(
+            occurrenceStart.getTime() + durationMinutes * 60000,
+          );
+          occurrences.push({ start: occurrenceStart, end: occurrenceEnd });
+        }
+      }
+      cursor.setDate(cursor.getDate() + 1);
+    }
+
+    if (occurrences.length === 0) {
+      return [
+        {
+          start: startTime,
+          end: new Date(startTime.getTime() + durationMinutes * 60000),
+        },
+      ];
+    }
+
+    return occurrences;
+  }
+
+  private parseRRule(rule: string): {
+    freq: string;
+    byDay: string[];
+    byHour?: number;
+    byMinute?: number;
+    count?: number;
+    until?: Date;
+  } | null {
+    const parts = rule.split(';').reduce<Record<string, string>>((acc, part) => {
+      const [key, value] = part.split('=');
+      if (key && value) acc[key.trim().toUpperCase()] = value.trim();
+      return acc;
+    }, {});
+
+    if (!parts.FREQ) return null;
+
+    const byDay = (parts.BYDAY ?? '')
+      .split(',')
+      .map((day) => day.trim())
+      .filter(Boolean)
+      .map((day) => this.mapRRuleDay(day));
+
+    const byHour = parts.BYHOUR ? Number(parts.BYHOUR) : undefined;
+    const byMinute = parts.BYMINUTE ? Number(parts.BYMINUTE) : undefined;
+    const count = parts.COUNT ? Number(parts.COUNT) : undefined;
+    const until = parts.UNTIL ? this.parseRRuleDate(parts.UNTIL) : undefined;
+
+    return {
+      freq: parts.FREQ,
+      byDay: byDay.filter(Boolean),
+      byHour: Number.isFinite(byHour) ? byHour : undefined,
+      byMinute: Number.isFinite(byMinute) ? byMinute : undefined,
+      count: Number.isFinite(count) ? count : undefined,
+      until,
+    };
+  }
+
+  private mapRRuleDay(value: string): string {
+    const map: Record<string, string> = {
+      SU: 'Sunday',
+      MO: 'Monday',
+      TU: 'Tuesday',
+      WE: 'Wednesday',
+      TH: 'Thursday',
+      FR: 'Friday',
+      SA: 'Saturday',
+    };
+    return map[value] ?? value;
+  }
+
+  private parseRRuleDate(value: string): Date | undefined {
+    // Supports YYYYMMDD or YYYYMMDDTHHMMSSZ
+    if (/^\d{8}T\d{6}Z$/.test(value)) {
+      const year = Number(value.slice(0, 4));
+      const month = Number(value.slice(4, 6)) - 1;
+      const day = Number(value.slice(6, 8));
+      const hour = Number(value.slice(9, 11));
+      const minute = Number(value.slice(11, 13));
+      const second = Number(value.slice(13, 15));
+      return new Date(Date.UTC(year, month, day, hour, minute, second));
+    }
+    if (/^\d{8}$/.test(value)) {
+      const year = Number(value.slice(0, 4));
+      const month = Number(value.slice(4, 6)) - 1;
+      const day = Number(value.slice(6, 8));
+      return new Date(year, month, day);
+    }
+    return undefined;
   }
 
   async findAll(
@@ -375,7 +560,7 @@ export class ClassesService {
   ): Promise<ClassBookingResponseDto> {
     const member = await this.prisma.member.findUnique({
       where: { id: bookDto.memberId },
-      select: { id: true, userId: true },
+      select: { id: true, userId: true, user: { select: { firstName: true, lastName: true } } },
     });
 
     if (!member) {
@@ -446,6 +631,22 @@ export class ClassesService {
     }
 
     this.invalidateClassesCache();
+
+    const settings = await this.prisma.gymSetting.findFirst({
+      select: { newSessionNotification: true },
+    });
+    if (settings?.newSessionNotification !== false) {
+      const fullName = member.user
+        ? `${member.user.firstName} ${member.user.lastName}`.trim()
+        : 'Member';
+      await this.notificationsService.createForRole({
+        role: UserRole.ADMIN,
+        title: 'New class booking',
+        message: `${fullName} booked a class session.`,
+        type: 'info',
+        actionUrl: '/admin/classes',
+      });
+    }
 
     return this.toBookingResponseDto(booking);
   }

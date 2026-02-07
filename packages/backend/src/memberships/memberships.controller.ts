@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   Query,
+  Res,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -25,6 +26,7 @@ import {
   MembershipResponseDto,
   UpgradeMembershipDto,
   MembershipPlanFiltersDto,
+  SubscribeMembershipDto,
 } from './dto';
 import { PaginatedResponseDto } from '../common/dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -33,6 +35,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { Public } from '../auth/decorators/public.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { UserRole } from '@prisma/client';
+import type { Response } from 'express';
 
 @ApiTags('memberships')
 @Controller()
@@ -185,6 +188,33 @@ export class MembershipsController {
     return this.membershipsService.assignMembership(assignDto);
   }
 
+  @Post('memberships/subscribe')
+  @Roles(UserRole.MEMBER)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'Subscribe to a membership plan',
+    description:
+      'Allows a member to subscribe to a membership plan. Requires MEMBER role.',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Successfully subscribed to membership plan',
+    type: MembershipResponseDto,
+  })
+  @ApiResponse({ status: 400, description: 'Invalid input data' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Plan not found' })
+  @ApiResponse({ status: 409, description: 'Already has active membership' })
+  async subscribeMembership(
+    @Body() subscribeDto: SubscribeMembershipDto,
+    @CurrentUser() user: any,
+  ): Promise<MembershipResponseDto> {
+    return this.membershipsService.subscribeMembership(
+      user.userId,
+      subscribeDto,
+    );
+  }
+
   @Get('memberships/:id')
   @Roles(UserRole.ADMIN, UserRole.MEMBER)
   @ApiBearerAuth('JWT-auth')
@@ -209,6 +239,46 @@ export class MembershipsController {
     @CurrentUser() user: any,
   ): Promise<MembershipResponseDto> {
     return this.membershipsService.findMembershipById(id, user);
+  }
+
+  @Get('memberships/discount-preview')
+  @Roles(UserRole.ADMIN, UserRole.MEMBER)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'Preview discount pricing for a plan',
+    description: 'Validate a discount code and return pricing preview.',
+  })
+  @ApiResponse({ status: 200, description: 'Discount preview returned' })
+  async previewDiscount(
+    @Query('planId') planId: string,
+    @Query('code') code: string,
+  ) {
+    return this.membershipsService.previewDiscount(planId, code);
+  }
+
+  @Get('memberships/:id/invoice')
+  @Roles(UserRole.ADMIN, UserRole.MEMBER)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'Download membership invoice (PDF)',
+    description: 'Download a PDF invoice for a membership.',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'Membership UUID',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  @ApiResponse({ status: 200, description: 'PDF invoice file' })
+  async downloadInvoice(
+    @Param('id') id: string,
+    @CurrentUser() user: any,
+    @Res() res: Response,
+  ) {
+    const { filename, buffer } =
+      await this.membershipsService.generateInvoicePdf(id, user);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.send(buffer);
   }
 
   @Post('memberships/:memberId/upgrade')
@@ -242,5 +312,38 @@ export class MembershipsController {
       upgradeDto,
       user,
     );
+  }
+
+  @Post('memberships/:id/freeze')
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'Freeze a membership',
+    description: 'Freeze a member subscription. Requires ADMIN role.',
+  })
+  async freezeMembership(@Param('id') id: string) {
+    return this.membershipsService.freezeMembership(id);
+  }
+
+  @Post('memberships/:id/unfreeze')
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'Unfreeze a membership',
+    description: 'Unfreeze a member subscription. Requires ADMIN role.',
+  })
+  async unfreezeMembership(@Param('id') id: string) {
+    return this.membershipsService.unfreezeMembership(id);
+  }
+
+  @Post('memberships/:id/cancel')
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'Cancel a membership',
+    description: 'Cancel a member subscription. Requires ADMIN role.',
+  })
+  async cancelMembership(@Param('id') id: string) {
+    return this.membershipsService.cancelMembership(id);
   }
 }

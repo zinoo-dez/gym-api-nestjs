@@ -6,6 +6,7 @@ import { PublicLayout } from "../../layouts"
 import { ClassScheduleTable, type ClassScheduleItem, SecondaryButton } from "@/components/gym"
 import { cn } from "@/lib/utils"
 import { classesService, type ClassSchedule } from "@/services/classes.service"
+import { useGymSettings } from "@/hooks/use-gym-settings"
 
 const convertClassToScheduleItem = (cls: ClassSchedule): ClassScheduleItem => {
   const startTime = new Date(cls.schedule)
@@ -38,6 +39,13 @@ const classTypes = [
 const days = ["All", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
 export default function ClassesPage() {
+  const {
+    classesTitle,
+    classesSubtitle,
+    ctaTitle,
+    ctaSubtitle,
+    ctaButtonLabel,
+  } = useGymSettings()
   const [selectedDay, setSelectedDay] = useState("All")
   const [selectedLevel, setSelectedLevel] = useState("all")
   const [classes, setClasses] = useState<ClassScheduleItem[]>([])
@@ -86,11 +94,12 @@ export default function ClassesPage() {
           {/* Header */}
           <div className="text-center mb-16">
             <h1 className="text-4xl sm:text-5xl font-bold text-foreground mb-4">
-              Group <span className="text-primary">Fitness Classes</span>
+              {classesTitle}
             </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              From high-energy HIIT to relaxing yoga, find the perfect class to match your fitness goals and schedule.
-            </p>
+            <div
+              className="text-lg text-muted-foreground max-w-2xl mx-auto [&_img]:max-w-full [&_img]:rounded-xl"
+              dangerouslySetInnerHTML={{ __html: classesSubtitle || "" }}
+            />
           </div>
 
           {/* Class Types */}
@@ -162,14 +171,18 @@ export default function ClassesPage() {
 
           {/* Membership CTA */}
           <div className="mt-12 text-center">
-            <p className="text-muted-foreground mb-4">
-              Unlimited class access included with Pro and Elite memberships.
-            </p>
+            <h2 className="text-2xl font-bold text-foreground mb-4">
+              {ctaTitle}
+            </h2>
+            <div
+              className="text-muted-foreground mb-4 [&_img]:max-w-full [&_img]:rounded-xl"
+              dangerouslySetInnerHTML={{ __html: ctaSubtitle || "" }}
+            />
             <Link
               to="/pricing"
               className="text-primary font-medium hover:underline"
             >
-              View Membership Plans →
+              {ctaButtonLabel}
             </Link>
           </div>
         </div>

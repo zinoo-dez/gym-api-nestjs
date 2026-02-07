@@ -26,6 +26,16 @@ import {
   Filter,
 } from "lucide-react";
 
+const WEEKDAY_OPTIONS = [
+  { label: "Mon", value: "MO" },
+  { label: "Tue", value: "TU" },
+  { label: "Wed", value: "WE" },
+  { label: "Thu", value: "TH" },
+  { label: "Fri", value: "FR" },
+  { label: "Sat", value: "SA" },
+  { label: "Sun", value: "SU" },
+];
+
 export default function AdminClassesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
@@ -47,6 +57,12 @@ export default function AdminClassesPage() {
     duration: "",
     capacity: "",
     classType: "",
+    recurrenceRule: "",
+    occurrences: "",
+    repeatWeekly: false,
+    repeatDays: [] as string[],
+    repeatEndDate: "",
+    repeatCount: "",
   });
   const [editForm, setEditForm] = useState({
     name: "",
@@ -146,6 +162,12 @@ export default function AdminClassesPage() {
       duration: "",
       capacity: "",
       classType: "",
+      recurrenceRule: "",
+      occurrences: "",
+      repeatWeekly: false,
+      repeatDays: [],
+      repeatEndDate: "",
+      repeatCount: "",
     });
     setIsCreateOpen(true);
   };
@@ -169,9 +191,73 @@ export default function AdminClassesPage() {
     setIsDeleteOpen(true);
   };
 
+  const toggleRepeatDay = (day: string) => {
+    setCreateForm((prev) => {
+      const exists = prev.repeatDays.includes(day);
+      return {
+        ...prev,
+        repeatDays: exists
+          ? prev.repeatDays.filter((d) => d !== day)
+          : [...prev.repeatDays, day],
+      };
+    });
+  };
+
+  const buildWeeklyRRule = () => {
+    if (!createForm.repeatWeekly || !createForm.schedule) return undefined;
+    const start = new Date(createForm.schedule);
+    if (Number.isNaN(start.getTime())) return undefined;
+
+    const dayMap: Record<string, string> = {
+      Sunday: "SU",
+      Monday: "MO",
+      Tuesday: "TU",
+      Wednesday: "WE",
+      Thursday: "TH",
+      Friday: "FR",
+      Saturday: "SA",
+    };
+    const startDay = Object.entries(dayMap).find(
+      ([day]) => day === start.toLocaleDateString("en-US", { weekday: "long" }),
+    )?.[1];
+
+    const byDays =
+      createForm.repeatDays.length > 0
+        ? createForm.repeatDays
+        : startDay
+          ? [startDay]
+          : [];
+
+    const parts = [
+      "FREQ=WEEKLY",
+      byDays.length ? `BYDAY=${byDays.join(",")}` : "",
+      `BYHOUR=${start.getHours()}`,
+      `BYMINUTE=${start.getMinutes()}`,
+    ].filter(Boolean);
+
+    if (createForm.repeatEndDate) {
+      const until = new Date(createForm.repeatEndDate);
+      if (!Number.isNaN(until.getTime())) {
+        const year = until.getFullYear();
+        const month = String(until.getMonth() + 1).padStart(2, "0");
+        const day = String(until.getDate()).padStart(2, "0");
+        parts.push(`UNTIL=${year}${month}${day}`);
+      }
+    }
+
+    return parts.join(";");
+  };
+
   const handleCreate = async () => {
     setIsSaving(true);
     try {
+      const generatedRule = buildWeeklyRRule();
+      const occurrencesValue = createForm.repeatCount
+        ? Number(createForm.repeatCount)
+        : createForm.occurrences
+          ? Number(createForm.occurrences)
+          : undefined;
+
       const payload: CreateClassRequest = {
         name: createForm.name.trim(),
         description: createForm.description.trim() || undefined,
@@ -180,6 +266,8 @@ export default function AdminClassesPage() {
         duration: Number(createForm.duration),
         capacity: Number(createForm.capacity),
         classType: createForm.classType.trim(),
+        recurrenceRule: generatedRule || createForm.recurrenceRule.trim() || undefined,
+        occurrences: occurrencesValue,
       };
       const created = await classesService.create(payload);
       setClasses((prev) => [created, ...prev]);
@@ -545,6 +633,71 @@ export default function AdminClassesPage() {
           onChange={(e) => setCreateForm((prev) => ({ ...prev, classType: e.target.value }))}
           required
         />
+        <div className="space-y-3 rounded-lg border border-border bg-background p-4">
+          <label className="flex items-center gap-3 text-sm font-medium text-foreground">
+            <input
+              type="checkbox"
+              checked={createForm.repeatWeekly}
+              onChange={(e) =>
+                setCreateForm((prev) => ({
+                  ...prev,
+                  repeatWeekly: e.target.checked,
+                  repeatDays: e.target.checked ? prev.repeatDays : [],
+                  repeatEndDate: e.target.checked ? prev.repeatEndDate : "",
+                  repeatCount: e.target.checked ? prev.repeatCount : "",
+                }))
+              }
+            />
+            Repeat weekly
+          </label>
+
+          {createForm.repeatWeekly && (
+            <div className="space-y-3">
+              <div>
+                <p className="text-xs text-muted-foreground mb-2">Repeat on</p>
+                <div className="flex flex-wrap gap-2">
+                  {WEEKDAY_OPTIONS.map((day) => (
+                    <button
+                      key={day.value}
+                      type="button"
+                      onClick={() => toggleRepeatDay(day.value)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium border ${
+                        createForm.repeatDays.includes(day.value)
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-secondary text-muted-foreground border-border"
+                      }`}
+                    >
+                      {day.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <FormInput
+                  label="Repeat until (optional)"
+                  type="date"
+                  name="repeatEndDate"
+                  value={createForm.repeatEndDate}
+                  onChange={(e) =>
+                    setCreateForm((prev) => ({ ...prev, repeatEndDate: e.target.value }))
+                  }
+                />
+                <FormInput
+                  label="Occurrences (optional)"
+                  type="number"
+                  name="repeatCount"
+                  value={createForm.repeatCount}
+                  onChange={(e) =>
+                    setCreateForm((prev) => ({ ...prev, repeatCount: e.target.value }))
+                  }
+                  min={1}
+                  placeholder="e.g. 12"
+                />
+              </div>
+            </div>
+          )}
+        </div>
       </FormModal>
 
       <FormModal

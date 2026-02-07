@@ -33,6 +33,12 @@ export interface AttendanceResponse {
   totalPages: number;
 }
 
+export interface CheckInRequest {
+  memberId: string;
+  type: AttendanceType;
+  classScheduleId?: string;
+}
+
 interface ApiResponse<T> {
   data: T;
   statusCode: number;
@@ -54,6 +60,21 @@ export const attendanceService = {
       { params },
     );
 
+    return response.data.data ?? response.data;
+  },
+
+  async checkIn(data: CheckInRequest) {
+    const response = await apiClient.post<ApiResponse<AttendanceRecord>>(
+      "/attendance/check-in",
+      data,
+    );
+    return response.data.data ?? response.data;
+  },
+
+  async checkOut(attendanceId: string) {
+    const response = await apiClient.post<ApiResponse<AttendanceRecord>>(
+      `/attendance/${attendanceId}/check-out`,
+    );
     return response.data.data ?? response.data;
   },
 };

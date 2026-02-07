@@ -8,3 +8,5 @@ export * from "./attendance.service";
 export * from "./users.service";
 export * from "./dashboard.service";
 export * from "./gym-settings.service";
+export * from "./notifications.service";
+export * from "./discount-codes.service";

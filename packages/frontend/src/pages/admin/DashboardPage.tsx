@@ -21,6 +21,11 @@ export default function AdminDashboardPage() {
     queryFn: () => dashboardService.getPopularClasses(),
   });
 
+  const { data: upcomingClasses } = useQuery({
+    queryKey: ["dashboard", "upcoming-classes", 7],
+    queryFn: () => dashboardService.getUpcomingClasses(7),
+  });
+
   const { data: recentActivity = [], isLoading: activityLoading } = useQuery({
     queryKey: ["dashboard", "recent-activity"],
     queryFn: () => dashboardService.getRecentActivity(),
@@ -76,6 +81,29 @@ export default function AdminDashboardPage() {
           ),
         },
         {
+          title: "Expiring Memberships",
+          value: stats.expiringMemberships.value.toLocaleString(),
+          change: {
+            value: stats.expiringMemberships.change,
+            type: stats.expiringMemberships.type,
+          },
+          icon: (
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          ),
+        },
+        {
           title: "Today's Check-ins",
           value: stats.todayCheckIns.value.toLocaleString(),
           change: {
@@ -121,6 +149,27 @@ export default function AdminDashboardPage() {
             </svg>
           ),
         },
+        {
+          title: "Upcoming Attendance",
+          value: upcomingClasses
+            ? `${upcomingClasses.totalBookings}/${upcomingClasses.totalCapacity}`
+            : "0/0",
+          icon: (
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M8 7V3m8 4V3m-9 8h10m-9 4h6m2 6H6a2 2 0 01-2-2V7a2 2 0 012-2h12a2 2 0 012 2v12a2 2 0 01-2 2z"
+              />
+            </svg>
+          ),
+        },
       ]
     : [];
 
@@ -161,7 +210,7 @@ export default function AdminDashboardPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {statsLoading
             ? // Loading skeletons
-              Array.from({ length: 4 }).map((_, i) => (
+              Array.from({ length: 6 }).map((_, i) => (
                 <div
                   key={i}
                   className="bg-card border border-border rounded-xl p-6 animate-pulse"
@@ -317,6 +366,95 @@ export default function AdminDashboardPage() {
               </div>
             )}
           </div>
+        </div>
+
+        {/* Upcoming Classes */}
+        <div className="bg-card border border-border rounded-xl p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-lg font-semibold text-foreground">
+              Upcoming Attendance (Next 7 Days)
+            </h2>
+            <Link
+              to="/admin/classes"
+              className="text-primary text-sm font-medium hover:underline"
+            >
+              Manage Classes
+            </Link>
+          </div>
+          {!upcomingClasses ? (
+            <p className="text-muted-foreground text-center py-8">
+              Loading upcoming classes...
+            </p>
+          ) : upcomingClasses.totalUpcomingClasses === 0 ? (
+            <p className="text-muted-foreground text-center py-8">
+              No upcoming classes scheduled
+            </p>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex flex-wrap items-center gap-4">
+                <div className="rounded-lg bg-background border border-border px-4 py-3">
+                  <p className="text-xs text-muted-foreground">Total Booked</p>
+                  <p className="text-lg font-semibold text-foreground">
+                    {upcomingClasses.totalBookings}
+                  </p>
+                </div>
+                <div className="rounded-lg bg-background border border-border px-4 py-3">
+                  <p className="text-xs text-muted-foreground">Total Capacity</p>
+                  <p className="text-lg font-semibold text-foreground">
+                    {upcomingClasses.totalCapacity}
+                  </p>
+                </div>
+                <div className="rounded-lg bg-background border border-border px-4 py-3">
+                  <p className="text-xs text-muted-foreground">Utilization</p>
+                  <p className="text-lg font-semibold text-foreground">
+                    {upcomingClasses.utilization}%
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                {upcomingClasses.topClasses.map((cls) => (
+                  <div
+                    key={cls.id}
+                    className="bg-background border border-border rounded-lg p-4"
+                  >
+                    <h3 className="font-medium text-foreground mb-1">
+                      {cls.name}
+                    </h3>
+                    <p className="text-muted-foreground text-sm mb-2">
+                      {cls.trainer}
+                    </p>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">
+                        {new Date(cls.startTime).toLocaleDateString()}
+                      </span>
+                      <span
+                        className={`font-medium ${
+                          cls.booked === cls.capacity
+                            ? "text-destructive"
+                            : "text-primary"
+                        }`}
+                      >
+                        {cls.booked}/{cls.capacity}
+                      </span>
+                    </div>
+                    <div className="mt-2 h-1.5 bg-secondary rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full ${
+                          cls.booked === cls.capacity
+                            ? "bg-destructive"
+                            : "bg-primary"
+                        }`}
+                        style={{
+                          width: `${(cls.booked / cls.capacity) * 100}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Popular Classes */}

@@ -11,6 +11,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import type { Cache } from 'cache-manager';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import {
   CreateMembershipPlanDto,
   AssignMembershipDto,
@@ -19,19 +20,23 @@ import {
   MembershipResponseDto,
   UpgradeMembershipDto,
   MembershipPlanFiltersDto,
+  SubscribeMembershipDto,
 } from './dto';
 import { PaginatedResponseDto } from '../common/dto';
 import { Prisma, UserRole, SubscriptionStatus } from '@prisma/client';
+import PDFDocument from 'pdfkit';
 
 @Injectable()
 export class MembershipsService {
   private readonly logger = new Logger(MembershipsService.name);
   private readonly CACHE_TTL = 3600000; // 1 hour in milliseconds
   private readonly PLANS_CACHE_KEY = 'membership_plans';
+  private plansCacheVersion = 0;
 
   constructor(
     private readonly prisma: PrismaService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   // Membership Plan CRUD operations
@@ -65,6 +70,19 @@ export class MembershipsService {
       },
     });
 
+    const settings = await this.prisma.gymSetting.findFirst({
+      select: { newPaymentNotification: true },
+    });
+    if (settings?.newPaymentNotification !== false) {
+      await this.notificationsService.createForRole({
+        role: UserRole.ADMIN,
+        title: 'Membership plan created',
+        message: `Plan "${plan.name}" has been created.`,
+        type: 'success',
+        actionUrl: '/admin/plans',
+      });
+    }
+
     // Invalidate cache when a new plan is created
     this.invalidatePlansCache();
 
@@ -89,7 +107,7 @@ export class MembershipsService {
     }
 
     // Create cache key based on filters
-    const cacheKey = `${this.PLANS_CACHE_KEY}:${JSON.stringify({ where, page, limit, skip })}`;
+    const cacheKey = `${this.PLANS_CACHE_KEY}:v${this.plansCacheVersion}:${JSON.stringify({ where, page, limit, skip })}`;
 
     // Try to get from cache
     const cachedResult =
@@ -126,7 +144,7 @@ export class MembershipsService {
   }
 
   async findPlanById(id: string): Promise<MembershipPlanResponseDto> {
-    const cacheKey = `${this.PLANS_CACHE_KEY}:${id}`;
+    const cacheKey = `${this.PLANS_CACHE_KEY}:v${this.plansCacheVersion}:${id}`;
 
     // Try to get from cache
     const cachedPlan =
@@ -198,6 +216,19 @@ export class MembershipsService {
       },
     });
 
+    const settings = await this.prisma.gymSetting.findFirst({
+      select: { newPaymentNotification: true },
+    });
+    if (settings?.newPaymentNotification !== false) {
+      await this.notificationsService.createForRole({
+        role: UserRole.ADMIN,
+        title: 'Membership plan updated',
+        message: `Plan "${updatedPlan.name}" has been updated.`,
+        type: 'info',
+        actionUrl: '/admin/plans',
+      });
+    }
+
     // Invalidate cache when a plan is updated
     this.invalidatePlansCache();
 
@@ -227,7 +258,20 @@ export class MembershipsService {
       );
     }
 
-    await this.prisma.membershipPlan.delete({ where: { id } });
+    const deletedPlan = await this.prisma.membershipPlan.delete({ where: { id } });
+
+    const settings = await this.prisma.gymSetting.findFirst({
+      select: { newPaymentNotification: true },
+    });
+    if (settings?.newPaymentNotification !== false) {
+      await this.notificationsService.createForRole({
+        role: UserRole.ADMIN,
+        title: 'Membership plan deleted',
+        message: `Plan "${deletedPlan.name}" has been deleted.`,
+        type: 'warning',
+        actionUrl: '/admin/plans',
+      });
+    }
 
     this.invalidatePlansCache();
   }
@@ -240,7 +284,7 @@ export class MembershipsService {
     // Verify member exists - only select id field
     const member = await this.prisma.member.findUnique({
       where: { id: assignDto.memberId },
-      select: { id: true },
+      select: { id: true, userId: true },
     });
 
     if (!member) {
@@ -252,7 +296,7 @@ export class MembershipsService {
     // Verify plan exists - only select needed fields
     const plan = await this.prisma.membershipPlan.findUnique({
       where: { id: assignDto.planId },
-      select: { id: true, duration: true },
+      select: { id: true, duration: true, price: true },
     });
 
     if (!plan) {
@@ -284,6 +328,11 @@ export class MembershipsService {
     const endDate = new Date(startDate);
     endDate.setDate(endDate.getDate() + (plan.duration || 30));
 
+    const pricing = await this.resolveDiscountPricing(
+      plan.price,
+      assignDto.discountCode,
+    );
+
     // Create membership
     const membership = await this.prisma.subscription.create({
       data: {
@@ -292,11 +341,134 @@ export class MembershipsService {
         startDate,
         endDate,
         status: SubscriptionStatus.ACTIVE,
+        originalPrice: pricing.originalPrice,
+        finalPrice: pricing.finalPrice,
+        discountAmount: pricing.discountAmount,
+        discountCodeId: pricing.discountCodeId,
       },
       include: {
         membershipPlan: true,
+        discountCode: true,
       },
     });
+
+    const settings = await this.prisma.gymSetting.findFirst({
+      select: { newMembershipNotification: true },
+    });
+    if (settings?.newMembershipNotification !== false) {
+      const memberUser = await this.prisma.user.findUnique({
+        where: { id: member.userId },
+        select: { firstName: true, lastName: true, email: true },
+      });
+      const fullName = memberUser
+        ? `${memberUser.firstName} ${memberUser.lastName}`.trim()
+        : 'Member';
+      await this.notificationsService.createForRole({
+        role: UserRole.ADMIN,
+        title: 'Membership assigned',
+        message: `${fullName} was assigned a membership.`,
+        type: 'info',
+        actionUrl: '/admin/members',
+      });
+      if (member.userId) {
+        await this.notificationsService.createForUser({
+          userId: member.userId,
+          title: 'Membership assigned',
+          message: 'A membership has been assigned to your account.',
+          type: 'success',
+          actionUrl: '/member/plans',
+        });
+      }
+    }
+
+    return this.toMembershipResponseDto(membership);
+  }
+
+  async subscribeMembership(
+    userId: string,
+    subscribeDto: SubscribeMembershipDto,
+  ): Promise<MembershipResponseDto> {
+    const member = await this.prisma.member.findUnique({
+      where: { userId },
+      select: { id: true, user: { select: { firstName: true, lastName: true } } },
+    });
+
+    if (!member) {
+      throw new NotFoundException('Member profile not found');
+    }
+
+    const plan = await this.prisma.membershipPlan.findUnique({
+      where: { id: subscribeDto.planId },
+      select: { id: true, duration: true, name: true, price: true },
+    });
+
+    if (!plan) {
+      throw new NotFoundException(
+        `Membership plan with ID ${subscribeDto.planId} not found`,
+      );
+    }
+
+    const activeMembership = await this.prisma.subscription.findFirst({
+      where: {
+        memberId: member.id,
+        status: SubscriptionStatus.ACTIVE,
+        endDate: {
+          gte: new Date(),
+        },
+      },
+      select: { id: true },
+    });
+
+    if (activeMembership) {
+      throw new ConflictException(
+        'You already have an active membership. Use upgrade to change plans.',
+      );
+    }
+
+    const startDate = subscribeDto.startDate
+      ? new Date(subscribeDto.startDate)
+      : new Date();
+    const endDate = new Date(startDate);
+    endDate.setDate(endDate.getDate() + (plan.duration || 30));
+
+    const pricing = await this.resolveDiscountPricing(
+      plan.price,
+      subscribeDto.discountCode,
+    );
+
+    const membership = await this.prisma.subscription.create({
+      data: {
+        memberId: member.id,
+        membershipPlanId: subscribeDto.planId,
+        startDate,
+        endDate,
+        status: SubscriptionStatus.ACTIVE,
+        originalPrice: pricing.originalPrice,
+        finalPrice: pricing.finalPrice,
+        discountAmount: pricing.discountAmount,
+        discountCodeId: pricing.discountCodeId,
+      },
+      include: {
+        membershipPlan: true,
+        discountCode: true,
+      },
+    });
+
+    const settings = await this.prisma.gymSetting.findFirst({
+      select: { newMembershipNotification: true },
+    });
+    if (settings?.newMembershipNotification !== false) {
+      const fullName = member.user
+        ? `${member.user.firstName} ${member.user.lastName}`.trim()
+        : 'Member';
+      await this.notificationsService.createForRole({
+        role: UserRole.ADMIN,
+        title: 'New membership subscription',
+        message: `${fullName} subscribed to ${plan.name}.`,
+        type: 'success',
+        actionUrl: '/admin/members',
+      });
+    }
 
     return this.toMembershipResponseDto(membership);
   }
@@ -309,6 +481,7 @@ export class MembershipsService {
       where: { id },
       include: {
         membershipPlan: true,
+        discountCode: true,
         member: {
           select: { userId: true },
         },
@@ -356,7 +529,7 @@ export class MembershipsService {
     // Verify new plan exists - only select needed fields
     const newPlan = await this.prisma.membershipPlan.findUnique({
       where: { id: upgradeDto.newPlanId },
-      select: { id: true, duration: true },
+      select: { id: true, duration: true, price: true },
     });
 
     if (!newPlan) {
@@ -405,14 +578,47 @@ export class MembershipsService {
           startDate,
           endDate,
           status: SubscriptionStatus.ACTIVE,
+          originalPrice: Number(newPlan.price || 0),
+          finalPrice: Number(newPlan.price || 0),
+          discountAmount: 0,
         },
         include: {
           membershipPlan: true,
+          discountCode: true,
         },
       });
 
       return newMembership;
     });
+
+    const settings = await this.prisma.gymSetting.findFirst({
+      select: { newMembershipNotification: true },
+    });
+    if (settings?.newMembershipNotification !== false) {
+      const memberUser = await this.prisma.user.findUnique({
+        where: { id: member.userId },
+        select: { firstName: true, lastName: true, email: true },
+      });
+      const fullName = memberUser
+        ? `${memberUser.firstName} ${memberUser.lastName}`.trim()
+        : 'Member';
+      await this.notificationsService.createForRole({
+        role: UserRole.ADMIN,
+        title: 'Membership upgraded',
+        message: `${fullName} upgraded their membership.`,
+        type: 'info',
+        actionUrl: '/admin/members',
+      });
+      if (member.userId) {
+        await this.notificationsService.createForUser({
+          userId: member.userId,
+          title: 'Membership upgraded',
+          message: 'Your membership has been upgraded successfully.',
+          type: 'success',
+          actionUrl: '/member/plans',
+        });
+      }
+    }
 
     return this.toMembershipResponseDto(result);
   }
@@ -433,6 +639,267 @@ export class MembershipsService {
       membership.startDate <= now &&
       membership.endDate >= now
     );
+  }
+
+  async freezeMembership(id: string): Promise<MembershipResponseDto> {
+    const membership = await this.prisma.subscription.findUnique({
+      where: { id },
+      include: { membershipPlan: true, discountCode: true },
+    });
+
+    if (!membership) {
+      throw new NotFoundException(`Membership with ID ${id} not found`);
+    }
+
+    const updated = await this.prisma.subscription.update({
+      where: { id },
+      data: { status: SubscriptionStatus.FROZEN },
+      include: { membershipPlan: true, discountCode: true },
+    });
+
+    const settings = await this.prisma.gymSetting.findFirst({
+      select: { newMembershipNotification: true },
+    });
+    if (settings?.newMembershipNotification !== false) {
+      const memberRecord = await this.prisma.member.findUnique({
+        where: { id: updated.memberId },
+        select: { userId: true, user: { select: { firstName: true, lastName: true } } },
+      });
+      const fullName = memberRecord?.user
+        ? `${memberRecord.user.firstName} ${memberRecord.user.lastName}`.trim()
+        : 'Member';
+      await this.notificationsService.createForRole({
+        role: UserRole.ADMIN,
+        title: 'Membership frozen',
+        message: `${fullName} membership was frozen.`,
+        type: 'warning',
+        actionUrl: '/admin/members',
+      });
+      if (memberRecord?.userId) {
+        await this.notificationsService.createForUser({
+          userId: memberRecord.userId,
+          title: 'Membership frozen',
+          message: 'Your membership has been frozen.',
+          type: 'warning',
+          actionUrl: '/member/plans',
+        });
+      }
+    }
+
+    return this.toMembershipResponseDto(updated);
+  }
+
+  async unfreezeMembership(id: string): Promise<MembershipResponseDto> {
+    const membership = await this.prisma.subscription.findUnique({
+      where: { id },
+      include: { membershipPlan: true, discountCode: true },
+    });
+
+    if (!membership) {
+      throw new NotFoundException(`Membership with ID ${id} not found`);
+    }
+
+    const newStatus =
+      membership.endDate >= new Date()
+        ? SubscriptionStatus.ACTIVE
+        : SubscriptionStatus.EXPIRED;
+
+    const updated = await this.prisma.subscription.update({
+      where: { id },
+      data: { status: newStatus },
+      include: { membershipPlan: true, discountCode: true },
+    });
+
+    const settings = await this.prisma.gymSetting.findFirst({
+      select: { newMembershipNotification: true },
+    });
+    if (settings?.newMembershipNotification !== false) {
+      const memberRecord = await this.prisma.member.findUnique({
+        where: { id: updated.memberId },
+        select: { userId: true, user: { select: { firstName: true, lastName: true } } },
+      });
+      const fullName = memberRecord?.user
+        ? `${memberRecord.user.firstName} ${memberRecord.user.lastName}`.trim()
+        : 'Member';
+      await this.notificationsService.createForRole({
+        role: UserRole.ADMIN,
+        title: 'Membership unfrozen',
+        message: `${fullName} membership was unfrozen.`,
+        type: 'info',
+        actionUrl: '/admin/members',
+      });
+      if (memberRecord?.userId) {
+        await this.notificationsService.createForUser({
+          userId: memberRecord.userId,
+          title: 'Membership reactivated',
+          message: 'Your membership is active again.',
+          type: 'success',
+          actionUrl: '/member/plans',
+        });
+      }
+    }
+
+    return this.toMembershipResponseDto(updated);
+  }
+
+  async cancelMembership(id: string): Promise<MembershipResponseDto> {
+    const membership = await this.prisma.subscription.findUnique({
+      where: { id },
+      include: { membershipPlan: true, discountCode: true },
+    });
+
+    if (!membership) {
+      throw new NotFoundException(`Membership with ID ${id} not found`);
+    }
+
+    const updated = await this.prisma.subscription.update({
+      where: { id },
+      data: { status: SubscriptionStatus.CANCELLED },
+      include: { membershipPlan: true, discountCode: true },
+    });
+
+    const settings = await this.prisma.gymSetting.findFirst({
+      select: { newMembershipNotification: true },
+    });
+    if (settings?.newMembershipNotification !== false) {
+      const memberRecord = await this.prisma.member.findUnique({
+        where: { id: updated.memberId },
+        select: { userId: true, user: { select: { firstName: true, lastName: true } } },
+      });
+      const fullName = memberRecord?.user
+        ? `${memberRecord.user.firstName} ${memberRecord.user.lastName}`.trim()
+        : 'Member';
+      await this.notificationsService.createForRole({
+        role: UserRole.ADMIN,
+        title: 'Membership cancelled',
+        message: `${fullName} membership was cancelled.`,
+        type: 'warning',
+        actionUrl: '/admin/members',
+      });
+      if (memberRecord?.userId) {
+        await this.notificationsService.createForUser({
+          userId: memberRecord.userId,
+          title: 'Membership cancelled',
+          message: `${fullName}, your membership has been cancelled.`,
+          type: 'warning',
+          actionUrl: '/member/plans',
+        });
+      }
+    }
+
+    return this.toMembershipResponseDto(updated);
+  }
+
+  async generateInvoicePdf(
+    membershipId: string,
+    currentUser: { userId: string; role: UserRole },
+  ): Promise<{ filename: string; buffer: Buffer }> {
+    const membership = await this.prisma.subscription.findUnique({
+      where: { id: membershipId },
+      include: {
+        membershipPlan: true,
+        discountCode: true,
+        member: {
+          include: { user: true },
+        },
+      },
+    });
+
+    if (!membership) {
+      throw new NotFoundException(`Membership with ID ${membershipId} not found`);
+    }
+
+    if (
+      currentUser.role === UserRole.MEMBER &&
+      membership.member?.userId !== currentUser.userId
+    ) {
+      throw new ForbiddenException('You can only access your own invoice');
+    }
+
+    const gymSettings = await this.prisma.gymSetting.findFirst();
+    const gymName = gymSettings?.name || 'Your Gym';
+    const gymAddress = gymSettings?.address || '';
+    const gymPhone = gymSettings?.phone || '';
+    const gymEmail = gymSettings?.email || '';
+
+    const memberName = membership.member?.user
+      ? `${membership.member.user.firstName} ${membership.member.user.lastName}`.trim()
+      : 'Member';
+    const memberEmail = membership.member?.user?.email || '';
+
+    const planName = membership.membershipPlan?.name || 'Membership Plan';
+    const discountCode = membership.discountCode?.code;
+    const planPrice = Number(
+      membership.originalPrice ?? membership.membershipPlan?.price ?? 0,
+    );
+    const discountAmount = Number(membership.discountAmount || 0);
+    const finalPrice =
+      membership.finalPrice !== undefined
+        ? Number(membership.finalPrice)
+        : Math.max(0, planPrice - discountAmount);
+
+    const issueDate = new Date().toLocaleDateString();
+    const startDate = new Date(membership.startDate).toLocaleDateString();
+    const endDate = new Date(membership.endDate).toLocaleDateString();
+
+    const invoiceId = membership.id.slice(-8).toUpperCase();
+    const filename = `invoice_${invoiceId}.pdf`;
+
+    const doc = new PDFDocument({ size: 'A4', margin: 40 });
+    const chunks: Buffer[] = [];
+
+    const bufferPromise = new Promise<Buffer>((resolve, reject) => {
+      doc.on('data', (chunk: Buffer) => chunks.push(chunk));
+      doc.on('end', () => resolve(Buffer.concat(chunks)));
+      doc.on('error', (err: Error) => reject(err));
+    });
+
+    doc.fontSize(20).text(gymName, { align: 'left' });
+    doc.moveDown(0.5);
+    doc.fontSize(10).fillColor('#555');
+    if (gymAddress) doc.text(gymAddress);
+    if (gymPhone) doc.text(`Phone: ${gymPhone}`);
+    if (gymEmail) doc.text(`Email: ${gymEmail}`);
+
+    doc.moveDown();
+    doc.fillColor('#000');
+    doc.fontSize(16).text('Invoice', { align: 'right' });
+    doc.fontSize(10).text(`Invoice #: ${invoiceId}`, { align: 'right' });
+    doc.text(`Date: ${issueDate}`, { align: 'right' });
+
+    doc.moveDown(2);
+    doc.fontSize(12).text('Billed To:', { underline: true });
+    doc.moveDown(0.5);
+    doc.fontSize(11).text(memberName);
+    if (memberEmail) doc.text(memberEmail);
+
+    doc.moveDown(1.5);
+    doc.fontSize(12).text('Plan Details', { underline: true });
+    doc.moveDown(0.5);
+    doc.fontSize(11).text(`Plan: ${planName}`);
+    if (discountCode) {
+      doc.text(`Discount Code: ${discountCode}`);
+    }
+    doc.text(`Start Date: ${startDate}`);
+    doc.text(`End Date: ${endDate}`);
+
+    doc.moveDown(1.5);
+    doc.fontSize(12).text('Amount Due', { underline: true });
+    doc.moveDown(0.5);
+    doc.fontSize(11).text(`Original Price: $${planPrice.toFixed(2)}`);
+    if (discountAmount > 0) {
+      doc.text(`Discount: -$${discountAmount.toFixed(2)}`);
+    }
+    doc.fontSize(14).text(`Total: $${finalPrice.toFixed(2)}`);
+
+    doc.moveDown(2);
+    doc.fontSize(10).fillColor('#555');
+    doc.text('Thank you for your membership!', { align: 'left' });
+
+    doc.end();
+
+    const buffer = await bufferPromise;
+    return { filename, buffer };
   }
 
   async expireMemberships(): Promise<number> {
@@ -481,11 +948,9 @@ export class MembershipsService {
    */
   private invalidatePlansCache(): void {
     try {
-      // Since cache-manager doesn't provide a direct way to delete by pattern,
-      // we'll need to track keys or use a simpler approach
-      // For now, we'll just log that cache will expire naturally
+      this.plansCacheVersion += 1;
       this.logger.debug(
-        'Membership plans cache will expire naturally after 1 hour',
+        `Membership plans cache version bumped to ${this.plansCacheVersion}`,
       );
 
       // Note: In production, consider using Redis with pattern-based deletion
@@ -518,6 +983,17 @@ export class MembershipsService {
   }
 
   private toMembershipResponseDto(membership: any): MembershipResponseDto {
+    const planPrice = Number(membership.membershipPlan?.price ?? 0);
+    const originalPrice =
+      membership.originalPrice && Number(membership.originalPrice) > 0
+        ? Number(membership.originalPrice)
+        : planPrice;
+    const discountAmount = Number(membership.discountAmount ?? 0);
+    const finalPrice =
+      membership.finalPrice && Number(membership.finalPrice) > 0
+        ? Number(membership.finalPrice)
+        : Math.max(0, originalPrice - discountAmount);
+
     return {
       id: membership.id,
       memberId: membership.memberId,
@@ -525,11 +1001,143 @@ export class MembershipsService {
       plan: membership.membershipPlan
         ? this.toPlanResponseDto(membership.membershipPlan)
         : undefined,
+      originalPrice,
+      finalPrice,
+      discountAmount,
+      discountCode: membership.discountCode?.code,
       startDate: membership.startDate,
       endDate: membership.endDate,
       status: membership.status,
       createdAt: membership.createdAt,
       updatedAt: membership.updatedAt,
+    };
+  }
+
+  private async resolveDiscountPricing(
+    originalPrice: number,
+    discountCode?: string,
+  ): Promise<{
+    originalPrice: number;
+    finalPrice: number;
+    discountAmount: number;
+    discountCodeId?: string;
+  }> {
+    const basePrice = Number(originalPrice || 0);
+    if (!discountCode) {
+      return {
+        originalPrice: basePrice,
+        finalPrice: basePrice,
+        discountAmount: 0,
+      };
+    }
+
+    const normalized = discountCode.trim().toUpperCase();
+    const now = new Date();
+
+    return this.prisma.$transaction(async (tx) => {
+      const code = await tx.discountCode.findFirst({
+        where: { code: { equals: normalized, mode: 'insensitive' } },
+      });
+
+      if (!code) {
+        throw new NotFoundException('Discount code not found');
+      }
+      if (!code.isActive) {
+        throw new BadRequestException('Discount code is inactive');
+      }
+      if (code.startsAt && now < code.startsAt) {
+        throw new BadRequestException('Discount code not active yet');
+      }
+      if (code.endsAt && now > code.endsAt) {
+        throw new BadRequestException('Discount code has expired');
+      }
+      if (code.maxRedemptions !== null && code.usedCount >= code.maxRedemptions) {
+        throw new BadRequestException('Discount code redemption limit reached');
+      }
+
+      if (code.type === 'PERCENT' && code.amount > 100) {
+        throw new BadRequestException('Discount percent cannot exceed 100');
+      }
+
+      const discountAmount =
+        code.type === 'PERCENT'
+          ? (basePrice * code.amount) / 100
+          : code.amount;
+      const finalPrice = Math.max(0, basePrice - discountAmount);
+
+      await tx.discountCode.update({
+        where: { id: code.id },
+        data: { usedCount: { increment: 1 } },
+      });
+
+      return {
+        originalPrice: basePrice,
+        finalPrice,
+        discountAmount,
+        discountCodeId: code.id,
+      };
+    });
+  }
+
+  async previewDiscount(planId: string, code?: string) {
+    if (!code) {
+      return {
+        originalPrice: 0,
+        finalPrice: 0,
+        discountAmount: 0,
+      };
+    }
+
+    const plan = await this.prisma.membershipPlan.findUnique({
+      where: { id: planId },
+      select: { price: true },
+    });
+
+    if (!plan) {
+      throw new NotFoundException(`Membership plan with ID ${planId} not found`);
+    }
+
+    const basePrice = Number(plan.price || 0);
+    const normalized = code.trim().toUpperCase();
+    const now = new Date();
+
+    const discount = await this.prisma.discountCode.findFirst({
+      where: { code: { equals: normalized, mode: 'insensitive' } },
+    });
+
+    if (!discount) {
+      throw new NotFoundException('Discount code not found');
+    }
+    if (!discount.isActive) {
+      throw new BadRequestException('Discount code is inactive');
+    }
+    if (discount.startsAt && now < discount.startsAt) {
+      throw new BadRequestException('Discount code not active yet');
+    }
+    if (discount.endsAt && now > discount.endsAt) {
+      throw new BadRequestException('Discount code has expired');
+    }
+    if (
+      discount.maxRedemptions !== null &&
+      discount.usedCount >= discount.maxRedemptions
+    ) {
+      throw new BadRequestException('Discount code redemption limit reached');
+    }
+    if (discount.type === 'PERCENT' && discount.amount > 100) {
+      throw new BadRequestException('Discount percent cannot exceed 100');
+    }
+
+    const discountAmount =
+      discount.type === 'PERCENT'
+        ? (basePrice * discount.amount) / 100
+        : discount.amount;
+    const finalPrice = Math.max(0, basePrice - discountAmount);
+
+    return {
+      originalPrice: basePrice,
+      finalPrice,
+      discountAmount,
+      discountCode: discount.code,
     };
   }
 }

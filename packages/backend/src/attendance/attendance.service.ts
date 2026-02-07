@@ -11,12 +11,16 @@ import {
   AttendanceReportDto,
   AttendanceFiltersDto,
 } from './dto';
-import { AttendanceType, Prisma, SubscriptionStatus } from '@prisma/client';
+import { AttendanceType, Prisma, SubscriptionStatus, UserRole } from '@prisma/client';
 import { PaginatedResponseDto } from '../common/dto';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class AttendanceService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notificationsService: NotificationsService,
+  ) {}
 
   async checkIn(checkInDto: CheckInDto): Promise<AttendanceResponseDto> {
     // Verify member exists - only select needed fields
@@ -138,6 +142,27 @@ export class AttendanceService {
         },
       },
     });
+
+    const settings = await this.prisma.gymSetting.findFirst({
+      select: { newAttendanceNotification: true },
+    });
+    if (settings?.newAttendanceNotification !== false) {
+      const fullName = member.user
+        ? `${member.user.firstName} ${member.user.lastName}`.trim()
+        : 'Member';
+      const detail =
+        checkInDto.type === AttendanceType.CLASS_ATTENDANCE &&
+        classScheduleForResponse?.className
+          ? ` for ${classScheduleForResponse.className}`
+          : '';
+      await this.notificationsService.createForRole({
+        role: UserRole.ADMIN,
+        title: 'New attendance check-in',
+        message: `${fullName} checked in${detail}.`,
+        type: 'info',
+        actionUrl: '/admin/attendance',
+      });
+    }
 
     return this.toResponseDto(attendance, classScheduleForResponse);
   }

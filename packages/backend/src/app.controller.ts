@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { AppService } from './app.service';
 
@@ -89,6 +89,17 @@ export class AppController {
   })
   async getPopularClasses() {
     return this.appService.getPopularClasses();
+  }
+
+  @Get('dashboard/upcoming-classes')
+  @ApiOperation({ summary: 'Get upcoming class attendance' })
+  @ApiResponse({
+    status: 200,
+    description: 'Upcoming class attendance retrieved successfully',
+  })
+  async getUpcomingClasses(@Query('days') days?: string) {
+    const windowDays = Number(days) || 7;
+    return this.appService.getUpcomingClasses(windowDays);
   }
 
   @Get('dashboard/recent-activity')

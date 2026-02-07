@@ -1,8 +1,8 @@
-import { IsUUID, IsEnum, IsOptional } from 'class-validator';
+import { IsString, IsEnum, IsOptional } from 'class-validator';
 import { AttendanceType } from '@prisma/client';
 
 export class CheckInDto {
-  @IsUUID('4', { message: 'Member ID must be a valid UUID' })
+  @IsString({ message: 'Member ID must be a valid string' })
   memberId!: string;
 
   @IsEnum(AttendanceType, {
@@ -12,6 +12,6 @@ export class CheckInDto {
   type!: AttendanceType;
 
   @IsOptional()
-  @IsUUID('4', { message: 'Class schedule ID must be a valid UUID' })
+  @IsString({ message: 'Class schedule ID must be a valid string' })
   classScheduleId?: string;
 }

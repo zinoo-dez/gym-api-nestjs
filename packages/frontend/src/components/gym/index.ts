@@ -23,3 +23,4 @@ export type { ConfirmationDialogProps } from "./confirmation-dialog";
 export { FormModal } from "./form-modal";
 export type { FormModalProps } from "./form-modal";
 export { DataPagination } from "./data-pagination";
+export { RichTextEditor } from "./rich-text-editor";

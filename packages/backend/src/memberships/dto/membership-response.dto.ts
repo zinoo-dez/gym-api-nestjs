@@ -6,6 +6,10 @@ export class MembershipResponseDto {
   memberId!: string;
   planId!: string;
   plan?: MembershipPlanResponseDto;
+  originalPrice!: number;
+  finalPrice!: number;
+  discountAmount!: number;
+  discountCode?: string;
   startDate!: Date;
   endDate!: Date;
   status!: SubscriptionStatus;

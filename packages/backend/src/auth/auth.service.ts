@@ -11,6 +11,7 @@ import { LoginDto, RegisterDto, ChangePasswordDto } from './dto';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { UserResponse } from './interfaces/user-response.interface';
 import { UserRole } from '@prisma/client';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class AuthService {
@@ -19,6 +20,7 @@ export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
+    private notificationsService: NotificationsService,
   ) {}
 
   async register(
@@ -55,6 +57,18 @@ export class AuthService {
           userId: user.id,
         },
       });
+      const settings = await this.prisma.gymSetting.findFirst({
+        select: { newMemberNotification: true },
+      });
+      if (settings?.newMemberNotification !== false) {
+        await this.notificationsService.createForRole({
+          role: UserRole.ADMIN,
+          title: 'New member registered',
+          message: `${user.firstName} ${user.lastName} (${user.email}) joined.`,
+          type: 'success',
+          actionUrl: '/admin/members',
+        });
+      }
     } else if (registerDto.role === UserRole.TRAINER) {
       await this.prisma.trainer.create({
         data: {
@@ -64,6 +78,18 @@ export class AuthService {
           hourlyRate: 0, // Default value
         },
       });
+      const settings = await this.prisma.gymSetting.findFirst({
+        select: { newTrainerNotification: true },
+      });
+      if (settings?.newTrainerNotification !== false) {
+        await this.notificationsService.createForRole({
+          role: UserRole.ADMIN,
+          title: 'New trainer registered',
+          message: `${user.firstName} ${user.lastName} (${user.email}) joined as a trainer.`,
+          type: 'success',
+          actionUrl: '/admin/trainers',
+        });
+      }
     }
 
     // Generate JWT token

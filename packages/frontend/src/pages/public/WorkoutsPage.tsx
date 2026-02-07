@@ -6,6 +6,7 @@ import { PublicLayout } from "../../layouts"
 import { WorkoutPlanCard } from "@/components/gym"
 import { cn } from "@/lib/utils"
 import { workoutPlansService, type WorkoutPlan } from "@/services/workout-plans.service"
+import { useGymSettings } from "@/hooks/use-gym-settings"
 
 const goals = [
   { value: "all", label: "All Goals" },
@@ -23,6 +24,13 @@ const difficulties = [
 ]
 
 export default function WorkoutsPage() {
+  const {
+    workoutsTitle,
+    workoutsSubtitle,
+    ctaTitle,
+    ctaSubtitle,
+    ctaButtonLabel,
+  } = useGymSettings()
   const [selectedGoal, setSelectedGoal] = useState("all")
   const [selectedDifficulty, setSelectedDifficulty] = useState("all")
   const [workoutPlans, setWorkoutPlans] = useState<WorkoutPlan[]>([])
@@ -70,11 +78,12 @@ export default function WorkoutsPage() {
           {/* Header */}
           <div className="text-center mb-16">
             <h1 className="text-4xl sm:text-5xl font-bold text-foreground mb-4">
-              Workout <span className="text-primary">Plans</span>
+              {workoutsTitle}
             </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Structured programs designed by expert trainers to help you achieve your specific fitness goals.
-            </p>
+            <div
+              className="text-lg text-muted-foreground max-w-2xl mx-auto [&_img]:max-w-full [&_img]:rounded-xl"
+              dangerouslySetInnerHTML={{ __html: workoutsSubtitle || "" }}
+            />
           </div>
 
           {!workoutPlans || workoutPlans.length === 0 ? (
@@ -159,17 +168,17 @@ export default function WorkoutsPage() {
           {/* Join CTA */}
           <div className="mt-20 text-center bg-card border border-border rounded-2xl p-12">
             <h2 className="text-2xl font-bold text-foreground mb-4">
-              Want Custom Workout Plans?
+              {ctaTitle}
             </h2>
-            <p className="text-muted-foreground mb-6 max-w-xl mx-auto">
-              Our expert trainers can create personalized workout plans tailored to your specific goals, 
-              fitness level, and schedule. Available with membership.
-            </p>
+            <div
+              className="text-muted-foreground mb-6 max-w-xl mx-auto [&_img]:max-w-full [&_img]:rounded-xl"
+              dangerouslySetInnerHTML={{ __html: ctaSubtitle || "" }}
+            />
             <Link
               to="/pricing"
               className="inline-flex items-center justify-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-lg font-semibold hover:bg-primary-dark transition-colors"
             >
-              View Membership Plans
+              {ctaButtonLabel}
             </Link>
           </div>
         </div>

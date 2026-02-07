@@ -14,10 +14,14 @@ import {
 } from './dto';
 import * as bcrypt from 'bcrypt';
 import { UserRole, Prisma, SubscriptionStatus } from '@prisma/client';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class MembersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notificationsService: NotificationsService,
+  ) {}
 
   async create(createMemberDto: CreateMemberDto): Promise<MemberResponseDto> {
     // Check if user with email already exists
@@ -60,6 +64,19 @@ export class MembersService {
       // Combine for response
       return { ...member, user };
     });
+
+    const settings = await this.prisma.gymSetting.findFirst({
+      select: { newMemberNotification: true },
+    });
+    if (settings?.newMemberNotification !== false) {
+      await this.notificationsService.createForRole({
+        role: UserRole.ADMIN,
+        title: 'New member registered',
+        message: `${result.user.firstName} ${result.user.lastName} (${result.user.email}) joined.`,
+        type: 'success',
+        actionUrl: '/admin/members',
+      });
+    }
 
     return this.toResponseDto(result);
   }
@@ -138,6 +155,25 @@ export class MembersService {
       where.subscriptions = {
         some: subscriptionWhere,
       };
+    }
+
+    if (filters?.isActive !== undefined) {
+      const now = new Date();
+      if (filters.isActive) {
+        where.subscriptions = {
+          some: {
+            status: SubscriptionStatus.ACTIVE,
+            endDate: { gte: now },
+          },
+        };
+      } else {
+        where.subscriptions = {
+          none: {
+            status: SubscriptionStatus.ACTIVE,
+            endDate: { gte: now },
+          },
+        };
+      }
     }
 
     // Get total count
@@ -409,6 +445,15 @@ export class MembersService {
   }
 
   toResponseDto(member: any): MemberResponseDto {
+    const now = new Date();
+    const latestSubscription = Array.isArray(member.subscriptions)
+      ? member.subscriptions[0]
+      : undefined;
+    const isActive =
+      !!latestSubscription &&
+      latestSubscription.status === SubscriptionStatus.ACTIVE &&
+      new Date(latestSubscription.endDate) >= now;
+
     return {
       id: member.id,
       email: member.user.email,
@@ -416,9 +461,25 @@ export class MembersService {
       lastName: member.user.lastName,
       phone: member.user.phone,
       dateOfBirth: member.dateOfBirth,
-      isActive: true, // Mocking isActive as true since field is removed but DTO assumes it
+      isActive,
       createdAt: member.createdAt,
       updatedAt: member.updatedAt,
+      subscriptions: Array.isArray(member.subscriptions)
+        ? member.subscriptions.map((subscription: any) => ({
+            id: subscription.id,
+            status: subscription.status,
+            startDate: subscription.startDate,
+            endDate: subscription.endDate,
+            membershipPlan: subscription.membershipPlan
+              ? {
+                  id: subscription.membershipPlan.id,
+                  name: subscription.membershipPlan.name,
+                  price: Number(subscription.membershipPlan.price),
+                  durationDays: subscription.membershipPlan.duration,
+                }
+              : undefined,
+          }))
+        : undefined,
     };
   }
 }

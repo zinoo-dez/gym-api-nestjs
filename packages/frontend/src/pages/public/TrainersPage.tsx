@@ -3,8 +3,16 @@ import { Link } from "react-router-dom";
 import { PublicLayout } from "../../layouts";
 import { TrainerCard } from "@/components/gym";
 import { trainersService, type Trainer } from "@/services/trainers.service";
+import { useGymSettings } from "@/hooks/use-gym-settings";
 
 export default function TrainersPage() {
+  const {
+    trainersTitle,
+    trainersSubtitle,
+    ctaTitle,
+    ctaSubtitle,
+    ctaButtonLabel,
+  } = useGymSettings();
   const [trainers, setTrainers] = useState<Trainer[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -44,12 +52,12 @@ export default function TrainersPage() {
           {/* Header */}
           <div className="text-center mb-16">
             <h1 className="text-4xl sm:text-5xl font-bold text-foreground mb-4">
-              Meet Our <span className="text-primary">Expert Trainers</span>
+              {trainersTitle}
             </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Our certified professionals are dedicated to helping you achieve
-              your fitness goals with personalized guidance and support.
-            </p>
+            <div
+              className="text-lg text-muted-foreground max-w-2xl mx-auto [&_img]:max-w-full [&_img]:rounded-xl"
+              dangerouslySetInnerHTML={{ __html: trainersSubtitle || "" }}
+            />
           </div>
 
           {!trainers || trainers.length === 0 ? (
@@ -84,17 +92,17 @@ export default function TrainersPage() {
           {/* Join CTA */}
           <div className="mt-20 text-center bg-card border border-border rounded-2xl p-12">
             <h2 className="text-2xl font-bold text-foreground mb-4">
-              Want to Work With Our Trainers?
+              {ctaTitle}
             </h2>
-            <p className="text-muted-foreground mb-6 max-w-xl mx-auto">
-              Personal training sessions are included in our Pro and Elite
-              memberships. Get customized workout plans and one-on-one guidance.
-            </p>
+            <div
+              className="text-muted-foreground mb-6 max-w-xl mx-auto [&_img]:max-w-full [&_img]:rounded-xl"
+              dangerouslySetInnerHTML={{ __html: ctaSubtitle || "" }}
+            />
             <Link
               to="/pricing"
               className="inline-flex items-center justify-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-lg font-semibold hover:bg-primary-dark transition-colors"
             >
-              View Membership Plans
+              {ctaButtonLabel}
             </Link>
           </div>
         </div>

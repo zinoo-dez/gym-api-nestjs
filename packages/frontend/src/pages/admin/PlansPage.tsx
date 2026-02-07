@@ -1,5 +1,5 @@
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { AdminLayout } from "@/layouts";
 import { PrimaryButton, FormInput, FormCheckbox } from "@/components/gym";
 import { FormTextarea } from "@/components/gym/form-textarea";
@@ -58,24 +58,24 @@ export default function AdminPlansPage() {
     nutritionConsultation: false,
   });
 
-  useEffect(() => {
-    const loadPlans = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await membershipsService.getAllPlans({ limit: 50 });
-        setPlans(Array.isArray(response.data) ? response.data : []);
-      } catch (err) {
-        console.error("Error loading plans:", err);
-        setError("Failed to load plans.");
-        setPlans([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadPlans();
+  const loadPlans = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await membershipsService.getAllPlans({ limit: 50 });
+      setPlans(Array.isArray(response.data) ? response.data : []);
+    } catch (err) {
+      console.error("Error loading plans:", err);
+      setError("Failed to load plans.");
+      setPlans([]);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    loadPlans();
+  }, [loadPlans]);
 
   const filteredPlans = useMemo(
     () =>
@@ -147,8 +147,8 @@ export default function AdminPlansPage() {
         accessToLocker: createForm.accessToLocker,
         nutritionConsultation: createForm.nutritionConsultation,
       };
-      const created = await membershipsService.createPlan(payload);
-      setPlans((prev) => [created, ...prev]);
+      await membershipsService.createPlan(payload);
+      await loadPlans();
       setIsCreateOpen(false);
       toast.success("Plan created successfully");
     } catch (err: any) {

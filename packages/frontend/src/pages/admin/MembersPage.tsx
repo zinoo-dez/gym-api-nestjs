@@ -1,6 +1,11 @@
 import * as React from "react";
 import { AdminLayout } from "../../layouts";
-import { PrimaryButton, SecondaryButton, FormInput } from "@/components/gym";
+import {
+  PrimaryButton,
+  SecondaryButton,
+  FormInput,
+  Modal,
+} from "@/components/gym";
 import { DataPagination } from "@/components/gym/data-pagination";
 import { cn } from "@/lib/utils";
 import {
@@ -17,6 +22,7 @@ import { FormModal } from "@/components/gym/form-modal";
 import { ConfirmationDialog } from "@/components/gym/confirmation-dialog";
 import { usePagination } from "@/hooks/usePagination";
 import { toast } from "sonner";
+import { Snowflake, Play, Ban } from "lucide-react";
 
 export default function AdminMembersPage() {
   const pagination = usePagination(10);
@@ -31,6 +37,7 @@ export default function AdminMembersPage() {
   const [isCreateOpen, setIsCreateOpen] = React.useState(false);
   const [isEditOpen, setIsEditOpen] = React.useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = React.useState(false);
+  const [isViewOpen, setIsViewOpen] = React.useState(false);
   const [selectedMember, setSelectedMember] = React.useState<Member | null>(
     null,
   );
@@ -75,7 +82,7 @@ export default function AdminMembersPage() {
         }
 
         if (statusFilter !== "all") {
-          params.status = statusFilter === "active" ? "ACTIVE" : "INACTIVE";
+          params.isActive = statusFilter === "active";
         }
 
         if (planFilter !== "all") {
@@ -110,8 +117,6 @@ export default function AdminMembersPage() {
     planFilter,
   ]);
 
-  const selectedPlan = plans.find((plan) => plan.id === planFilter);
-
   const openCreate = () => {
     setCreateForm({
       email: "",
@@ -135,6 +140,11 @@ export default function AdminMembersPage() {
         : "",
     });
     setIsEditOpen(true);
+  };
+
+  const openView = (member: Member) => {
+    setSelectedMember(member);
+    setIsViewOpen(true);
   };
 
   const openDelete = (member: Member) => {
@@ -210,6 +220,79 @@ export default function AdminMembersPage() {
     }
   };
 
+  const handleExport = async () => {
+    try {
+      const params: any = {
+        page: 1,
+        limit: 1000,
+      };
+      if (debouncedSearch) {
+        params.name = debouncedSearch;
+      }
+      if (statusFilter !== "all") {
+        params.isActive = statusFilter === "active";
+      }
+      if (planFilter !== "all") {
+        params.planId = planFilter;
+      }
+      const response = await membersService.getAll(params);
+      const rows = (Array.isArray(response.data) ? response.data : []).map(
+        (member) => {
+          const subscription = member.subscriptions?.[0];
+          return {
+            firstName: member.firstName,
+            lastName: member.lastName,
+            email: member.email,
+            phone: member.phone || "",
+            isActive: member.isActive ? "active" : "inactive",
+            plan: subscription?.membershipPlan?.name || "No Plan",
+            planStatus: subscription?.status || "",
+            joined: new Date(member.createdAt).toLocaleDateString(),
+          };
+        },
+      );
+
+      const headers = [
+        "First Name",
+        "Last Name",
+        "Email",
+        "Phone",
+        "Status",
+        "Plan",
+        "Plan Status",
+        "Joined",
+      ];
+      const csv = [
+        headers.join(","),
+        ...rows.map((row) =>
+          [
+            row.firstName,
+            row.lastName,
+            row.email,
+            row.phone,
+            row.isActive,
+            row.plan,
+            row.planStatus,
+            row.joined,
+          ]
+            .map((value) => `"${String(value).replace(/"/g, '""')}"`)
+            .join(","),
+        ),
+      ].join("\n");
+
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `members-export-${new Date().toISOString().split("T")[0]}.csv`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Export failed:", err);
+      toast.error("Failed to export members.");
+    }
+  };
+
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -268,7 +351,7 @@ export default function AdminMembersPage() {
               />
             </div>
 
-            {/* Status Filter */}
+            {/* Status Filter
             <select
               value={statusFilter}
               onChange={(e) => {
@@ -280,9 +363,9 @@ export default function AdminMembersPage() {
               <option value="all">All Status</option>
               <option value="active">Active</option>
               <option value="inactive">Inactive</option>
-            </select>
+            </select> */}
 
-            {/* Plan Filter */}
+            {/* Plan Filter 
             <select
               value={planFilter}
               onChange={(e) => {
@@ -297,9 +380,9 @@ export default function AdminMembersPage() {
                   {plan.name}
                 </option>
               ))}
-            </select>
+            </select>*/}
 
-            <SecondaryButton variant="ghost">
+            <SecondaryButton variant="ghost" onClick={handleExport}>
               <svg
                 className="w-4 h-4 mr-2"
                 fill="none"
@@ -345,7 +428,7 @@ export default function AdminMembersPage() {
                   <th className="text-left py-4 px-4 text-sm font-semibold text-muted-foreground">
                     Visits
                   </th>
-                  <th className="text-right py-4 px-4 text-sm font-semibold text-muted-foreground">
+                  <th className="text-center py-4 px-4 text-sm font-semibold text-muted-foreground">
                     Actions
                   </th>
                 </tr>
@@ -408,26 +491,36 @@ export default function AdminMembersPage() {
                         </div>
                       </td>
                       <td className="py-4 px-4">
-                        <span
-                          className={cn(
-                            "text-xs font-medium px-2 py-1 rounded-full",
-                            planFilter !== "all" &&
-                              selectedPlan?.name === "Elite" &&
-                              "bg-primary/10 text-primary",
-                            planFilter !== "all" &&
-                              selectedPlan?.name === "Pro" &&
-                              "bg-blue-500/10 text-blue-400",
-                            planFilter !== "all" &&
-                              selectedPlan?.name === "Basic" &&
-                              "bg-secondary text-muted-foreground",
-                            planFilter === "all" &&
-                              "bg-secondary text-muted-foreground",
-                          )}
-                        >
-                          {planFilter !== "all"
-                            ? (selectedPlan?.name ?? "—")
-                            : "—"}
-                        </span>
+                        {member.subscriptions &&
+                        member.subscriptions.length > 0 ? (
+                          <div>
+                            <span
+                              className={cn(
+                                "text-xs font-medium px-2 py-1 rounded-full",
+                                member.subscriptions[0].status === "ACTIVE" &&
+                                  "bg-primary/10 text-primary",
+                                member.subscriptions[0].status === "EXPIRED" &&
+                                  "bg-yellow-500/10 text-yellow-400",
+                                member.subscriptions[0].status ===
+                                  "CANCELLED" && "bg-red-500/10 text-red-400",
+                                member.subscriptions[0].status === "FROZEN" &&
+                                  "bg-blue-500/10 text-blue-400",
+                              )}
+                            >
+                              {member.subscriptions[0].membershipPlan?.name ||
+                                "Unknown Plan"}
+                            </span>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {member.subscriptions[0].status === "ACTIVE"
+                                ? `Expires ${new Date(member.subscriptions[0].endDate).toLocaleDateString()}`
+                                : member.subscriptions[0].status}
+                            </p>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">
+                            No Plan
+                          </span>
+                        )}
                       </td>
                       <td className="py-4 px-4">
                         <span
@@ -452,9 +545,126 @@ export default function AdminMembersPage() {
                       </td>
                       <td className="py-4 px-4 text-right">
                         <div className="flex items-center justify-end gap-2">
+                          {member.subscriptions &&
+                            member.subscriptions.length > 0 && (
+                              <>
+                                {member.subscriptions[0].status === "FROZEN" ? (
+                                  <button
+                                    className="p-2 text-blue-400 hover:text-blue-300 transition-colors cursor-pointer"
+                                    title="Unfreeze Membership"
+                                    onClick={async () => {
+                                      try {
+                                        const updated =
+                                          await membershipsService.unfreezeMembership(
+                                            member.subscriptions![0].id,
+                                          );
+                                        const normalized = {
+                                          id: updated.id,
+                                          status: updated.status,
+                                          startDate: updated.startDate,
+                                          endDate: updated.endDate,
+                                          membershipPlan: updated.plan,
+                                        };
+                                        setMembers((prev) =>
+                                          prev.map((m) =>
+                                            m.id === member.id
+                                              ? {
+                                                  ...m,
+                                                  subscriptions: [normalized],
+                                                }
+                                              : m,
+                                          ),
+                                        );
+                                      } catch (err: any) {
+                                        toast.error(
+                                          err?.response?.data?.message ||
+                                            "Failed to unfreeze membership",
+                                        );
+                                      }
+                                    }}
+                                  >
+                                    <Play className="h-4 w-4" />
+                                  </button>
+                                ) : (
+                                  <button
+                                    className="p-2 text-blue-400 hover:text-blue-300 transition-colors cursor-pointer"
+                                    title="Freeze Membership"
+                                    onClick={async () => {
+                                      try {
+                                        const updated =
+                                          await membershipsService.freezeMembership(
+                                            member.subscriptions![0].id,
+                                          );
+                                        const normalized = {
+                                          id: updated.id,
+                                          status: updated.status,
+                                          startDate: updated.startDate,
+                                          endDate: updated.endDate,
+                                          membershipPlan: updated.plan,
+                                        };
+                                        setMembers((prev) =>
+                                          prev.map((m) =>
+                                            m.id === member.id
+                                              ? {
+                                                  ...m,
+                                                  subscriptions: [normalized],
+                                                }
+                                              : m,
+                                          ),
+                                        );
+                                      } catch (err: any) {
+                                        toast.error(
+                                          err?.response?.data?.message ||
+                                            "Failed to freeze membership",
+                                        );
+                                      }
+                                    }}
+                                  >
+                                    <Snowflake className="h-4 w-4" />
+                                  </button>
+                                )}
+                                <button
+                                  className="p-2 text-red-400 hover:text-red-300 transition-colors cursor-pointer"
+                                  title="Cancel Membership"
+                                  onClick={async () => {
+                                    try {
+                                      const updated =
+                                        await membershipsService.cancelMembership(
+                                          member.subscriptions![0].id,
+                                        );
+                                      const normalized = {
+                                        id: updated.id,
+                                        status: updated.status,
+                                        startDate: updated.startDate,
+                                        endDate: updated.endDate,
+                                        membershipPlan: updated.plan,
+                                      };
+                                      setMembers((prev) =>
+                                        prev.map((m) =>
+                                          m.id === member.id
+                                            ? {
+                                                ...m,
+                                                subscriptions: [normalized],
+                                              }
+                                            : m,
+                                        ),
+                                      );
+                                    } catch (err: any) {
+                                      toast.error(
+                                        err?.response?.data?.message ||
+                                          "Failed to cancel membership",
+                                      );
+                                    }
+                                  }}
+                                >
+                                  <Ban className="h-4 w-4" />
+                                </button>
+                              </>
+                            )}
                           <button
-                            className="p-2 text-muted-foreground hover:text-foreground transition-colors"
+                            className="p-2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                             title="View"
+                            onClick={() => openView(member)}
                           >
                             <svg
                               className="w-4 h-4"
@@ -477,7 +687,7 @@ export default function AdminMembersPage() {
                             </svg>
                           </button>
                           <button
-                            className="p-2 text-muted-foreground hover:text-foreground transition-colors"
+                            className="p-2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                             title="Edit"
                             onClick={() => openEdit(member)}
                           >
@@ -496,7 +706,7 @@ export default function AdminMembersPage() {
                             </svg>
                           </button>
                           <button
-                            className="p-2 text-muted-foreground hover:text-destructive transition-colors"
+                            className="p-2 text-muted-foreground hover:text-destructive transition-colors cursor-pointer"
                             title="Deactivate"
                             onClick={() => openDelete(member)}
                           >
@@ -661,6 +871,67 @@ export default function AdminMembersPage() {
         onConfirm={handleDelete}
         isLoading={isDeleting}
       />
+
+      <Modal
+        isOpen={isViewOpen}
+        onClose={() => setIsViewOpen(false)}
+        title="Member Details"
+        size="lg"
+      >
+        {selectedMember ? (
+          <div className="grid gap-6 sm:grid-cols-2">
+            <div>
+              <p className="text-xs text-muted-foreground">Name</p>
+              <p className="text-foreground font-medium">
+                {selectedMember.firstName} {selectedMember.lastName}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Email</p>
+              <p className="text-foreground font-medium">
+                {selectedMember.email}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Phone</p>
+              <p className="text-foreground font-medium">
+                {selectedMember.phone || "—"}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Status</p>
+              <p className="text-foreground font-medium">
+                {selectedMember.isActive ? "Active" : "Inactive"}
+              </p>
+            </div>
+            <div className="sm:col-span-2">
+              <p className="text-xs text-muted-foreground">Membership</p>
+              {selectedMember.subscriptions &&
+              selectedMember.subscriptions.length > 0 ? (
+                <div className="mt-2 rounded-lg border border-border bg-background p-3">
+                  <p className="text-foreground font-medium">
+                    {selectedMember.subscriptions[0].membershipPlan?.name ||
+                      "Unknown Plan"}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Status: {selectedMember.subscriptions[0].status}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Ends:{" "}
+                    {new Date(
+                      selectedMember.subscriptions[0].endDate,
+                    ).toLocaleDateString()}
+                  </p>
+                </div>
+              ) : (
+                <p className="text-muted-foreground">No active plan</p>
+              )}
+            </div>
+          </div>
+        ) : (
+          <p className="text-muted-foreground">No member selected.</p>
+        )}
+      </Modal>
     </AdminLayout>
   );
 }

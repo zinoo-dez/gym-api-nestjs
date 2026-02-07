@@ -16,11 +16,13 @@ import { WorkoutPlansModule } from './workout-plans/workout-plans.module';
 import { UsersModule } from './users/users.module';
 import { PricingModule } from './pricing/pricing.module';
 import { GymSettingsModule } from './gym-settings/gym-settings.module';
+import { NotificationsModule } from './notifications/notifications.module';
 import { SanitizationMiddleware } from './common/middleware';
 import { LoggingModule } from './logging/logging.module';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 import { LoggerService } from './logging/logger.service';
 import { LoggingInterceptor } from './common/interceptors';
+import { DiscountCodesModule } from './discount-codes/discount-codes.module';
 
 @Module({
   imports: [
@@ -50,7 +52,9 @@ import { LoggingInterceptor } from './common/interceptors';
     WorkoutPlansModule,
     UsersModule,
     PricingModule,
+    NotificationsModule,
     GymSettingsModule,
+    DiscountCodesModule,
   ],
   controllers: [AppController],
   providers: [

@@ -190,6 +190,18 @@ export default function AdminReportsPage() {
     [attendanceRecords],
   );
 
+  const attendanceHeatmap = useMemo(() => {
+    const slots = ["morning", "afternoon", "evening"] as const;
+    const maxValue = attendanceByDay.reduce((max, day) => {
+      return Math.max(max, day.morning, day.afternoon, day.evening);
+    }, 0);
+
+    return {
+      slots,
+      maxValue,
+    };
+  }, [attendanceByDay]);
+
   const planDistribution = useMemo(
     () => buildPlanDistribution(plans),
     [plans],
@@ -415,6 +427,71 @@ export default function AdminReportsPage() {
                   <Bar dataKey="enrolled" fill="#22c55e" />
                 </BarChart>
               </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-lg border border-border bg-card p-6">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-foreground">Attendance Heatmap</h3>
+              <p className="text-sm text-muted-foreground">
+                Peak check-in windows by day
+              </p>
+            </div>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <span>Low</span>
+              <div className="flex items-center gap-1">
+                {[0.15, 0.35, 0.55, 0.75, 0.95].map((opacity) => (
+                  <span
+                    key={opacity}
+                    className="h-3 w-3 rounded-sm border border-border"
+                    style={{ backgroundColor: `hsl(var(--primary) / ${opacity})` }}
+                  />
+                ))}
+              </div>
+              <span>High</span>
+            </div>
+          </div>
+
+          <div className="mt-6 overflow-x-auto">
+            <div className="min-w-[520px]">
+              <div className="grid grid-cols-[120px_repeat(3,minmax(0,1fr))] gap-2 text-xs text-muted-foreground">
+                <span />
+                <span className="text-center uppercase tracking-wide">Morning</span>
+                <span className="text-center uppercase tracking-wide">Afternoon</span>
+                <span className="text-center uppercase tracking-wide">Evening</span>
+              </div>
+
+              <div className="mt-2 space-y-2">
+                {attendanceByDay.map((day) => (
+                  <div
+                    key={day.day}
+                    className="grid grid-cols-[120px_repeat(3,minmax(0,1fr))] gap-2 items-center"
+                  >
+                    <span className="text-sm text-foreground">{day.day}</span>
+                    {attendanceHeatmap.slots.map((slot) => {
+                      const value = day[slot];
+                      const intensity =
+                        attendanceHeatmap.maxValue === 0
+                          ? 0.1
+                          : 0.2 + (value / attendanceHeatmap.maxValue) * 0.7;
+                      return (
+                        <div
+                          key={`${day.day}-${slot}`}
+                          className="h-10 rounded-md border border-border flex items-center justify-center text-xs text-foreground"
+                          style={{
+                            backgroundColor: `hsl(var(--primary) / ${intensity})`,
+                          }}
+                          title={`${day.day} ${slot}: ${value} visits`}
+                        >
+                          {value}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>

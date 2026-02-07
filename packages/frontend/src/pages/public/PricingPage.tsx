@@ -7,8 +7,16 @@ import {
   membershipsService,
   type MembershipPlan,
 } from "@/services/memberships.service";
+import { useGymSettings } from "@/hooks/use-gym-settings";
 
 export default function PricingPage() {
+  const {
+    pricingTitle,
+    pricingSubtitle,
+    ctaTitle,
+    ctaSubtitle,
+    ctaButtonLabel,
+  } = useGymSettings();
   const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">(
     "monthly",
   );
@@ -67,12 +75,12 @@ export default function PricingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h1 className="text-4xl sm:text-5xl font-bold text-foreground mb-4">
-              Choose Your <span className="text-primary">Membership</span>
+              {pricingTitle}
             </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Flexible plans designed to fit your lifestyle. Start your fitness
-              journey today with our transparent pricing.
-            </p>
+            <div
+              className="text-lg text-muted-foreground max-w-2xl mx-auto [&_img]:max-w-full [&_img]:rounded-xl"
+              dangerouslySetInnerHTML={{ __html: pricingSubtitle || "" }}
+            />
           </div>
 
           {/* Billing Toggle */}
@@ -133,10 +141,14 @@ export default function PricingPage() {
 
           {/* CTA */}
           <div className="text-center mt-20">
-            <p className="text-muted-foreground mb-4">
-              Still have questions? We&apos;re here to help.
-            </p>
-            <SecondaryButton>Contact Our Team</SecondaryButton>
+            <h2 className="text-2xl font-bold text-foreground mb-4">
+              {ctaTitle}
+            </h2>
+            <div
+              className="text-muted-foreground mb-4 [&_img]:max-w-full [&_img]:rounded-xl"
+              dangerouslySetInnerHTML={{ __html: ctaSubtitle || "" }}
+            />
+            <SecondaryButton>{ctaButtonLabel}</SecondaryButton>
           </div>
         </div>
       </div>

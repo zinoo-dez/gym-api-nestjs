@@ -11,6 +11,11 @@ export interface DashboardStats {
     change: number;
     type: "increase" | "decrease";
   };
+  expiringMemberships: {
+    value: number;
+    change: number;
+    type: "increase" | "decrease";
+  };
   todayCheckIns: {
     value: number;
     change: number;
@@ -47,6 +52,22 @@ export interface RecentActivity {
   time: string;
 }
 
+export interface UpcomingClasses {
+  windowDays: number;
+  totalUpcomingClasses: number;
+  totalCapacity: number;
+  totalBookings: number;
+  utilization: number;
+  topClasses: Array<{
+    id: string;
+    name: string;
+    trainer: string;
+    booked: number;
+    capacity: number;
+    startTime: string;
+  }>;
+}
+
 interface ApiResponse<T> {
   data: T;
   statusCode: number;
@@ -71,6 +92,13 @@ export const dashboardService = {
   async getPopularClasses() {
     const response = await apiClient.get<ApiResponse<PopularClass[]>>(
       "/dashboard/popular-classes",
+    );
+    return response.data.data ?? response.data;
+  },
+
+  async getUpcomingClasses(days = 7) {
+    const response = await apiClient.get<ApiResponse<UpcomingClasses>>(
+      `/dashboard/upcoming-classes?days=${days}`,
     );
     return response.data.data ?? response.data;
   },

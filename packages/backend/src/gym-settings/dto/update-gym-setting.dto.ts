@@ -1,4 +1,10 @@
-import { IsString, IsEmail, IsBoolean, IsOptional } from 'class-validator';
+import {
+  IsString,
+  IsEmail,
+  IsBoolean,
+  IsOptional,
+  ValidateIf,
+} from 'class-validator';
 
 export class UpdateGymSettingDto {
   @IsOptional()
@@ -18,6 +24,7 @@ export class UpdateGymSettingDto {
   phone?: string;
 
   @IsOptional()
+  @ValidateIf((_, value) => value !== '')
   @IsEmail()
   email?: string;
 
@@ -48,6 +55,86 @@ export class UpdateGymSettingDto {
   @IsOptional()
   @IsString()
   textColor?: string;
+
+  @IsOptional()
+  @IsString()
+  heroTitle?: string;
+
+  @IsOptional()
+  @IsString()
+  heroSubtitle?: string;
+
+  @IsOptional()
+  @IsString()
+  heroCtaPrimary?: string;
+
+  @IsOptional()
+  @IsString()
+  heroCtaSecondary?: string;
+
+  @IsOptional()
+  @IsString()
+  featuresTitle?: string;
+
+  @IsOptional()
+  @IsString()
+  featuresSubtitle?: string;
+
+  @IsOptional()
+  @IsString()
+  classesTitle?: string;
+
+  @IsOptional()
+  @IsString()
+  classesSubtitle?: string;
+
+  @IsOptional()
+  @IsString()
+  trainersTitle?: string;
+
+  @IsOptional()
+  @IsString()
+  trainersSubtitle?: string;
+
+  @IsOptional()
+  @IsString()
+  workoutsTitle?: string;
+
+  @IsOptional()
+  @IsString()
+  workoutsSubtitle?: string;
+
+  @IsOptional()
+  @IsString()
+  pricingTitle?: string;
+
+  @IsOptional()
+  @IsString()
+  pricingSubtitle?: string;
+
+  @IsOptional()
+  @IsString()
+  footerTagline?: string;
+
+  @IsOptional()
+  @IsString()
+  appShowcaseTitle?: string;
+
+  @IsOptional()
+  @IsString()
+  appShowcaseSubtitle?: string;
+
+  @IsOptional()
+  @IsString()
+  ctaTitle?: string;
+
+  @IsOptional()
+  @IsString()
+  ctaSubtitle?: string;
+
+  @IsOptional()
+  @IsString()
+  ctaButtonLabel?: string;
 
   @IsOptional()
   @IsBoolean()

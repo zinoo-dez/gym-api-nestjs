@@ -3,7 +3,21 @@ import { PrimaryButton } from "@/components/gym";
 import { useGymSettings } from "@/hooks/use-gym-settings";
 
 export default function FeaturesPage() {
-  const { gymName } = useGymSettings();
+  const {
+    gymName,
+    featuresTitle,
+    featuresSubtitle,
+    appShowcaseTitle,
+    appShowcaseSubtitle,
+    ctaTitle,
+    ctaSubtitle,
+    ctaButtonLabel,
+  } = useGymSettings();
+  const displayGymName = gymName || "Your Gym";
+  const gymNameParts = displayGymName.trim().split(/\s+/);
+  const gymNameHead =
+    gymNameParts.length > 1 ? gymNameParts.slice(0, -1).join(" ") : "";
+  const gymNameTail = gymNameParts[gymNameParts.length - 1] || displayGymName;
 
   return (
     <PublicLayout>
@@ -12,12 +26,12 @@ export default function FeaturesPage() {
           {/* Header */}
           <div className="text-center mb-20">
             <h1 className="text-4xl sm:text-5xl font-bold text-foreground mb-4">
-              World-Class <span className="text-primary">Facilities</span>
+              {featuresTitle}
             </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Everything you need to achieve your fitness goals under one roof,
-              backed by cutting-edge technology and expert support.
-            </p>
+            <div
+              className="text-lg text-muted-foreground max-w-2xl mx-auto [&_img]:max-w-full [&_img]:rounded-xl"
+              dangerouslySetInnerHTML={{ __html: featuresSubtitle || "" }}
+            />
           </div>
 
           {/* Facilities Grid - Removed hardcoded facilities */}
@@ -32,13 +46,12 @@ export default function FeaturesPage() {
                   MOBILE APP
                 </span>
                 <h2 className="text-3xl font-bold text-foreground mb-4">
-                  Your Gym, In Your Pocket
+                  {appShowcaseTitle}
                 </h2>
-                <p className="text-muted-foreground mb-6">
-                  Download the {gymName} app to book classes, track your
-                  workouts, view your progress, and manage your membership from
-                  anywhere. Available on iOS and Android.
-                </p>
+                <div
+                  className="text-muted-foreground mb-6 [&_img]:max-w-full [&_img]:rounded-xl"
+                  dangerouslySetInnerHTML={{ __html: appShowcaseSubtitle || "" }}
+                />
                 <ul className="space-y-3 mb-8">
                   <li className="flex items-center gap-3 text-foreground">
                     <svg
@@ -149,7 +162,8 @@ export default function FeaturesPage() {
                   <div className="absolute top-4 left-1/2 -translate-x-1/2 w-20 h-6 bg-border rounded-full" />
                   <div className="w-full h-full bg-gradient-to-br from-primary/20 to-accent/20 rounded-[2.5rem] flex items-center justify-center">
                     <span className="text-2xl font-bold text-foreground">
-                      Power<span className="text-primary">Fit</span>
+                      {gymNameHead ? `${gymNameHead} ` : ""}
+                      <span className="text-primary">{gymNameTail}</span>
                     </span>
                   </div>
                 </div>
@@ -160,12 +174,13 @@ export default function FeaturesPage() {
           {/* CTA */}
           <div className="text-center mt-20">
             <h2 className="text-2xl font-bold text-foreground mb-4">
-              Ready to Experience {gymName}?
+              {ctaTitle}
             </h2>
-            <p className="text-muted-foreground mb-6">
-              Start your 7-day free trial today. No commitment required.
-            </p>
-            <PrimaryButton size="lg">Start Free Trial</PrimaryButton>
+            <div
+              className="text-muted-foreground mb-6 [&_img]:max-w-full [&_img]:rounded-xl"
+              dangerouslySetInnerHTML={{ __html: ctaSubtitle || "" }}
+            />
+            <PrimaryButton size="lg">{ctaButtonLabel}</PrimaryButton>
           </div>
         </div>
       </div>

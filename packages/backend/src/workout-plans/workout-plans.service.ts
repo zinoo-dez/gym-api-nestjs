@@ -14,11 +14,15 @@ import {
 } from './dto';
 import { PaginatedResponseDto } from '../common/dto';
 import { Prisma, UserRole } from '@prisma/client';
+import { NotificationsService } from '../notifications/notifications.service';
 // import { WorkoutGoal } from '../common/enums';
 
 @Injectable()
 export class WorkoutPlansService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notificationsService: NotificationsService,
+  ) {}
 
   async create(
     createWorkoutPlanDto: CreateWorkoutPlanDto,
@@ -30,7 +34,7 @@ export class WorkoutPlansService {
     // Verify member exists - only select id field
     const member = await this.prisma.member.findUnique({
       where: { id: createWorkoutPlanDto.memberId },
-      select: { id: true },
+      select: { id: true, userId: true, user: { select: { firstName: true, lastName: true, email: true } } },
     });
 
     if (!member) {
@@ -61,6 +65,31 @@ export class WorkoutPlansService {
         exercises: JSON.stringify(createWorkoutPlanDto.exercises),
       },
     });
+
+    const settings = await this.prisma.gymSetting.findFirst({
+      select: { newWorkoutPlanNotification: true },
+    });
+    if (settings?.newWorkoutPlanNotification !== false) {
+      const fullName = member.user
+        ? `${member.user.firstName} ${member.user.lastName}`.trim()
+        : 'Member';
+      await this.notificationsService.createForRole({
+        role: UserRole.ADMIN,
+        title: 'New workout plan',
+        message: `Workout plan "${workoutPlan.name}" created for ${fullName}.`,
+        type: 'info',
+        actionUrl: '/admin/workout-plans',
+      });
+      if (member.userId) {
+        await this.notificationsService.createForUser({
+          userId: member.userId,
+          title: 'New workout plan assigned',
+          message: `Your workout plan "${workoutPlan.name}" is ready.`,
+          type: 'success',
+          actionUrl: '/member/workouts',
+        });
+      }
+    }
 
     return this.toResponseDto(workoutPlan);
   }

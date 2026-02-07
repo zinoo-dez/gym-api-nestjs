@@ -100,7 +100,23 @@ const features = [
 ];
 
 export default function HomePage() {
-  const { gymName, tagLine, description } = useGymSettings();
+  const {
+    heroTitle,
+    heroSubtitle,
+    heroCtaPrimary,
+    heroCtaSecondary,
+    featuresTitle,
+    featuresSubtitle,
+    trainersTitle,
+    trainersSubtitle,
+    workoutsTitle,
+    workoutsSubtitle,
+    pricingTitle,
+    pricingSubtitle,
+    ctaTitle,
+    ctaSubtitle,
+    ctaButtonLabel,
+  } = useGymSettings();
   const [trainers, setTrainers] = useState<Trainer[]>([]);
   const [workoutPlans, setWorkoutPlans] = useState<WorkoutPlan[]>([]);
   const [pricingPlans, setPricingPlans] = useState<MembershipPlan[]>([]);
@@ -167,16 +183,17 @@ export default function HomePage() {
           </div>
 
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-foreground mb-6 leading-tight text-balance">
-            {tagLine}
+            {heroTitle}
           </h1>
 
-          <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 text-pretty">
-            {description}
-          </p>
+          <div
+            className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 text-pretty [&_img]:max-w-full [&_img]:rounded-xl"
+            dangerouslySetInnerHTML={{ __html: heroSubtitle || "" }}
+          />
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <PrimaryButton size="lg">Start Free Trial</PrimaryButton>
-            <SecondaryButton size="lg">View Membership Plans</SecondaryButton>
+            <PrimaryButton size="lg">{heroCtaPrimary}</PrimaryButton>
+            <SecondaryButton size="lg">{heroCtaSecondary}</SecondaryButton>
           </div>
 
           {/* Stats - Remove hardcoded stats */}
@@ -205,13 +222,12 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
-              Why Choose{" "}
-              {gymName ? <span className="text-primary">{gymName}</span> : null}
-              ?
+              {featuresTitle}
             </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              {description}
-            </p>
+            <div
+              className="text-muted-foreground max-w-2xl mx-auto [&_img]:max-w-full [&_img]:rounded-xl"
+              dangerouslySetInnerHTML={{ __html: featuresSubtitle || "" }}
+            />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -241,11 +257,12 @@ export default function HomePage() {
           <div className="flex flex-col sm:flex-row items-center justify-between mb-12">
             <div>
               <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">
-                Meet Our <span className="text-primary">Expert Trainers</span>
+                {trainersTitle}
               </h2>
-              <p className="text-muted-foreground">
-                Learn from the best in the fitness industry.
-              </p>
+              <div
+                className="text-muted-foreground [&_img]:max-w-full [&_img]:rounded-xl"
+                dangerouslySetInnerHTML={{ __html: trainersSubtitle || "" }}
+              />
             </div>
             <Link
               to="/trainers"
@@ -289,11 +306,12 @@ export default function HomePage() {
           <div className="flex flex-col sm:flex-row items-center justify-between mb-12">
             <div>
               <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">
-                Popular <span className="text-primary">Workout Plans</span>
+                {workoutsTitle}
               </h2>
-              <p className="text-muted-foreground">
-                Structured programs designed to help you reach your goals.
-              </p>
+              <div
+                className="text-muted-foreground [&_img]:max-w-full [&_img]:rounded-xl"
+                dangerouslySetInnerHTML={{ __html: workoutsSubtitle || "" }}
+              />
             </div>
             <Link
               to="/workouts"
@@ -337,12 +355,12 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
-              Simple, Transparent <span className="text-primary">Pricing</span>
+              {pricingTitle}
             </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Choose the plan that fits your fitness journey. No hidden fees,
-              cancel anytime.
-            </p>
+            <div
+              className="text-muted-foreground max-w-2xl mx-auto [&_img]:max-w-full [&_img]:rounded-xl"
+              dangerouslySetInnerHTML={{ __html: pricingSubtitle || "" }}
+            />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
@@ -375,15 +393,14 @@ export default function HomePage() {
         <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/20" />
         <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
-            Ready to Start Your Transformation?
+            {ctaTitle}
           </h2>
-          <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Join {gymName} today and get access to world-class facilities,
-            expert trainers, and a community that supports your goals.
-          </p>
+          <div
+            className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto [&_img]:max-w-full [&_img]:rounded-xl"
+            dangerouslySetInnerHTML={{ __html: ctaSubtitle || "" }}
+          />
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <PrimaryButton size="lg">Start Your Free Trial</PrimaryButton>
-            <SecondaryButton size="lg">Schedule a Tour</SecondaryButton>
+            <PrimaryButton size="lg">{ctaButtonLabel}</PrimaryButton>
           </div>
         </div>
       </section>

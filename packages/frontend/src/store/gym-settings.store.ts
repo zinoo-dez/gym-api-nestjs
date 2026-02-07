@@ -18,24 +18,25 @@ export const useGymSettingsStore = create<GymSettingsState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       const settings = await gymSettingsService.getSettings();
-      set({ settings, isLoading: false });
+      const decodedSettings = decodeRichTextFields(settings);
+      set({ settings: decodedSettings, isLoading: false });
 
       // Apply theme colors to CSS variables
-      if (settings.primaryColor || settings.secondaryColor || settings.backgroundColor || settings.textColor) {
+      if (decodedSettings.primaryColor || decodedSettings.secondaryColor || decodedSettings.backgroundColor || decodedSettings.textColor) {
         applyThemeColors(
-          settings.primaryColor,
-          settings.secondaryColor,
-          settings.backgroundColor,
-          settings.textColor,
+          decodedSettings.primaryColor,
+          decodedSettings.secondaryColor,
+          decodedSettings.backgroundColor,
+          decodedSettings.textColor,
         );
       }
 
       // Update document title and favicon
-      if (settings.name) {
-        document.title = settings.name;
+      if (decodedSettings.name) {
+        document.title = decodedSettings.name;
       }
-      if (settings.favicon) {
-        updateFavicon(settings.favicon);
+      if (decodedSettings.favicon) {
+        updateFavicon(decodedSettings.favicon);
       }
     } catch (error) {
       console.error("Failed to fetch gym settings:", error);
@@ -47,7 +48,8 @@ export const useGymSettingsStore = create<GymSettingsState>((set, get) => ({
     const currentSettings = get().settings;
     if (currentSettings) {
       const updatedSettings = { ...currentSettings, ...data };
-      set({ settings: updatedSettings });
+      const decodedSettings = decodeRichTextFields(updatedSettings);
+      set({ settings: decodedSettings });
 
       // Apply theme colors if updated
       if (data.primaryColor || data.secondaryColor || data.backgroundColor || data.textColor) {
@@ -71,6 +73,37 @@ export const useGymSettingsStore = create<GymSettingsState>((set, get) => ({
     }
   },
 }));
+
+function decodeHtml(input?: string): string | undefined {
+  if (!input) return input;
+  const textarea = document.createElement("textarea");
+  let current = input;
+  for (let i = 0; i < 3; i += 1) {
+    textarea.innerHTML = current;
+    const decoded = textarea.value;
+    if (decoded === current) {
+      break;
+    }
+    current = decoded;
+  }
+  return current;
+}
+
+function decodeRichTextFields(settings: GymSettings): GymSettings {
+  return {
+    ...settings,
+    description: decodeHtml(settings.description) || settings.description,
+    heroSubtitle: decodeHtml(settings.heroSubtitle) || settings.heroSubtitle,
+    featuresSubtitle: decodeHtml(settings.featuresSubtitle) || settings.featuresSubtitle,
+    classesSubtitle: decodeHtml(settings.classesSubtitle) || settings.classesSubtitle,
+    trainersSubtitle: decodeHtml(settings.trainersSubtitle) || settings.trainersSubtitle,
+    workoutsSubtitle: decodeHtml(settings.workoutsSubtitle) || settings.workoutsSubtitle,
+    pricingSubtitle: decodeHtml(settings.pricingSubtitle) || settings.pricingSubtitle,
+    appShowcaseSubtitle: decodeHtml(settings.appShowcaseSubtitle) || settings.appShowcaseSubtitle,
+    ctaSubtitle: decodeHtml(settings.ctaSubtitle) || settings.ctaSubtitle,
+    footerTagline: decodeHtml(settings.footerTagline) || settings.footerTagline,
+  };
+}
 
 // Helper function to apply theme colors to all CSS variables
 function applyThemeColors(

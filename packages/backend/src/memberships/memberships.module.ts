@@ -3,9 +3,10 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { MembershipsService } from './memberships.service';
 import { MembershipsController } from './memberships.controller';
 import { PrismaModule } from '../prisma/prisma.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
-  imports: [PrismaModule, ScheduleModule.forRoot()],
+  imports: [PrismaModule, ScheduleModule.forRoot(), NotificationsModule],
   controllers: [MembershipsController],
   providers: [MembershipsService],
   exports: [MembershipsService],

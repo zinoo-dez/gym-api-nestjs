@@ -17,9 +17,10 @@ model User {
   lastName    String       @map("last_name")
   phone       String?      @map("phone_number")
   updatedAt   DateTime     @updatedAt @map("updated_at")
-  member      Member?
-  trainer     Trainer?
-  userSetting UserSetting?
+  member        Member?
+  trainer       Trainer?
+  userSetting   UserSetting?
+  notifications Notification[]
 
   @@index([email])
   @@index([role])
@@ -50,6 +51,10 @@ model Subscription {
   status           SubscriptionStatus @default(ACTIVE) @map("status")
   autoRenew        Boolean            @default(true) @map("auto_renew")
   createdAt        DateTime           @default(now()) @map("created_at")
+  originalPrice    Float              @default(0) @map("original_price")
+  finalPrice       Float              @default(0) @map("final_price")
+  discountAmount   Float              @default(0) @map("discount_amount")
+  discountCodeId   String?            @map("discount_code_id")
   endDate          DateTime           @map("end_date")
   memberId         String             @map("member_id")
   membershipPlanId String             @map("membership_plan_id")
@@ -58,11 +63,33 @@ model Subscription {
   updatedAt        DateTime           @updatedAt @map("updated_at")
   member           Member             @relation(fields: [memberId], references: [id], onDelete: Cascade)
   membershipPlan   MembershipPlan     @relation(fields: [membershipPlanId], references: [id], onDelete: Cascade)
+  discountCode     DiscountCode?      @relation(fields: [discountCodeId], references: [id], onDelete: SetNull)
 
   @@index([memberId])
   @@index([membershipPlanId])
   @@index([status])
+  @@index([discountCodeId])
   @@map("subscriptions")
+}
+
+model DiscountCode {
+  id             String       @id @default(cuid())
+  code           String       @unique
+  description    String?
+  type           DiscountType @map("type")
+  amount         Float        @map("amount")
+  isActive       Boolean      @default(true) @map("is_active")
+  maxRedemptions Int?         @map("max_redemptions")
+  usedCount      Int          @default(0) @map("used_count")
+  startsAt       DateTime?    @map("starts_at")
+  endsAt         DateTime?    @map("ends_at")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+  subscriptions  Subscription[]
+
+  @@index([code])
+  @@index([isActive])
+  @@map("discount_codes")
 }
 
 model Member {
@@ -277,6 +304,26 @@ model GymSetting {
   secondaryColor             String   @map("secondary_color")
   backgroundColor            String   @map("background_color")
   textColor                  String   @map("text_color")
+  heroTitle                  String   @map("hero_title")
+  heroSubtitle               String   @map("hero_subtitle")
+  heroCtaPrimary             String   @map("hero_cta_primary")
+  heroCtaSecondary           String   @map("hero_cta_secondary")
+  featuresTitle              String   @map("features_title")
+  featuresSubtitle           String   @map("features_subtitle")
+  classesTitle               String   @map("classes_title")
+  classesSubtitle            String   @map("classes_subtitle")
+  trainersTitle              String   @map("trainers_title")
+  trainersSubtitle           String   @map("trainers_subtitle")
+  workoutsTitle              String   @map("workouts_title")
+  workoutsSubtitle           String   @map("workouts_subtitle")
+  pricingTitle               String   @map("pricing_title")
+  pricingSubtitle            String   @map("pricing_subtitle")
+  footerTagline              String   @map("footer_tagline")
+  appShowcaseTitle           String   @map("app_showcase_title")
+  appShowcaseSubtitle        String   @map("app_showcase_subtitle")
+  ctaTitle                   String   @map("cta_title")
+  ctaSubtitle                String   @map("cta_subtitle")
+  ctaButtonLabel             String   @map("cta_button_label")
   emailNotification          Boolean  @default(true) @map("email_notification")
   smsNotification            Boolean  @default(true) @map("sms_notification")
   newMemberNotification      Boolean  @default(true) @map("new_member_notification")
@@ -309,6 +356,24 @@ model UserSetting {
   @@map("user_settings")
 }
 
+model Notification {
+  id        String   @id @default(cuid())
+  title     String
+  message   String
+  type      String   @default("info")
+  read      Boolean  @default(false)
+  actionUrl String?  @map("action_url")
+  role      UserRole? @map("role")
+  userId    String?  @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([role])
+  @@index([userId])
+  @@map("notifications")
+}
+
 enum UserRole {
   ADMIN
   TRAINER
@@ -320,6 +385,12 @@ enum SubscriptionStatus {
   EXPIRED
   CANCELLED
   PENDING
+  FROZEN
+}
+
+enum DiscountType {
+  PERCENT
+  FIXED
 }
 
 enum ClassLevel {

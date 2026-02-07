@@ -19,7 +19,7 @@ interface PublicLayoutProps {
 
 export function PublicLayout({ children }: PublicLayoutProps) {
   const navigate = useNavigate();
-  const { gymName, tagLine, email, phone, address, logo } = useGymSettings();
+  const { gymName, footerTagline, email, phone, address, logo } = useGymSettings();
   const { user, clearAuth } = useAuthStore();
 
   const handleLogout = () => {
@@ -99,9 +99,10 @@ export function PublicLayout({ children }: PublicLayoutProps) {
               ) : (
                 renderGymName()
               )}
-              <p className="text-muted-foreground text-sm">
-                {tagLine}
-              </p>
+              <div
+                className="text-muted-foreground text-sm [&_img]:max-w-full [&_img]:rounded-xl"
+                dangerouslySetInnerHTML={{ __html: footerTagline || "" }}
+              />
               <div className="flex gap-4">
                 <a
                   href="#"

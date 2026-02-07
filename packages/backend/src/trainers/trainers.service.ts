@@ -14,10 +14,14 @@ import {
 import { PaginatedResponseDto } from '../common/dto';
 import * as bcrypt from 'bcrypt';
 import { UserRole } from '@prisma/client';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class TrainersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notificationsService: NotificationsService,
+  ) {}
 
   async create(
     createTrainerDto: CreateTrainerDto,
@@ -72,6 +76,19 @@ export class TrainersService {
 
       return { ...trainer, user };
     });
+
+    const settings = await this.prisma.gymSetting.findFirst({
+      select: { newTrainerNotification: true },
+    });
+    if (settings?.newTrainerNotification !== false) {
+      await this.notificationsService.createForRole({
+        role: UserRole.ADMIN,
+        title: 'New trainer added',
+        message: `${result.user.firstName} ${result.user.lastName} (${result.user.email}) joined as a trainer.`,
+        type: 'success',
+        actionUrl: '/admin/trainers',
+      });
+    }
 
     return this.toResponseDto(result);
   }
