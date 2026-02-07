@@ -1,16 +1,27 @@
 import { create } from "zustand";
-import { gymSettingsService, type GymSettings } from "@/services";
+import {
+  gymSettingsService,
+  type GymSettings,
+  type GymOperatingHours,
+  type GymClosure,
+} from "@/services";
 
 interface GymSettingsState {
   settings: GymSettings | null;
+  operatingHours: GymOperatingHours[];
+  closures: GymClosure[];
   isLoading: boolean;
   error: string | null;
   fetchSettings: () => Promise<void>;
   updateSettings: (data: Partial<GymSettings>) => void;
+  fetchOperatingHours: () => Promise<void>;
+  fetchClosures: () => Promise<void>;
 }
 
 export const useGymSettingsStore = create<GymSettingsState>((set, get) => ({
   settings: null,
+  operatingHours: [],
+  closures: [],
   isLoading: false,
   error: null,
 
@@ -22,7 +33,12 @@ export const useGymSettingsStore = create<GymSettingsState>((set, get) => ({
       set({ settings: decodedSettings, isLoading: false });
 
       // Apply theme colors to CSS variables
-      if (decodedSettings.primaryColor || decodedSettings.secondaryColor || decodedSettings.backgroundColor || decodedSettings.textColor) {
+      if (
+        decodedSettings.primaryColor ||
+        decodedSettings.secondaryColor ||
+        decodedSettings.backgroundColor ||
+        decodedSettings.textColor
+      ) {
         applyThemeColors(
           decodedSettings.primaryColor,
           decodedSettings.secondaryColor,
@@ -52,7 +68,12 @@ export const useGymSettingsStore = create<GymSettingsState>((set, get) => ({
       set({ settings: decodedSettings });
 
       // Apply theme colors if updated
-      if (data.primaryColor || data.secondaryColor || data.backgroundColor || data.textColor) {
+      if (
+        data.primaryColor ||
+        data.secondaryColor ||
+        data.backgroundColor ||
+        data.textColor
+      ) {
         applyThemeColors(
           data.primaryColor || currentSettings.primaryColor,
           data.secondaryColor || currentSettings.secondaryColor,
@@ -70,6 +91,24 @@ export const useGymSettingsStore = create<GymSettingsState>((set, get) => ({
       if (data.favicon) {
         updateFavicon(data.favicon);
       }
+    }
+  },
+
+  fetchOperatingHours: async () => {
+    try {
+      const hours = await gymSettingsService.getOperatingHours();
+      set({ operatingHours: hours });
+    } catch (error) {
+      console.error("Failed to fetch operating hours:", error);
+    }
+  },
+
+  fetchClosures: async () => {
+    try {
+      const closures = await gymSettingsService.getClosures();
+      set({ closures: closures });
+    } catch (error) {
+      console.error("Failed to fetch closures:", error);
     }
   },
 }));
@@ -94,12 +133,18 @@ function decodeRichTextFields(settings: GymSettings): GymSettings {
     ...settings,
     description: decodeHtml(settings.description) || settings.description,
     heroSubtitle: decodeHtml(settings.heroSubtitle) || settings.heroSubtitle,
-    featuresSubtitle: decodeHtml(settings.featuresSubtitle) || settings.featuresSubtitle,
-    classesSubtitle: decodeHtml(settings.classesSubtitle) || settings.classesSubtitle,
-    trainersSubtitle: decodeHtml(settings.trainersSubtitle) || settings.trainersSubtitle,
-    workoutsSubtitle: decodeHtml(settings.workoutsSubtitle) || settings.workoutsSubtitle,
-    pricingSubtitle: decodeHtml(settings.pricingSubtitle) || settings.pricingSubtitle,
-    appShowcaseSubtitle: decodeHtml(settings.appShowcaseSubtitle) || settings.appShowcaseSubtitle,
+    featuresSubtitle:
+      decodeHtml(settings.featuresSubtitle) || settings.featuresSubtitle,
+    classesSubtitle:
+      decodeHtml(settings.classesSubtitle) || settings.classesSubtitle,
+    trainersSubtitle:
+      decodeHtml(settings.trainersSubtitle) || settings.trainersSubtitle,
+    workoutsSubtitle:
+      decodeHtml(settings.workoutsSubtitle) || settings.workoutsSubtitle,
+    pricingSubtitle:
+      decodeHtml(settings.pricingSubtitle) || settings.pricingSubtitle,
+    appShowcaseSubtitle:
+      decodeHtml(settings.appShowcaseSubtitle) || settings.appShowcaseSubtitle,
     ctaSubtitle: decodeHtml(settings.ctaSubtitle) || settings.ctaSubtitle,
     footerTagline: decodeHtml(settings.footerTagline) || settings.footerTagline,
   };

@@ -1,420 +1,443 @@
 generator client {
-  provider = "prisma-client-js"
+    provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+    provider = "postgresql"
 }
 
 model User {
-  id          String       @id @default(cuid())
-  email       String       @unique
-  password    String
-  role        UserRole     @default(MEMBER)
-  avatar      String?
-  createdAt   DateTime     @default(now()) @map("created_at")
-  firstName   String       @map("first_name")
-  lastName    String       @map("last_name")
-  phone       String?      @map("phone_number")
-  updatedAt   DateTime     @updatedAt @map("updated_at")
-  member        Member?
-  trainer       Trainer?
-  userSetting   UserSetting?
-  notifications Notification[]
+    id            String         @id @default(cuid())
+    email         String         @unique
+    password      String
+    role          UserRole       @default(MEMBER)
+    avatar        String?
+    createdAt     DateTime       @default(now()) @map("created_at")
+    firstName     String         @map("first_name")
+    lastName      String         @map("last_name")
+    phone         String?        @map("phone_number")
+    updatedAt     DateTime       @updatedAt @map("updated_at")
+    member        Member?
+    trainer       Trainer?
+    userSetting   UserSetting?
+    notifications Notification[]
 
-  @@index([email])
-  @@index([role])
-  @@map("users")
+    @@index([email])
+    @@index([role])
+    @@map("users")
 }
 
 model MembershipPlan {
-  id                    String         @id @default(cuid())
-  name                  String
-  description           String?
-  price                 Float
-  duration              Int
-  accessToEquipment     Boolean        @default(true) @map("access_to_equipment")
-  accessToLocker        Boolean        @default(false) @map("access_to_locker")
-  createdAt             DateTime       @default(now()) @map("created_at")
-  nutritionConsultation Boolean        @default(false) @map("nutrition_consultation")
-  personalTrainingHours Float          @default(0) @map("personal_training_hours")
-  unlimitedClasses      Boolean        @default(false) @map("unlimited_classes")
-  updatedAt             DateTime       @updatedAt @map("updated_at")
-  subscriptions         Subscription[]
+    id                    String         @id @default(cuid())
+    name                  String
+    description           String?
+    price                 Float
+    duration              Int
+    accessToEquipment     Boolean        @default(true) @map("access_to_equipment")
+    accessToLocker        Boolean        @default(false) @map("access_to_locker")
+    createdAt             DateTime       @default(now()) @map("created_at")
+    nutritionConsultation Boolean        @default(false) @map("nutrition_consultation")
+    personalTrainingHours Float          @default(0) @map("personal_training_hours")
+    unlimitedClasses      Boolean        @default(false) @map("unlimited_classes")
+    updatedAt             DateTime       @updatedAt @map("updated_at")
+    subscriptions         Subscription[]
 
-  @@index([name])
-  @@map("membership_plans")
+    @@index([name])
+    @@map("membership_plans")
 }
 
 model Subscription {
-  id               String             @id @default(cuid())
-  status           SubscriptionStatus @default(ACTIVE) @map("status")
-  autoRenew        Boolean            @default(true) @map("auto_renew")
-  createdAt        DateTime           @default(now()) @map("created_at")
-  originalPrice    Float              @default(0) @map("original_price")
-  finalPrice       Float              @default(0) @map("final_price")
-  discountAmount   Float              @default(0) @map("discount_amount")
-  discountCodeId   String?            @map("discount_code_id")
-  endDate          DateTime           @map("end_date")
-  memberId         String             @map("member_id")
-  membershipPlanId String             @map("membership_plan_id")
-  renewalDate      DateTime?          @map("renewal_date")
-  startDate        DateTime           @default(now()) @map("start_date")
-  updatedAt        DateTime           @updatedAt @map("updated_at")
-  member           Member             @relation(fields: [memberId], references: [id], onDelete: Cascade)
-  membershipPlan   MembershipPlan     @relation(fields: [membershipPlanId], references: [id], onDelete: Cascade)
-  discountCode     DiscountCode?      @relation(fields: [discountCodeId], references: [id], onDelete: SetNull)
+    id               String             @id @default(cuid())
+    status           SubscriptionStatus @default(ACTIVE) @map("status")
+    autoRenew        Boolean            @default(true) @map("auto_renew")
+    createdAt        DateTime           @default(now()) @map("created_at")
+    originalPrice    Float              @default(0) @map("original_price")
+    finalPrice       Float              @default(0) @map("final_price")
+    discountAmount   Float              @default(0) @map("discount_amount")
+    discountCodeId   String?            @map("discount_code_id")
+    endDate          DateTime           @map("end_date")
+    memberId         String             @map("member_id")
+    membershipPlanId String             @map("membership_plan_id")
+    renewalDate      DateTime?          @map("renewal_date")
+    startDate        DateTime           @default(now()) @map("start_date")
+    updatedAt        DateTime           @updatedAt @map("updated_at")
+    member           Member             @relation(fields: [memberId], references: [id], onDelete: Cascade)
+    membershipPlan   MembershipPlan     @relation(fields: [membershipPlanId], references: [id], onDelete: Cascade)
+    discountCode     DiscountCode?      @relation(fields: [discountCodeId], references: [id], onDelete: SetNull)
 
-  @@index([memberId])
-  @@index([membershipPlanId])
-  @@index([status])
-  @@index([discountCodeId])
-  @@map("subscriptions")
+    @@index([memberId])
+    @@index([membershipPlanId])
+    @@index([status])
+    @@index([discountCodeId])
+    @@map("subscriptions")
 }
 
 model DiscountCode {
-  id             String       @id @default(cuid())
-  code           String       @unique
-  description    String?
-  type           DiscountType @map("type")
-  amount         Float        @map("amount")
-  isActive       Boolean      @default(true) @map("is_active")
-  maxRedemptions Int?         @map("max_redemptions")
-  usedCount      Int          @default(0) @map("used_count")
-  startsAt       DateTime?    @map("starts_at")
-  endsAt         DateTime?    @map("ends_at")
-  createdAt      DateTime     @default(now()) @map("created_at")
-  updatedAt      DateTime     @updatedAt @map("updated_at")
-  subscriptions  Subscription[]
+    id             String         @id @default(cuid())
+    code           String         @unique
+    description    String?
+    type           DiscountType   @map("type")
+    amount         Float          @map("amount")
+    isActive       Boolean        @default(true) @map("is_active")
+    maxRedemptions Int?           @map("max_redemptions")
+    usedCount      Int            @default(0) @map("used_count")
+    startsAt       DateTime?      @map("starts_at")
+    endsAt         DateTime?      @map("ends_at")
+    createdAt      DateTime       @default(now()) @map("created_at")
+    updatedAt      DateTime       @updatedAt @map("updated_at")
+    subscriptions  Subscription[]
 
-  @@index([code])
-  @@index([isActive])
-  @@map("discount_codes")
+    @@index([code])
+    @@index([isActive])
+    @@map("discount_codes")
 }
 
 model Member {
-  id               String           @id @default(cuid())
-  gender           String?
-  height           Float?           @map("height")
-  bodyFat          Float?           @map("body_fat")
-  createdAt        DateTime         @default(now()) @map("created_at")
-  currentWeight    Float?           @map("current_weight")
-  dateOfBirth      DateTime?        @map("date_of_birth")
-  emergencyContact String?          @map("emergency_contact")
-  targetWeight     Float?           @map("target_weight")
-  updatedAt        DateTime         @updatedAt @map("updated_at")
-  userId           String           @unique @map("user_id")
-  attendance       Attendance[]
-  classBookings    ClassBooking[]
-  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  subscriptions    Subscription[]
-  trainerSessions  TrainerSession[]
-  progress         UserProgress[]
-  workoutPlans     WorkoutPlan[]
+    id               String           @id @default(cuid())
+    gender           String?
+    height           Float?           @map("height")
+    bodyFat          Float?           @map("body_fat")
+    createdAt        DateTime         @default(now()) @map("created_at")
+    currentWeight    Float?           @map("current_weight")
+    dateOfBirth      DateTime?        @map("date_of_birth")
+    emergencyContact String?          @map("emergency_contact")
+    targetWeight     Float?           @map("target_weight")
+    updatedAt        DateTime         @updatedAt @map("updated_at")
+    userId           String           @unique @map("user_id")
+    attendance       Attendance[]
+    classBookings    ClassBooking[]
+    user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+    subscriptions    Subscription[]
+    trainerSessions  TrainerSession[]
+    progress         UserProgress[]
+    workoutPlans     WorkoutPlan[]
 
-  @@index([userId])
-  @@map("members")
+    @@index([userId])
+    @@map("members")
 }
 
 model Trainer {
-  id             String           @id @default(cuid())
-  specialization String
-  certification  String?
-  experience     Int
-  bio            String?
-  availability   String?
-  createdAt      DateTime         @default(now()) @map("created_at")
-  updatedAt      DateTime         @updatedAt @map("updated_at")
-  userId         String           @unique @map("user_id")
-  hourlyRate     Float            @map("hourly_rate")
-  classSchedules ClassSchedule[]
-  sessions       TrainerSession[]
-  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  workoutPlans   WorkoutPlan[]
+    id             String           @id @default(cuid())
+    specialization String
+    certification  String?
+    experience     Int
+    bio            String?
+    availability   String?
+    createdAt      DateTime         @default(now()) @map("created_at")
+    updatedAt      DateTime         @updatedAt @map("updated_at")
+    userId         String           @unique @map("user_id")
+    hourlyRate     Float            @map("hourly_rate")
+    classSchedules ClassSchedule[]
+    sessions       TrainerSession[]
+    user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+    workoutPlans   WorkoutPlan[]
 
-  @@index([userId])
-  @@index([specialization])
-  @@map("trainers")
+    @@index([userId])
+    @@index([specialization])
+    @@map("trainers")
 }
 
 model Class {
-  id          String          @id @default(cuid())
-  name        String
-  description String?
-  category    String
-  level       ClassLevel      @default(ALL_LEVELS)
-  duration    Int
-  createdAt   DateTime        @default(now()) @map("created_at")
-  updatedAt   DateTime        @updatedAt @map("updated_at")
-  maxCapacity Int             @map("max_capacity")
-  schedules   ClassSchedule[]
+    id          String          @id @default(cuid())
+    name        String
+    description String?
+    category    String
+    level       ClassLevel      @default(ALL_LEVELS)
+    duration    Int
+    createdAt   DateTime        @default(now()) @map("created_at")
+    updatedAt   DateTime        @updatedAt @map("updated_at")
+    maxCapacity Int             @map("max_capacity")
+    schedules   ClassSchedule[]
 
-  @@index([category])
-  @@index([level])
-  @@map("classes")
+    @@index([category])
+    @@index([level])
+    @@map("classes")
 }
 
 model ClassSchedule {
-  id         String         @id @default(cuid())
-  createdAt  DateTime       @default(now()) @map("created_at")
-  updatedAt  DateTime       @updatedAt @map("updated_at")
-  classId    String         @map("class_id")
-  daysOfWeek String         @map("days_of_week")
-  endTime    DateTime       @map("end_time")
-  isActive   Boolean        @default(true) @map("is_active")
-  startTime  DateTime       @map("start_time")
-  trainerId  String         @map("trainer_id")
-  bookings   ClassBooking[]
-  class      Class          @relation(fields: [classId], references: [id], onDelete: Cascade)
-  trainer    Trainer        @relation(fields: [trainerId], references: [id])
+    id         String         @id @default(cuid())
+    createdAt  DateTime       @default(now()) @map("created_at")
+    updatedAt  DateTime       @updatedAt @map("updated_at")
+    classId    String         @map("class_id")
+    daysOfWeek String         @map("days_of_week")
+    endTime    DateTime       @map("end_time")
+    isActive   Boolean        @default(true) @map("is_active")
+    startTime  DateTime       @map("start_time")
+    trainerId  String         @map("trainer_id")
+    bookings   ClassBooking[]
+    class      Class          @relation(fields: [classId], references: [id], onDelete: Cascade)
+    trainer    Trainer        @relation(fields: [trainerId], references: [id])
 
-  @@index([classId])
-  @@index([trainerId])
-  @@index([startTime])
-  @@map("class_schedules")
+    @@index([classId])
+    @@index([trainerId])
+    @@index([startTime])
+    @@map("class_schedules")
 }
 
 model ClassBooking {
-  id              String        @id @default(cuid())
-  status          BookingStatus @default(CONFIRMED)
-  bookedAt        DateTime      @default(now()) @map("booked_at")
-  updatedAt       DateTime      @updatedAt @map("updated_at")
-  checkedInAt     DateTime?     @map("checked_in_at")
-  classScheduleId String        @map("class_schedule_id")
-  memberId        String        @map("member_id")
-  classSchedule   ClassSchedule @relation(fields: [classScheduleId], references: [id], onDelete: Cascade)
-  member          Member        @relation(fields: [memberId], references: [id], onDelete: Cascade)
+    id              String        @id @default(cuid())
+    status          BookingStatus @default(CONFIRMED)
+    bookedAt        DateTime      @default(now()) @map("booked_at")
+    updatedAt       DateTime      @updatedAt @map("updated_at")
+    checkedInAt     DateTime?     @map("checked_in_at")
+    classScheduleId String        @map("class_schedule_id")
+    memberId        String        @map("member_id")
+    classSchedule   ClassSchedule @relation(fields: [classScheduleId], references: [id], onDelete: Cascade)
+    member          Member        @relation(fields: [memberId], references: [id], onDelete: Cascade)
 
-  @@unique([memberId, classScheduleId])
-  @@index([memberId])
-  @@index([classScheduleId])
-  @@index([status])
-  @@map("class_bookings")
+    @@unique([memberId, classScheduleId])
+    @@index([memberId])
+    @@index([classScheduleId])
+    @@index([status])
+    @@map("class_bookings")
 }
 
 model TrainerSession {
-  id          String        @id @default(cuid())
-  status      SessionStatus @default(SCHEDULED)
-  title       String
-  description String?
-  duration    Int
-  notes       String?
-  rate        Float
-  createdAt   DateTime      @default(now()) @map("created_at")
-  updatedAt   DateTime      @updatedAt @map("updated_at")
-  memberId    String        @map("member_id")
-  sessionDate DateTime      @map("session_date")
-  trainerId   String        @map("trainer_id")
-  member      Member        @relation(fields: [memberId], references: [id], onDelete: Cascade)
-  trainer     Trainer       @relation(fields: [trainerId], references: [id])
+    id          String        @id @default(cuid())
+    status      SessionStatus @default(SCHEDULED)
+    title       String
+    description String?
+    duration    Int
+    notes       String?
+    rate        Float
+    createdAt   DateTime      @default(now()) @map("created_at")
+    updatedAt   DateTime      @updatedAt @map("updated_at")
+    memberId    String        @map("member_id")
+    sessionDate DateTime      @map("session_date")
+    trainerId   String        @map("trainer_id")
+    member      Member        @relation(fields: [memberId], references: [id], onDelete: Cascade)
+    trainer     Trainer       @relation(fields: [trainerId], references: [id])
 
-  @@index([memberId])
-  @@index([trainerId])
-  @@index([status])
-  @@index([sessionDate])
-  @@map("trainer_sessions")
+    @@index([memberId])
+    @@index([trainerId])
+    @@index([status])
+    @@index([sessionDate])
+    @@map("trainer_sessions")
 }
 
 model WorkoutPlan {
-  id            String   @id @default(cuid())
-  name          String
-  description   String?
-  goal          String
-  exercises     String
-  createdAt     DateTime @default(now()) @map("created_at")
-  endDate       DateTime @map("end_date")
-  isActive      Boolean  @default(true) @map("is_active")
-  startDate     DateTime @default(now()) @map("start_date")
-  updatedAt     DateTime @updatedAt @map("updated_at")
-  memberId      String   @map("member_id")
-  nutritionTips String?  @map("nutrition_tips")
-  trainerId     String   @map("trainer_id")
-  member        Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
-  trainer       Trainer  @relation(fields: [trainerId], references: [id])
+    id            String   @id @default(cuid())
+    name          String
+    description   String?
+    goal          String
+    exercises     String
+    createdAt     DateTime @default(now()) @map("created_at")
+    endDate       DateTime @map("end_date")
+    isActive      Boolean  @default(true) @map("is_active")
+    startDate     DateTime @default(now()) @map("start_date")
+    updatedAt     DateTime @updatedAt @map("updated_at")
+    memberId      String   @map("member_id")
+    nutritionTips String?  @map("nutrition_tips")
+    trainerId     String   @map("trainer_id")
+    member        Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+    trainer       Trainer  @relation(fields: [trainerId], references: [id])
 
-  @@index([memberId])
-  @@index([trainerId])
-  @@index([isActive])
-  @@map("workout_plans")
+    @@index([memberId])
+    @@index([trainerId])
+    @@index([isActive])
+    @@map("workout_plans")
 }
 
 model UserProgress {
-  id              String   @id @default(cuid())
-  weight          Float?   @map("weight")
-  bmi             Float?   @map("bmi")
-  squat           Float?   @map("squat")
-  recordedAt      DateTime @default(now()) @map("recorded_at")
-  benchPress      Float?   @map("bench_press")
-  bodyFat         Float?   @map("body_fat")
-  cardioEndurance String?  @map("cardio_endurance")
-  deadlift        Float?   @map("dead_lift")
-  memberId        String   @map("member_id")
-  muscleMass      Float?   @map("muscle_mass")
-  member          Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+    id              String   @id @default(cuid())
+    weight          Float?   @map("weight")
+    bmi             Float?   @map("bmi")
+    squat           Float?   @map("squat")
+    recordedAt      DateTime @default(now()) @map("recorded_at")
+    benchPress      Float?   @map("bench_press")
+    bodyFat         Float?   @map("body_fat")
+    cardioEndurance String?  @map("cardio_endurance")
+    deadlift        Float?   @map("dead_lift")
+    memberId        String   @map("member_id")
+    muscleMass      Float?   @map("muscle_mass")
+    member          Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
 
-  @@index([memberId])
-  @@index([recordedAt])
-  @@map("user_progress")
+    @@index([memberId])
+    @@index([recordedAt])
+    @@map("user_progress")
 }
 
 model Attendance {
-  id           String         @id @default(cuid())
-  type         AttendanceType @default(GYM_VISIT)
-  createdAt    DateTime       @default(now()) @map("created_at")
-  updatedAt    DateTime       @updatedAt @map("updated_at")
-  checkInTime  DateTime       @default(now()) @map("check_in_time")
-  checkOutTime DateTime?      @map("check_out_time")
-  memberId     String         @map("member_id")
-  member       Member         @relation(fields: [memberId], references: [id], onDelete: Cascade)
+    id           String         @id @default(cuid())
+    type         AttendanceType @default(GYM_VISIT)
+    createdAt    DateTime       @default(now()) @map("created_at")
+    updatedAt    DateTime       @updatedAt @map("updated_at")
+    checkInTime  DateTime       @default(now()) @map("check_in_time")
+    checkOutTime DateTime?      @map("check_out_time")
+    memberId     String         @map("member_id")
+    member       Member         @relation(fields: [memberId], references: [id], onDelete: Cascade)
 
-  @@index([memberId])
-  @@index([checkInTime])
-  @@map("attendance")
+    @@index([memberId])
+    @@index([checkInTime])
+    @@map("attendance")
 }
 
 model Equipment {
-  id                  String    @id @default(cuid())
-  name                String
-  category            String
-  description         String?
-  quantity            Int       @default(1)
-  isActive            Boolean   @default(true)
-  createdAt           DateTime  @default(now()) @map("created_at")
-  updatedAt           DateTime  @updatedAt @map("updated_at")
-  lastMaintenanceDate DateTime? @map("last_maintenance_date")
-  maintenanceInterval Int?      @map("maintenance_interval")
-  nextMaintenanceDate DateTime? @map("next_maintenance_date")
+    id                  String    @id @default(cuid())
+    name                String
+    category            String
+    description         String?
+    quantity            Int       @default(1)
+    isActive            Boolean   @default(true)
+    createdAt           DateTime  @default(now()) @map("created_at")
+    updatedAt           DateTime  @updatedAt @map("updated_at")
+    lastMaintenanceDate DateTime? @map("last_maintenance_date")
+    maintenanceInterval Int?      @map("maintenance_interval")
+    nextMaintenanceDate DateTime? @map("next_maintenance_date")
 
-  @@index([category])
-  @@index([isActive])
-  @@map("equipment")
+    @@index([category])
+    @@index([isActive])
+    @@map("equipment")
 }
 
 model GymSetting {
-  id                         String   @id @default(cuid())
-  name                       String   @unique @map("gym_name")
-  tagLine                    String   @map("tag_line")
-  address                    String   @map("address")
-  phone                      String   @unique @map("phone")
-  email                      String   @unique @map("email")
-  logo                       String   @map("logo")
-  description                String   @map("description")
-  favicon                    String   @map("favicon")
-  primaryColor               String   @map("primary_color")
-  secondaryColor             String   @map("secondary_color")
-  backgroundColor            String   @map("background_color")
-  textColor                  String   @map("text_color")
-  heroTitle                  String   @map("hero_title")
-  heroSubtitle               String   @map("hero_subtitle")
-  heroCtaPrimary             String   @map("hero_cta_primary")
-  heroCtaSecondary           String   @map("hero_cta_secondary")
-  featuresTitle              String   @map("features_title")
-  featuresSubtitle           String   @map("features_subtitle")
-  classesTitle               String   @map("classes_title")
-  classesSubtitle            String   @map("classes_subtitle")
-  trainersTitle              String   @map("trainers_title")
-  trainersSubtitle           String   @map("trainers_subtitle")
-  workoutsTitle              String   @map("workouts_title")
-  workoutsSubtitle           String   @map("workouts_subtitle")
-  pricingTitle               String   @map("pricing_title")
-  pricingSubtitle            String   @map("pricing_subtitle")
-  footerTagline              String   @map("footer_tagline")
-  appShowcaseTitle           String   @map("app_showcase_title")
-  appShowcaseSubtitle        String   @map("app_showcase_subtitle")
-  ctaTitle                   String   @map("cta_title")
-  ctaSubtitle                String   @map("cta_subtitle")
-  ctaButtonLabel             String   @map("cta_button_label")
-  emailNotification          Boolean  @default(true) @map("email_notification")
-  smsNotification            Boolean  @default(true) @map("sms_notification")
-  newMemberNotification      Boolean  @default(true) @map("new_member_notification")
-  newTrainerNotification     Boolean  @default(true) @map("new_trainer_notification")
-  newMembershipNotification  Boolean  @default(true) @map("new_membership_notification")
-  newPaymentNotification     Boolean  @default(true) @map("new_payment_notification")
-  newSessionNotification     Boolean  @default(true) @map("new_session_notification")
-  newWorkoutPlanNotification Boolean  @default(true) @map("new_workout_plan_notification")
-  newProgressNotification    Boolean  @default(true) @map("new_progress_notification")
-  newAttendanceNotification  Boolean  @default(true) @map("new_attendance_notification")
-  newEquipmentNotification   Boolean  @default(true) @map("new_equipment_notification")
-  newGymSettingNotification  Boolean  @default(true) @map("new_gym_setting_notification")
-  newUserSettingNotification Boolean  @default(true) @map("new_user_setting_notification")
-  createdAt                  DateTime @default(now()) @map("created_at")
-  updatedAt                  DateTime @updatedAt @map("updated_at")
+    id                         String   @id @default(cuid())
+    name                       String   @unique @map("gym_name")
+    tagLine                    String   @map("tag_line")
+    address                    String   @map("address")
+    phone                      String   @unique @map("phone")
+    email                      String   @unique @map("email")
+    logo                       String   @map("logo")
+    description                String   @map("description")
+    favicon                    String   @map("favicon")
+    primaryColor               String   @map("primary_color")
+    secondaryColor             String   @map("secondary_color")
+    backgroundColor            String   @map("background_color")
+    textColor                  String   @map("text_color")
+    heroTitle                  String   @map("hero_title")
+    heroSubtitle               String   @map("hero_subtitle")
+    heroCtaPrimary             String   @map("hero_cta_primary")
+    heroCtaSecondary           String   @map("hero_cta_secondary")
+    featuresTitle              String   @map("features_title")
+    featuresSubtitle           String   @map("features_subtitle")
+    classesTitle               String   @map("classes_title")
+    classesSubtitle            String   @map("classes_subtitle")
+    trainersTitle              String   @map("trainers_title")
+    trainersSubtitle           String   @map("trainers_subtitle")
+    workoutsTitle              String   @map("workouts_title")
+    workoutsSubtitle           String   @map("workouts_subtitle")
+    pricingTitle               String   @map("pricing_title")
+    pricingSubtitle            String   @map("pricing_subtitle")
+    footerTagline              String   @map("footer_tagline")
+    appShowcaseTitle           String   @map("app_showcase_title")
+    appShowcaseSubtitle        String   @map("app_showcase_subtitle")
+    ctaTitle                   String   @map("cta_title")
+    ctaSubtitle                String   @map("cta_subtitle")
+    ctaButtonLabel             String   @map("cta_button_label")
+    emailNotification          Boolean  @default(true) @map("email_notification")
+    smsNotification            Boolean  @default(true) @map("sms_notification")
+    newMemberNotification      Boolean  @default(true) @map("new_member_notification")
+    newTrainerNotification     Boolean  @default(true) @map("new_trainer_notification")
+    newMembershipNotification  Boolean  @default(true) @map("new_membership_notification")
+    newPaymentNotification     Boolean  @default(true) @map("new_payment_notification")
+    newSessionNotification     Boolean  @default(true) @map("new_session_notification")
+    newWorkoutPlanNotification Boolean  @default(true) @map("new_workout_plan_notification")
+    newProgressNotification    Boolean  @default(true) @map("new_progress_notification")
+    newAttendanceNotification  Boolean  @default(true) @map("new_attendance_notification")
+    newEquipmentNotification   Boolean  @default(true) @map("new_equipment_notification")
+    newGymSettingNotification  Boolean  @default(true) @map("new_gym_setting_notification")
+    newUserSettingNotification Boolean  @default(true) @map("new_user_setting_notification")
+    createdAt                  DateTime @default(now()) @map("created_at")
+    updatedAt                  DateTime @updatedAt @map("updated_at")
 
-  @@map("gym_settings")
+    @@map("gym_settings")
+}
+
+model GymOperatingHours {
+    id        String   @id @default(cuid())
+    dayOfWeek Int      @map("day_of_week") // 0 (Sunday) to 6 (Saturday)
+    openTime  String   @map("open_time") // Format "HH:mm"
+    closeTime String   @map("close_time") // Format "HH:mm"
+    isClosed  Boolean  @default(false) @map("is_closed")
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
+
+    @@unique([dayOfWeek])
+    @@map("gym_operating_hours")
+}
+
+model GymClosure {
+    id        String   @id @default(cuid())
+    date      DateTime @unique
+    reason    String?
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
+
+    @@map("gym_closures")
 }
 
 model UserSetting {
-  id           String   @id @default(cuid())
-  userId       String   @unique @map("user_id")
-  language     String   @default("en")
-  theme        String   @default("system")
-  notification Boolean  @default(true)
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    id           String   @id @default(cuid())
+    userId       String   @unique @map("user_id")
+    language     String   @default("en")
+    theme        String   @default("system")
+    notification Boolean  @default(true)
+    createdAt    DateTime @default(now()) @map("created_at")
+    updatedAt    DateTime @updatedAt @map("updated_at")
+    user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@map("user_settings")
+    @@map("user_settings")
 }
 
 model Notification {
-  id        String   @id @default(cuid())
-  title     String
-  message   String
-  type      String   @default("info")
-  read      Boolean  @default(false)
-  actionUrl String?  @map("action_url")
-  role      UserRole? @map("role")
-  userId    String?  @map("user_id")
-  createdAt DateTime @default(now()) @map("created_at")
+    id        String    @id @default(cuid())
+    title     String
+    message   String
+    type      String    @default("info")
+    read      Boolean   @default(false)
+    actionUrl String?   @map("action_url")
+    role      UserRole? @map("role")
+    userId    String?   @map("user_id")
+    createdAt DateTime  @default(now()) @map("created_at")
 
-  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+    user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([role])
-  @@index([userId])
-  @@map("notifications")
+    @@index([role])
+    @@index([userId])
+    @@map("notifications")
 }
 
 enum UserRole {
-  ADMIN
-  TRAINER
-  MEMBER
+    ADMIN
+    TRAINER
+    MEMBER
 }
 
 enum SubscriptionStatus {
-  ACTIVE
-  EXPIRED
-  CANCELLED
-  PENDING
-  FROZEN
+    ACTIVE
+    EXPIRED
+    CANCELLED
+    PENDING
+    FROZEN
 }
 
 enum DiscountType {
-  PERCENT
-  FIXED
+    PERCENT
+    FIXED
 }
 
 enum ClassLevel {
-  BEGINNER
-  INTERMEDIATE
-  ADVANCED
-  ALL_LEVELS
+    BEGINNER
+    INTERMEDIATE
+    ADVANCED
+    ALL_LEVELS
 }
 
 enum BookingStatus {
-  CONFIRMED
-  CANCELLED
-  COMPLETED
-  NO_SHOW
+    CONFIRMED
+    CANCELLED
+    COMPLETED
+    NO_SHOW
 }
 
 enum SessionStatus {
-  SCHEDULED
-  COMPLETED
-  CANCELLED
-  RESCHEDULED
+    SCHEDULED
+    COMPLETED
+    CANCELLED
+    RESCHEDULED
 }
 
 enum AttendanceType {
-  GYM_VISIT
-  CLASS_ATTENDANCE
+    GYM_VISIT
+    CLASS_ATTENDANCE
 }

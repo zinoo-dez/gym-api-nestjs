@@ -12,6 +12,8 @@ import {
   Phone,
   MapPin,
   LayoutGrid,
+  Clock,
+  Calendar,
 } from "lucide-react";
 import { gymSettingsService, type GymSettings } from "@/services";
 import { useGymSettingsStore } from "@/store/gym-settings.store";
@@ -20,11 +22,14 @@ import { toast } from "sonner";
 export default function AdminSettingsPage() {
   const [activeTab, setActiveTab] = useState("general");
   const [saving, setSaving] = useState(false);
-  const { settings, isLoading } = useGymSettingsStore();
+  const { settings, isLoading, operatingHours, closures, fetchOperatingHours, fetchClosures } = useGymSettingsStore();
   const updateStoreSettings = useGymSettingsStore(
     (state) => state.updateSettings,
   );
   const [formData, setFormData] = useState<Partial<GymSettings>>({});
+  const [hoursData, setHoursData] = useState<any[]>([]);
+  const [newClosure, setNewClosure] = useState({ date: "", reason: "" });
+  const [addingClosure, setAddingClosure] = useState(false);
 
   const getCssVar = (name: string, fallback: string) => {
     if (typeof window === "undefined") return fallback;
@@ -44,6 +49,15 @@ export default function AdminSettingsPage() {
       setFormData(settings);
     }
   }, [settings]);
+
+  useEffect(() => {
+    fetchOperatingHours();
+    fetchClosures();
+  }, []);
+
+  useEffect(() => {
+    setHoursData(operatingHours);
+  }, [operatingHours]);
 
   const handleInputChange = (field: keyof GymSettings, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -126,6 +140,67 @@ export default function AdminSettingsPage() {
     }
   };
 
+  const handleHourChange = (dayOfWeek: number, field: string, value: any) => {
+    setHoursData((prev) =>
+      prev.map((h) => (h.dayOfWeek === dayOfWeek ? { ...h, [field]: value } : h)),
+    );
+  };
+
+  const saveHour = async (hour: any) => {
+    try {
+      await gymSettingsService.updateOperatingHours({
+        dayOfWeek: hour.dayOfWeek,
+        openTime: hour.openTime,
+        closeTime: hour.closeTime,
+        isClosed: hour.isClosed,
+      });
+      toast.success(`Updated ${getDayName(hour.dayOfWeek)}`);
+    } catch (error) {
+      toast.error(`Failed to update ${getDayName(hour.dayOfWeek)}`);
+    }
+  };
+
+  const handleAddClosure = async () => {
+    if (!newClosure.date) {
+      toast.error("Please select a date");
+      return;
+    }
+    try {
+      setAddingClosure(true);
+      await gymSettingsService.createClosure(newClosure);
+      await fetchClosures();
+      setNewClosure({ date: "", reason: "" });
+      toast.success("Closure added");
+    } catch (error) {
+      toast.error("Failed to add closure");
+    } finally {
+      setAddingClosure(false);
+    }
+  };
+
+  const handleDeleteClosure = async (id: string) => {
+    try {
+      await gymSettingsService.deleteClosure(id);
+      await fetchClosures();
+      toast.success("Closure removed");
+    } catch (error) {
+      toast.error("Failed to remove closure");
+    }
+  };
+
+  const getDayName = (day: number) => {
+    const days = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
+    return days[day];
+  };
+
   if (isLoading) {
     return (
       <AdminLayout>
@@ -139,6 +214,7 @@ export default function AdminSettingsPage() {
   const tabs = [
     { id: "general", label: "General", icon: Building },
     { id: "public", label: "Public Content", icon: LayoutGrid },
+    { id: "operations", label: "Operations", icon: Clock },
     { id: "notifications", label: "Notifications", icon: Bell },
     { id: "appearance", label: "Appearance", icon: Palette },
   ];
@@ -1107,6 +1183,177 @@ export default function AdminSettingsPage() {
                       </>
                     )}
                   </PrimaryButton>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "operations" && (
+              <div className="space-y-6">
+                <div className="rounded-lg border border-border bg-card p-6">
+                  <h3 className="text-lg font-semibold text-foreground">
+                    Operating Hours
+                  </h3>
+                  <p className="text-sm text-muted-foreground mb-6">
+                    Set your gym's weekly opening and closing times
+                  </p>
+
+                  <div className="space-y-4">
+                    {hoursData.map((hour) => (
+                      <div
+                        key={hour.dayOfWeek}
+                        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-lg border border-border bg-muted/30"
+                      >
+                        <div className="w-24 font-medium text-foreground">
+                          {getDayName(hour.dayOfWeek)}
+                        </div>
+
+                        <div className="flex flex-1 items-center gap-4">
+                          <div className="flex-1 space-y-1">
+                            <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                              Open Time
+                            </label>
+                            <input
+                              type="time"
+                              value={hour.openTime}
+                              disabled={hour.isClosed}
+                              onChange={(e) =>
+                                handleHourChange(
+                                  hour.dayOfWeek,
+                                  "openTime",
+                                  e.target.value,
+                                )
+                              }
+                              className="block w-full rounded-md border border-border bg-background px-3 py-1 text-sm text-foreground focus:border-primary focus:outline-none disabled:opacity-50"
+                            />
+                          </div>
+
+                          <div className="flex-1 space-y-1">
+                            <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                              Close Time
+                            </label>
+                            <input
+                              type="time"
+                              value={hour.closeTime}
+                              disabled={hour.isClosed}
+                              onChange={(e) =>
+                                handleHourChange(
+                                  hour.dayOfWeek,
+                                  "closeTime",
+                                  e.target.value,
+                                )
+                              }
+                              className="block w-full rounded-md border border-border bg-background px-3 py-1 text-sm text-foreground focus:border-primary focus:outline-none disabled:opacity-50"
+                            />
+                          </div>
+
+                          <div className="flex flex-col items-center justify-center space-y-1 pt-4">
+                            <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                              Closed
+                            </label>
+                            <input
+                              type="checkbox"
+                              checked={hour.isClosed}
+                              onChange={(e) =>
+                                handleHourChange(
+                                  hour.dayOfWeek,
+                                  "isClosed",
+                                  e.target.checked,
+                                )
+                              }
+                              className="h-4 w-4 rounded border-border bg-background text-primary focus:ring-primary"
+                            />
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => saveHour(hour)}
+                          className="px-3 py-1 text-xs font-semibold text-primary hover:text-primary-dark transition-colors"
+                        >
+                          Update
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="rounded-lg border border-border bg-card p-6">
+                  <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                    <Calendar className="h-5 w-5" />
+                    Special Closures
+                  </h3>
+                  <p className="text-sm text-muted-foreground mb-6">
+                    Add specific dates when the gym will be closed (holidays, maintenance, etc.)
+                  </p>
+
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <div className="space-y-4">
+                      <h4 className="text-sm font-medium text-foreground">Add New Closure</h4>
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-xs text-muted-foreground mb-1">Date</label>
+                          <input
+                            type="date"
+                            value={newClosure.date}
+                            onChange={(e) => setNewClosure(prev => ({ ...prev, date: e.target.value }))}
+                            className="w-full rounded-lg border border-border bg-background px-4 py-2 text-foreground focus:border-primary focus:outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-muted-foreground mb-1">Reason (Optional)</label>
+                          <input
+                            type="text"
+                            placeholder="e.g., Christmas Day"
+                            value={newClosure.reason}
+                            onChange={(e) => setNewClosure(prev => ({ ...prev, reason: e.target.value }))}
+                            className="w-full rounded-lg border border-border bg-background px-4 py-2 text-foreground focus:border-primary focus:outline-none"
+                          />
+                        </div>
+                        <PrimaryButton 
+                          onClick={handleAddClosure} 
+                          disabled={addingClosure}
+                          className="w-full"
+                        >
+                          {addingClosure ? <Loader2 className="h-4 w-4 animate-spin" /> : "Add Closure"}
+                        </PrimaryButton>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <h4 className="text-sm font-medium text-foreground">Upcoming Closures</h4>
+                      <div className="space-y-2">
+                        {closures.length === 0 ? (
+                          <p className="text-sm text-muted-foreground italic">No upcoming closures scheduled.</p>
+                        ) : (
+                          closures.map(closure => (
+                            <div 
+                              key={closure.id}
+                              className="flex items-center justify-between p-3 rounded-md bg-muted/20 border border-border"
+                            >
+                              <div>
+                                <p className="text-sm font-medium text-foreground">
+                                  {new Date(closure.date).toLocaleDateString(undefined, { 
+                                    month: 'short', 
+                                    day: 'numeric', 
+                                    year: 'numeric' 
+                                  })}
+                                </p>
+                                {closure.reason && (
+                                  <p className="text-xs text-muted-foreground">{closure.reason}</p>
+                                )}
+                              </div>
+                              <button 
+                                onClick={() => handleDeleteClosure(closure.id)}
+                                className="text-destructive hover:text-destructive/80 text-xs"
+                              >
+                                Remove
+                              </button>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}

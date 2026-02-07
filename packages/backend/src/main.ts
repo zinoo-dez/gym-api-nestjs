@@ -35,7 +35,6 @@ async function bootstrap() {
     'http://localhost:3000',
     'http://localhost:3001',
     'http://localhost:5173',
-    'https://toolbox-gen-ai-production.languagetool.workers.dev/v2',
   ];
   const envOrigins = corsOrigins
     ? corsOrigins.split(',').map((origin) => origin.trim())

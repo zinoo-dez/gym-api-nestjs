@@ -23,6 +23,7 @@ import { GlobalExceptionFilter } from './common/filters/global-exception.filter'
 import { LoggerService } from './logging/logger.service';
 import { LoggingInterceptor } from './common/interceptors';
 import { DiscountCodesModule } from './discount-codes/discount-codes.module';
+import { GymOperatingHoursModule } from './gym-operating-hours/gym-operating-hours.module';
 
 @Module({
   imports: [
@@ -55,6 +56,7 @@ import { DiscountCodesModule } from './discount-codes/discount-codes.module';
     NotificationsModule,
     GymSettingsModule,
     DiscountCodesModule,
+    GymOperatingHoursModule,
   ],
   controllers: [AppController],
   providers: [

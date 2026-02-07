@@ -51,7 +51,7 @@ const adminNavGroups = [
             />
           </svg>
         ),
-        badge: 156,
+        
       },
       {
         label: "Trainers",
@@ -252,6 +252,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const navigate = useNavigate();
   const { user, clearAuth } = useAuthStore();
   const { gymName, logo } = useGymSettings();
+  const displayGymName = gymName || "Your Gym";
   const {
     notifications,
     markAsRead,
@@ -269,11 +270,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   };
 
   const renderGymName = () => {
-    if (!gymName) {
-      return null;
-    }
-
-    const words = gymName.trim().split(/\s+/);
+    const words = displayGymName.trim().split(/\s+/);
 
     if (words.length === 0) {
       return null;
@@ -303,7 +300,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         logo={
           <Link to="/admin" className="flex items-center gap-2">
             {logo ? (
-              <img src={logo} alt={gymName} className="h-8 w-auto" />
+              <img src={logo} alt={displayGymName} className="h-8 w-auto" />
             ) : (
               renderGymName()
             )}
