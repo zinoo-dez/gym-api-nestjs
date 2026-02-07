@@ -19,7 +19,19 @@ interface PublicLayoutProps {
 
 export function PublicLayout({ children }: PublicLayoutProps) {
   const navigate = useNavigate();
-  const { gymName, footerTagline, email, phone, address, logo } = useGymSettings();
+  const { 
+    gymName, 
+    footerTagline, 
+    email, 
+    phone, 
+    address, 
+    logo, 
+    fontFamily,
+    primaryColor,
+    secondaryColor,
+    backgroundColor,
+    textColor
+  } = useGymSettings();
   const { user, clearAuth } = useAuthStore();
 
   const handleLogout = () => {
@@ -67,8 +79,35 @@ export function PublicLayout({ children }: PublicLayoutProps) {
     );
   };
 
+  // Google Fonts URL generator
+  const getGoogleFontUrl = (font: string) => {
+    if (!font || font === "Inter") return null;
+    return `https://fonts.googleapis.com/css2?family=${font.replace(/\s+/g, "+")}:wght@400;500;600;700&display=swap`;
+  };
+
+  const fontUrl = getGoogleFontUrl(fontFamily);
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background" style={{ fontFamily: fontFamily || 'Inter' }}>
+      {fontUrl && (
+        <link rel="stylesheet" href={fontUrl} />
+      )}
+      <style dangerouslySetInnerHTML={{ __html: `
+        :root {
+          ${primaryColor ? `--primary: ${primaryColor};` : ""}
+          ${secondaryColor ? `--secondary: ${secondaryColor};` : ""}
+          ${backgroundColor ? `--background: ${backgroundColor};` : ""}
+          ${textColor ? `--foreground: ${textColor};` : ""}
+        }
+        
+        body {
+          font-family: '${fontFamily || "Inter"}', sans-serif;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+          font-family: '${fontFamily || "Inter"}', sans-serif;
+        }
+      `}} />
       <TopNavbar
         links={navLinks}
         onLogin={user ? undefined : () => navigate("/auth/login")}

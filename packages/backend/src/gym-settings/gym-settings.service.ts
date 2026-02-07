@@ -54,6 +54,14 @@ export class GymSettingsService {
       ctaSubtitle:
         'Join today and get access to world-class facilities and expert coaching.',
       ctaButtonLabel: 'Get Started',
+      fontFamily: 'Inter',
+      heroBgImage: '',
+      featuresBgImage: '',
+      classesBgImage: '',
+      trainersBgImage: '',
+      workoutsBgImage: '',
+      pricingBgImage: '',
+      ctaBgImage: '',
     };
 
     const settings = await this.prisma.gymSetting.findFirst();
@@ -86,8 +94,7 @@ export class GymSettingsService {
             process.env.GYM_FEATURES_TITLE ?? defaults.featuresTitle,
           featuresSubtitle:
             process.env.GYM_FEATURES_SUBTITLE ?? defaults.featuresSubtitle,
-          classesTitle:
-            process.env.GYM_CLASSES_TITLE ?? defaults.classesTitle,
+          classesTitle: process.env.GYM_CLASSES_TITLE ?? defaults.classesTitle,
           classesSubtitle:
             process.env.GYM_CLASSES_SUBTITLE ?? defaults.classesSubtitle,
           trainersTitle:
@@ -98,8 +105,7 @@ export class GymSettingsService {
             process.env.GYM_WORKOUTS_TITLE ?? defaults.workoutsTitle,
           workoutsSubtitle:
             process.env.GYM_WORKOUTS_SUBTITLE ?? defaults.workoutsSubtitle,
-          pricingTitle:
-            process.env.GYM_PRICING_TITLE ?? defaults.pricingTitle,
+          pricingTitle: process.env.GYM_PRICING_TITLE ?? defaults.pricingTitle,
           pricingSubtitle:
             process.env.GYM_PRICING_SUBTITLE ?? defaults.pricingSubtitle,
           footerTagline:
@@ -113,6 +119,19 @@ export class GymSettingsService {
           ctaSubtitle: process.env.GYM_CTA_SUBTITLE ?? defaults.ctaSubtitle,
           ctaButtonLabel:
             process.env.GYM_CTA_BUTTON_LABEL ?? defaults.ctaButtonLabel,
+          fontFamily: process.env.GYM_FONT_FAMILY ?? defaults.fontFamily,
+          heroBgImage: process.env.GYM_HERO_BG_IMAGE ?? defaults.heroBgImage,
+          featuresBgImage:
+            process.env.GYM_FEATURES_BG_IMAGE ?? defaults.featuresBgImage,
+          classesBgImage:
+            process.env.GYM_CLASSES_BG_IMAGE ?? defaults.classesBgImage,
+          trainersBgImage:
+            process.env.GYM_TRAINERS_BG_IMAGE ?? defaults.trainersBgImage,
+          workoutsBgImage:
+            process.env.GYM_WORKOUTS_BG_IMAGE ?? defaults.workoutsBgImage,
+          pricingBgImage:
+            process.env.GYM_PRICING_BG_IMAGE ?? defaults.pricingBgImage,
+          ctaBgImage: process.env.GYM_CTA_BG_IMAGE ?? defaults.ctaBgImage,
         },
       });
     }
@@ -131,8 +150,7 @@ export class GymSettingsService {
       heroCtaPrimary: settings.heroCtaPrimary || defaults.heroCtaPrimary,
       heroCtaSecondary: settings.heroCtaSecondary || defaults.heroCtaSecondary,
       featuresTitle: settings.featuresTitle || defaults.featuresTitle,
-      featuresSubtitle:
-        settings.featuresSubtitle || defaults.featuresSubtitle,
+      featuresSubtitle: settings.featuresSubtitle || defaults.featuresSubtitle,
       classesTitle: settings.classesTitle || defaults.classesTitle,
       classesSubtitle: settings.classesSubtitle || defaults.classesSubtitle,
       trainersTitle: settings.trainersTitle || defaults.trainersTitle,
@@ -142,13 +160,20 @@ export class GymSettingsService {
       pricingTitle: settings.pricingTitle || defaults.pricingTitle,
       pricingSubtitle: settings.pricingSubtitle || defaults.pricingSubtitle,
       footerTagline: settings.footerTagline || defaults.footerTagline,
-      appShowcaseTitle:
-        settings.appShowcaseTitle || defaults.appShowcaseTitle,
+      appShowcaseTitle: settings.appShowcaseTitle || defaults.appShowcaseTitle,
       appShowcaseSubtitle:
         settings.appShowcaseSubtitle || defaults.appShowcaseSubtitle,
       ctaTitle: settings.ctaTitle || defaults.ctaTitle,
       ctaSubtitle: settings.ctaSubtitle || defaults.ctaSubtitle,
       ctaButtonLabel: settings.ctaButtonLabel || defaults.ctaButtonLabel,
+      fontFamily: settings.fontFamily || defaults.fontFamily,
+      heroBgImage: settings.heroBgImage || defaults.heroBgImage,
+      featuresBgImage: settings.featuresBgImage || defaults.featuresBgImage,
+      classesBgImage: settings.classesBgImage || defaults.classesBgImage,
+      trainersBgImage: settings.trainersBgImage || defaults.trainersBgImage,
+      workoutsBgImage: settings.workoutsBgImage || defaults.workoutsBgImage,
+      pricingBgImage: settings.pricingBgImage || defaults.pricingBgImage,
+      ctaBgImage: settings.ctaBgImage || defaults.ctaBgImage,
     };
   }
 

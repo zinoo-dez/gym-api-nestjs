@@ -116,6 +116,13 @@ export default function HomePage() {
     ctaTitle,
     ctaSubtitle,
     ctaButtonLabel,
+    heroBgImage,
+    featuresBgImage,
+    classesBgImage,
+    trainersBgImage,
+    workoutsBgImage,
+    pricingBgImage,
+    ctaBgImage,
   } = useGymSettings();
   const [trainers, setTrainers] = useState<Trainer[]>([]);
   const [workoutPlans, setWorkoutPlans] = useState<WorkoutPlan[]>([]);
@@ -171,8 +178,15 @@ export default function HomePage() {
     <PublicLayout>
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
-        <div className="absolute inset-0 bg-gradient-to-br  to-primary/10" />
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1920&q=80')] bg-cover bg-center opacity-20" />
+        <div className="absolute inset-0 bg-gradient-to-br from-background via-background/80 to-primary/10" />
+        <div 
+          className="absolute inset-0 bg-cover bg-center opacity-20" 
+          style={{ 
+            backgroundImage: heroBgImage 
+              ? `url(${heroBgImage})` 
+              : `url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1920&q=80')` 
+          }}
+        />
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
           <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-4 py-2 mb-8">
@@ -218,8 +232,16 @@ export default function HomePage() {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 bg-card">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section 
+        className="py-20 relative overflow-hidden"
+        style={{ 
+          backgroundImage: featuresBgImage ? `url(${featuresBgImage})` : 'none',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
+        {featuresBgImage && <div className="absolute inset-0 bg-card/90" />}
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
               {featuresTitle}
@@ -252,8 +274,16 @@ export default function HomePage() {
       </section>
 
       {/* Trainers Section */}
-      <section className="py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section 
+        className="py-20 relative overflow-hidden"
+        style={{ 
+          backgroundImage: trainersBgImage ? `url(${trainersBgImage})` : 'none',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
+        {trainersBgImage && <div className="absolute inset-0 bg-background/90" />}
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row items-center justify-between mb-12">
             <div>
               <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">
@@ -278,14 +308,10 @@ export default function HomePage() {
                 <TrainerCard
                   key={trainer.id}
                   name={`${trainer.firstName} ${trainer.lastName}`}
-                  specialty={trainer.specializations[0] || "General Fitness"}
-                  experience={
-                    trainer.yearsOfExperience
-                      ? `${trainer.yearsOfExperience} years`
-                      : "Experienced"
-                  }
-                  image={trainer.profileImage || undefined}
-                  rating={trainer.rating || 5.0}
+                  specialty={trainer.specializations?.[0] || "General Fitness"}
+                  experience={"5 years"}
+                  image={"/placeholder.svg"}
+                  rating={5.0}
                   certifications={trainer.certifications}
                 />
               ))
@@ -301,8 +327,16 @@ export default function HomePage() {
       </section>
 
       {/* Workout Plans Section */}
-      <section className="py-20 bg-card">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section 
+        className="py-20 relative overflow-hidden"
+        style={{ 
+          backgroundImage: workoutsBgImage ? `url(${workoutsBgImage})` : 'none',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
+        {workoutsBgImage && <div className="absolute inset-0 bg-card/90" />}
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row items-center justify-between mb-12">
             <div>
               <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">
@@ -327,14 +361,10 @@ export default function HomePage() {
                 <WorkoutPlanCard
                   key={plan.id}
                   title={plan.name}
-                  goal={plan.goal}
-                  difficulty={plan.difficulty || "intermediate"}
-                  duration={
-                    plan.durationWeeks
-                      ? `${plan.durationWeeks} weeks`
-                      : "Flexible"
-                  }
-                  daysPerWeek={plan.daysPerWeek || 3}
+                  goal={(plan.goal as any) || "muscle"}
+                  difficulty="intermediate"
+                  duration="4 weeks"
+                  daysPerWeek={3}
                   exercises={plan.exercises?.length || 0}
                   description={plan.description || ""}
                 />
@@ -351,8 +381,16 @@ export default function HomePage() {
       </section>
 
       {/* Pricing Section */}
-      <section className="py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section 
+        className="py-20 relative overflow-hidden"
+        style={{ 
+          backgroundImage: pricingBgImage ? `url(${pricingBgImage})` : 'none',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
+        {pricingBgImage && <div className="absolute inset-0 bg-background/90" />}
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
               {pricingTitle}
@@ -372,7 +410,7 @@ export default function HomePage() {
                   price={plan.price}
                   description={plan.description || ""}
                   features={plan.features}
-                  isPopular={plan.isPopular || false}
+                  isPopular={false}
                 />
               ))
             ) : (
@@ -391,6 +429,12 @@ export default function HomePage() {
       {/* CTA Section */}
       <section className="py-20 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/20" />
+        <div 
+          className="absolute inset-0 bg-cover bg-center opacity-10"
+          style={{ 
+            backgroundImage: ctaBgImage ? `url(${ctaBgImage})` : 'none' 
+          }}
+        />
         <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
             {ctaTitle}

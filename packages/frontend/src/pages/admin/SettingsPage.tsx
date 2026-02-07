@@ -64,23 +64,24 @@ export default function AdminSettingsPage() {
   };
 
   const handleFileUpload = async (
-    field: "logo" | "favicon",
+    field: keyof GymSettings,
     file?: File | null,
   ) => {
     if (!file) return;
 
-    const maxBytes = field === "favicon" ? 256 * 1024 : 1024 * 1024;
+    const isFavicon = field === "favicon";
+    const maxBytes = isFavicon ? 256 * 1024 : 2 * 1024 * 1024; // 2MB for bg images
     if (file.size > maxBytes) {
       toast.error(
-        `${field === "favicon" ? "Favicon" : "Logo"} is too large. Max ${
-          field === "favicon" ? "256KB" : "1MB"
+        `${field.toString().charAt(0).toUpperCase() + field.toString().slice(1)} is too large. Max ${
+          isFavicon ? "256KB" : "2MB"
         }.`,
       );
       return;
     }
 
     try {
-      const maxSize = field === "favicon" ? 128 : 512;
+      const maxSize = isFavicon ? 128 : 1920; // High res for bg images
       const dataUrl = await resizeImage(file, maxSize);
       handleInputChange(field, dataUrl);
     } catch (error) {
@@ -434,6 +435,35 @@ export default function AdminSettingsPage() {
                       />
                     </div>
 
+                    <div className="space-y-2">
+                       <label className="block text-sm font-medium text-foreground">
+                        Hero Background Image
+                      </label>
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
+                        <div className="h-20 w-32 rounded-lg border border-border bg-background flex items-center justify-center overflow-hidden shrink-0">
+                          {formData.heroBgImage ? (
+                            <img
+                              src={formData.heroBgImage}
+                              alt="Hero BG preview"
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <span className="text-xs text-muted-foreground text-center px-2">
+                              No Image (Uses Default)
+                            </span>
+                          )}
+                        </div>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) =>
+                            handleFileUpload("heroBgImage", e.target.files?.[0])
+                          }
+                          className="block w-full text-sm text-muted-foreground file:mr-4 file:rounded-lg file:border-0 file:bg-primary/10 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-primary hover:file:bg-primary/20"
+                        />
+                      </div>
+                    </div>
+
                     <div>
                       <label
                         htmlFor="heroSubtitle"
@@ -519,6 +549,34 @@ export default function AdminSettingsPage() {
                         className="mt-1 w-full rounded-lg border border-border bg-background px-4 py-2 text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                       />
                     </div>
+                    <div className="space-y-2">
+                       <label className="block text-sm font-medium text-foreground">
+                        Features Background Image
+                      </label>
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
+                        <div className="h-16 w-24 rounded-lg border border-border bg-background flex items-center justify-center overflow-hidden shrink-0">
+                          {formData.featuresBgImage ? (
+                            <img
+                              src={formData.featuresBgImage}
+                              alt="Features BG preview"
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <span className="text-[10px] text-muted-foreground text-center">
+                              No Image
+                            </span>
+                          )}
+                        </div>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) =>
+                            handleFileUpload("featuresBgImage", e.target.files?.[0])
+                          }
+                          className="block w-full text-xs text-muted-foreground file:mr-4 file:rounded-lg file:border-0 file:bg-primary/10 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-primary hover:file:bg-primary/20"
+                        />
+                      </div>
+                    </div>
                     <div>
                       <label
                         htmlFor="featuresSubtitle"
@@ -553,6 +611,34 @@ export default function AdminSettingsPage() {
                         }
                         className="mt-1 w-full rounded-lg border border-border bg-background px-4 py-2 text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                       />
+                    </div>
+                    <div className="space-y-2">
+                       <label className="block text-sm font-medium text-foreground">
+                        Classes Background Image
+                      </label>
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
+                        <div className="h-16 w-24 rounded-lg border border-border bg-background flex items-center justify-center overflow-hidden shrink-0">
+                          {formData.classesBgImage ? (
+                            <img
+                              src={formData.classesBgImage}
+                              alt="Classes BG preview"
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <span className="text-[10px] text-muted-foreground text-center">
+                              No Image
+                            </span>
+                          )}
+                        </div>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) =>
+                            handleFileUpload("classesBgImage", e.target.files?.[0])
+                          }
+                          className="block w-full text-xs text-muted-foreground file:mr-4 file:rounded-lg file:border-0 file:bg-primary/10 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-primary hover:file:bg-primary/20"
+                        />
+                      </div>
                     </div>
                     <div>
                       <label
@@ -589,6 +675,34 @@ export default function AdminSettingsPage() {
                         className="mt-1 w-full rounded-lg border border-border bg-background px-4 py-2 text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                       />
                     </div>
+                    <div className="space-y-2">
+                       <label className="block text-sm font-medium text-foreground">
+                        Trainers Background Image
+                      </label>
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
+                        <div className="h-16 w-24 rounded-lg border border-border bg-background flex items-center justify-center overflow-hidden shrink-0">
+                          {formData.trainersBgImage ? (
+                            <img
+                              src={formData.trainersBgImage}
+                              alt="Trainers BG preview"
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <span className="text-[10px] text-muted-foreground text-center">
+                              No Image
+                            </span>
+                          )}
+                        </div>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) =>
+                            handleFileUpload("trainersBgImage", e.target.files?.[0])
+                          }
+                          className="block w-full text-xs text-muted-foreground file:mr-4 file:rounded-lg file:border-0 file:bg-primary/10 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-primary hover:file:bg-primary/20"
+                        />
+                      </div>
+                    </div>
                     <div>
                       <label
                         htmlFor="trainersSubtitle"
@@ -624,6 +738,34 @@ export default function AdminSettingsPage() {
                         className="mt-1 w-full rounded-lg border border-border bg-background px-4 py-2 text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                       />
                     </div>
+                    <div className="space-y-2">
+                       <label className="block text-sm font-medium text-foreground">
+                        Workouts Background Image
+                      </label>
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
+                        <div className="h-16 w-24 rounded-lg border border-border bg-background flex items-center justify-center overflow-hidden shrink-0">
+                          {formData.workoutsBgImage ? (
+                            <img
+                              src={formData.workoutsBgImage}
+                              alt="Workouts BG preview"
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <span className="text-[10px] text-muted-foreground text-center">
+                              No Image
+                            </span>
+                          )}
+                        </div>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) =>
+                            handleFileUpload("workoutsBgImage", e.target.files?.[0])
+                          }
+                          className="block w-full text-xs text-muted-foreground file:mr-4 file:rounded-lg file:border-0 file:bg-primary/10 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-primary hover:file:bg-primary/20"
+                        />
+                      </div>
+                    </div>
                     <div>
                       <label
                         htmlFor="workoutsSubtitle"
@@ -658,6 +800,34 @@ export default function AdminSettingsPage() {
                         }
                         className="mt-1 w-full rounded-lg border border-border bg-background px-4 py-2 text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                       />
+                    </div>
+                    <div className="space-y-2">
+                       <label className="block text-sm font-medium text-foreground">
+                        Pricing Background Image
+                      </label>
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
+                        <div className="h-16 w-24 rounded-lg border border-border bg-background flex items-center justify-center overflow-hidden shrink-0">
+                          {formData.pricingBgImage ? (
+                            <img
+                              src={formData.pricingBgImage}
+                              alt="Pricing BG preview"
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <span className="text-[10px] text-muted-foreground text-center">
+                              No Image
+                            </span>
+                          )}
+                        </div>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) =>
+                            handleFileUpload("pricingBgImage", e.target.files?.[0])
+                          }
+                          className="block w-full text-xs text-muted-foreground file:mr-4 file:rounded-lg file:border-0 file:bg-primary/10 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-primary hover:file:bg-primary/20"
+                        />
+                      </div>
                     </div>
                     <div>
                       <label
@@ -740,6 +910,34 @@ export default function AdminSettingsPage() {
                         }
                         className="mt-1 w-full rounded-lg border border-border bg-background px-4 py-2 text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                       />
+                    </div>
+                    <div className="space-y-2">
+                       <label className="block text-sm font-medium text-foreground">
+                        CTA Background Image
+                      </label>
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
+                        <div className="h-16 w-24 rounded-lg border border-border bg-background flex items-center justify-center overflow-hidden shrink-0">
+                          {formData.ctaBgImage ? (
+                            <img
+                              src={formData.ctaBgImage}
+                              alt="CTA BG preview"
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <span className="text-[10px] text-muted-foreground text-center">
+                              No Image
+                            </span>
+                          )}
+                        </div>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) =>
+                            handleFileUpload("ctaBgImage", e.target.files?.[0])
+                          }
+                          className="block w-full text-xs text-muted-foreground file:mr-4 file:rounded-lg file:border-0 file:bg-primary/10 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-primary hover:file:bg-primary/20"
+                        />
+                      </div>
                     </div>
                     <div>
                       <label
@@ -1049,6 +1247,44 @@ export default function AdminSettingsPage() {
                         />
                       </div>
                     </div>
+                  </div>
+                </div>
+
+                <div className="rounded-lg border border-border bg-card p-6">
+                  <h3 className="text-lg font-semibold text-foreground">
+                    Typography
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    Choose the font family for your public pages
+                  </p>
+
+                  <div className="mt-6">
+                    <label
+                      htmlFor="fontFamily"
+                      className="block text-sm font-medium text-foreground"
+                    >
+                      Font Family
+                    </label>
+                    <select
+                      id="fontFamily"
+                      value={formData.fontFamily || "Inter"}
+                      onChange={(e) =>
+                        handleInputChange("fontFamily", e.target.value)
+                      }
+                      className="mt-1 w-full rounded-lg border border-border bg-background px-4 py-2 text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                    >
+                      <option value="Inter">Inter (System Default)</option>
+                      <option value="Roboto">Roboto</option>
+                      <option value="Montserrat">Montserrat</option>
+                      <option value="Poppins">Poppins</option>
+                      <option value="Open Sans">Open Sans</option>
+                      <option value="Playfair Display">Playfair Display</option>
+                      <option value="Lato">Lato</option>
+                      <option value="Oswald">Oswald</option>
+                    </select>
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      Selected font will be applied to all public pages, headings, and body text.
+                    </p>
                   </div>
                 </div>
 

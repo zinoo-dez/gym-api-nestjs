@@ -137,6 +137,38 @@ export class UpdateGymSettingDto {
   ctaButtonLabel?: string;
 
   @IsOptional()
+  @IsString()
+  fontFamily?: string;
+
+  @IsOptional()
+  @IsString()
+  heroBgImage?: string;
+
+  @IsOptional()
+  @IsString()
+  featuresBgImage?: string;
+
+  @IsOptional()
+  @IsString()
+  classesBgImage?: string;
+
+  @IsOptional()
+  @IsString()
+  trainersBgImage?: string;
+
+  @IsOptional()
+  @IsString()
+  workoutsBgImage?: string;
+
+  @IsOptional()
+  @IsString()
+  pricingBgImage?: string;
+
+  @IsOptional()
+  @IsString()
+  ctaBgImage?: string;
+
+  @IsOptional()
   @IsBoolean()
   emailNotification?: boolean;
 
