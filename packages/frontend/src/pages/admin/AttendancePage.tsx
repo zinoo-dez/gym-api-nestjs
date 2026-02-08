@@ -3,7 +3,10 @@ import { AdminLayout } from "@/layouts";
 import { PrimaryButton, FormInput } from "@/components/gym";
 import { FormSelect } from "@/components/gym/form-select";
 import { FormModal } from "@/components/gym/form-modal";
+import { FormSearchableSelect } from "@/components/gym/form-searchable-select";
 import { attendanceService, type AttendanceRecord, type AttendanceType } from "@/services/attendance.service";
+import { membersService, type Member } from "@/services/members.service";
+import { classesService, type ClassSchedule } from "@/services/classes.service";
 import { toast } from "sonner";
 
 export default function AdminAttendancePage() {
@@ -21,15 +24,25 @@ export default function AdminAttendancePage() {
     classScheduleId: "",
   });
 
+  const [members, setMembers] = useState<Member[]>([]);
+  const [classSchedules, setClassSchedules] = useState<ClassSchedule[]>([]);
+
   useEffect(() => {
-    const loadAttendance = async () => {
+    const fetchData = async () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await attendanceService.getAll({ limit: 100 });
-        setRecords(Array.isArray(response.data) ? response.data : []);
+        const [attendanceRes, membersRes, classesRes] = await Promise.all([
+          attendanceService.getAll({ limit: 100 }),
+          membersService.getAll({ limit: 1000 }),
+          classesService.getAll({ limit: 1000 }),
+        ]);
+
+        setRecords(Array.isArray(attendanceRes.data) ? attendanceRes.data : []);
+        setMembers(Array.isArray(membersRes.data) ? membersRes.data : (membersRes as any).data || []);
+        setClassSchedules(Array.isArray(classesRes.data) ? classesRes.data : (classesRes as any).data || []);
       } catch (err) {
-        console.error("Error loading attendance:", err);
+        console.error("Error loading attendance data:", err);
         setError("Failed to load attendance records.");
         setRecords([]);
       } finally {
@@ -37,7 +50,7 @@ export default function AdminAttendancePage() {
       }
     };
 
-    loadAttendance();
+    fetchData();
   }, []);
 
   const filteredRecords = useMemo(() => {
@@ -55,6 +68,20 @@ export default function AdminAttendancePage() {
       return matchesSearch && matchesType;
     });
   }, [records, searchQuery, typeFilter]);
+
+  const memberOptions = useMemo(() => 
+    members.map((member) => ({
+      label: `${member.firstName} ${member.lastName} (${member.email})`,
+      value: member.id,
+    })),
+  [members]);
+
+  const classOptions = useMemo(() => 
+    classSchedules.map((schedule) => ({
+      label: `${schedule.name} (${schedule.trainerName || "No Trainer"})`,
+      value: schedule.id,
+    })),
+  [classSchedules]);
 
   return (
     <AdminLayout>
@@ -194,14 +221,23 @@ export default function AdminAttendancePage() {
           onClose={() => setIsCheckInOpen(false)}
           title="Manual Check-In"
           onSubmit={async () => {
+            if (!checkInForm.memberId) {
+              toast.error("Please select a member");
+              return;
+            }
+            if (checkInForm.type === "CLASS_ATTENDANCE" && !checkInForm.classScheduleId) {
+              toast.error("Please select a class");
+              return;
+            }
+
             setCheckingIn(true);
             try {
               const record = await attendanceService.checkIn({
-                memberId: checkInForm.memberId.trim(),
+                memberId: checkInForm.memberId,
                 type: checkInForm.type,
                 classScheduleId:
                   checkInForm.type === "CLASS_ATTENDANCE"
-                    ? checkInForm.classScheduleId.trim()
+                    ? checkInForm.classScheduleId
                     : undefined,
               });
               setRecords((prev) => [record, ...prev]);
@@ -219,13 +255,14 @@ export default function AdminAttendancePage() {
           submitText="Check In"
           isLoading={checkingIn}
         >
-          <FormInput
-            label="Member ID"
-            name="memberId"
+          <FormSearchableSelect
+            label="Member"
             value={checkInForm.memberId}
-            onChange={(e) =>
-              setCheckInForm((prev) => ({ ...prev, memberId: e.target.value }))
+            onChange={(val) =>
+              setCheckInForm((prev) => ({ ...prev, memberId: val }))
             }
+            options={memberOptions}
+            placeholder="Search member..."
             required
           />
           <FormSelect
@@ -243,16 +280,17 @@ export default function AdminAttendancePage() {
             ]}
           />
           {checkInForm.type === "CLASS_ATTENDANCE" && (
-            <FormInput
-              label="Class Schedule ID"
-              name="classScheduleId"
+            <FormSearchableSelect
+              label="Class Schedule"
               value={checkInForm.classScheduleId}
-              onChange={(e) =>
+              onChange={(val) =>
                 setCheckInForm((prev) => ({
                   ...prev,
-                  classScheduleId: e.target.value,
+                  classScheduleId: val,
                 }))
               }
+              options={classOptions}
+              placeholder="Search class..."
               required
             />
           )}
