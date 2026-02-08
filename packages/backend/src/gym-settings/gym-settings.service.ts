@@ -168,50 +168,80 @@ export class GymSettingsService {
       });
     }
 
+    const operatingHours = await this.prisma.gymOperatingHours.findMany({
+      orderBy: { dayOfWeek: 'asc' },
+    });
+
+    let heroBadgeText = settings?.heroBadgeText || defaults.heroBadgeText;
+
+    if (operatingHours.length > 0) {
+      const is24x7 =
+        operatingHours.length === 7 &&
+        operatingHours.every(
+          (h) =>
+            !h.isClosed && h.openTime === '00:00' && h.closeTime === '23:59',
+        );
+
+      if (is24x7) {
+        heroBadgeText = 'Now Open 24/7';
+      } else {
+        const todayOfWeek = new Date().getDay();
+        const todayHours = operatingHours.find(
+          (h) => h.dayOfWeek === todayOfWeek,
+        );
+
+        if (todayHours) {
+          if (todayHours.isClosed) {
+            heroBadgeText = 'Closed Today';
+          } else {
+            heroBadgeText = `Open Today: ${todayHours.openTime} - ${todayHours.closeTime}`;
+          }
+        }
+      }
+    }
+
     return {
       ...settings,
-      name: settings.name || defaults.name,
-      tagLine: settings.tagLine || defaults.tagLine,
-      description: settings.description || defaults.description,
-      primaryColor: settings.primaryColor || defaults.primaryColor,
-      secondaryColor: settings.secondaryColor || defaults.secondaryColor,
-      backgroundColor: settings.backgroundColor || defaults.backgroundColor,
-      textColor: settings.textColor || defaults.textColor,
-      heroTitle: settings.heroTitle || defaults.heroTitle,
-      heroSubtitle: settings.heroSubtitle || defaults.heroSubtitle,
-      heroCtaPrimary: settings.heroCtaPrimary || defaults.heroCtaPrimary,
-      heroCtaSecondary: settings.heroCtaSecondary || defaults.heroCtaSecondary,
-      heroBadgeText: settings.heroBadgeText || defaults.heroBadgeText,
-      featuresTitle: settings.featuresTitle || defaults.featuresTitle,
-      featuresSubtitle: settings.featuresSubtitle || defaults.featuresSubtitle,
-      features: settings.features || defaults.features,
-      classesTitle: settings.classesTitle || defaults.classesTitle,
-      classesSubtitle: settings.classesSubtitle || defaults.classesSubtitle,
-      trainersTitle: settings.trainersTitle || defaults.trainersTitle,
-      trainersSubtitle: settings.trainersSubtitle || defaults.trainersSubtitle,
-      trainersCtaLabel:
-        settings.trainersCtaLabel || defaults.trainersCtaLabel,
-      workoutsTitle: settings.workoutsTitle || defaults.workoutsTitle,
-      workoutsSubtitle: settings.workoutsSubtitle || defaults.workoutsSubtitle,
-      workoutsCtaLabel:
-        settings.workoutsCtaLabel || defaults.workoutsCtaLabel,
-      pricingTitle: settings.pricingTitle || defaults.pricingTitle,
-      pricingSubtitle: settings.pricingSubtitle || defaults.pricingSubtitle,
-      footerTagline: settings.footerTagline || defaults.footerTagline,
-      appShowcaseTitle: settings.appShowcaseTitle || defaults.appShowcaseTitle,
+      name: settings?.name || defaults.name,
+      tagLine: settings?.tagLine || defaults.tagLine,
+      description: settings?.description || defaults.description,
+      primaryColor: settings?.primaryColor || defaults.primaryColor,
+      secondaryColor: settings?.secondaryColor || defaults.secondaryColor,
+      backgroundColor: settings?.backgroundColor || defaults.backgroundColor,
+      textColor: settings?.textColor || defaults.textColor,
+      heroTitle: settings?.heroTitle || defaults.heroTitle,
+      heroSubtitle: settings?.heroSubtitle || defaults.heroSubtitle,
+      heroCtaPrimary: settings?.heroCtaPrimary || defaults.heroCtaPrimary,
+      heroCtaSecondary: settings?.heroCtaSecondary || defaults.heroCtaSecondary,
+      heroBadgeText,
+      featuresTitle: settings?.featuresTitle || defaults.featuresTitle,
+      featuresSubtitle: settings?.featuresSubtitle || defaults.featuresSubtitle,
+      features: settings?.features || defaults.features,
+      classesTitle: settings?.classesTitle || defaults.classesTitle,
+      classesSubtitle: settings?.classesSubtitle || defaults.classesSubtitle,
+      trainersTitle: settings?.trainersTitle || defaults.trainersTitle,
+      trainersSubtitle: settings?.trainersSubtitle || defaults.trainersSubtitle,
+      trainersCtaLabel: settings?.trainersCtaLabel || defaults.trainersCtaLabel,
+      workoutsTitle: settings?.workoutsTitle || defaults.workoutsTitle,
+      workoutsSubtitle: settings?.workoutsSubtitle || defaults.workoutsSubtitle,
+      workoutsCtaLabel: settings?.workoutsCtaLabel || defaults.workoutsCtaLabel,
+      pricingTitle: settings?.pricingTitle || defaults.pricingTitle,
+      pricingSubtitle: settings?.pricingSubtitle || defaults.pricingSubtitle,
+      footerTagline: settings?.footerTagline || defaults.footerTagline,
+      appShowcaseTitle: settings?.appShowcaseTitle || defaults.appShowcaseTitle,
       appShowcaseSubtitle:
-        settings.appShowcaseSubtitle || defaults.appShowcaseSubtitle,
-      ctaTitle: settings.ctaTitle || defaults.ctaTitle,
-      ctaSubtitle: settings.ctaSubtitle || defaults.ctaSubtitle,
-      ctaButtonLabel: settings.ctaButtonLabel || defaults.ctaButtonLabel,
-      fontFamily: settings.fontFamily || defaults.fontFamily,
-      heroBgImage: settings.heroBgImage || defaults.heroBgImage,
-      featuresBgImage: settings.featuresBgImage || defaults.featuresBgImage,
-      classesBgImage: settings.classesBgImage || defaults.classesBgImage,
-      trainersBgImage: settings.trainersBgImage || defaults.trainersBgImage,
-      workoutsBgImage: settings.workoutsBgImage || defaults.workoutsBgImage,
-      pricingBgImage: settings.pricingBgImage || defaults.pricingBgImage,
-      ctaBgImage: settings.ctaBgImage || defaults.ctaBgImage,
+        settings?.appShowcaseSubtitle || defaults.appShowcaseSubtitle,
+      ctaTitle: settings?.ctaTitle || defaults.ctaTitle,
+      ctaSubtitle: settings?.ctaSubtitle || defaults.ctaSubtitle,
+      ctaButtonLabel: settings?.ctaButtonLabel || defaults.ctaButtonLabel,
+      fontFamily: settings?.fontFamily || defaults.fontFamily,
+      heroBgImage: settings?.heroBgImage || defaults.heroBgImage,
+      featuresBgImage: settings?.featuresBgImage || defaults.featuresBgImage,
+      classesBgImage: settings?.classesBgImage || defaults.classesBgImage,
+      trainersBgImage: settings?.trainersBgImage || defaults.trainersBgImage,
+      workoutsBgImage: settings?.workoutsBgImage || defaults.workoutsBgImage,
+      pricingBgImage: settings?.pricingBgImage || defaults.pricingBgImage,
+      ctaBgImage: settings?.ctaBgImage || defaults.ctaBgImage,
     };
   }
 
@@ -258,11 +288,17 @@ export class GymSettingsService {
     };
 
     const sanitizedFeatures = Array.isArray(dto.features)
-      ? dto.features.map((feature: any) => ({
-          title: sanitizeContent(feature?.title || ''),
-          description: sanitizeContent(feature?.description || ''),
-          icon: feature?.icon || '',
-        }))
+      ? dto.features.map(
+          (feature: {
+            title?: string;
+            description?: string;
+            icon?: string;
+          }) => ({
+            title: sanitizeContent(feature?.title || ''),
+            description: sanitizeContent(feature?.description || ''),
+            icon: feature?.icon || '',
+          }),
+        )
       : undefined;
 
     const sanitizedDto: UpdateGymSettingDto = {
@@ -277,7 +313,7 @@ export class GymSettingsService {
       appShowcaseSubtitle: sanitizeContent(dto.appShowcaseSubtitle),
       ctaSubtitle: sanitizeContent(dto.ctaSubtitle),
       footerTagline: sanitizeContent(dto.footerTagline),
-      features: sanitizedFeatures ?? dto.features,
+      features: sanitizedFeatures ?? (dto.features as any),
     };
 
     const updated = await this.prisma.gymSetting.update({
