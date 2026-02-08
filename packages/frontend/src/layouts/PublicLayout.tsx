@@ -1,3 +1,4 @@
+import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { TopNavbar } from "@/components/gym";
 import { useGymSettings } from "@/hooks/use-gym-settings";
@@ -34,6 +35,7 @@ export function PublicLayout({ children }: PublicLayoutProps) {
     operatingHours
   } = useGymSettings();
   const { user, clearAuth } = useAuthStore();
+  const [imageError, setImageError] = React.useState(false);
 
   const getDayName = (day: number) => {
     const days = [
@@ -73,8 +75,7 @@ export function PublicLayout({ children }: PublicLayoutProps) {
     }
   };
 
-  // Split gym name into words for styling
-  const renderGymName = () => {
+  const renderGymName = (className = "text-2xl font-bold") => {
     if (!gymName) {
       return null;
     }
@@ -85,19 +86,14 @@ export function PublicLayout({ children }: PublicLayoutProps) {
       return null;
     }
 
-    if (words.length === 1) {
-      return (
-        <span className="text-2xl font-bold text-primary">{words[0]}</span>
-      );
-    }
-
-    const lastWord = words[words.length - 1];
-    const firstWords = words.slice(0, -1).join(" ");
-
     return (
-      <span className="text-2xl font-bold text-foreground">
-        {firstWords}
-        <span className="text-primary">{lastWord}</span>
+      <span className={`${className} text-foreground`}>
+        {words.map((word, index) => (
+          <React.Fragment key={index}>
+            {index % 2 === 0 ? word : <span className="text-primary">{word}</span>}
+            {index < words.length - 1 ? " " : ""}
+          </React.Fragment>
+        ))}
       </span>
     );
   };
@@ -156,8 +152,13 @@ export function PublicLayout({ children }: PublicLayoutProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {/* Brand */}
             <div className="space-y-4">
-              {logo ? (
-                <img src={logo} alt={gymName} className="h-10 w-auto" />
+              {logo && !imageError ? (
+                <img 
+                  src={logo} 
+                  alt={gymName} 
+                  className="h-10 w-auto" 
+                  onError={() => setImageError(true)}
+                />
               ) : (
                 renderGymName()
               )}

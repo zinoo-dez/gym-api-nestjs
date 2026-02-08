@@ -34,7 +34,11 @@ export class WorkoutPlansService {
     // Verify member exists - only select id field
     const member = await this.prisma.member.findUnique({
       where: { id: createWorkoutPlanDto.memberId },
-      select: { id: true, userId: true, user: { select: { firstName: true, lastName: true, email: true } } },
+      select: {
+        id: true,
+        userId: true,
+        user: { select: { firstName: true, lastName: true, email: true } },
+      },
     });
 
     if (!member) {
@@ -63,6 +67,13 @@ export class WorkoutPlansService {
         goal: createWorkoutPlanDto.goal,
         endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // Default 30 days
         exercises: JSON.stringify(createWorkoutPlanDto.exercises),
+      },
+      include: {
+        member: {
+          include: {
+            user: true,
+          },
+        },
       },
     });
 
@@ -127,6 +138,13 @@ export class WorkoutPlansService {
       },
       skip,
       take: limit,
+      include: {
+        member: {
+          include: {
+            user: true,
+          },
+        },
+      },
     });
 
     const planDtos = workoutPlans.map((plan) => this.toResponseDto(plan));
@@ -137,6 +155,13 @@ export class WorkoutPlansService {
   async findOne(id: string): Promise<WorkoutPlanResponseDto> {
     const workoutPlan = await this.prisma.workoutPlan.findUnique({
       where: { id },
+      include: {
+        member: {
+          include: {
+            user: true,
+          },
+        },
+      },
     });
 
     if (!workoutPlan) {
@@ -172,6 +197,13 @@ export class WorkoutPlansService {
 
     const workoutPlans = await this.prisma.workoutPlan.findMany({
       where: { memberId },
+      include: {
+        member: {
+          include: {
+            user: true,
+          },
+        },
+      },
       orderBy: {
         createdAt: 'desc',
       },
@@ -215,6 +247,13 @@ export class WorkoutPlansService {
     const updatedPlan = await this.prisma.workoutPlan.update({
       where: { id },
       data: updateData,
+      include: {
+        member: {
+          include: {
+            user: true,
+          },
+        },
+      },
     });
 
     return this.toResponseDto(updatedPlan);
@@ -280,6 +319,9 @@ export class WorkoutPlansService {
       createdAt: workoutPlan.createdAt,
       updatedAt: workoutPlan.updatedAt,
       exercises: exercises,
+      memberName: workoutPlan.member?.user
+        ? `${workoutPlan.member.user.firstName} ${workoutPlan.member.user.lastName}`.trim()
+        : 'Unknown Member',
     };
   }
 

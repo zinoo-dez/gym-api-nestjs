@@ -42,6 +42,7 @@ export function TopNavbar({
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   const [isScrolled, setIsScrolled] = React.useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = React.useState(false);
+  const [imageError, setImageError] = React.useState(false);
   const { gymName, logo: gymLogo } = useGymSettings();
 
   React.useEffect(() => {
@@ -53,7 +54,7 @@ export function TopNavbar({
   }, []);
 
   // Split gym name into words for styling
-  const renderGymName = () => {
+  const renderGymName = (className = "text-2xl font-bold") => {
     if (!gymName) {
       return null;
     }
@@ -64,21 +65,14 @@ export function TopNavbar({
       return null;
     }
 
-    if (words.length === 1) {
-      // Single word - show it in primary color
-      return (
-        <span className="text-2xl font-bold text-primary">{words[0]}</span>
-      );
-    }
-
-    // Multiple words - first word(s) in foreground, last word in primary
-    const lastWord = words[words.length - 1];
-    const firstWords = words.slice(0, -1).join(" ");
-
     return (
-      <span className="text-2xl font-bold text-foreground">
-        {firstWords}
-        <span className="text-primary">{lastWord}</span>
+      <span className={`${className} text-foreground`}>
+        {words.map((word, index) => (
+          <React.Fragment key={index}>
+            {index % 2 === 0 ? word : <span className="text-primary">{word}</span>}
+            {index < words.length - 1 ? " " : ""}
+          </React.Fragment>
+        ))}
       </span>
     );
   };
@@ -100,8 +94,13 @@ export function TopNavbar({
           <Link to="/" className="flex items-center gap-2">
             {logo ? (
               logo
-            ) : gymLogo ? (
-              <img src={gymLogo} alt={gymName} className="h-8 w-auto" />
+            ) : gymLogo && !imageError ? (
+              <img 
+                src={gymLogo} 
+                alt={gymName} 
+                className="h-8 w-auto" 
+                onError={() => setImageError(true)}
+              />
             ) : (
               renderGymName()
             )}

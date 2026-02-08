@@ -2,6 +2,7 @@ import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { SidebarNavigation, NotificationPopup } from "@/components/gym";
 import { useAuthStore } from "@/store/auth.store";
+import { useGymSettings } from "@/hooks/use-gym-settings";
 import { useNotifications } from "@/hooks/use-notifications";
 import { toast } from "sonner";
 
@@ -163,6 +164,8 @@ interface MemberLayoutProps {
 export function MemberLayout({ children }: MemberLayoutProps) {
   const navigate = useNavigate();
   const { user, clearAuth } = useAuthStore();
+  const { gymName, logo } = useGymSettings();
+  const displayGymName = gymName || "Your Gym";
   const {
     notifications,
     markAsRead,
@@ -171,11 +174,31 @@ export function MemberLayout({ children }: MemberLayoutProps) {
     clearAll,
   } = useNotifications();
   const [collapsed, setCollapsed] = React.useState(false);
+  const [imageError, setImageError] = React.useState(false);
 
   const handleLogout = () => {
     clearAuth();
     toast.success("Logged out successfully");
     navigate("/auth/login");
+  };
+
+  const renderGymName = (className = "text-xl font-bold") => {
+    const words = displayGymName.trim().split(/\s+/);
+
+    if (words.length === 0) {
+      return null;
+    }
+
+    return (
+      <span className={`${className} text-foreground`}>
+        {words.map((word, index) => (
+          <React.Fragment key={index}>
+            {index % 2 === 0 ? word : <span className="text-primary">{word}</span>}
+            {index < words.length - 1 ? " " : ""}
+          </React.Fragment>
+        ))}
+      </span>
+    );
   };
 
   return (
@@ -185,8 +208,17 @@ export function MemberLayout({ children }: MemberLayoutProps) {
         collapsed={collapsed}
         onToggleCollapse={() => setCollapsed(!collapsed)}
         logo={
-          <Link to="/member" className="text-xl font-bold text-foreground">
-            Power<span className="text-primary">Fit</span>
+          <Link to="/member" className="flex items-center gap-2">
+            {logo && !imageError ? (
+              <img
+                src={logo}
+                alt={displayGymName}
+                className="h-8 w-auto"
+                onError={() => setImageError(true)}
+              />
+            ) : (
+              renderGymName()
+            )}
           </Link>
         }
         footer={

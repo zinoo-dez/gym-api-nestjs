@@ -18,6 +18,7 @@ export class WorkoutPlanResponseDto {
   name!: string;
   description?: string;
   memberId!: string;
+  memberName!: string;
   trainerId!: string;
   goal!: WorkoutGoal;
   isActive!: boolean;

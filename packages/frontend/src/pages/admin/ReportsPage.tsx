@@ -28,6 +28,7 @@ import { trainersService } from "@/services/trainers.service";
 import { classesService } from "@/services/classes.service";
 import { membershipsService, type MembershipPlan } from "@/services/memberships.service";
 import { attendanceService, type AttendanceRecord } from "@/services/attendance.service";
+import { dashboardService, type DashboardStats } from "@/services/dashboard.service";
 
 interface MonthPoint {
   month: string;
@@ -132,6 +133,7 @@ export default function AdminReportsPage() {
   const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
   const [plans, setPlans] = useState<MembershipPlan[]>([]);
   const [classPopularity, setClassPopularity] = useState<ClassPopularityPoint[]>([]);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
 
   useEffect(() => {
     const loadReports = async () => {
@@ -140,7 +142,7 @@ export default function AdminReportsPage() {
       try {
         const now = new Date();
         const startDate = new Date(now.getFullYear(), now.getMonth() - 5, 1);
-        const [members, trainers, classes, plansResponse, attendance] = await Promise.all([
+        const [members, trainers, classes, plansResponse, attendance, dashboardStats] = await Promise.all([
           membersService.getAll({ limit: 1 }),
           trainersService.getAll({ limit: 1 }),
           classesService.getAll({ limit: 200 }),
@@ -150,6 +152,7 @@ export default function AdminReportsPage() {
             endDate: now.toISOString(),
             limit: 1000,
           }),
+          dashboardService.getStats(),
         ]);
 
         setTotalMembers(members.total || 0);
@@ -159,6 +162,7 @@ export default function AdminReportsPage() {
         setAttendanceRecords(Array.isArray(attendance.data) ? attendance.data : []);
         const planList = Array.isArray(plansResponse.data) ? plansResponse.data : [];
         setPlans(planList);
+        setStats(dashboardStats);
 
         const classRows = Array.isArray(classes.data) ? classes.data : [];
         const popularity = buildClassPopularity(
@@ -248,7 +252,9 @@ export default function AdminReportsPage() {
                 Live
               </div>
             </div>
-            <p className="mt-3 text-2xl font-bold text-foreground">—</p>
+            <p className="mt-3 text-2xl font-bold text-foreground">
+              {loading ? "…" : stats ? `$${stats.monthlyRevenue.value.toLocaleString()}` : "—"}
+            </p>
             <p className="text-sm text-muted-foreground">Revenue Tracking</p>
           </div>
 

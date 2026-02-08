@@ -262,6 +262,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   } = useNotifications();
   const [collapsed, setCollapsed] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
+  const [imageError, setImageError] = React.useState(false);
 
   const handleLogout = () => {
     clearAuth();
@@ -269,24 +270,21 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     navigate("/auth/login");
   };
 
-  const renderGymName = () => {
+  const renderGymName = (className = "text-xl font-bold") => {
     const words = displayGymName.trim().split(/\s+/);
 
     if (words.length === 0) {
       return null;
     }
 
-    if (words.length === 1) {
-      return <span className="text-xl font-bold text-primary">{words[0]}</span>;
-    }
-
-    const lastWord = words[words.length - 1];
-    const firstWords = words.slice(0, -1).join(" ");
-
     return (
-      <span className="text-xl font-bold text-foreground">
-        {firstWords}
-        <span className="text-primary">{lastWord}</span>
+      <span className={`${className} text-foreground`}>
+        {words.map((word, index) => (
+          <React.Fragment key={index}>
+            {index % 2 === 0 ? word : <span className="text-primary">{word}</span>}
+            {index < words.length - 1 ? " " : ""}
+          </React.Fragment>
+        ))}
       </span>
     );
   };
@@ -299,8 +297,13 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         onToggleCollapse={() => setCollapsed(!collapsed)}
         logo={
           <Link to="/admin" className="flex items-center gap-2">
-            {logo ? (
-              <img src={logo} alt={displayGymName} className="h-8 w-auto" />
+            {logo && !imageError ? (
+              <img
+                src={logo}
+                alt={displayGymName}
+                className="h-8 w-auto"
+                onError={() => setImageError(true)}
+              />
             ) : (
               renderGymName()
             )}

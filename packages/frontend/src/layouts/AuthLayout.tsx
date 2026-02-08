@@ -20,10 +20,12 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
           <Link to="/" className="inline-block mb-8">
             {gymName ? (
               <span className="text-3xl font-bold text-foreground">
-                {gymName.split(" ").slice(0, -1).join(" ")}
-                <span className="text-primary">
-                  {gymName.split(" ").slice(-1)[0] || gymName}
-                </span>
+                {gymName.trim().split(/\s+/).map((word, index) => (
+                  <React.Fragment key={index}>
+                    {index % 2 === 0 ? word : <span className="text-primary">{word}</span>}
+                    {index < gymName.trim().split(/\s+/).length - 1 ? " " : ""}
+                  </React.Fragment>
+                ))}
               </span>
             ) : null}
           </Link>
