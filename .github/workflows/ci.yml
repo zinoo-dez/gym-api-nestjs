@@ -38,13 +38,13 @@ jobs:
         run: npm install --no-audit --no-fund
         working-directory: packages/frontend
 
-      - name: Generate Prisma client
-        run: npm run prisma:generate
-        working-directory: packages/backend
+    #   - name: Generate Prisma client
+    #     run: npm run prisma:generate
+    #     working-directory: packages/backend
 
-      - name: Run Prisma migrate deploy
-        run: npx prisma migrate deploy
-        working-directory: packages/backend
+    #   - name: Run Prisma migrate deploy
+    #     run: npx prisma migrate deploy
+    #     working-directory: packages/backend
 
       - name: Lint backend
         run: npm run lint
@@ -62,8 +62,8 @@ jobs:
         run: npm run build
         working-directory: packages/frontend
 
-      - name: Run Prisma migrate deploy
-        run: npx prisma migrate deploy
-        working-directory: packages/backend
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    #   - name: Run Prisma migrate deploy
+    #     run: npx prisma migrate deploy
+    #     working-directory: packages/backend
+    #     env:
+    #       DATABASE_URL: ${{ secrets.DATABASE_URL }}
