@@ -12,7 +12,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres:14
+        image: postgres:latest
         env:
           POSTGRES_PASSWORD: postgres
         options: >-
@@ -27,43 +27,43 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
-          cache: "npm"
+          node-version: "24"
 
-      - name: Install backend dependencies
-        run: npm install --no-audit --no-fund
-        working-directory: packages/backend
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
+          run_install: false
 
-      - name: Install frontend dependencies
-        run: npm install --no-audit --no-fund
-        working-directory: packages/frontend
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
-    #   - name: Generate Prisma client
-    #     run: npm run prisma:generate
-    #     working-directory: packages/backend
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      #   - name: Generate Prisma client
+      #     run: pnpm --filter backend run prisma:generate
+
+      #   - name: Run Prisma migrate deploy
+      #     run: pnpm --filter backend run prisma:migrate
+
+      - name: Lint
+        run: pnpm run lint
+
+      - name: Build
+        run: pnpm run build
 
     #   - name: Run Prisma migrate deploy
-    #     run: npx prisma migrate deploy
-    #     working-directory: packages/backend
-
-      - name: Lint backend
-        run: npm run lint
-        working-directory: packages/backend
-
-      - name: Lint frontend
-        run: npm run lint
-        working-directory: packages/frontend
-
-      - name: Build backend
-        run: npm run build
-        working-directory: packages/backend
-
-      - name: Build frontend
-        run: npm run build
-        working-directory: packages/frontend
-
-    #   - name: Run Prisma migrate deploy
-    #     run: npx prisma migrate deploy
-    #     working-directory: packages/backend
+    #     run: pnpm --filter backend exec prisma migrate deploy
     #     env:
     #       DATABASE_URL: ${{ secrets.DATABASE_URL }}
