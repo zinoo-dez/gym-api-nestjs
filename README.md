@@ -6,8 +6,8 @@ A full-stack gym management system built with NestJS (backend) and React (fronte
 
 This monorepo contains two main packages:
 
-- **Backend** (`packages/backend`): NestJS REST API with PostgreSQL and Prisma ORM
-- **Frontend** (`packages/frontend`): React web application with Vite and TanStack Query
+- **Backend** (`backend`): NestJS REST API with PostgreSQL and Prisma ORM
+- **Frontend** (`frontend`): React web application with Vite and TanStack Query
 
 The monorepo structure enables efficient dependency management, simplified development workflows, and easier maintenance of the full-stack application.
 
@@ -63,11 +63,11 @@ This command will:
 #### Backend Setup
 
 ```bash
-cd packages/backend
+cd backend
 cp .env.example .env
 ```
 
-Edit `packages/backend/.env` with your database credentials:
+Edit `backend/.env` with your database credentials:
 
 ```env
 DATABASE_URL="postgresql://user:password@localhost:5432/gym_db"
@@ -79,11 +79,11 @@ PORT=3500
 #### Frontend Setup
 
 ```bash
-cd packages/frontend
+cd frontend
 cp .env.example .env
 ```
 
-Edit `packages/frontend/.env`:
+Edit `frontend/.env`:
 
 ```env
 VITE_API_URL=http://localhost:3500/api
@@ -95,7 +95,7 @@ Set up the database and seed initial data:
 
 ```bash
 pnpm prisma:generate
-cd packages/backend
+cd backend
 npx prisma migrate dev
 npx prisma db seed
 ```
@@ -164,22 +164,22 @@ pnpm build:frontend
 
 Build outputs:
 
-- Backend: `packages/backend/dist/`
-- Frontend: `packages/frontend/dist/`
+- Backend: `backend/dist/`
+- Frontend: `frontend/dist/`
 
 ### Running Production Build
 
 #### Backend
 
 ```bash
-cd packages/backend
+cd backend
 npm run start:prod
 ```
 
 #### Frontend
 
 ```bash
-cd packages/frontend
+cd frontend
 npm run preview
 ```
 
@@ -296,7 +296,7 @@ pnpm install
 
 ### Issue: Backend fails to start with database connection error
 
-**Solution**: Verify your database is running and credentials in `packages/backend/.env` are correct:
+**Solution**: Verify your database is running and credentials in `backend/.env` are correct:
 
 ```bash
 # Check PostgreSQL is running
@@ -310,8 +310,8 @@ psql -U your_user -d gym_db
 
 **Solution**: Ensure:
 
-1. Backend is running on the correct port (check `packages/backend/.env`)
-2. Frontend `VITE_API_URL` matches the backend URL (check `packages/frontend/.env`)
+1. Backend is running on the correct port (check `backend/.env`)
+2. Frontend `VITE_API_URL` matches the backend URL (check `frontend/.env`)
 3. CORS is properly configured in the backend
 
 ### Issue: pnpm commands not working
@@ -357,7 +357,7 @@ pnpm install
 pnpm prisma:generate
 
 # Or from the backend directory:
-cd packages/backend
+cd backend
 npx prisma generate
 ```
 
@@ -374,7 +374,7 @@ http://localhost:3500/api
 ### Backend Tests
 
 ```bash
-cd packages/backend
+cd backend
 
 # Unit tests
 npm run test
@@ -389,7 +389,7 @@ npm run test:cov
 ### Frontend Tests
 
 ```bash
-cd packages/frontend
+cd frontend
 
 # Run tests (when implemented)
 npm run test
@@ -405,8 +405,8 @@ After running the database seed, you can log in with these credentials (password
 
 ## Additional Resources
 
-- [Backend Documentation](packages/backend/README.md)
-- [Frontend Documentation](packages/frontend/README.md)
+- [Backend Documentation](backend/README.md)
+- [Frontend Documentation](frontend/README.md)
 - [pnpm Workspace Documentation](https://pnpm.io/workspaces)
 - [Migration Guide](MIGRATION.md) - Details about the monorepo migration
 
