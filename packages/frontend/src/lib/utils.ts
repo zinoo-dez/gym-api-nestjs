@@ -1,7 +1,6 @@
-// Temporary utility function until clsx and tailwind-merge are installed
-// Once you have internet access, run: pnpm add clsx tailwind-merge
-// Then replace this file with the original implementation
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
 
-export function cn(...inputs: (string | undefined | null | false)[]) {
-  return inputs.filter(Boolean).join(" ");
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
 }
