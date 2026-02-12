@@ -14,8 +14,8 @@
         "prisma:generate": "pnpm --filter backend prisma:generate"
     },
     "devDependencies": {
-        "pnpm": "^9.0.0",
-        "prisma": "^7.3.0",
-        "dotenv": "^17.2.3"
+        "dotenv": "^17.2.4",
+        "pnpm": "^10.29.3",
+        "prisma": "^7.4.0"
     }
 }
