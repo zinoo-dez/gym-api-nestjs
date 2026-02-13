@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { Navigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuthStore } from "@/store/auth.store";
 import { AppSidebar } from "./AppSidebar";
 import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -8,10 +8,10 @@ import { Moon, Sun, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export const AdminLayout = ({ children }: { children: ReactNode }) => {
-    const { isAuthenticated, user, logout } = useAuth();
+    const { isAuthenticated, user, clearAuth } = useAuthStore();
     const { theme, toggleTheme } = useTheme();
 
-    if (!isAuthenticated) return <Navigate to="/login" replace />;
+    if (!isAuthenticated) return <Navigate to="/auth/login" replace />;
 
     return (
         <SidebarProvider>
@@ -30,7 +30,7 @@ export const AdminLayout = ({ children }: { children: ReactNode }) => {
                                 {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
                             </Button>
                             <span className="text-sm text-muted-foreground hidden sm:inline">{user?.email}</span>
-                            <Button variant="ghost" size="icon" onClick={logout}>
+                            <Button variant="ghost" size="icon" onClick={clearAuth}>
                                 <LogOut className="h-4 w-4" />
                             </Button>
                         </div>

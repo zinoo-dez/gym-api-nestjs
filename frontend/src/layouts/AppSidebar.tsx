@@ -8,33 +8,33 @@ import {
   SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuthStore } from "@/store/auth.store";
 
 const adminItems = [
-  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-  { title: "Members", url: "/members", icon: Users },
-  { title: "Trainers", url: "/trainers", icon: Dumbbell },
-  { title: "Staff", url: "/staff", icon: UserCog },
-  { title: "Plans", url: "/plans", icon: CreditCard },
-  { title: "Discounts", url: "/discounts", icon: Percent },
-  { title: "Payments", url: "/payments", icon: DollarSign },
-  { title: "Notifications", url: "/notifications", icon: Bell },
-  { title: "Settings", url: "/settings", icon: Settings },
+  { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
+  { title: "Members", url: "/admin/members", icon: Users },
+  { title: "Trainers", url: "/admin/trainers", icon: Dumbbell },
+  { title: "Staff", url: "/admin/staff", icon: UserCog },
+  { title: "Plans", url: "/admin/plans", icon: CreditCard },
+  { title: "Discounts", url: "/admin/discounts", icon: Percent },
+  { title: "Payments", url: "/admin/payments", icon: DollarSign },
+  { title: "Notifications", url: "/admin/notifications", icon: Bell },
+  { title: "Settings", url: "/admin/settings", icon: Settings },
 ];
 
 export function AppSidebar() {
-  const { user } = useAuth();
+  const { user } = useAuthStore();
 
   const getItems = () => {
     if (!user) return [];
     
     switch (user.role) {
-      case "member":
-        return [{ title: "Dashboard", url: `/member/${user.id}`, icon: LayoutDashboard }];
-      case "trainer":
-        return [{ title: "Dashboard", url: `/trainer/${user.id}`, icon: LayoutDashboard }];
-      case "staff":
-        return [{ title: "Dashboard", url: `/staff-profile/${user.id}`, icon: LayoutDashboard }];
+      case "MEMBER":
+        return [{ title: "Dashboard", url: "/member", icon: LayoutDashboard }];
+      case "TRAINER":
+        return [{ title: "Dashboard", url: "/trainer", icon: LayoutDashboard }];
+      case "STAFF":
+        return [{ title: "Dashboard", url: "/staff", icon: LayoutDashboard }];
       default:
         return adminItems;
     }

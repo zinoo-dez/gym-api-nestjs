@@ -1,148 +1,122 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-import { ProtectedRoute } from "../components/ProtectedRoute";
+import { AdminRoute } from "./AdminRoute";
+import { MemberRoute } from "./MemberRoute";
+import { TrainerRoute } from "./TrainerRoute";
+import { StaffRoute } from "./StaffRoute";
+import { PublicLayout } from "@/layouts/PublicLayout";
+import { AdminLayout } from "@/layouts/AdminLayout";
+import { MemberLayout } from "@/layouts/MemberLayout";
+import { TrainerLayout } from "@/layouts/TrainerLayout";
+import { StaffLayout } from "@/layouts/StaffLayout";
 
 // Public Pages
-import HomePage from "../pages/public/HomePage";
-import RegisterPage from "../pages/auth/RegisterPage";
-import PricingPage from "../pages/public/PricingPage";
-import TrainersPage from "../pages/public/TrainersPage";
-import WorkoutsPage from "../pages/public/WorkoutsPage";
-import ClassesPage from "../pages/public/ClassesPage";
-import FeaturesPage from "../pages/public/FeaturesPage";
+import IndexPage from "../pages/public/Index";
+import PublicLogin from "../pages/public/Login";
+import NotFound from "../pages/public/NotFound";
 
 // Auth Pages
 import LoginPage from "../pages/auth/LoginPage";
+import RegisterPage from "../pages/auth/RegisterPage";
 import ForgotPasswordPage from "../pages/auth/ForgotPasswordPage";
 
 // Admin Pages
-import DashboardPage from "../pages/admin/DashboardPage";
-import MembersPage from "../pages/admin/MembersPage";
-import AdminTrainersPage from "../pages/admin/TrainersPage";
-import PlansPage from "../pages/admin/PlansPage";
-import AdminClassesPage from "../pages/admin/ClassesPage";
-import AdminAttendancePage from "../pages/admin/AttendancePage";
-import ReportsPage from "../pages/admin/ReportsPage";
-import SettingsPage from "../pages/admin/SettingsPage";
-import AdminWorkoutPlansPage from "../pages/admin/WorkoutPlansPage";
-import AdminProfilePage from "../pages/admin/ProfilePage";
-import DiscountCodesPage from "../pages/admin/DiscountCodesPage";
+import DashboardPage from "../pages/admin/Dashboard";
+import MembersPage from "../pages/admin/Members";
+import AdminTrainersPage from "../pages/admin/Trainers";
+import PlansPage from "../pages/admin/MembershipPlans";
+import DiscountsPage from "../pages/admin/Discounts";
+import PaymentsPage from "../pages/admin/Payments";
+import NotificationsPage from "../pages/admin/Notifications";
+import SettingsPage from "../pages/admin/Settings";
+import StaffPage from "../pages/admin/StaffPage";
 
-// Member Pages
-import MemberDashboardPage from "../pages/member/MemberDashboardPage";
-import MemberBookingsPage from "../pages/member/MemberBookingPage";
-import MemberProfilePage from "../pages/member/MemberProfilePage";
-import MemberProgressPage from "../pages/member/MemberProgressPage";
-import MemberWorkoutsPage from "../pages/member/MemberWorkoutsPage";
-import MemberPlansPage from "../pages/member/MemberPlansPage";
+// Member/Trainer/Staff Pages
+import MemberDashboardPage from "../pages/member/MemberDashboard";
+import TrainerDashboardPage from "../pages/trainer/TrainerDashboard";
+import StaffDashboardPage from "../pages/staff/StaffDashboard";
 
 const AppRoutes = () => {
   return (
     <Routes>
       {/* Public Routes */}
-      <Route path="/" element={<HomePage />} />
-      <Route path="/register" element={<RegisterPage />} />
-      <Route path="/pricing" element={<PricingPage />} />
-      <Route path="/trainers" element={<TrainersPage />} />
-      <Route path="/workouts" element={<WorkoutsPage />} />
-      <Route path="/classes" element={<ClassesPage />} />
-      <Route path="/features" element={<FeaturesPage />} />
-
-      {/* Auth Routes */}
+      <Route path="/" element={<PublicLayout><IndexPage /></PublicLayout>} />
+      <Route path="/login" element={<PublicLayout><PublicLogin /></PublicLayout>} />
       <Route path="/auth/login" element={<LoginPage />} />
+      <Route path="/auth/register" element={<RegisterPage />} />
       <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
 
       {/* Admin Routes - Protected */}
       <Route
         path="/admin"
         element={
-          <ProtectedRoute allowedRoles={["ADMIN", "SUPERADMIN"]}>
-            <DashboardPage />
-          </ProtectedRoute>
+          <AdminRoute>
+            <AdminLayout><DashboardPage /></AdminLayout>
+          </AdminRoute>
         }
       />
       <Route
         path="/admin/members"
         element={
-          <ProtectedRoute allowedRoles={["ADMIN", "SUPERADMIN"]}>
-            <MembersPage />
-          </ProtectedRoute>
+          <AdminRoute>
+            <AdminLayout><MembersPage /></AdminLayout>
+          </AdminRoute>
         }
       />
       <Route
         path="/admin/trainers"
         element={
-          <ProtectedRoute allowedRoles={["ADMIN", "SUPERADMIN"]}>
-            <AdminTrainersPage />
-          </ProtectedRoute>
+          <AdminRoute>
+            <AdminLayout><AdminTrainersPage /></AdminLayout>
+          </AdminRoute>
         }
       />
       <Route
         path="/admin/plans"
         element={
-          <ProtectedRoute allowedRoles={["ADMIN", "SUPERADMIN"]}>
-            <PlansPage />
-          </ProtectedRoute>
+          <AdminRoute>
+            <AdminLayout><PlansPage /></AdminLayout>
+          </AdminRoute>
         }
       />
       <Route
-        path="/admin/discount-codes"
+        path="/admin/discounts"
         element={
-          <ProtectedRoute allowedRoles={["ADMIN", "SUPERADMIN"]}>
-            <DiscountCodesPage />
-          </ProtectedRoute>
+          <AdminRoute>
+            <AdminLayout><DiscountsPage /></AdminLayout>
+          </AdminRoute>
         }
       />
       <Route
-        path="/admin/classes"
+        path="/admin/payments"
         element={
-          <ProtectedRoute allowedRoles={["ADMIN", "SUPERADMIN"]}>
-            <AdminClassesPage />
-          </ProtectedRoute>
+          <AdminRoute>
+            <AdminLayout><PaymentsPage /></AdminLayout>
+          </AdminRoute>
         }
       />
       <Route
-        path="/admin/attendance"
+        path="/admin/notifications"
         element={
-          <ProtectedRoute allowedRoles={["ADMIN", "SUPERADMIN"]}>
-            <AdminAttendancePage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/admin/workout-plans"
-        element={
-          <ProtectedRoute allowedRoles={["ADMIN", "SUPERADMIN"]}>
-            <AdminWorkoutPlansPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/admin/workoutplans"
-        element={<Navigate to="/admin/workout-plans" replace />}
-      />
-      <Route
-        path="/admin/reports"
-        element={
-          <ProtectedRoute allowedRoles={["ADMIN", "SUPERADMIN"]}>
-            <ReportsPage />
-          </ProtectedRoute>
+          <AdminRoute>
+            <AdminLayout><NotificationsPage /></AdminLayout>
+          </AdminRoute>
         }
       />
       <Route
         path="/admin/settings"
         element={
-          <ProtectedRoute allowedRoles={["ADMIN", "SUPERADMIN"]}>
-            <SettingsPage />
-          </ProtectedRoute>
+          <AdminRoute>
+            <AdminLayout><SettingsPage /></AdminLayout>
+          </AdminRoute>
         }
       />
       <Route
-        path="/admin/profile"
+        path="/admin/staff"
         element={
-          <ProtectedRoute allowedRoles={["ADMIN", "SUPERADMIN"]}>
-            <AdminProfilePage />
-          </ProtectedRoute>
+          <AdminRoute>
+            <AdminLayout><StaffPage /></AdminLayout>
+          </AdminRoute>
         }
       />
 
@@ -150,70 +124,34 @@ const AppRoutes = () => {
       <Route
         path="/member"
         element={
-          <ProtectedRoute allowedRoles={["MEMBER"]}>
-            <MemberDashboardPage />
-          </ProtectedRoute>
+          <MemberRoute>
+            <MemberLayout><MemberDashboardPage /></MemberLayout>
+          </MemberRoute>
         }
       />
+
+      {/* Trainer Routes - Protected */}
       <Route
-        path="/member/plans"
+        path="/trainer"
         element={
-          <ProtectedRoute allowedRoles={["MEMBER"]}>
-            <MemberPlansPage />
-          </ProtectedRoute>
+          <TrainerRoute>
+            <TrainerLayout><TrainerDashboardPage /></TrainerLayout>
+          </TrainerRoute>
         }
       />
+
+      {/* Staff Routes - Protected */}
       <Route
-        path="/member/classes"
+        path="/staff"
         element={
-          <ProtectedRoute allowedRoles={["MEMBER"]}>
-            <MemberBookingsPage />
-          </ProtectedRoute>
+          <StaffRoute>
+            <StaffLayout><StaffDashboardPage /></StaffLayout>
+          </StaffRoute>
         }
-      />
-      <Route
-        path="/member/workouts"
-        element={
-          <ProtectedRoute allowedRoles={["MEMBER"]}>
-            <MemberWorkoutsPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/member/workoutplans"
-        element={<Navigate to="/member/workouts" replace />}
-      />
-      <Route
-        path="/member/progress"
-        element={
-          <ProtectedRoute allowedRoles={["MEMBER"]}>
-            <MemberProgressPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/member/profile"
-        element={
-          <ProtectedRoute allowedRoles={["MEMBER"]}>
-            <MemberProfilePage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/member/membership"
-        element={
-          <ProtectedRoute allowedRoles={["MEMBER"]}>
-            <MemberProfilePage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/member/bookings"
-        element={<Navigate to="/member/classes" replace />}
       />
 
       {/* Fallback */}
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="*" element={<PublicLayout><NotFound /></PublicLayout>} />
     </Routes>
   );
 };
