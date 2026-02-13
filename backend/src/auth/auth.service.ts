@@ -7,7 +7,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
-import { LoginDto, RegisterDto, ChangePasswordDto } from './dto';
+import { LoginDto, RegisterDto, ChangePasswordDto, ForgotPasswordDto } from './dto';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { UserResponse } from './interfaces/user-response.interface';
 import { UserRole } from '@prisma/client';
@@ -208,5 +208,20 @@ export class AuthService {
     });
 
     return { message: 'Password updated successfully' };
+  }
+
+  async forgotPassword(dto: ForgotPasswordDto) {
+    const user = await this.prisma.user.findUnique({
+      where: { email: dto.email },
+      select: { id: true, email: true },
+    });
+
+    // Always return success to avoid account enumeration.
+    if (!user) {
+      return { message: 'If the email exists, a reset link has been sent.' };
+    }
+
+    // TODO: integrate email provider + token generation.
+    return { message: 'If the email exists, a reset link has been sent.' };
   }
 }

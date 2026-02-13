@@ -50,6 +50,11 @@ export const authService = {
     return response.data.data ?? response.data;
   },
 
+  async forgotPassword(data: { email: string }) {
+    const response = await apiClient.post<any>("/auth/forgot-password", data);
+    return response.data.data ?? response.data;
+  },
+
   getStoredToken(): string | null {
     const token = localStorage.getItem("accessToken");
     if (!token || token === "undefined" || token === "null") {

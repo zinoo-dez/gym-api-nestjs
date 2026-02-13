@@ -3,6 +3,7 @@ import * as React from "react"
 import { Link } from "react-router-dom"
 import { AuthLayout } from "../../layouts"
 import { PrimaryButton, SecondaryButton } from "@/components/gym"
+import { authService } from "@/services/auth.service"
 import { toast } from "sonner"
 
 export default function ForgotPasswordPage() {
@@ -17,10 +18,7 @@ export default function ForgotPasswordPage() {
     setError("")
     
     try {
-      // TODO: Implement forgot password API endpoint in backend
-      // For now, show success message
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      
+      await authService.forgotPassword({ email })
       setIsSubmitted(true)
       toast.success("Password reset link sent!")
     } catch (err: any) {
