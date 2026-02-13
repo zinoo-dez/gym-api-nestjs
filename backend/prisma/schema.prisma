@@ -21,6 +21,7 @@ enum SubscriptionStatus {
     EXPIRED
     CANCELLED
     PENDING
+    FROZEN
 }
 
 enum ClassLevel {
@@ -108,6 +109,17 @@ enum NotificationCategory {
     ATTENDANCE
 }
 
+enum DiscountType {
+    PERCENTAGE
+    FIXED
+}
+
+enum FeatureLevel {
+    BASIC
+    STANDARD
+    PREMIUM
+}
+
 // ============================================
 // USERS & AUTHENTICATION
 // ============================================
@@ -127,6 +139,7 @@ model User {
     staff                   Staff?
     userSetting             UserSetting?
     notificationPreferences NotificationPreference[]
+    notifications           Notification[]
 
     createdAt DateTime @default(now()) @map("created_at")
     updatedAt DateTime @updatedAt @map("updated_at")
@@ -146,7 +159,13 @@ model MembershipPlan {
     description String?
     price       Float
     duration    Int // in days
+    accessToEquipment     Boolean        @default(true) @map("access_to_equipment")
+    accessToLocker        Boolean        @default(false) @map("access_to_locker")
+    nutritionConsultation Boolean        @default(false) @map("nutrition_consultation")
+    personalTrainingHours Float          @default(0) @map("personal_training_hours")
+    unlimitedClasses      Boolean        @default(false) @map("unlimited_classes")
 
+    planFeatures MembershipPlanFeature[]
     subscriptions Subscription[]
 
     createdAt DateTime @default(now()) @map("created_at")
@@ -154,6 +173,38 @@ model MembershipPlan {
 
     @@index([name])
     @@map("membership_plans")
+}
+
+model Feature {
+    id          String   @id @default(cuid())
+    name        String   @unique
+    description String?
+    isSystem    Boolean  @default(false) @map("is_system")
+    defaultName String?  @map("default_name")
+    createdAt   DateTime @default(now()) @map("created_at")
+    updatedAt   DateTime @updatedAt @map("updated_at")
+
+    planFeatures MembershipPlanFeature[]
+
+    @@index([name])
+    @@map("features")
+}
+
+model MembershipPlanFeature {
+    id               String       @id @default(cuid())
+    membershipPlanId String       @map("membership_plan_id")
+    featureId        String       @map("feature_id")
+    level            FeatureLevel @default(BASIC)
+    createdAt        DateTime     @default(now()) @map("created_at")
+    updatedAt        DateTime     @updatedAt @map("updated_at")
+
+    membershipPlan MembershipPlan @relation(fields: [membershipPlanId], references: [id], onDelete: Cascade)
+    feature        Feature        @relation(fields: [featureId], references: [id], onDelete: Cascade)
+
+    @@unique([membershipPlanId, featureId])
+    @@index([membershipPlanId])
+    @@index([featureId])
+    @@map("membership_plan_features")
 }
 
 model Subscription {
@@ -165,9 +216,14 @@ model Subscription {
     endDate          DateTime           @map("end_date")
     renewalDate      DateTime?          @map("renewal_date")
     autoRenew        Boolean            @default(true) @map("auto_renew")
+    originalPrice    Float              @default(0) @map("original_price")
+    finalPrice       Float              @default(0) @map("final_price")
+    discountAmount   Float              @default(0) @map("discount_amount")
+    discountCodeId   String?            @map("discount_code_id")
 
     member         Member         @relation(fields: [memberId], references: [id], onDelete: Cascade)
     membershipPlan MembershipPlan @relation(fields: [membershipPlanId], references: [id], onDelete: Cascade)
+    discountCode   DiscountCode?  @relation(fields: [discountCodeId], references: [id], onDelete: SetNull)
 
     createdAt DateTime @default(now()) @map("created_at")
     updatedAt DateTime @updatedAt @map("updated_at")
@@ -175,7 +231,28 @@ model Subscription {
     @@index([memberId])
     @@index([membershipPlanId])
     @@index([status])
+    @@index([discountCodeId])
     @@map("subscriptions")
+}
+
+model DiscountCode {
+    id             String       @id @default(cuid())
+    code           String       @unique
+    description    String?
+    type           DiscountType @map("type")
+    amount         Float        @map("amount")
+    isActive       Boolean      @default(true) @map("is_active")
+    maxRedemptions Int?         @map("max_redemptions")
+    usedCount      Int          @default(0) @map("used_count")
+    startsAt       DateTime?    @map("starts_at")
+    endsAt         DateTime?    @map("ends_at")
+    createdAt      DateTime     @default(now()) @map("created_at")
+    updatedAt      DateTime     @updatedAt @map("updated_at")
+    subscriptions  Subscription[]
+
+    @@index([code])
+    @@index([isActive])
+    @@map("discount_codes")
 }
 
 // ============================================
@@ -742,23 +819,113 @@ model PushSubscription {
 // ============================================
 
 model GymSetting {
-    id          String @id @default(cuid())
-    name        String @unique @map("gym_name")
-    tagLine     String @map("tag_line")
-    address     String
-    phone       String @unique
-    email       String @unique
-    logo        String
-    description String
-    favicon     String
-
-    emailNotification Boolean @default(true) @map("email_notification")
-    smsNotification   Boolean @default(true) @map("sms_notification")
+    id                         String   @id @default(cuid())
+    name                       String   @unique @default("My Gym") @map("gym_name")
+    tagLine                    String   @default("") @map("tag_line")
+    address                    String   @default("") @map("address")
+    phone                      String   @unique @default("") @map("phone")
+    email                      String   @unique @default("") @map("email")
+    logo                       String   @default("") @map("logo")
+    description                String   @default("") @map("description")
+    favicon                    String   @default("") @map("favicon")
+    primaryColor               String   @default("#22c55e") @map("primary_color")
+    secondaryColor             String   @default("#4ade80") @map("secondary_color")
+    backgroundColor            String   @default("#0a0a0a") @map("background_color")
+    textColor                  String   @default("#ffffff") @map("text_color")
+    heroTitle                  String   @default("") @map("hero_title")
+    heroSubtitle               String   @default("") @map("hero_subtitle")
+    heroCtaPrimary             String   @default("") @map("hero_cta_primary")
+    heroCtaSecondary           String   @default("") @map("hero_cta_secondary")
+    heroBadgeText              String   @default("") @map("hero_badge_text")
+    featuresTitle              String   @default("") @map("features_title")
+    featuresSubtitle           String   @default("") @map("features_subtitle")
+    features                   Json?    @default("[]") @map("features")
+    classesTitle               String   @default("") @map("classes_title")
+    classesSubtitle            String   @default("") @map("classes_subtitle")
+    trainersTitle              String   @default("") @map("trainers_title")
+    trainersSubtitle           String   @default("") @map("trainers_subtitle")
+    trainersCtaLabel           String   @default("") @map("trainers_cta_label")
+    workoutsTitle              String   @default("") @map("workouts_title")
+    workoutsSubtitle           String   @default("") @map("workouts_subtitle")
+    workoutsCtaLabel           String   @default("") @map("workouts_cta_label")
+    pricingTitle               String   @default("") @map("pricing_title")
+    pricingSubtitle            String   @default("") @map("pricing_subtitle")
+    footerTagline              String   @default("") @map("footer_tagline")
+    appShowcaseTitle           String   @default("") @map("app_showcase_title")
+    appShowcaseSubtitle        String   @default("") @map("app_showcase_subtitle")
+    ctaTitle                   String   @default("") @map("cta_title")
+    ctaSubtitle                String   @default("") @map("cta_subtitle")
+    ctaButtonLabel             String   @default("") @map("cta_button_label")
+    fontFamily                 String   @default("Inter") @map("font_family")
+    heroBgImage                String?  @default("") @map("hero_bg_image")
+    featuresBgImage            String?  @default("") @map("features_bg_image")
+    classesBgImage             String?  @default("") @map("classes_bg_image")
+    trainersBgImage            String?  @default("") @map("trainers_bg_image")
+    workoutsBgImage            String?  @default("") @map("workouts_bg_image")
+    pricingBgImage             String?  @default("") @map("pricing_bg_image")
+    ctaBgImage                 String?  @default("") @map("cta_bg_image")
+    emailNotification          Boolean  @default(true) @map("email_notification")
+    smsNotification            Boolean  @default(true) @map("sms_notification")
+    newMemberNotification      Boolean  @default(true) @map("new_member_notification")
+    newTrainerNotification     Boolean  @default(true) @map("new_trainer_notification")
+    newMembershipNotification  Boolean  @default(true) @map("new_membership_notification")
+    newPaymentNotification     Boolean  @default(true) @map("new_payment_notification")
+    newSessionNotification     Boolean  @default(true) @map("new_session_notification")
+    newWorkoutPlanNotification Boolean  @default(true) @map("new_workout_plan_notification")
+    newProgressNotification    Boolean  @default(true) @map("new_progress_notification")
+    newAttendanceNotification  Boolean  @default(true) @map("new_attendance_notification")
+    newEquipmentNotification   Boolean  @default(true) @map("new_equipment_notification")
+    newGymSettingNotification  Boolean  @default(true) @map("new_gym_setting_notification")
+    newUserSettingNotification Boolean  @default(true) @map("new_user_setting_notification")
 
     createdAt DateTime @default(now()) @map("created_at")
     updatedAt DateTime @updatedAt @map("updated_at")
 
     @@map("gym_settings")
+}
+
+model GymOperatingHours {
+    id        String   @id @default(cuid())
+    dayOfWeek Int      @map("day_of_week")
+    openTime  String   @map("open_time")
+    closeTime String   @map("close_time")
+    isClosed  Boolean  @default(false) @map("is_closed")
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
+
+    @@unique([dayOfWeek])
+    @@map("gym_operating_hours")
+}
+
+model GymClosure {
+    id        String   @id @default(cuid())
+    date      DateTime @map("date")
+    reason    String   @default("") @map("reason")
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
+
+    @@index([date])
+    @@map("gym_closures")
+}
+
+model Notification {
+    id        String   @id @default(cuid())
+    userId    String?  @map("user_id")
+    role      UserRole?
+    title     String
+    message   String
+    type      String   @default("info")
+    read      Boolean  @default(false)
+    actionUrl String?  @map("action_url")
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
+
+    user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@index([userId])
+    @@index([role])
+    @@index([read])
+    @@map("notifications")
 }
 
 // ============================================

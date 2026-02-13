@@ -23,7 +23,13 @@ import {
   SubscribeMembershipDto,
 } from './dto';
 import { PaginatedResponseDto } from '../common/dto';
-import { Prisma, UserRole, SubscriptionStatus, FeatureLevel } from '@prisma/client';
+import {
+  Prisma,
+  UserRole,
+  SubscriptionStatus,
+  FeatureLevel,
+  DiscountType,
+} from '@prisma/client';
 import PDFDocument from 'pdfkit';
 
 @Injectable()
@@ -1136,12 +1142,12 @@ export class MembershipsService {
         throw new BadRequestException('Discount code redemption limit reached');
       }
 
-      if (code.type === 'PERCENT' && code.amount > 100) {
+      if (code.type === DiscountType.PERCENTAGE && code.amount > 100) {
         throw new BadRequestException('Discount percent cannot exceed 100');
       }
 
       const discountAmount =
-        code.type === 'PERCENT'
+        code.type === DiscountType.PERCENTAGE
           ? (basePrice * code.amount) / 100
           : code.amount;
       const finalPrice = Math.max(0, basePrice - discountAmount);
@@ -1204,12 +1210,12 @@ export class MembershipsService {
     ) {
       throw new BadRequestException('Discount code redemption limit reached');
     }
-    if (discount.type === 'PERCENT' && discount.amount > 100) {
+    if (discount.type === DiscountType.PERCENTAGE && discount.amount > 100) {
       throw new BadRequestException('Discount percent cannot exceed 100');
     }
 
     const discountAmount =
-      discount.type === 'PERCENT'
+      discount.type === DiscountType.PERCENTAGE
         ? (basePrice * discount.amount) / 100
         : discount.amount;
     const finalPrice = Math.max(0, basePrice - discountAmount);

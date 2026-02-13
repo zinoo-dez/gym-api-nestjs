@@ -78,6 +78,18 @@ export class FeaturesController {
     return this.featuresService.update(id, dto);
   }
 
+  @Patch(':id/restore-default')
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Restore system feature default name' })
+  @ApiParam({ name: 'id', description: 'Feature ID' })
+  @ApiResponse({ status: 200, type: FeatureResponseDto })
+  async restoreDefault(
+    @Param('id') id: string,
+  ): Promise<FeatureResponseDto> {
+    return this.featuresService.restoreDefaultName(id);
+  }
+
   @Patch(':id/restore-default-name')
   @Roles(UserRole.ADMIN)
   @ApiBearerAuth('JWT-auth')

@@ -67,7 +67,7 @@ export const featuresService = {
 
   async restoreDefaultName(id: string) {
     const response = await apiClient.patch<ApiResponse<Feature>>(
-      `/features/${id}/restore-default-name`,
+      `/features/${id}/restore-default`,
     );
     return response.data.data ?? response.data;
   },

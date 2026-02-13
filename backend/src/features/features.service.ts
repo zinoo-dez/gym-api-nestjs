@@ -3,6 +3,7 @@ import {
   ConflictException,
   Injectable,
   NotFoundException,
+  OnModuleInit,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
@@ -14,9 +15,36 @@ import {
 import { PaginatedResponseDto } from '../common/dto';
 import { Prisma } from '@prisma/client';
 
+const DEFAULT_FEATURES = [
+  {
+    name: 'Full equipment access',
+    description: 'Access to all gym equipment and machines.',
+  },
+  {
+    name: 'Unlimited group classes',
+    description: 'Join any scheduled group fitness classes.',
+  },
+  {
+    name: 'Personal training hours',
+    description: 'Includes personal training sessions with coaches.',
+  },
+  {
+    name: 'Locker access',
+    description: 'Access to lockers for personal belongings.',
+  },
+  {
+    name: 'Nutrition consultation',
+    description: 'Nutrition guidance and consultation support.',
+  },
+];
+
 @Injectable()
-export class FeaturesService {
+export class FeaturesService implements OnModuleInit {
   constructor(private readonly prisma: PrismaService) {}
+
+  async onModuleInit() {
+    await this.ensureDefaultFeatures();
+  }
 
   async create(dto: CreateFeatureDto): Promise<FeatureResponseDto> {
     const existing = await this.prisma.feature.findFirst({
@@ -147,6 +175,40 @@ export class FeaturesService {
     }
 
     await this.prisma.feature.delete({ where: { id } });
+  }
+
+  private async ensureDefaultFeatures(): Promise<void> {
+    for (const feature of DEFAULT_FEATURES) {
+      const existing =
+        (await this.prisma.feature.findFirst({
+          where: { defaultName: feature.name },
+        })) ??
+        (await this.prisma.feature.findFirst({
+          where: { name: feature.name },
+        }));
+
+      if (!existing) {
+        await this.prisma.feature.create({
+          data: {
+            name: feature.name,
+            description: feature.description,
+            isSystem: true,
+            defaultName: feature.name,
+          },
+        });
+        continue;
+      }
+
+      if (!existing.isSystem || existing.defaultName !== feature.name) {
+        await this.prisma.feature.update({
+          where: { id: existing.id },
+          data: {
+            isSystem: true,
+            defaultName: feature.name,
+          },
+        });
+      }
+    }
   }
 
   async ensureFeaturesExist(featureIds: string[]): Promise<void> {
