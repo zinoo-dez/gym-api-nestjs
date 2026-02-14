@@ -22,6 +22,11 @@ export interface Member {
   lastName: string;
   phone?: string;
   dateOfBirth?: string;
+  gender?: string;
+  height?: number;
+  currentWeight?: number;
+  targetWeight?: number;
+  emergencyContact?: string;
   isActive: boolean;
   subscriptions?: Subscription[];
   createdAt: string;
@@ -43,6 +48,11 @@ export interface CreateMemberRequest {
   lastName: string;
   phone?: string;
   dateOfBirth?: string;
+  gender?: string;
+  height?: number;
+  currentWeight?: number;
+  targetWeight?: number;
+  emergencyContact?: string;
 }
 
 export interface UpdateMemberRequest {
@@ -50,6 +60,11 @@ export interface UpdateMemberRequest {
   lastName?: string;
   phone?: string;
   dateOfBirth?: string;
+  gender?: string;
+  height?: number;
+  currentWeight?: number;
+  targetWeight?: number;
+  emergencyContact?: string;
 }
 
 interface ApiResponse<T> {

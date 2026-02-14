@@ -92,6 +92,36 @@ export class MemberResponseDto {
   })
   dateOfBirth?: Date;
 
+  @ApiPropertyOptional({
+    description: 'Member gender',
+    example: 'Female',
+  })
+  gender?: string;
+
+  @ApiPropertyOptional({
+    description: 'Member height in cm',
+    example: 175,
+  })
+  height?: number;
+
+  @ApiPropertyOptional({
+    description: 'Current weight in kg',
+    example: 72,
+  })
+  currentWeight?: number;
+
+  @ApiPropertyOptional({
+    description: 'Target weight in kg',
+    example: 68,
+  })
+  targetWeight?: number;
+
+  @ApiPropertyOptional({
+    description: 'Emergency contact',
+    example: '+1234567890',
+  })
+  emergencyContact?: string;
+
   @ApiProperty({
     description: 'Whether the member account is active',
     example: true,

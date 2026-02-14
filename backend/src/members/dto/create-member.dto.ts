@@ -4,9 +4,11 @@ import {
   MinLength,
   IsOptional,
   IsDateString,
+  IsNumber,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsPhone, IsPastDate } from '../../common/validators';
+import { Type } from 'class-transformer';
 
 export class CreateMemberDto {
   @ApiProperty({
@@ -58,4 +60,47 @@ export class CreateMemberDto {
   @IsDateString({}, { message: 'Date of birth must be a valid ISO 8601 date' })
   @IsPastDate({ message: 'Date of birth must be in the past' })
   dateOfBirth?: string;
+
+  @ApiPropertyOptional({
+    description: 'Member gender',
+    example: 'Female',
+  })
+  @IsOptional()
+  @IsString()
+  gender?: string;
+
+  @ApiPropertyOptional({
+    description: 'Member height in cm',
+    example: 175,
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  height?: number;
+
+  @ApiPropertyOptional({
+    description: 'Current weight in kg',
+    example: 72,
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  currentWeight?: number;
+
+  @ApiPropertyOptional({
+    description: 'Target weight in kg',
+    example: 68,
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  targetWeight?: number;
+
+  @ApiPropertyOptional({
+    description: 'Emergency contact',
+    example: '+1234567890',
+  })
+  @IsOptional()
+  @IsString()
+  emergencyContact?: string;
 }

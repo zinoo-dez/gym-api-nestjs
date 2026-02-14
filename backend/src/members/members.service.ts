@@ -55,6 +55,11 @@ export class MembersService {
           dateOfBirth: createMemberDto.dateOfBirth
             ? new Date(createMemberDto.dateOfBirth)
             : undefined,
+          gender: createMemberDto.gender,
+          height: createMemberDto.height,
+          currentWeight: createMemberDto.currentWeight,
+          targetWeight: createMemberDto.targetWeight,
+          emergencyContact: createMemberDto.emergencyContact,
         },
         include: {
           user: true,
@@ -318,6 +323,11 @@ export class MembersService {
         dateOfBirth: updateMemberDto.dateOfBirth
           ? new Date(updateMemberDto.dateOfBirth)
           : undefined,
+        gender: updateMemberDto.gender,
+        height: updateMemberDto.height,
+        currentWeight: updateMemberDto.currentWeight,
+        targetWeight: updateMemberDto.targetWeight,
+        emergencyContact: updateMemberDto.emergencyContact,
         user: {
           update: {
             firstName: updateMemberDto.firstName,
@@ -458,6 +468,11 @@ export class MembersService {
       lastName: member.user.lastName,
       phone: member.user.phone,
       dateOfBirth: member.dateOfBirth,
+      gender: member.gender,
+      height: member.height,
+      currentWeight: member.currentWeight,
+      targetWeight: member.targetWeight,
+      emergencyContact: member.emergencyContact,
       isActive,
       createdAt: member.createdAt,
       updatedAt: member.updatedAt,

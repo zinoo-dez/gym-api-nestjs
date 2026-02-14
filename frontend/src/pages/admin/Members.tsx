@@ -56,6 +56,11 @@ const Members = () => {
         phone: "",
         dateOfBirth: "",
         password: "",
+        gender: "",
+        height: "",
+        currentWeight: "",
+        targetWeight: "",
+        emergencyContact: "",
     });
 
     const loadMembers = useCallback(async () => {
@@ -110,6 +115,11 @@ const Members = () => {
             phone: "",
             dateOfBirth: "",
             password: "",
+            gender: "",
+            height: "",
+            currentWeight: "",
+            targetWeight: "",
+            emergencyContact: "",
         });
         setDialogOpen(true);
     };
@@ -123,6 +133,11 @@ const Members = () => {
             phone: member.phone || "",
             dateOfBirth: member.dateOfBirth ? member.dateOfBirth.split("T")[0] : "",
             password: "",
+            gender: member.gender || "",
+            height: member.height !== undefined ? String(member.height) : "",
+            currentWeight: member.currentWeight !== undefined ? String(member.currentWeight) : "",
+            targetWeight: member.targetWeight !== undefined ? String(member.targetWeight) : "",
+            emergencyContact: member.emergencyContact || "",
         });
         setDialogOpen(true);
     };
@@ -140,6 +155,11 @@ const Members = () => {
                     lastName: form.lastName.trim(),
                     phone: form.phone.trim() || undefined,
                     dateOfBirth: form.dateOfBirth || undefined,
+                    gender: form.gender.trim() || undefined,
+                    height: form.height ? Number(form.height) : undefined,
+                    currentWeight: form.currentWeight ? Number(form.currentWeight) : undefined,
+                    targetWeight: form.targetWeight ? Number(form.targetWeight) : undefined,
+                    emergencyContact: form.emergencyContact.trim() || undefined,
                 };
                 const updated = await membersService.update(editing.id, payload);
                 setMembers((prev) =>
@@ -158,6 +178,11 @@ const Members = () => {
                     lastName: form.lastName.trim(),
                     phone: form.phone.trim() || undefined,
                     dateOfBirth: form.dateOfBirth || undefined,
+                    gender: form.gender.trim() || undefined,
+                    height: form.height ? Number(form.height) : undefined,
+                    currentWeight: form.currentWeight ? Number(form.currentWeight) : undefined,
+                    targetWeight: form.targetWeight ? Number(form.targetWeight) : undefined,
+                    emergencyContact: form.emergencyContact.trim() || undefined,
                 };
                 const created = await membersService.create(payload);
                 setMembers((prev) => [created, ...prev]);
@@ -257,6 +282,12 @@ const Members = () => {
                             <TableRow>
                                 <TableHead>Name</TableHead>
                                 <TableHead className="hidden md:table-cell">Email</TableHead>
+                                <TableHead className="hidden lg:table-cell">Phone</TableHead>
+                                <TableHead className="hidden lg:table-cell">Gender</TableHead>
+                                <TableHead className="hidden xl:table-cell">Height</TableHead>
+                                <TableHead className="hidden xl:table-cell">Current</TableHead>
+                                <TableHead className="hidden xl:table-cell">Target</TableHead>
+                                <TableHead className="hidden xl:table-cell">Emergency</TableHead>
                                 <TableHead className="hidden sm:table-cell">Plan</TableHead>
                                 <TableHead>Status</TableHead>
                                 <TableHead className="hidden lg:table-cell">Join Date</TableHead>
@@ -266,13 +297,13 @@ const Members = () => {
                         <TableBody>
                             {isLoading ? (
                                 <TableRow>
-                                    <TableCell colSpan={6} className="text-center text-muted-foreground">
+                                    <TableCell colSpan={13} className="text-center text-muted-foreground">
                                         Loading members...
                                     </TableCell>
                                 </TableRow>
                             ) : filtered.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={6} className="text-center text-muted-foreground">
+                                    <TableCell colSpan={13} className="text-center text-muted-foreground">
                                         No members found.
                                     </TableCell>
                                 </TableRow>
@@ -288,6 +319,20 @@ const Members = () => {
                                             </Link>
                                         </TableCell>
                                         <TableCell className="hidden md:table-cell">{member.email}</TableCell>
+                                        <TableCell className="hidden lg:table-cell">{member.phone || "—"}</TableCell>
+                                        <TableCell className="hidden lg:table-cell">{member.gender || "—"}</TableCell>
+                                        <TableCell className="hidden xl:table-cell">
+                                            {member.height !== undefined ? `${member.height} cm` : "—"}
+                                        </TableCell>
+                                        <TableCell className="hidden xl:table-cell">
+                                            {member.currentWeight !== undefined ? `${member.currentWeight} kg` : "—"}
+                                        </TableCell>
+                                        <TableCell className="hidden xl:table-cell">
+                                            {member.targetWeight !== undefined ? `${member.targetWeight} kg` : "—"}
+                                        </TableCell>
+                                        <TableCell className="hidden xl:table-cell">
+                                            {member.emergencyContact || "—"}
+                                        </TableCell>
                                         <TableCell className="hidden sm:table-cell">{getPlanLabel(member)}</TableCell>
                                         <TableCell>
                                             <Badge variant={statusVariant(member.isActive)}>
@@ -390,6 +435,53 @@ const Members = () => {
                                 value={form.dateOfBirth}
                                 onChange={(e) => setForm({ ...form, dateOfBirth: e.target.value })}
                             />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label>Gender</Label>
+                                <Input
+                                    type="text"
+                                    value={form.gender}
+                                    onChange={(e) => setForm({ ...form, gender: e.target.value })}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Emergency Contact</Label>
+                                <Input
+                                    type="text"
+                                    value={form.emergencyContact}
+                                    onChange={(e) => setForm({ ...form, emergencyContact: e.target.value })}
+                                />
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-3 gap-4">
+                            <div className="space-y-2">
+                                <Label>Height (cm)</Label>
+                                <Input
+                                    type="number"
+                                    min="0"
+                                    value={form.height}
+                                    onChange={(e) => setForm({ ...form, height: e.target.value })}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Current Weight (kg)</Label>
+                                <Input
+                                    type="number"
+                                    min="0"
+                                    value={form.currentWeight}
+                                    onChange={(e) => setForm({ ...form, currentWeight: e.target.value })}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Target Weight (kg)</Label>
+                                <Input
+                                    type="number"
+                                    min="0"
+                                    value={form.targetWeight}
+                                    onChange={(e) => setForm({ ...form, targetWeight: e.target.value })}
+                                />
+                            </div>
                         </div>
                         <Button onClick={handleSave} className="w-full">
                             {editing ? "Update Member" : "Add Member"}
