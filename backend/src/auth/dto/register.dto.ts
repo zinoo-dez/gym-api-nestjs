@@ -35,6 +35,14 @@ export class RegisterDto {
   lastName!: string;
 
   @ApiPropertyOptional({
+    description: 'Address',
+    example: '123 Main St, Springfield',
+  })
+  @IsOptional()
+  @IsString({ message: 'Address must be a string' })
+  address?: string;
+
+  @ApiPropertyOptional({
     description: 'Profile image URL',
     example: 'https://example.com/avatar.jpg',
   })

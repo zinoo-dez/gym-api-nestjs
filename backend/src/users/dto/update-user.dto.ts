@@ -18,6 +18,10 @@ export class UpdateUserDto {
   phone?: string;
 
   @IsOptional()
+  @IsString({ message: 'Address must be a string' })
+  address?: string;
+
+  @IsOptional()
   @IsString({ message: 'Avatar URL must be a string' })
   avatarUrl?: string;
 }

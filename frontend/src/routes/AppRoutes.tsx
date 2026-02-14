@@ -42,6 +42,7 @@ const AppRoutes = () => {
       {/* Public Routes */}
       <Route path="/" element={<PublicLayout><IndexPage /></PublicLayout>} />
       <Route path="/login" element={<PublicLayout><PublicLogin /></PublicLayout>} />
+      <Route path="/register" element={<Navigate to="/auth/register" replace />} />
       <Route path="/auth/login" element={<LoginPage />} />
       <Route path="/auth/register" element={<RegisterPage />} />
       <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />

@@ -87,6 +87,12 @@ export class MemberResponseDto {
   phone?: string;
 
   @ApiPropertyOptional({
+    description: 'Member address',
+    example: '123 Main St, Springfield',
+  })
+  address?: string;
+
+  @ApiPropertyOptional({
     description: 'Profile image URL',
     example: 'https://example.com/avatar.jpg',
   })

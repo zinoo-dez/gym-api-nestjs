@@ -5,6 +5,7 @@ export interface Trainer {
     firstName: string;
     lastName: string;
     email: string;
+    address?: string;
     avatarUrl?: string;
     specializations: string[];
     certifications: string[];
@@ -36,6 +37,7 @@ export interface CreateTrainerRequest {
     password: string;
     firstName: string;
     lastName: string;
+    address?: string;
     avatarUrl?: string;
     specializations: string[];
     certifications?: string[];
@@ -46,6 +48,7 @@ export interface CreateTrainerRequest {
 export interface UpdateTrainerRequest {
     firstName?: string;
     lastName?: string;
+    address?: string;
     avatarUrl?: string;
     specializations?: string[];
     certifications?: string[];

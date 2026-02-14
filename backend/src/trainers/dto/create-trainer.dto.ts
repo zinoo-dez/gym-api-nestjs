@@ -24,6 +24,10 @@ export class CreateTrainerDto {
   @IsString({ message: 'Avatar URL must be a string' })
   avatarUrl?: string;
 
+  @IsOptional()
+  @IsString({ message: 'Address must be a string' })
+  address?: string;
+
   @IsArray({ message: 'Specializations must be an array' })
   @IsString({ each: true, message: 'Each specialization must be a string' })
   specializations!: string[];

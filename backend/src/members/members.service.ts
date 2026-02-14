@@ -46,6 +46,7 @@ export class MembersService {
           firstName: createMemberDto.firstName,
           lastName: createMemberDto.lastName,
           phone: createMemberDto.phone,
+          address: createMemberDto.address,
           avatarUrl: createMemberDto.avatarUrl ?? '',
         },
       });
@@ -192,7 +193,6 @@ export class MembersService {
           orderBy: {
             createdAt: 'desc',
           },
-          take: 1,
         },
       },
       orderBy: {
@@ -334,6 +334,7 @@ export class MembersService {
             firstName: updateMemberDto.firstName,
             lastName: updateMemberDto.lastName,
             phone: updateMemberDto.phone,
+            address: updateMemberDto.address,
             avatarUrl: updateMemberDto.avatarUrl,
           },
         },
@@ -506,6 +507,7 @@ export class MembersService {
       firstName: member.user.firstName,
       lastName: member.user.lastName,
       phone: member.user.phone,
+      address: member.user.address,
       avatarUrl: member.user.avatarUrl,
       dateOfBirth: member.dateOfBirth,
       gender: member.gender,

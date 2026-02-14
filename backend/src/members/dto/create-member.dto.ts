@@ -52,6 +52,14 @@ export class CreateMemberDto {
   phone?: string;
 
   @ApiPropertyOptional({
+    description: 'Member address',
+    example: '123 Main St, Springfield',
+  })
+  @IsOptional()
+  @IsString()
+  address?: string;
+
+  @ApiPropertyOptional({
     description: 'Profile image URL',
     example: 'https://example.com/avatar.jpg',
   })

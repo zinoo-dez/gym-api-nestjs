@@ -47,6 +47,7 @@ export class TrainersService {
           role: UserRole.TRAINER,
           firstName: createTrainerDto.firstName,
           lastName: createTrainerDto.lastName,
+          address: createTrainerDto.address,
           avatarUrl: createTrainerDto.avatarUrl ?? '',
           // phone: ?? Trainer DTO doesn't usually have phone, but if it does, add it.
           // Assuming DTO matches schema roughly or previous logic.
@@ -207,6 +208,7 @@ export class TrainersService {
           update: {
             firstName: updateTrainerDto.firstName,
             lastName: updateTrainerDto.lastName,
+            address: updateTrainerDto.address,
             avatarUrl: updateTrainerDto.avatarUrl,
           },
         },
@@ -258,6 +260,7 @@ export class TrainersService {
       email: trainer.user.email,
       firstName: trainer.user.firstName,
       lastName: trainer.user.lastName,
+      address: trainer.user.address,
       avatarUrl: trainer.user.avatarUrl,
       specializations: trainer.specialization ? [trainer.specialization] : [], // Convert back to array for DTO
       certifications: trainer.certification ? [trainer.certification] : [],

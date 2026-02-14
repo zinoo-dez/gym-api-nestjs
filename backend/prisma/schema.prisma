@@ -15,6 +15,7 @@ model User {
     firstName               String                   @map("first_name")
     lastName                String                   @map("last_name")
     phone                   String?                  @unique @map("phone_number")
+    address                 String?                  @default("") @map("address")
     avatarUrl               String?                  @default("") @map("avatar_url")
     updatedAt               DateTime                 @updatedAt @map("updated_at")
     status                  UserStatus               @default(ACTIVE)
@@ -68,12 +69,41 @@ model Subscription {
     discountCode     DiscountCode?      @relation(fields: [discountCodeId], references: [id])
     member           Member             @relation(fields: [memberId], references: [id], onDelete: Cascade)
     membershipPlan   MembershipPlan     @relation(fields: [membershipPlanId], references: [id], onDelete: Cascade)
+    payments         Payment[]
 
     @@index([memberId])
     @@index([membershipPlanId])
     @@index([status])
     @@index([discountCodeId])
     @@map("subscriptions")
+}
+
+model Payment {
+    id             String            @id @default(cuid())
+    memberId       String            @map("member_id")
+    invoiceId      String?           @map("invoice_id")
+    subscriptionId String?           @map("subscription_id")
+    amount         Float
+    currency       String            @default("MMK")
+    methodType     PaymentMethodType @map("method_type")
+    provider       PaymentProvider
+    transactionNo  String            @map("transaction_no")
+    screenshotUrl  String?           @map("screenshot_url")
+    status         PaymentStatus     @default(PENDING)
+    adminNote      String?           @map("admin_note")
+    paidAt         DateTime?         @map("paid_at")
+    createdAt      DateTime          @default(now()) @map("created_at")
+    updatedAt      DateTime          @updatedAt @map("updated_at")
+    member         Member            @relation(fields: [memberId], references: [id], onDelete: Cascade)
+    invoice        Invoice?          @relation(fields: [invoiceId], references: [id])
+    subscription   Subscription?     @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+
+    @@index([memberId])
+    @@index([invoiceId])
+    @@index([subscriptionId])
+    @@index([status])
+    @@index([provider])
+    @@map("payments")
 }
 
 model Member {
@@ -296,27 +326,6 @@ model Equipment {
     @@map("equipments")
 }
 
-model Payment {
-    id             String        @id @default(cuid())
-    memberId       String        @map("member_id")
-    invoiceId      String?       @map("invoice_id")
-    amount         Float
-    paymentMethod  PaymentMethod @map("payment_method")
-    status         PaymentStatus @default(PENDING)
-    transactionRef String?       @unique @map("transaction_ref")
-    description    String?
-    paidAt         DateTime?     @map("paid_at")
-    createdAt      DateTime      @default(now()) @map("created_at")
-    updatedAt      DateTime      @updatedAt @map("updated_at")
-    invoice        Invoice?      @relation(fields: [invoiceId], references: [id])
-    member         Member        @relation(fields: [memberId], references: [id], onDelete: Cascade)
-
-    @@index([memberId])
-    @@index([status])
-    @@index([paidAt])
-    @@map("payments")
-}
-
 model Invoice {
     id            String        @id @default(cuid())
     memberId      String        @map("member_id")
@@ -354,28 +363,6 @@ model InvoiceItem {
 
     @@index([invoiceId])
     @@map("invoice_items")
-}
-
-model Discount {
-    id              String   @id @default(cuid())
-    code            String   @unique
-    name            String
-    description     String?
-    type            String
-    value           Float
-    minPurchase     Float?   @map("min_purchase")
-    maxUses         Int?     @map("max_uses")
-    usedCount       Int      @default(0) @map("used_count")
-    validFrom       DateTime @map("valid_from")
-    validUntil      DateTime @map("valid_until")
-    isActive        Boolean  @default(true) @map("is_active")
-    applicablePlans String?  @map("applicable_plans")
-    createdAt       DateTime @default(now()) @map("created_at")
-    updatedAt       DateTime @updatedAt @map("updated_at")
-
-    @@index([code])
-    @@index([isActive])
-    @@map("discounts")
 }
 
 model Staff {
@@ -700,19 +687,27 @@ enum AttendanceType {
 
 enum PaymentStatus {
     PENDING
-    COMPLETED
-    FAILED
-    REFUNDED
-    CANCELLED
+    PAID
+    REJECTED
 }
 
-enum PaymentMethod {
-    CASH
-    CREDIT_CARD
-    DEBIT_CARD
-    BANK_TRANSFER
-    MOBILE_PAYMENT
-    OTHER
+enum PaymentMethodType {
+    BANK
+    WALLET
+}
+
+enum PaymentProvider {
+    AYA
+    KBZ
+    CB
+    UAB
+    A_BANK
+    YOMA
+    KBZ_PAY
+    AYA_PAY
+    CB_PAY
+    UAB_PAY
+    WAVE_MONEY
 }
 
 enum InvoiceStatus {

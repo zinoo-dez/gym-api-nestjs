@@ -16,6 +16,9 @@ export class UpdateStaffDto {
 
   @IsOptional()
   @IsString()
+
+  @IsOptional()
+  @IsString()
   avatarUrl?: string;
 
   @IsOptional()

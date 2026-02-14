@@ -10,3 +10,5 @@ export * from "./dashboard.service";
 export * from "./gym-settings.service";
 export * from "./notifications.service";
 export * from "./discount-codes.service";
+export * from "./payments.service";
+export * from "./uploads.service";

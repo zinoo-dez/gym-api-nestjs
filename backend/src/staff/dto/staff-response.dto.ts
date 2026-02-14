@@ -6,6 +6,7 @@ export class StaffResponseDto {
   firstName!: string;
   lastName!: string;
   phone?: string;
+  address?: string;
   avatarUrl?: string;
   staffRole!: StaffRole;
   employeeId!: string;
@@ -13,7 +14,6 @@ export class StaffResponseDto {
   department?: string;
   position!: string;
   emergencyContact?: string;
-  address?: string;
   isActive!: boolean;
   createdAt!: Date;
   updatedAt!: Date;

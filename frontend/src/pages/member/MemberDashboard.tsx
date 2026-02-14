@@ -1,237 +1,712 @@
-import { useParams, Link } from "react-router-dom";
-import { members, payments } from "@/data/mockData";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, Flame, Dumbbell, Heart, Droplets, TrendingUp, Clock, Activity, CheckCircle2 } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from "recharts";
-
-const workoutData = [
-  { day: "Mon", minutes: 45 }, { day: "Tue", minutes: 60 }, { day: "Wed", minutes: 0 },
-  { day: "Thu", minutes: 75 }, { day: "Fri", minutes: 50 }, { day: "Sat", minutes: 90 }, { day: "Sun", minutes: 30 },
-];
-
-const monthlyProgress = [
-  { month: "Jan", calories: 12400 }, { month: "Feb", calories: 15200 }, { month: "Mar", calories: 13800 },
-  { month: "Apr", calories: 16500 }, { month: "May", calories: 18200 }, { month: "Jun", calories: 17100 },
-];
-
-const checklistItems = [
-  { label: "Morning Workout", done: true, value: "0.5h 45s" },
-  { label: "Apple", done: false, value: "Fruit Juice" },
-  { label: "Running", done: true, value: "4.596m" },
-  { label: "Water Intake", done: false, value: "3,000 ml" },
-];
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { membersService, type Member } from "@/services/members.service";
+import { paymentsService, type Payment } from "@/services/payments.service";
+import { membershipsService, type MembershipPlan } from "@/services/memberships.service";
+import { uploadsService } from "@/services/uploads.service";
+import { authService } from "@/services/auth.service";
+import { useAuthStore } from "@/store/auth.store";
+import { toast } from "sonner";
 
 const MemberDashboard = () => {
-  const { id } = useParams();
-  const member = members.find((m) => m.id === id);
-  const memberPayments = payments.filter((p) => p.memberId === id);
+  const user = useAuthStore((state) => state.user);
+  const [member, setMember] = useState<Member | null>(null);
+  const [payments, setPayments] = useState<Payment[]>([]);
+  const [plans, setPlans] = useState<MembershipPlan[]>([]);
+  const [selectedPlan, setSelectedPlan] = useState<MembershipPlan | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [edit, setEdit] = useState({
+    phone: "",
+    address: "",
+    avatarUrl: "",
+  });
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+  const [paymentForm, setPaymentForm] = useState({
+    methodType: "BANK",
+    provider: "KBZ",
+    transactionNo: "",
+    screenshotUrl: "",
+    amount: "",
+    discountCode: "",
+  });
+  const [discountPreview, setDiscountPreview] = useState<number | null>(null);
+  const [discountValidated, setDiscountValidated] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [isUploadingProof, setIsUploadingProof] = useState(false);
+  const [proofFile, setProofFile] = useState<File | null>(null);
+  const proofInputRef = useRef<HTMLInputElement | null>(null);
 
-  if (!member) return (
-    <div className="flex flex-col items-center justify-center h-64 gap-4">
-      <p className="text-muted-foreground">Member not found</p>
-      <Button variant="outline" asChild><Link to="/members"><ArrowLeft className="h-4 w-4 mr-2" />Back</Link></Button>
-    </div>
-  );
+  useEffect(() => {
+    const load = async () => {
+      setIsLoading(true);
+      try {
+        const [data, paymentList, planList] = await Promise.all([
+          membersService.getMe(),
+          paymentsService.getMyPayments(),
+          membershipsService.getAllPlans({ limit: 50 }),
+        ]);
+        setMember(data);
+        setPayments(Array.isArray(paymentList) ? paymentList : []);
+        setPlans(Array.isArray(planList.data) ? planList.data : []);
+        setEdit({
+          phone: data.phone || "",
+          address: data.address || "",
+          avatarUrl: data.avatarUrl || "",
+        });
+      } catch (err) {
+        console.error("Failed to load member", err);
+        setMember(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    load();
+  }, []);
 
-  const statusColor = member.status === "active" ? "default" : member.status === "inactive" ? "secondary" : "destructive";
+  const activeSubscription = useMemo(() => {
+    if (!member?.subscriptions?.length) return undefined;
+    const active = member.subscriptions.find((s) => s.status === "ACTIVE");
+    return active || member.subscriptions[0];
+  }, [member]);
+
+  const latestPayment = useMemo(() => {
+    if (!activeSubscription) return undefined;
+    return payments.find((p) => p.subscriptionId === activeSubscription.id);
+  }, [payments, activeSubscription]);
+
+  const membershipStatus = activeSubscription?.status || "NONE";
+  const expiryDate = activeSubscription?.endDate
+    ? new Date(activeSubscription.endDate)
+    : null;
+  const daysToExpiry =
+    expiryDate ? Math.ceil((expiryDate.getTime() - Date.now()) / 86400000) : null;
+
+  const handleProfileSave = async () => {
+    if (!member) return;
+    try {
+      const updated = await membersService.update(member.id, {
+        phone: edit.phone.trim() || undefined,
+        address: edit.address.trim() || undefined,
+        avatarUrl: edit.avatarUrl.trim() || undefined,
+      });
+      setMember(updated);
+      toast.success("Profile updated");
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to update profile");
+    }
+  };
+
+  const handleChangePassword = async () => {
+    if (!passwordForm.currentPassword || !passwordForm.newPassword) {
+      toast.error("Please fill current and new password.");
+      return;
+    }
+    if (passwordForm.newPassword.length < 8) {
+      toast.error("New password must be at least 8 characters.");
+      return;
+    }
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      toast.error("Passwords do not match.");
+      return;
+    }
+    try {
+      await authService.changePassword({
+        currentPassword: passwordForm.currentPassword,
+        newPassword: passwordForm.newPassword,
+      });
+      setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
+      toast.success("Password updated");
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to update password");
+    }
+  };
+
+  const handleSubmitPayment = async () => {
+    if (!selectedPlan) {
+      toast.error("Please choose a plan first.");
+      return;
+    }
+    if (member?.subscriptions?.some((s) => s.status === "ACTIVE")) {
+      toast.error("You already have an active membership. Cancel or wait until it expires.");
+      return;
+    }
+    if (!paymentForm.transactionNo.trim()) {
+      toast.error("Transaction number is required.");
+      return;
+    }
+    if (paymentForm.discountCode.trim() && !discountValidated) {
+      toast.error("Please apply the discount code before submitting.");
+      return;
+    }
+
+    try {
+      let screenshotUrl = paymentForm.screenshotUrl;
+      if (!screenshotUrl) {
+        if (isUploadingProof) {
+          toast.error("Proof is still uploading. Please wait.");
+          return;
+        }
+        const fileToUpload = proofFile || proofInputRef.current?.files?.[0] || null;
+        if (fileToUpload) {
+          const uploadedUrl = await handleProofUpload(fileToUpload);
+          if (uploadedUrl) {
+            screenshotUrl = uploadedUrl;
+          }
+        }
+      }
+      if (!screenshotUrl) {
+        toast.error("Payment screenshot is required.");
+        return;
+      }
+
+      const subscription = await membershipsService.subscribe({
+        planId: selectedPlan.id,
+        discountCode: paymentForm.discountCode.trim() || undefined,
+      });
+
+      const amountValue =
+        paymentForm.amount.trim() !== ""
+          ? Number(paymentForm.amount)
+          : subscription.finalPrice || subscription.originalPrice || 0;
+      if (!amountValue) {
+        toast.error("Amount is required.");
+        return;
+      }
+
+      const created = await paymentsService.create({
+        subscriptionId: subscription.id,
+        amount: amountValue,
+        currency: "MMK",
+        methodType: paymentForm.methodType as any,
+        provider: paymentForm.provider as any,
+        transactionNo: paymentForm.transactionNo.trim(),
+        screenshotUrl: screenshotUrl.trim() || undefined,
+      });
+      setPayments((prev) => [created, ...prev]);
+      setPaymentForm((prev) => ({
+        ...prev,
+        transactionNo: "",
+        screenshotUrl: "",
+        discountCode: "",
+      }));
+      setProofFile(null);
+      setDiscountPreview(null);
+      setDiscountValidated(false);
+      const refreshed = await membersService.getMe();
+      setMember(refreshed);
+      toast.success("Payment submitted. Awaiting admin review.");
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to submit payment.");
+    }
+  };
+
+  useEffect(() => {
+    setDiscountPreview(null);
+    setDiscountValidated(false);
+    setPaymentForm((prev) => ({
+      ...prev,
+      amount: "",
+      discountCode: "",
+      screenshotUrl: "",
+      transactionNo: "",
+    }));
+    setProofFile(null);
+    if (proofInputRef.current) {
+      proofInputRef.current.value = "";
+    }
+  }, [selectedPlan?.id]);
+
+  const handleDiscountPreview = async () => {
+    if (!selectedPlan) {
+      toast.error("Select a plan first.");
+      return;
+    }
+    if (!paymentForm.discountCode.trim()) {
+      toast.error("Enter a discount code.");
+      return;
+    }
+    try {
+      const preview = await membershipsService.previewDiscount(
+        selectedPlan.id,
+        paymentForm.discountCode.trim(),
+      );
+      const finalPrice = Number(preview.finalPrice || preview.amount || 0);
+      setDiscountPreview(finalPrice);
+      setDiscountValidated(true);
+      if (finalPrice) {
+        setPaymentForm((prev) => ({ ...prev, amount: String(finalPrice) }));
+      }
+      toast.success(`Discount applied. Final price: ${finalPrice.toLocaleString()} MMK`);
+    } catch (err: any) {
+      setDiscountPreview(null);
+      setDiscountValidated(false);
+      toast.error(err?.response?.data?.message || "Invalid discount code.");
+    }
+  };
+
+  const handleAvatarUpload = async (file: File) => {
+    setIsUploadingAvatar(true);
+    try {
+      const uploaded = await uploadsService.uploadImage(file);
+      setEdit((prev) => ({ ...prev, avatarUrl: uploaded.url }));
+      toast.success("Image uploaded");
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to upload image");
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
+
+  const handleProofUpload = async (file: File) => {
+    setIsUploadingProof(true);
+    try {
+      const uploaded = await uploadsService.uploadImage(file);
+      setPaymentForm((prev) => ({ ...prev, screenshotUrl: uploaded.url }));
+      toast.success("Payment proof uploaded");
+      return uploaded.url;
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to upload proof");
+      return null;
+    } finally {
+      setIsUploadingProof(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64 text-muted-foreground">
+        Loading member dashboard...
+      </div>
+    );
+  }
+
+  if (!member) {
+    return (
+      <div className="flex items-center justify-center h-64 text-muted-foreground">
+        Member profile not found.
+      </div>
+    );
+  }
+
+  const paymentStatus = latestPayment?.status
+    ? latestPayment.status
+    : membershipStatus === "ACTIVE"
+    ? "PAID"
+    : membershipStatus === "PENDING"
+    ? "PENDING"
+    : membershipStatus === "EXPIRED" || membershipStatus === "CANCELLED"
+    ? "EXPIRED"
+    : "UNKNOWN";
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild><Link to="/members"><ArrowLeft className="h-5 w-5" /></Link></Button>
-        <div className="flex-1">
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold">Hi {member.name.split(" ")[0]},</h1>
-            <span className="text-muted-foreground text-lg">Welcome back!</span>
-          </div>
-          <p className="text-sm text-muted-foreground">Health Records Dashboard</p>
-        </div>
-        <Badge variant={statusColor} className="text-sm">{member.status}</Badge>
+      <div>
+        <h1 className="text-2xl font-bold">Member Dashboard</h1>
+        <p className="text-sm text-muted-foreground">
+          Manage your profile and membership
+        </p>
       </div>
 
-      {/* Top Stats Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-card border-border">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-primary/20 flex items-center justify-center"><Flame className="h-5 w-5 text-primary" /></div>
-              <div>
-                <p className="text-2xl font-bold">19,365</p>
-                <p className="text-xs text-muted-foreground">KCAL Totally</p>
-              </div>
-              <Badge variant="secondary" className="ml-auto text-xs">↑ 16%</Badge>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-card border-border">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-destructive/20 flex items-center justify-center"><Heart className="h-5 w-5 text-destructive" /></div>
-              <div>
-                <p className="text-2xl font-bold">89 <span className="text-sm font-normal text-muted-foreground">bpm</span></p>
-                <p className="text-xs text-muted-foreground">Heart Rate</p>
-              </div>
-              <Badge variant="secondary" className="ml-auto text-xs">+7%</Badge>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-card border-border">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-blue-500/20 flex items-center justify-center"><Droplets className="h-5 w-5 text-blue-500" /></div>
-              <div>
-                <p className="text-2xl font-bold">97.5<span className="text-sm font-normal text-muted-foreground">%</span></p>
-                <p className="text-xs text-muted-foreground">SpO2 Level</p>
-              </div>
-              <Badge variant="secondary" className="ml-auto text-xs">±0.2%</Badge>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-card border-border">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-primary/20 flex items-center justify-center"><Dumbbell className="h-5 w-5 text-primary" /></div>
-              <div>
-                <p className="text-2xl font-bold">265</p>
-                <p className="text-xs text-muted-foreground">Calories Burned</p>
-              </div>
-              <Badge variant="secondary" className="ml-auto text-xs">↑ 24%</Badge>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <Card className="lg:col-span-2 bg-card border-border">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Analytics Tracker</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={workoutData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="day" stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} />
-                <Bar dataKey="minutes" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-card border-border">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg">Progress</CardTitle>
-              <Badge variant="outline">Running</Badge>
-            </div>
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle>Profile</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Running</span>
-              <span className="text-2xl font-bold">139</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label>Name</Label>
+                <p className="text-sm font-medium">
+                  {member.firstName} {member.lastName}
+                </p>
+              </div>
+              <div>
+                <Label>Email</Label>
+                <p className="text-sm font-medium">{member.email}</p>
+              </div>
+              <div>
+                <Label>Role</Label>
+                <p className="text-sm font-medium">{user?.role || "MEMBER"}</p>
+              </div>
+              <div>
+                <Label>Membership status</Label>
+                <Badge variant={membershipStatus === "ACTIVE" ? "default" : "secondary"}>
+                  {membershipStatus}
+                </Badge>
+              </div>
             </div>
-            <Progress value={72} className="h-2" />
-            <div className="grid grid-cols-3 gap-2 text-center">
-              <div><p className="text-xs text-muted-foreground">Running</p><p className="text-sm font-medium">4.5km</p></div>
-              <div><p className="text-xs text-muted-foreground">Workout</p><p className="text-sm font-medium">45min</p></div>
-              <div><p className="text-xs text-muted-foreground">Daily</p><p className="text-sm font-medium">✓</p></div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <Label>Phone</Label>
+                <Input
+                  value={edit.phone}
+                  onChange={(e) => setEdit({ ...edit, phone: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label>Address</Label>
+                <Input
+                  value={edit.address}
+                  onChange={(e) => setEdit({ ...edit, address: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label>Avatar URL</Label>
+                <Input
+                  type="file"
+                  accept="image/*"
+                  disabled={isUploadingAvatar}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      handleAvatarUpload(file);
+                    }
+                  }}
+                />
+                {edit.avatarUrl && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Uploaded: {edit.avatarUrl}
+                  </p>
+                )}
+              </div>
             </div>
+
+            <Button onClick={handleProfileSave}>Save profile</Button>
           </CardContent>
         </Card>
-      </div>
 
-      {/* Bottom Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <Card className="bg-card border-border">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Monthly Calories</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={160}>
-              <AreaChart data={monthlyProgress}>
-                <defs>
-                  <linearGradient id="calGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} />
-                <Area type="monotone" dataKey="calories" stroke="hsl(var(--primary))" fill="url(#calGrad)" />
-              </AreaChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-card border-border">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg">Checklist</CardTitle>
-              <Activity className="h-4 w-4 text-primary" />
-            </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Change Password</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {checklistItems.map((item, i) => (
-              <div key={i} className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className={`h-4 w-4 ${item.done ? "text-primary" : "text-muted-foreground"}`} />
-                  <span className={`text-sm ${item.done ? "" : "text-muted-foreground"}`}>{item.label}</span>
-                </div>
-                <span className="text-xs text-muted-foreground">{item.value}</span>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-
-        <Card className="bg-card border-border">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg">Workout</CardTitle>
-              <Badge variant="secondary" className="text-xs">↑ 18%</Badge>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
             <div>
-              <p className="text-xs text-muted-foreground">Time Tracking</p>
-              <p className="text-2xl font-bold">139<span className="text-sm font-normal text-muted-foreground">/160h</span></p>
+              <Label>Current password</Label>
+              <Input
+                type="password"
+                value={passwordForm.currentPassword}
+                onChange={(e) =>
+                  setPasswordForm({ ...passwordForm, currentPassword: e.target.value })
+                }
+              />
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div><p className="text-xs text-muted-foreground">Oxygen</p><p className="text-lg font-bold">97.5%</p></div>
-              <div><p className="text-xs text-muted-foreground">Pulse</p><p className="text-lg font-bold">89 bpm</p></div>
+            <div>
+              <Label>New password</Label>
+              <Input
+                type="password"
+                value={passwordForm.newPassword}
+                onChange={(e) =>
+                  setPasswordForm({ ...passwordForm, newPassword: e.target.value })
+                }
+              />
             </div>
-            <div className="flex gap-1">
-              {["S","M","T","W","T","F","S"].map((d, i) => (
-                <div key={i} className={`flex-1 h-8 rounded text-xs flex items-center justify-center ${i === 1 || i === 3 || i === 5 ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground"}`}>{d}</div>
-              ))}
+            <div>
+              <Label>Confirm new password</Label>
+              <Input
+                type="password"
+                value={passwordForm.confirmPassword}
+                onChange={(e) =>
+                  setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })
+                }
+              />
             </div>
+            <Button variant="outline" onClick={handleChangePassword}>
+              Update password
+            </Button>
           </CardContent>
         </Card>
       </div>
 
-      {/* Payment History */}
-      {memberPayments.length > 0 && (
-        <Card className="bg-card border-border">
-          <CardHeader><CardTitle className="text-lg">Payment History</CardTitle></CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {memberPayments.map((p) => (
-                <div key={p.id} className="flex items-center justify-between py-2 border-b border-border last:border-0">
-                  <div><p className="text-sm font-medium">{p.plan}</p><p className="text-xs text-muted-foreground">{p.date}</p></div>
-                  <div className="flex items-center gap-3">
-                    <span className="font-medium">${p.amount}</span>
-                    <Badge variant={p.status === "paid" ? "default" : p.status === "pending" ? "secondary" : "destructive"}>{p.status}</Badge>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>Membership</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Active plan</span>
+              <span className="text-sm font-medium">
+                {activeSubscription?.membershipPlan?.name || "No active plan"}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Expiry date</span>
+              <span className="text-sm font-medium">
+                {expiryDate ? expiryDate.toLocaleDateString() : "N/A"}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Payment status</span>
+              <Badge variant={paymentStatus === "PAID" ? "default" : "secondary"}>
+                {paymentStatus}
+              </Badge>
+            </div>
+            {latestPayment?.transactionNo && (
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Transaction</span>
+                <span className="text-sm font-medium">{latestPayment.transactionNo}</span>
+              </div>
+            )}
+            {daysToExpiry !== null && daysToExpiry <= 14 && daysToExpiry >= 0 && (
+              <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-700">
+                Renewal reminder: your plan expires in {daysToExpiry} day
+                {daysToExpiry === 1 ? "" : "s"}.
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Membership History</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {member.subscriptions && member.subscriptions.length > 0 ? (
+              member.subscriptions.map((s) => (
+                <div key={s.id} className="flex items-center justify-between border-b border-border pb-2 last:border-0 last:pb-0">
+                  <div>
+                    <p className="text-sm font-medium">
+                      {s.membershipPlan?.name || "Membership plan"}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(s.startDate).toLocaleDateString()} → {new Date(s.endDate).toLocaleDateString()}
+                    </p>
                   </div>
+                  <Badge variant={s.status === "ACTIVE" ? "default" : "secondary"}>
+                    {s.status}
+                  </Badge>
+                </div>
+              ))
+            ) : (
+              <p className="text-sm text-muted-foreground">No membership history yet.</p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Choose a Membership Plan</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {member?.subscriptions?.some((s) => s.status === "ACTIVE") && (
+            <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-700">
+              You already have an active membership. New subscriptions are disabled until it expires.
+            </div>
+          )}
+          {plans.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No plans available.</p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {plans.map((plan) => (
+                <div
+                  key={plan.id}
+                  className={`rounded-lg border p-4 ${selectedPlan?.id === plan.id ? "border-primary" : "border-border"}`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium">{plan.name}</p>
+                      <p className="text-xs text-muted-foreground">{plan.description || "Membership plan"}</p>
+                    </div>
+                  {selectedPlan?.id === plan.id && discountPreview !== null ? (
+                    <div className="flex items-center gap-2 text-xs">
+                      <span className="line-through text-muted-foreground">
+                        {plan.price.toLocaleString()} MMK
+                      </span>
+                      <span className="text-primary font-medium">
+                        {discountPreview.toLocaleString()} MMK
+                      </span>
+                    </div>
+                  ) : (
+                    <Badge variant="outline">{plan.price.toLocaleString()} MMK</Badge>
+                  )}
+                  </div>
+                  <Button
+                    className="mt-3"
+                    variant={selectedPlan?.id === plan.id ? "default" : "outline"}
+                    onClick={() => setSelectedPlan(plan)}
+                    disabled={member?.subscriptions?.some((s) => s.status === "ACTIVE")}
+                  >
+                    {selectedPlan?.id === plan.id ? "Selected" : "Choose Plan"}
+                  </Button>
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
-      )}
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Payment</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {!selectedPlan ? (
+            <p className="text-sm text-muted-foreground">
+              Select a membership plan to continue.
+            </p>
+          ) : (
+            <>
+              <div className="rounded-md border border-border p-3 text-sm">
+                <p className="font-medium">{selectedPlan.name}</p>
+                <p className="text-muted-foreground">
+                  {selectedPlan.price.toLocaleString()} MMK · {selectedPlan.durationDays} days
+                </p>
+                {discountPreview !== null ? (
+                  <div className="mt-2 space-y-1">
+                    <div className="flex items-center gap-2 text-sm">
+                      <span className="line-through text-muted-foreground">
+                        {selectedPlan.price.toLocaleString()} MMK
+                      </span>
+                      <span className="text-primary font-medium">
+                        {discountPreview.toLocaleString()} MMK
+                      </span>
+                      <Badge variant="outline">Applied</Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      You save {(selectedPlan.price - discountPreview).toLocaleString()} MMK
+                    </p>
+                  </div>
+                ) : null}
+                {selectedPlan.features?.length ? (
+                  <ul className="mt-2 text-xs text-muted-foreground list-disc list-inside">
+                    {selectedPlan.features.map((feature) => (
+                      <li key={feature}>{feature}</li>
+                    ))}
+                  </ul>
+                ) : null}
+              </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <Label>Method</Label>
+              <Select
+                value={paymentForm.methodType}
+                onValueChange={(value) => setPaymentForm({ ...paymentForm, methodType: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="BANK">Bank</SelectItem>
+                  <SelectItem value="WALLET">Wallet</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Provider</Label>
+              <Select
+                value={paymentForm.provider}
+                onValueChange={(value) => setPaymentForm({ ...paymentForm, provider: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="AYA">AYA</SelectItem>
+                  <SelectItem value="KBZ">KBZ</SelectItem>
+                  <SelectItem value="CB">CB</SelectItem>
+                  <SelectItem value="UAB">UAB</SelectItem>
+                  <SelectItem value="A_BANK">A Bank</SelectItem>
+                  <SelectItem value="YOMA">Yoma</SelectItem>
+                  <SelectItem value="KBZ_PAY">KBZ Pay</SelectItem>
+                  <SelectItem value="AYA_PAY">AYA Pay</SelectItem>
+                  <SelectItem value="CB_PAY">CB Pay</SelectItem>
+                  <SelectItem value="UAB_PAY">UAB Pay</SelectItem>
+                  <SelectItem value="WAVE_MONEY">Wave Money</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Amount (MMK)</Label>
+              <Input
+                type="number"
+                min="0"
+                value={
+                  discountPreview !== null
+                    ? String(discountPreview)
+                    : selectedPlan?.price?.toString() || paymentForm.amount
+                }
+                readOnly
+              />
+              {discountPreview !== null && (
+                <div className="mt-1 flex items-center gap-2 text-xs">
+                  <span className="line-through text-muted-foreground">
+                    {selectedPlan?.price?.toLocaleString()} MMK
+                  </span>
+                  <span className="text-primary font-medium">
+                    {discountPreview.toLocaleString()} MMK
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label>Discount code (optional)</Label>
+              <div className="flex gap-2">
+                <Input
+                  value={paymentForm.discountCode}
+                  onChange={(e) => setPaymentForm({ ...paymentForm, discountCode: e.target.value })}
+                />
+                <Button type="button" variant="outline" onClick={handleDiscountPreview}>
+                  Apply
+                </Button>
+              </div>
+            </div>
+            <div>
+              <Label>Transaction No</Label>
+              <Input
+                value={paymentForm.transactionNo}
+                onChange={(e) => setPaymentForm({ ...paymentForm, transactionNo: e.target.value })}
+              />
+            </div>
+          </div>
+
+          <div>
+            <Label>Screenshot</Label>
+            <Input
+              type="file"
+              accept="image/*"
+              disabled={isUploadingProof}
+              ref={proofInputRef}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  setProofFile(file);
+                  handleProofUpload(file);
+                }
+                }}
+              />
+            {paymentForm.screenshotUrl && (
+              <p className="text-xs text-muted-foreground mt-1">
+                Uploaded: {paymentForm.screenshotUrl}
+              </p>
+            )}
+            {!paymentForm.screenshotUrl && proofFile && (
+              <p className="text-xs text-muted-foreground mt-1">
+                Selected: {proofFile.name}
+              </p>
+            )}
+          </div>
+
+          <Button onClick={handleSubmitPayment} disabled={isUploadingProof}>
+            {isUploadingProof ? "Uploading..." : "Submit Payment"}
+          </Button>
+            </>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };

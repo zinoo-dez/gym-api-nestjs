@@ -26,6 +26,8 @@ import { DiscountCodesModule } from './discount-codes/discount-codes.module';
 import { GymOperatingHoursModule } from './gym-operating-hours/gym-operating-hours.module';
 import { FeaturesModule } from './features/features.module';
 import { StaffModule } from './staff/staff.module';
+import { PaymentsModule } from './payments/payments.module';
+import { UploadsModule } from './uploads/uploads.module';
 
 @Module({
   imports: [
@@ -61,6 +63,8 @@ import { StaffModule } from './staff/staff.module';
     GymOperatingHoursModule,
     FeaturesModule,
     StaffModule,
+    PaymentsModule,
+    UploadsModule,
   ],
   controllers: [AppController],
   providers: [

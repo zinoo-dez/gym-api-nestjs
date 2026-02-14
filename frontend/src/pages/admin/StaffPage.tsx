@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/select";
 import { Plus, Search, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { uploadsService } from "@/services/uploads.service";
 
 const staffRoles: StaffRole[] = [
   "MANAGER",
@@ -64,6 +65,7 @@ const StaffPage = () => {
     emergencyContact: "",
     address: "",
   });
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
 
   const loadStaff = useCallback(async () => {
     setIsLoading(true);
@@ -193,6 +195,19 @@ const StaffPage = () => {
     } catch (err: any) {
       const message = err?.response?.data?.message || "Failed to save staff.";
       toast.error(message);
+    }
+  };
+
+  const handleAvatarUpload = async (file: File) => {
+    setIsUploadingAvatar(true);
+    try {
+      const uploaded = await uploadsService.uploadImage(file);
+      setForm((prev) => ({ ...prev, avatarUrl: uploaded.url }));
+      toast.success("Image uploaded");
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to upload image");
+    } finally {
+      setIsUploadingAvatar(false);
     }
   };
 
@@ -329,7 +344,20 @@ const StaffPage = () => {
             </div>
             <div className="space-y-2">
               <Label>Profile image URL</Label>
-              <Input value={form.avatarUrl} onChange={(e) => setForm({ ...form, avatarUrl: e.target.value })} />
+              <Input
+                type="file"
+                accept="image/*"
+                disabled={isUploadingAvatar}
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    handleAvatarUpload(file);
+                  }
+                }}
+              />
+              {form.avatarUrl && (
+                <p className="text-xs text-muted-foreground">Uploaded: {form.avatarUrl}</p>
+              )}
             </div>
             {!editing && (
               <div className="space-y-2">

@@ -215,6 +215,21 @@ export class MembershipsController {
     );
   }
 
+  @Get('memberships/discount-preview')
+  @Roles(UserRole.ADMIN, UserRole.MEMBER)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'Preview discount pricing for a plan',
+    description: 'Validate a discount code and return pricing preview.',
+  })
+  @ApiResponse({ status: 200, description: 'Discount preview returned' })
+  async previewDiscount(
+    @Query('planId') planId: string,
+    @Query('code') code: string,
+  ) {
+    return this.membershipsService.previewDiscount(planId, code);
+  }
+
   @Get('memberships/:id')
   @Roles(UserRole.ADMIN, UserRole.MEMBER)
   @ApiBearerAuth('JWT-auth')
@@ -239,21 +254,6 @@ export class MembershipsController {
     @CurrentUser() user: any,
   ): Promise<MembershipResponseDto> {
     return this.membershipsService.findMembershipById(id, user);
-  }
-
-  @Get('memberships/discount-preview')
-  @Roles(UserRole.ADMIN, UserRole.MEMBER)
-  @ApiBearerAuth('JWT-auth')
-  @ApiOperation({
-    summary: 'Preview discount pricing for a plan',
-    description: 'Validate a discount code and return pricing preview.',
-  })
-  @ApiResponse({ status: 200, description: 'Discount preview returned' })
-  async previewDiscount(
-    @Query('planId') planId: string,
-    @Query('code') code: string,
-  ) {
-    return this.membershipsService.previewDiscount(planId, code);
   }
 
   @Get('memberships/:id/invoice')

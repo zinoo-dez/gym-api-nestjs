@@ -45,6 +45,7 @@ export class AuthService {
         password: hashedPassword,
         firstName: registerDto.firstName,
         lastName: registerDto.lastName,
+        address: registerDto.address ?? '',
         avatarUrl: registerDto.avatarUrl ?? '',
         role: registerDto.role,
       },
@@ -163,6 +164,7 @@ export class AuthService {
     email: string;
     firstName: string;
     lastName: string;
+    address?: string | null;
     avatarUrl?: string | null;
     role: UserRole; // Using UserRole enum from schema
     createdAt: Date;
@@ -173,6 +175,7 @@ export class AuthService {
       email: user.email,
       firstName: user.firstName,
       lastName: user.lastName,
+      address: user.address || undefined,
       avatarUrl: user.avatarUrl || undefined,
       role: user.role,
       createdAt: user.createdAt,

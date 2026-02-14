@@ -14,6 +14,10 @@ export class UpdateTrainerDto {
   avatarUrl?: string;
 
   @IsOptional()
+  @IsString()
+  address?: string;
+
+  @IsOptional()
   @IsArray()
   @IsString({ each: true })
   specializations?: string[];

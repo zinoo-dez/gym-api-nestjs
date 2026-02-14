@@ -21,6 +21,9 @@ export class CreateStaffDto {
 
   @IsOptional()
   @IsString()
+
+  @IsOptional()
+  @IsString()
   avatarUrl?: string;
 
   @IsEnum(StaffRole)

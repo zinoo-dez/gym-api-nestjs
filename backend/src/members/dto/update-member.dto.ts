@@ -30,9 +30,20 @@ export class UpdateMemberDto {
   phone?: string;
 
   @ApiPropertyOptional({
+    description: 'Member address',
+    example: '123 Main St, Springfield',
+  })
+  @IsOptional()
+  @IsString()
+  address?: string;
+
+  @ApiPropertyOptional({
     description: 'Profile image URL',
     example: 'https://example.com/avatar.jpg',
   })
+  @IsOptional()
+  @IsString()
+  avatarUrl?: string;
 
   @ApiPropertyOptional({
     description: 'Member date of birth (ISO 8601 format)',
@@ -87,7 +98,4 @@ export class UpdateMemberDto {
   @IsString()
   emergencyContact?: string;
 
-  @IsOptional()
-  @IsString()
-  avatarUrl?: string;
 }

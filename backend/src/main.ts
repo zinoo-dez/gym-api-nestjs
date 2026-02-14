@@ -6,6 +6,8 @@ import { PrismaService } from './prisma/prisma.service';
 import { ResponseInterceptor, LoggingInterceptor } from './common/interceptors';
 import { ConfigService } from '@nestjs/config';
 import helmet from 'helmet';
+import * as express from 'express';
+import { join } from 'path';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -71,6 +73,9 @@ async function bootstrap() {
     exposedHeaders: ['X-Total-Count', 'X-Page', 'X-Limit'],
     maxAge: 3600, // Cache preflight requests for 1 hour
   });
+
+  // Serve uploaded files
+  app.use('/uploads', express.static(join(process.cwd(), 'uploads')));
 
   // Note: GlobalExceptionFilter is now provided via APP_FILTER in AppModule
   // This ensures proper dependency injection of LoggerService

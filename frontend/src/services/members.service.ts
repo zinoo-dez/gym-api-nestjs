@@ -21,6 +21,7 @@ export interface Member {
   firstName: string;
   lastName: string;
   phone?: string;
+  address?: string;
   avatarUrl?: string;
   dateOfBirth?: string;
   gender?: string;
@@ -48,6 +49,7 @@ export interface CreateMemberRequest {
   firstName: string;
   lastName: string;
   phone?: string;
+  address?: string;
   avatarUrl?: string;
   dateOfBirth?: string;
   gender?: string;
@@ -61,6 +63,7 @@ export interface UpdateMemberRequest {
   firstName?: string;
   lastName?: string;
   phone?: string;
+  address?: string;
   avatarUrl?: string;
   dateOfBirth?: string;
   gender?: string;

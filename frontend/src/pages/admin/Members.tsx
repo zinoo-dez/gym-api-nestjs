@@ -39,6 +39,7 @@ import {
 } from "@/components/ui/select";
 import { Plus, Search, Pencil, Trash2, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
+import { uploadsService } from "@/services/uploads.service";
 
 const Members = () => {
     const [members, setMembers] = useState<Member[]>([]);
@@ -54,6 +55,7 @@ const Members = () => {
         lastName: "",
         email: "",
         phone: "",
+        address: "",
         avatarUrl: "",
         dateOfBirth: "",
         password: "",
@@ -63,6 +65,7 @@ const Members = () => {
         targetWeight: "",
         emergencyContact: "",
     });
+    const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
 
     const loadMembers = useCallback(async () => {
         setIsLoading(true);
@@ -114,6 +117,7 @@ const Members = () => {
             lastName: "",
             email: "",
             phone: "",
+            address: "",
             avatarUrl: "",
             dateOfBirth: "",
             password: "",
@@ -133,6 +137,7 @@ const Members = () => {
             lastName: member.lastName,
             email: member.email,
             phone: member.phone || "",
+            address: member.address || "",
             avatarUrl: member.avatarUrl || "",
             dateOfBirth: member.dateOfBirth ? member.dateOfBirth.split("T")[0] : "",
             password: "",
@@ -157,6 +162,7 @@ const Members = () => {
                     firstName: form.firstName.trim(),
                     lastName: form.lastName.trim(),
                     phone: form.phone.trim() || undefined,
+                    address: form.address.trim() || undefined,
                     avatarUrl: form.avatarUrl.trim() || undefined,
                     dateOfBirth: form.dateOfBirth || undefined,
                     gender: form.gender.trim() || undefined,
@@ -181,6 +187,7 @@ const Members = () => {
                     firstName: form.firstName.trim(),
                     lastName: form.lastName.trim(),
                     phone: form.phone.trim() || undefined,
+                    address: form.address.trim() || undefined,
                     avatarUrl: form.avatarUrl.trim() || undefined,
                     dateOfBirth: form.dateOfBirth || undefined,
                     gender: form.gender.trim() || undefined,
@@ -198,6 +205,19 @@ const Members = () => {
         } catch (err: any) {
             const message = err?.response?.data?.message || "Failed to save member.";
             toast.error(message);
+        }
+    };
+
+    const handleAvatarUpload = async (file: File) => {
+        setIsUploadingAvatar(true);
+        try {
+            const uploaded = await uploadsService.uploadImage(file);
+            setForm((prev) => ({ ...prev, avatarUrl: uploaded.url }));
+            toast.success("Image uploaded");
+        } catch (err: any) {
+            toast.error(err?.response?.data?.message || "Failed to upload image");
+        } finally {
+            setIsUploadingAvatar(false);
         }
     };
 
@@ -483,12 +503,31 @@ const Members = () => {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label>Profile image URL</Label>
+                            <Label>Address</Label>
                             <Input
                                 type="text"
-                                value={form.avatarUrl}
-                                onChange={(e) => setForm({ ...form, avatarUrl: e.target.value })}
+                                value={form.address}
+                                onChange={(e) => setForm({ ...form, address: e.target.value })}
                             />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Profile image URL</Label>
+                            <Input
+                                type="file"
+                                accept="image/*"
+                                disabled={isUploadingAvatar}
+                                onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) {
+                                        handleAvatarUpload(file);
+                                    }
+                                }}
+                            />
+                            {form.avatarUrl && (
+                                <p className="text-xs text-muted-foreground">
+                                    Uploaded: {form.avatarUrl}
+                                </p>
+                            )}
                         </div>
                         <div className="space-y-2">
                             <Label>Date of Birth</Label>
