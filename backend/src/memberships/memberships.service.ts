@@ -92,7 +92,7 @@ export class MembershipsService {
 
       return tx.membershipPlan.findUnique({
         where: { id: created.id },
-        include: { planFeatures: { include: { feature: true } } },
+        include: { membershipPlanFeatures: { include: { feature: true } } },
       });
     });
 
@@ -161,7 +161,7 @@ export class MembershipsService {
       orderBy: { createdAt: 'desc' },
       skip,
       take: limit,
-      include: { planFeatures: { include: { feature: true } } },
+      include: { membershipPlanFeatures: { include: { feature: true } } },
     });
 
     const planDtos = plans.map((plan) => this.toPlanResponseDto(plan));
@@ -190,7 +190,7 @@ export class MembershipsService {
 
     const plan = await this.prisma.membershipPlan.findUnique({
       where: { id },
-      include: { planFeatures: { include: { feature: true } } },
+      include: { membershipPlanFeatures: { include: { feature: true } } },
     });
 
     if (!plan) {
@@ -272,7 +272,7 @@ export class MembershipsService {
 
       return tx.membershipPlan.findUnique({
         where: { id },
-        include: { planFeatures: { include: { feature: true } } },
+        include: { membershipPlanFeatures: { include: { feature: true } } },
       });
     });
 
@@ -322,7 +322,9 @@ export class MembershipsService {
       );
     }
 
-    const deletedPlan = await this.prisma.membershipPlan.delete({ where: { id } });
+    const deletedPlan = await this.prisma.membershipPlan.delete({
+      where: { id },
+    });
 
     const settings = await this.prisma.gymSetting.findFirst({
       select: { newPaymentNotification: true },
@@ -454,7 +456,10 @@ export class MembershipsService {
   ): Promise<MembershipResponseDto> {
     const member = await this.prisma.member.findUnique({
       where: { userId },
-      select: { id: true, user: { select: { firstName: true, lastName: true } } },
+      select: {
+        id: true,
+        user: { select: { firstName: true, lastName: true } },
+      },
     });
 
     if (!member) {
@@ -727,7 +732,10 @@ export class MembershipsService {
     if (settings?.newMembershipNotification !== false) {
       const memberRecord = await this.prisma.member.findUnique({
         where: { id: updated.memberId },
-        select: { userId: true, user: { select: { firstName: true, lastName: true } } },
+        select: {
+          userId: true,
+          user: { select: { firstName: true, lastName: true } },
+        },
       });
       const fullName = memberRecord?.user
         ? `${memberRecord.user.firstName} ${memberRecord.user.lastName}`.trim()
@@ -780,7 +788,10 @@ export class MembershipsService {
     if (settings?.newMembershipNotification !== false) {
       const memberRecord = await this.prisma.member.findUnique({
         where: { id: updated.memberId },
-        select: { userId: true, user: { select: { firstName: true, lastName: true } } },
+        select: {
+          userId: true,
+          user: { select: { firstName: true, lastName: true } },
+        },
       });
       const fullName = memberRecord?.user
         ? `${memberRecord.user.firstName} ${memberRecord.user.lastName}`.trim()
@@ -828,7 +839,10 @@ export class MembershipsService {
     if (settings?.newMembershipNotification !== false) {
       const memberRecord = await this.prisma.member.findUnique({
         where: { id: updated.memberId },
-        select: { userId: true, user: { select: { firstName: true, lastName: true } } },
+        select: {
+          userId: true,
+          user: { select: { firstName: true, lastName: true } },
+        },
       });
       const fullName = memberRecord?.user
         ? `${memberRecord.user.firstName} ${memberRecord.user.lastName}`.trim()
@@ -870,7 +884,9 @@ export class MembershipsService {
     });
 
     if (!membership) {
-      throw new NotFoundException(`Membership with ID ${membershipId} not found`);
+      throw new NotFoundException(
+        `Membership with ID ${membershipId} not found`,
+      );
     }
 
     if (
@@ -1041,8 +1057,8 @@ export class MembershipsService {
       accessToEquipment: plan.accessToEquipment,
       accessToLocker: plan.accessToLocker,
       nutritionConsultation: plan.nutritionConsultation,
-      planFeatures: Array.isArray(plan.planFeatures)
-        ? plan.planFeatures.map((planFeature: any) => ({
+      planFeatures: Array.isArray(plan.membershipPlanFeatures)
+        ? plan.membershipPlanFeatures.map((planFeature: any) => ({
             featureId: planFeature.featureId,
             name: planFeature.feature?.name ?? '',
             description: planFeature.feature?.description ?? undefined,
@@ -1138,7 +1154,10 @@ export class MembershipsService {
       if (code.endsAt && now > code.endsAt) {
         throw new BadRequestException('Discount code has expired');
       }
-      if (code.maxRedemptions !== null && code.usedCount >= code.maxRedemptions) {
+      if (
+        code.maxRedemptions !== null &&
+        code.usedCount >= code.maxRedemptions
+      ) {
         throw new BadRequestException('Discount code redemption limit reached');
       }
 
@@ -1181,7 +1200,9 @@ export class MembershipsService {
     });
 
     if (!plan) {
-      throw new NotFoundException(`Membership plan with ID ${planId} not found`);
+      throw new NotFoundException(
+        `Membership plan with ID ${planId} not found`,
+      );
     }
 
     const basePrice = Number(plan.price || 0);

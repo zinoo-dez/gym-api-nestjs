@@ -3,7 +3,6 @@ import { PrismaClient } from '@prisma/client';
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
 import * as bcrypt from 'bcrypt';
-import { randomUUID } from 'node:crypto';
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -29,8 +28,8 @@ async function main() {
   await prisma.trainer.deleteMany();
   await prisma.user.deleteMany();
   await prisma.equipment.deleteMany();
-  await prisma.membership_plan_features.deleteMany();
-  await prisma.features.deleteMany();
+  await prisma.membershipPlanFeature.deleteMany();
+  await prisma.feature.deleteMany();
   console.log('✓ Cleaned\n');
 
   // Hash password
@@ -55,42 +54,40 @@ async function main() {
     {
       name: 'Full equipment access',
       description: 'Access to all gym equipment',
-      is_system: true,
-      default_name: 'Full equipment access',
+      isSystem: true,
+      defaultName: 'Full equipment access',
     },
     {
       name: 'Unlimited group classes',
       description: 'Access to all group fitness classes',
-      is_system: true,
-      default_name: 'Unlimited group classes',
+      isSystem: true,
+      defaultName: 'Unlimited group classes',
     },
     {
       name: '4 personal training hours',
       description: 'Monthly personal training sessions',
-      is_system: true,
-      default_name: '4 personal training hours',
+      isSystem: true,
+      defaultName: '4 personal training hours',
     },
     {
       name: 'Locker access',
       description: 'Private locker for your belongings',
-      is_system: true,
-      default_name: 'Locker access',
+      isSystem: true,
+      defaultName: 'Locker access',
     },
     {
       name: 'Nutrition consultation',
       description: 'Monthly session with a nutritionist',
-      is_system: true,
-      default_name: 'Nutrition consultation',
+      isSystem: true,
+      defaultName: 'Nutrition consultation',
     },
   ];
 
   const createdFeatures: any = {};
   for (const feature of systemFeatures) {
-    const created = await prisma.features.create({
+    const created = await prisma.feature.create({
       data: {
         ...feature,
-        id: randomUUID(),
-        updated_at: new Date(),
       },
     });
     createdFeatures[feature.name] = created.id;
@@ -110,13 +107,11 @@ async function main() {
       accessToEquipment: true,
       accessToLocker: false,
       nutritionConsultation: false,
-      membership_plan_features: {
+      membershipPlanFeatures: {
         create: [
           {
-            id: randomUUID(),
-            feature_id: createdFeatures['Full equipment access'],
+            featureId: createdFeatures['Full equipment access'],
             level: 'BASIC',
-            updated_at: new Date(),
           },
         ],
       },
@@ -134,25 +129,19 @@ async function main() {
       accessToEquipment: true,
       accessToLocker: true,
       nutritionConsultation: false,
-      membership_plan_features: {
+      membershipPlanFeatures: {
         create: [
           {
-            id: randomUUID(),
-            feature_id: createdFeatures['Full equipment access'],
+            featureId: createdFeatures['Full equipment access'],
             level: 'STANDARD',
-            updated_at: new Date(),
           },
           {
-            id: randomUUID(),
-            feature_id: createdFeatures['Unlimited group classes'],
+            featureId: createdFeatures['Unlimited group classes'],
             level: 'BASIC',
-            updated_at: new Date(),
           },
           {
-            id: randomUUID(),
-            feature_id: createdFeatures['Locker access'],
+            featureId: createdFeatures['Locker access'],
             level: 'BASIC',
-            updated_at: new Date(),
           },
         ],
       },
@@ -170,37 +159,27 @@ async function main() {
       accessToEquipment: true,
       accessToLocker: true,
       nutritionConsultation: true,
-      membership_plan_features: {
+      membershipPlanFeatures: {
         create: [
           {
-            id: randomUUID(),
-            feature_id: createdFeatures['Full equipment access'],
+            featureId: createdFeatures['Full equipment access'],
             level: 'PREMIUM',
-            updated_at: new Date(),
           },
           {
-            id: randomUUID(),
-            feature_id: createdFeatures['Unlimited group classes'],
+            featureId: createdFeatures['Unlimited group classes'],
             level: 'PREMIUM',
-            updated_at: new Date(),
           },
           {
-            id: randomUUID(),
-            feature_id: createdFeatures['4 personal training hours'],
+            featureId: createdFeatures['4 personal training hours'],
             level: 'BASIC',
-            updated_at: new Date(),
           },
           {
-            id: randomUUID(),
-            feature_id: createdFeatures['Locker access'],
+            featureId: createdFeatures['Locker access'],
             level: 'STANDARD',
-            updated_at: new Date(),
           },
           {
-            id: randomUUID(),
-            feature_id: createdFeatures['Nutrition consultation'],
+            featureId: createdFeatures['Nutrition consultation'],
             level: 'BASIC',
-            updated_at: new Date(),
           },
         ],
       },
