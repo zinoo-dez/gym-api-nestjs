@@ -480,7 +480,7 @@ export class MembershipsService {
     const activeMembership = await this.prisma.subscription.findFirst({
       where: {
         memberId: member.id,
-        status: SubscriptionStatus.ACTIVE,
+        status: { in: [SubscriptionStatus.ACTIVE, SubscriptionStatus.PENDING] },
         endDate: {
           gte: new Date(),
         },
@@ -490,7 +490,7 @@ export class MembershipsService {
 
     if (activeMembership) {
       throw new ConflictException(
-        'You already have an active membership. Use upgrade to change plans.',
+        'You already have a membership awaiting approval or active. Use upgrade to change plans.',
       );
     }
 
@@ -511,7 +511,7 @@ export class MembershipsService {
         membershipPlanId: subscribeDto.planId,
         startDate,
         endDate,
-        status: SubscriptionStatus.ACTIVE,
+        status: SubscriptionStatus.PENDING,
         originalPrice: pricing.originalPrice,
         finalPrice: pricing.finalPrice,
         discountAmount: pricing.discountAmount,
@@ -535,7 +535,7 @@ export class MembershipsService {
         title: 'New membership subscription',
         message: `${fullName} subscribed to ${plan.name}.`,
         type: 'success',
-        actionUrl: '/admin/members',
+        actionUrl: '/admin/payments',
       });
     }
 

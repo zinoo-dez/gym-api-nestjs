@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma, PaymentStatus, UserRole } from '@prisma/client';
+import { Prisma, PaymentStatus, SubscriptionStatus, UserRole } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { PaginatedResponseDto } from '../common/dto/paginated-response.dto';
 import { CreatePaymentDto } from './dto/create-payment.dto';
@@ -158,17 +158,59 @@ export class PaymentsService {
     id: string,
     dto: UpdatePaymentStatusDto,
   ): Promise<PaymentResponseDto> {
-    const payment = await this.prisma.payment.update({
-      where: { id },
-      data: {
-        status: dto.status,
-        adminNote: dto.adminNote,
-        paidAt: dto.status === PaymentStatus.PAID ? new Date() : undefined,
-      },
-      include: {
-        member: { include: { user: true } },
-        subscription: { include: { membershipPlan: true } },
-      },
+    const payment = await this.prisma.$transaction(async (tx) => {
+      const existing = await tx.payment.findUnique({
+        where: { id },
+        include: {
+          member: { include: { user: true } },
+          subscription: { include: { membershipPlan: true } },
+        },
+      });
+
+      if (!existing) {
+        throw new NotFoundException('Payment not found.');
+      }
+
+      const updated = await tx.payment.update({
+        where: { id },
+        data: {
+          status: dto.status,
+          adminNote: dto.adminNote,
+          paidAt: dto.status === PaymentStatus.PAID ? new Date() : undefined,
+        },
+        include: {
+          member: { include: { user: true } },
+          subscription: { include: { membershipPlan: true } },
+        },
+      });
+
+      if (updated.subscriptionId) {
+        if (dto.status === PaymentStatus.PAID) {
+          const durationDays =
+            updated.subscription?.membershipPlan?.duration || 30;
+          const startDate = new Date();
+          const endDate = new Date(startDate);
+          endDate.setDate(endDate.getDate() + durationDays);
+
+          await tx.subscription.update({
+            where: { id: updated.subscriptionId },
+            data: {
+              status: SubscriptionStatus.ACTIVE,
+              startDate,
+              endDate,
+            },
+          });
+        } else if (dto.status === PaymentStatus.REJECTED) {
+          await tx.subscription.update({
+            where: { id: updated.subscriptionId },
+            data: {
+              status: SubscriptionStatus.CANCELLED,
+            },
+          });
+        }
+      }
+
+      return updated;
     });
 
     return this.toResponseDto(payment);

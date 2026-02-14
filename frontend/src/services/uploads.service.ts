@@ -12,12 +12,12 @@ export const uploadsService = {
     const formData = new FormData();
     formData.append("file", file);
 
-    const response = await apiClient.post<UploadResponse>("/uploads", formData, {
+    const response = await apiClient.post<{ data: UploadResponse }>("/uploads", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
     });
 
-    return response.data;
+    return response.data.data;
   },
 };

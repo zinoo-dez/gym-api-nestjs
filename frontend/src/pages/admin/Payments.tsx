@@ -15,6 +15,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Search, DollarSign, Clock, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 
+const API_BASE = (import.meta.env.VITE_API_URL || "http://localhost:3000/api").replace(
+  /\/api\/?$/,
+  "",
+);
+
 const statusOptions: Array<{ label: string; value: PaymentStatus | "all" }> = [
   { label: "All", value: "all" },
   { label: "Paid", value: "PAID" },
@@ -220,14 +225,24 @@ const Payments = () => {
                     <TableCell className="hidden lg:table-cell">{p.transactionNo}</TableCell>
                     <TableCell className="hidden xl:table-cell">
                       {p.screenshotUrl ? (
+                        (() => {
+                          const decoded = p.screenshotUrl
+                            .replace(/&#x2F;/g, "/")
+                            .replace(/&amp;/g, "&");
+                          const proofUrl = decoded.startsWith("http")
+                            ? decoded
+                            : `${API_BASE}${decoded.startsWith("/") ? "" : "/"}${decoded}`;
+                          return (
                         <a
                           className="text-primary hover:underline"
-                          href={p.screenshotUrl}
+                          href={proofUrl}
                           target="_blank"
                           rel="noreferrer"
                         >
                           View
                         </a>
+                          );
+                        })()
                       ) : (
                         "—"
                       )}

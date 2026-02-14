@@ -10,6 +10,7 @@ import { paymentsService, type Payment } from "@/services/payments.service";
 import { membershipsService, type MembershipPlan } from "@/services/memberships.service";
 import { uploadsService } from "@/services/uploads.service";
 import { authService } from "@/services/auth.service";
+import { notificationsService, type NotificationItem } from "@/services/notifications.service";
 import { useAuthStore } from "@/store/auth.store";
 import { toast } from "sonner";
 
@@ -20,6 +21,7 @@ const MemberDashboard = () => {
   const [plans, setPlans] = useState<MembershipPlan[]>([]);
   const [selectedPlan, setSelectedPlan] = useState<MembershipPlan | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [edit, setEdit] = useState({
     phone: "",
     address: "",
@@ -49,14 +51,16 @@ const MemberDashboard = () => {
     const load = async () => {
       setIsLoading(true);
       try {
-        const [data, paymentList, planList] = await Promise.all([
+        const [data, paymentList, planList, notificationList] = await Promise.all([
           membersService.getMe(),
           paymentsService.getMyPayments(),
           membershipsService.getAllPlans({ limit: 50 }),
+          notificationsService.getMe(),
         ]);
         setMember(data);
         setPayments(Array.isArray(paymentList) ? paymentList : []);
         setPlans(Array.isArray(planList.data) ? planList.data : []);
+        setNotifications(Array.isArray(notificationList) ? notificationList : []);
         setEdit({
           phone: data.phone || "",
           address: data.address || "",
@@ -72,11 +76,49 @@ const MemberDashboard = () => {
     load();
   }, []);
 
+  const markNotificationRead = async (id: string) => {
+    try {
+      await notificationsService.markRead(id);
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, read: true } : n)),
+      );
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to mark notification read");
+    }
+  };
+
+  const markAllNotificationsRead = async () => {
+    try {
+      await notificationsService.markAllMeRead();
+      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to mark all notifications read");
+    }
+  };
+
+  const formatTimeAgo = (value: string) => {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    const diffMs = Date.now() - date.getTime();
+    const mins = Math.floor(diffMs / 60000);
+    if (mins < 1) return "Just now";
+    if (mins < 60) return `${mins} min ago`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `${hours} hr ago`;
+    const days = Math.floor(hours / 24);
+    return `${days} day${days === 1 ? "" : "s"} ago`;
+  };
+
   const activeSubscription = useMemo(() => {
     if (!member?.subscriptions?.length) return undefined;
     const active = member.subscriptions.find((s) => s.status === "ACTIVE");
     return active || member.subscriptions[0];
   }, [member]);
+
+  const hasActiveOrPending = useMemo(
+    () => member?.subscriptions?.some((s) => s.status === "ACTIVE" || s.status === "PENDING") || false,
+    [member],
+  );
 
   const latestPayment = useMemo(() => {
     if (!activeSubscription) return undefined;
@@ -135,8 +177,8 @@ const MemberDashboard = () => {
       toast.error("Please choose a plan first.");
       return;
     }
-    if (member?.subscriptions?.some((s) => s.status === "ACTIVE")) {
-      toast.error("You already have an active membership. Cancel or wait until it expires.");
+    if (hasActiveOrPending) {
+      toast.error("You already have an active or pending membership. Please wait for admin approval.");
       return;
     }
     if (!paymentForm.transactionNo.trim()) {
@@ -495,13 +537,57 @@ const MemberDashboard = () => {
       </div>
 
       <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Notifications</CardTitle>
+          <Button size="sm" variant="outline" onClick={markAllNotificationsRead}>
+            Mark all read
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {notifications.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No notifications yet.</p>
+          ) : (
+            <div className="max-h-64 overflow-y-auto space-y-3 pr-2">
+              {notifications.map((n) => (
+                <div
+                  key={n.id}
+                  className={`rounded-md border p-3 ${n.read ? "bg-background" : "bg-primary/5 border-primary/20"}`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className={`text-sm font-medium ${n.read ? "" : "text-primary"}`}>
+                        {n.title}
+                      </p>
+                      <p className="text-xs text-muted-foreground">{n.message}</p>
+                      <p className="mt-1 text-[11px] text-muted-foreground">
+                        {formatTimeAgo(n.createdAt)}
+                      </p>
+                    </div>
+                    {!n.read && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => markNotificationRead(n.id)}
+                      >
+                        Mark read
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
         <CardHeader>
           <CardTitle>Choose a Membership Plan</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {member?.subscriptions?.some((s) => s.status === "ACTIVE") && (
+          {hasActiveOrPending && (
             <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-700">
-              You already have an active membership. New subscriptions are disabled until it expires.
+              You already have an active or pending membership. New subscriptions are disabled until approval or expiry.
             </div>
           )}
           {plans.length === 0 ? (
@@ -535,7 +621,7 @@ const MemberDashboard = () => {
                     className="mt-3"
                     variant={selectedPlan?.id === plan.id ? "default" : "outline"}
                     onClick={() => setSelectedPlan(plan)}
-                    disabled={member?.subscriptions?.some((s) => s.status === "ACTIVE")}
+                    disabled={hasActiveOrPending}
                   >
                     {selectedPlan?.id === plan.id ? "Selected" : "Choose Plan"}
                   </Button>
