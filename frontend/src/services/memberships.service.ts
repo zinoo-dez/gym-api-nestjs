@@ -195,6 +195,13 @@ export const membershipsService = {
     );
     return response.data.data ?? response.data;
   },
+
+  async getMembershipById(id: string) {
+    const response = await apiClient.get<ApiResponse<Membership>>(
+      `/memberships/${id}`,
+    );
+    return response.data.data ?? response.data;
+  },
 };
 
 function normalizePlan(plan: MembershipPlanApi): MembershipPlan {

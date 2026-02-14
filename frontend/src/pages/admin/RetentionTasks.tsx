@@ -84,7 +84,7 @@ const RetentionTasks = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 px-6">
       <div>
         <h1 className="text-2xl font-bold">Retention Tasks</h1>
         <p className="text-muted-foreground">Track and resolve high-risk member follow-ups</p>

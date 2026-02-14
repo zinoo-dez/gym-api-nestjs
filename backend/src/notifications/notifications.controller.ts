@@ -8,6 +8,7 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { UserRole } from '@prisma/client';
 import { NotificationResponseDto } from './dto/notification-response.dto';
 import { CreateNotificationDto } from './dto/create-notification.dto';
+import { SkipThrottle } from '@nestjs/throttler';
 
 @ApiTags('notifications')
 @ApiBearerAuth('JWT-auth')
@@ -17,6 +18,7 @@ export class NotificationsController {
   constructor(private readonly notificationsService: NotificationsService) {}
 
   @Get('admin')
+  @SkipThrottle()
   @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Get admin notifications' })
   @ApiResponse({ status: 200, type: [NotificationResponseDto] })
@@ -25,6 +27,7 @@ export class NotificationsController {
   }
 
   @Get('me')
+  @SkipThrottle()
   @Roles(UserRole.ADMIN, UserRole.MEMBER, UserRole.TRAINER, UserRole.STAFF)
   @ApiOperation({ summary: 'Get current user notifications' })
   @ApiResponse({ status: 200, type: [NotificationResponseDto] })

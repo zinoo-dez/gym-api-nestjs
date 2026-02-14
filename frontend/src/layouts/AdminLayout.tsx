@@ -33,7 +33,7 @@ export const AdminLayout = ({ children }: { children: ReactNode }) => {
             <div className="flex min-h-screen w-full">
                 <AppSidebar />
                 <SidebarInset className="flex-1">
-                    <header className="h-[61px] border-b border-border flex items-center justify-between px-4 bg-card shrink-0">
+                    <header className="h-[61px] border-b border-border flex items-center justify-between px-10 bg-card shrink-0">
                         <div className="flex items-center gap-2">
                             <SidebarTrigger />
                             <span className="font-semibold text-sm">

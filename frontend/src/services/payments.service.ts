@@ -80,6 +80,37 @@ export interface UpdatePaymentStatusRequest {
   adminNote?: string;
 }
 
+export interface RecoveryQueueItem {
+  paymentId: string;
+  memberId: string;
+  memberName: string;
+  memberEmail: string;
+  status: PaymentStatus;
+  amount: number;
+  currency: string;
+  createdAt: string;
+  subscriptionId?: string;
+}
+
+export interface ExpiringMembershipItem {
+  subscriptionId: string;
+  memberId: string;
+  memberName: string;
+  memberEmail: string;
+  planName: string;
+  endDate: string;
+  daysToExpiry: number;
+}
+
+export interface RecoveryQueueResponse {
+  expiringSoon: ExpiringMembershipItem[];
+  pendingPayments: RecoveryQueueItem[];
+  rejectedPayments: RecoveryQueueItem[];
+  totalExpiringSoon: number;
+  totalPendingPayments: number;
+  totalRejectedPayments: number;
+}
+
 interface ApiResponse<T> {
   data: T;
   statusCode: number;
@@ -122,6 +153,24 @@ export const paymentsService = {
   async updateStatus(id: string, data: UpdatePaymentStatusRequest) {
     const response = await apiClient.patch<ApiResponse<Payment>>(
       `/payments/${id}/status`,
+      data,
+    );
+    return response.data.data ?? response.data;
+  },
+
+  async getRecoveryQueue(days = 7) {
+    const response = await apiClient.get<ApiResponse<RecoveryQueueResponse>>(
+      `/payments/recovery-queue?days=${days}`,
+    );
+    return response.data.data ?? response.data;
+  },
+
+  async sendRecoveryFollowUp(
+    id: string,
+    data: { message?: string; markAsRetryRequested?: boolean },
+  ) {
+    const response = await apiClient.post<ApiResponse<{ message: string }>>(
+      `/payments/${id}/follow-up`,
       data,
     );
     return response.data.data ?? response.data;

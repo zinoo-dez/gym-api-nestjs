@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, Users, Dumbbell, UserCog, CreditCard, Percent,
-  DollarSign, Bell, Settings, ShieldAlert, ListChecks,
+  DollarSign, Bell, Settings, ShieldAlert, ListChecks, RefreshCcw,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
@@ -21,6 +21,7 @@ const adminItems = [
   { title: "Plans", url: "/admin/plans", icon: CreditCard },
   { title: "Discounts", url: "/admin/discounts", icon: Percent },
   { title: "Payments", url: "/admin/payments", icon: DollarSign },
+  { title: "Recovery Queue", url: "/admin/recovery", icon: RefreshCcw },
   { title: "Notifications", url: "/admin/notifications", icon: Bell },
   { title: "Settings", url: "/admin/settings", icon: Settings },
 ];

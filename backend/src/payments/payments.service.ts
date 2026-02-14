@@ -11,6 +11,8 @@ import { PaymentFiltersDto } from './dto/payment-filters.dto';
 import { PaymentResponseDto } from './dto/payment-response.dto';
 import { UpdatePaymentStatusDto } from './dto/update-payment-status.dto';
 import { NotificationsService } from '../notifications/notifications.service';
+import { RecoveryQueueResponseDto } from './dto/recovery-queue-response.dto';
+import { SendRecoveryFollowUpDto } from './dto/send-recovery-followup.dto';
 
 @Injectable()
 export class PaymentsService {
@@ -216,6 +218,136 @@ export class PaymentsService {
     return this.toResponseDto(payment);
   }
 
+  async getRecoveryQueue(days = 7): Promise<RecoveryQueueResponseDto> {
+    const now = new Date();
+    const horizon = new Date(now.getTime() + Math.max(1, days) * 24 * 60 * 60 * 1000);
+
+    const [expiringSubscriptions, pendingPayments, rejectedPayments] =
+      await Promise.all([
+        this.prisma.subscription.findMany({
+          where: {
+            status: SubscriptionStatus.ACTIVE,
+            endDate: { gte: now, lte: horizon },
+          },
+          include: {
+            member: {
+              include: { user: { select: { firstName: true, lastName: true, email: true } } },
+            },
+            membershipPlan: { select: { name: true } },
+          },
+          orderBy: { endDate: 'asc' },
+          take: 200,
+        }),
+        this.prisma.payment.findMany({
+          where: { status: PaymentStatus.PENDING },
+          include: {
+            member: {
+              include: { user: { select: { firstName: true, lastName: true, email: true } } },
+            },
+          },
+          orderBy: { createdAt: 'asc' },
+          take: 200,
+        }),
+        this.prisma.payment.findMany({
+          where: {
+            status: PaymentStatus.REJECTED,
+            createdAt: {
+              gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+            },
+          },
+          include: {
+            member: {
+              include: { user: { select: { firstName: true, lastName: true, email: true } } },
+            },
+          },
+          orderBy: { createdAt: 'desc' },
+          take: 200,
+        }),
+      ]);
+
+    return {
+      expiringSoon: expiringSubscriptions.map((sub) => ({
+        subscriptionId: sub.id,
+        memberId: sub.memberId,
+        memberName: `${sub.member.user.firstName} ${sub.member.user.lastName}`.trim(),
+        memberEmail: sub.member.user.email,
+        planName: sub.membershipPlan?.name ?? 'Plan',
+        endDate: sub.endDate,
+        daysToExpiry: Math.max(
+          0,
+          Math.ceil((sub.endDate.getTime() - now.getTime()) / (24 * 60 * 60 * 1000)),
+        ),
+      })),
+      pendingPayments: pendingPayments.map((payment) =>
+        this.toRecoveryPaymentItem(payment),
+      ),
+      rejectedPayments: rejectedPayments.map((payment) =>
+        this.toRecoveryPaymentItem(payment),
+      ),
+      totalExpiringSoon: expiringSubscriptions.length,
+      totalPendingPayments: pendingPayments.length,
+      totalRejectedPayments: rejectedPayments.length,
+    };
+  }
+
+  async sendRecoveryFollowUp(
+    paymentId: string,
+    dto: SendRecoveryFollowUpDto,
+  ): Promise<void> {
+    const payment = await this.prisma.payment.findUnique({
+      where: { id: paymentId },
+      include: {
+        member: { include: { user: true } },
+        subscription: { include: { membershipPlan: true } },
+      },
+    });
+
+    if (!payment) {
+      throw new NotFoundException('Payment not found.');
+    }
+
+    const userId = payment.member.userId;
+    const defaultMessage =
+      payment.status === PaymentStatus.REJECTED
+        ? 'Your payment was rejected. Please retry with a valid proof screenshot.'
+        : 'Your payment is pending verification. Please ensure your transaction proof is clear.';
+    const message = dto.message?.trim() || defaultMessage;
+
+    await this.notificationsService.createForUser({
+      userId,
+      title: 'Payment recovery follow-up',
+      message,
+      type: payment.status === PaymentStatus.REJECTED ? 'warning' : 'info',
+      actionUrl: '/member',
+    });
+
+    let nextStatus = payment.status;
+    if (dto.markAsRetryRequested === true && payment.status === PaymentStatus.REJECTED) {
+      nextStatus = PaymentStatus.PENDING;
+    }
+
+    const notePrefix = `[Recovery ${new Date().toISOString()}] ${message}`;
+    const mergedNote = payment.adminNote
+      ? `${payment.adminNote}\n${notePrefix}`
+      : notePrefix;
+
+    await this.prisma.payment.update({
+      where: { id: payment.id },
+      data: {
+        status: nextStatus,
+        adminNote: mergedNote,
+      },
+    });
+
+    await this.notificationsService.createForRole({
+      role: UserRole.ADMIN,
+      title: 'Recovery follow-up sent',
+      message: `Follow-up sent for payment ${payment.transactionNo}.`,
+      type: 'info',
+      actionUrl: '/admin/recovery',
+    });
+  }
+
   private toResponseDto(payment: any): PaymentResponseDto {
     return {
       id: payment.id,
@@ -256,6 +388,35 @@ export class PaymentsService {
               : undefined,
           }
         : undefined,
+    };
+  }
+
+  private toRecoveryPaymentItem(payment: {
+    id: string;
+    memberId: string;
+    status: PaymentStatus;
+    amount: number;
+    currency: string;
+    createdAt: Date;
+    subscriptionId: string | null;
+    member: {
+      user: {
+        firstName: string;
+        lastName: string;
+        email: string;
+      };
+    };
+  }) {
+    return {
+      paymentId: payment.id,
+      memberId: payment.memberId,
+      memberName: `${payment.member.user.firstName} ${payment.member.user.lastName}`.trim(),
+      memberEmail: payment.member.user.email,
+      status: payment.status,
+      amount: payment.amount,
+      currency: payment.currency,
+      createdAt: payment.createdAt,
+      subscriptionId: payment.subscriptionId ?? undefined,
     };
   }
 }

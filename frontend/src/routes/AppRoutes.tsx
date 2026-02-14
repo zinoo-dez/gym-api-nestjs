@@ -34,9 +34,11 @@ import SettingsPage from "../pages/admin/Settings";
 import StaffPage from "../pages/admin/StaffPage";
 import RetentionDashboardPage from "../pages/admin/RetentionDashboard";
 import RetentionTasksPage from "../pages/admin/RetentionTasks";
+import RecoveryPage from "../pages/admin/Recovery";
 
 // Member/Trainer/Staff Pages
 import MemberDashboardPage from "../pages/member/MemberDashboard";
+import MemberRenewalPage from "../pages/member/MemberRenewal";
 import TrainerDashboardPage from "../pages/trainer/TrainerDashboard";
 import StaffDashboardPage from "../pages/staff/StaffDashboard";
 
@@ -107,6 +109,14 @@ const AppRoutes = () => {
           )}
         />
         <Route
+          path="/admin/recovery"
+          element={withTransition(
+            <AdminRoute>
+              <AdminLayout><RecoveryPage /></AdminLayout>
+            </AdminRoute>,
+          )}
+        />
+        <Route
           path="/admin/notifications"
           element={withTransition(
             <AdminRoute>
@@ -153,6 +163,14 @@ const AppRoutes = () => {
           element={withTransition(
             <MemberRoute>
               <MemberLayout><MemberDashboardPage /></MemberLayout>
+            </MemberRoute>,
+          )}
+        />
+        <Route
+          path="/member/renew/:subscriptionId"
+          element={withTransition(
+            <MemberRoute>
+              <MemberLayout><MemberRenewalPage /></MemberLayout>
             </MemberRoute>,
           )}
         />

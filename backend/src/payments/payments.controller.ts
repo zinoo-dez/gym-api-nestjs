@@ -20,6 +20,8 @@ import { PaymentFiltersDto } from './dto/payment-filters.dto';
 import { PaymentResponseDto } from './dto/payment-response.dto';
 import { UpdatePaymentStatusDto } from './dto/update-payment-status.dto';
 import { PaginatedResponseDto } from '../common/dto/paginated-response.dto';
+import { RecoveryQueueResponseDto } from './dto/recovery-queue-response.dto';
+import { SendRecoveryFollowUpDto } from './dto/send-recovery-followup.dto';
 
 @ApiTags('payments')
 @Controller('payments')
@@ -62,5 +64,31 @@ export class PaymentsController {
     @Body() dto: UpdatePaymentStatusDto,
   ): Promise<PaymentResponseDto> {
     return this.paymentsService.updateStatus(id, dto);
+  }
+
+  @Get('recovery-queue')
+  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @ApiOperation({
+    summary: 'Get recovery queue (expiring memberships + pending/failed payments)',
+  })
+  @ApiResponse({ status: 200, type: RecoveryQueueResponseDto })
+  async getRecoveryQueue(
+    @Query('days') days?: string,
+  ): Promise<RecoveryQueueResponseDto> {
+    const windowDays = Number(days) || 7;
+    return this.paymentsService.getRecoveryQueue(windowDays);
+  }
+
+  @Post(':id/follow-up')
+  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @ApiOperation({
+    summary: 'Send recovery follow-up message for pending/failed payment',
+  })
+  async sendFollowUp(
+    @Param('id') id: string,
+    @Body() dto: SendRecoveryFollowUpDto,
+  ): Promise<{ message: string }> {
+    await this.paymentsService.sendRecoveryFollowUp(id, dto);
+    return { message: 'Recovery follow-up sent' };
   }
 }

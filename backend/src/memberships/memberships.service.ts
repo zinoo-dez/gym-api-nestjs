@@ -29,6 +29,7 @@ import {
   SubscriptionStatus,
   FeatureLevel,
   DiscountType,
+  PaymentStatus,
 } from '@prisma/client';
 import PDFDocument from 'pdfkit';
 
@@ -1009,9 +1010,10 @@ export class MembershipsService {
     this.logger.log('Running scheduled membership expiration check...');
 
     try {
+      const reminderCount = await this.sendRenewalReminders();
       const expiredCount = await this.expireMemberships();
       this.logger.log(
-        `Membership expiration check completed. Expired ${expiredCount} membership(s).`,
+        `Membership expiration check completed. Sent ${reminderCount} reminder(s), expired ${expiredCount} membership(s).`,
       );
     } catch (error) {
       this.logger.error(
@@ -1019,6 +1021,95 @@ export class MembershipsService {
         error instanceof Error ? error.stack : String(error),
       );
     }
+  }
+
+  private async sendRenewalReminders(): Promise<number> {
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const daysBefore = [7, 3, 1];
+    let sent = 0;
+
+    for (const day of daysBefore) {
+      const start = new Date(now);
+      start.setHours(0, 0, 0, 0);
+      start.setDate(start.getDate() + day);
+
+      const end = new Date(start);
+      end.setHours(23, 59, 59, 999);
+
+      const subscriptions = await this.prisma.subscription.findMany({
+        where: {
+          status: SubscriptionStatus.ACTIVE,
+          endDate: { gte: start, lte: end },
+        },
+        include: {
+          member: {
+            include: {
+              user: {
+                select: { id: true, firstName: true, lastName: true, email: true },
+              },
+            },
+          },
+          membershipPlan: { select: { name: true } },
+        },
+      });
+
+      for (const sub of subscriptions) {
+        const userId = sub.member.user.id;
+        const existingToday = await this.prisma.notification.findFirst({
+          where: {
+            userId,
+            title: 'Membership renewal reminder',
+            actionUrl: `/member/renew/${sub.id}`,
+            createdAt: {
+              gte: todayStart,
+            },
+          },
+          select: { id: true },
+        });
+
+        if (existingToday) continue;
+
+        await this.notificationsService.createForUser({
+          userId,
+          title: 'Membership renewal reminder',
+          message: `Your ${sub.membershipPlan?.name || 'membership'} plan expires in ${day} day(s). Renew now to avoid interruption.`,
+          type: day <= 3 ? 'warning' : 'info',
+          actionUrl: `/member/renew/${sub.id}`,
+        });
+        sent += 1;
+      }
+    }
+
+    const pendingOrRejectedPayments = await this.prisma.payment.count({
+      where: {
+        status: { in: [PaymentStatus.PENDING, PaymentStatus.REJECTED] },
+      },
+    });
+
+    if (pendingOrRejectedPayments > 0) {
+      const existingAdminSummary = await this.prisma.notification.findFirst({
+        where: {
+          role: UserRole.ADMIN,
+          title: 'Payment recovery queue pending',
+          actionUrl: '/admin/recovery',
+          createdAt: { gte: todayStart },
+        },
+        select: { id: true },
+      });
+
+      if (!existingAdminSummary) {
+        await this.notificationsService.createForRole({
+          role: UserRole.ADMIN,
+          title: 'Payment recovery queue pending',
+          message: `${pendingOrRejectedPayments} payment(s) need recovery action (pending/rejected).`,
+          type: 'warning',
+          actionUrl: '/admin/recovery',
+        });
+      }
+    }
+
+    return sent;
   }
 
   // Cache management methods
