@@ -32,6 +32,8 @@ import PaymentsPage from "../pages/admin/Payments";
 import NotificationsPage from "../pages/admin/Notifications";
 import SettingsPage from "../pages/admin/Settings";
 import StaffPage from "../pages/admin/StaffPage";
+import RetentionDashboardPage from "../pages/admin/RetentionDashboard";
+import RetentionTasksPage from "../pages/admin/RetentionTasks";
 
 // Member/Trainer/Staff Pages
 import MemberDashboardPage from "../pages/member/MemberDashboard";
@@ -125,6 +127,22 @@ const AppRoutes = () => {
           element={withTransition(
             <AdminRoute>
               <AdminLayout><StaffPage /></AdminLayout>
+            </AdminRoute>,
+          )}
+        />
+        <Route
+          path="/admin/retention"
+          element={withTransition(
+            <AdminRoute>
+              <AdminLayout><RetentionDashboardPage /></AdminLayout>
+            </AdminRoute>,
+          )}
+        />
+        <Route
+          path="/admin/retention/tasks"
+          element={withTransition(
+            <AdminRoute>
+              <AdminLayout><RetentionTasksPage /></AdminLayout>
             </AdminRoute>,
           )}
         />

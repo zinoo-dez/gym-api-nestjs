@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, Users, Dumbbell, UserCog, CreditCard, Percent,
-  DollarSign, Bell, Settings,
+  DollarSign, Bell, Settings, ShieldAlert, ListChecks,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
@@ -13,6 +13,8 @@ import { useGymSettingsStore } from "@/store/gym-settings.store";
 
 const adminItems = [
   { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
+  { title: "Retention", url: "/admin/retention", icon: ShieldAlert },
+  { title: "Retention Tasks", url: "/admin/retention/tasks", icon: ListChecks },
   { title: "Members", url: "/admin/members", icon: Users },
   { title: "Trainers", url: "/admin/trainers", icon: Dumbbell },
   { title: "Staff", url: "/admin/staff", icon: UserCog },

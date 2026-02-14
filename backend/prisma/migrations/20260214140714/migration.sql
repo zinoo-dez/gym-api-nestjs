@@ -17,10 +17,13 @@ CREATE TYPE "SessionStatus" AS ENUM ('SCHEDULED', 'COMPLETED', 'CANCELLED', 'RES
 CREATE TYPE "AttendanceType" AS ENUM ('GYM_VISIT', 'CLASS_ATTENDANCE');
 
 -- CreateEnum
-CREATE TYPE "PaymentStatus" AS ENUM ('PENDING', 'COMPLETED', 'FAILED', 'REFUNDED', 'CANCELLED');
+CREATE TYPE "PaymentStatus" AS ENUM ('PENDING', 'PAID', 'REJECTED');
 
 -- CreateEnum
-CREATE TYPE "PaymentMethod" AS ENUM ('CASH', 'CREDIT_CARD', 'DEBIT_CARD', 'BANK_TRANSFER', 'MOBILE_PAYMENT', 'OTHER');
+CREATE TYPE "PaymentMethodType" AS ENUM ('BANK', 'WALLET');
+
+-- CreateEnum
+CREATE TYPE "PaymentProvider" AS ENUM ('AYA', 'KBZ', 'CB', 'UAB', 'A_BANK', 'YOMA', 'KBZ_PAY', 'AYA_PAY', 'CB_PAY', 'UAB_PAY', 'WAVE_MONEY');
 
 -- CreateEnum
 CREATE TYPE "InvoiceStatus" AS ENUM ('DRAFT', 'SENT', 'PAID', 'OVERDUE', 'CANCELLED');
@@ -44,6 +47,12 @@ CREATE TYPE "DiscountType" AS ENUM ('PERCENTAGE', 'FIXED');
 CREATE TYPE "FeatureLevel" AS ENUM ('BASIC', 'STANDARD', 'PREMIUM');
 
 -- CreateEnum
+CREATE TYPE "RetentionRiskLevel" AS ENUM ('LOW', 'MEDIUM', 'HIGH');
+
+-- CreateEnum
+CREATE TYPE "RetentionTaskStatus" AS ENUM ('OPEN', 'IN_PROGRESS', 'DONE', 'DISMISSED');
+
+-- CreateEnum
 CREATE TYPE "UserStatus" AS ENUM ('ACTIVE', 'INACTIVE');
 
 -- CreateTable
@@ -56,6 +65,8 @@ CREATE TABLE "users" (
     "first_name" TEXT NOT NULL,
     "last_name" TEXT NOT NULL,
     "phone_number" TEXT,
+    "address" TEXT DEFAULT '',
+    "avatar_url" TEXT DEFAULT '',
     "updated_at" TIMESTAMP(3) NOT NULL,
     "status" "UserStatus" NOT NULL DEFAULT 'ACTIVE',
 
@@ -101,6 +112,27 @@ CREATE TABLE "subscriptions" (
 );
 
 -- CreateTable
+CREATE TABLE "payments" (
+    "id" TEXT NOT NULL,
+    "member_id" TEXT NOT NULL,
+    "invoice_id" TEXT,
+    "subscription_id" TEXT,
+    "amount" DOUBLE PRECISION NOT NULL,
+    "currency" TEXT NOT NULL DEFAULT 'MMK',
+    "method_type" "PaymentMethodType" NOT NULL,
+    "provider" "PaymentProvider" NOT NULL,
+    "transaction_no" TEXT NOT NULL,
+    "screenshot_url" TEXT,
+    "status" "PaymentStatus" NOT NULL DEFAULT 'PENDING',
+    "admin_note" TEXT,
+    "paid_at" TIMESTAMP(3),
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "payments_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "members" (
     "id" TEXT NOT NULL,
     "gender" TEXT,
@@ -114,6 +146,41 @@ CREATE TABLE "members" (
     "user_id" TEXT NOT NULL,
 
     CONSTRAINT "members_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "member_retention_risks" (
+    "id" TEXT NOT NULL,
+    "member_id" TEXT NOT NULL,
+    "risk_level" "RetentionRiskLevel" NOT NULL DEFAULT 'LOW',
+    "score" INTEGER NOT NULL DEFAULT 0,
+    "reasons" TEXT[],
+    "last_check_in_at" TIMESTAMP(3),
+    "days_since_check_in" INTEGER,
+    "subscription_ends_at" TIMESTAMP(3),
+    "unpaid_pending_count" INTEGER NOT NULL DEFAULT 0,
+    "last_evaluated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "member_retention_risks_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "retention_tasks" (
+    "id" TEXT NOT NULL,
+    "member_id" TEXT NOT NULL,
+    "assigned_to_user_id" TEXT,
+    "status" "RetentionTaskStatus" NOT NULL DEFAULT 'OPEN',
+    "priority" INTEGER NOT NULL DEFAULT 2,
+    "title" TEXT NOT NULL,
+    "note" TEXT,
+    "due_date" TIMESTAMP(3),
+    "resolved_at" TIMESTAMP(3),
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "retention_tasks_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -274,23 +341,6 @@ CREATE TABLE "equipments" (
 );
 
 -- CreateTable
-CREATE TABLE "payments" (
-    "id" TEXT NOT NULL,
-    "member_id" TEXT NOT NULL,
-    "invoice_id" TEXT,
-    "amount" DOUBLE PRECISION NOT NULL,
-    "payment_method" "PaymentMethod" NOT NULL,
-    "status" "PaymentStatus" NOT NULL DEFAULT 'PENDING',
-    "transaction_ref" TEXT,
-    "description" TEXT,
-    "paid_at" TIMESTAMP(3),
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "payments_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "invoices" (
     "id" TEXT NOT NULL,
     "member_id" TEXT NOT NULL,
@@ -321,27 +371,6 @@ CREATE TABLE "invoice_items" (
     "item_id" TEXT,
 
     CONSTRAINT "invoice_items_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "discounts" (
-    "id" TEXT NOT NULL,
-    "code" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "description" TEXT,
-    "type" TEXT NOT NULL,
-    "value" DOUBLE PRECISION NOT NULL,
-    "min_purchase" DOUBLE PRECISION,
-    "max_uses" INTEGER,
-    "used_count" INTEGER NOT NULL DEFAULT 0,
-    "valid_from" TIMESTAMP(3) NOT NULL,
-    "valid_until" TIMESTAMP(3) NOT NULL,
-    "is_active" BOOLEAN NOT NULL DEFAULT true,
-    "applicable_plans" TEXT,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "discounts_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -625,10 +654,49 @@ CREATE INDEX "subscriptions_status_idx" ON "subscriptions"("status");
 CREATE INDEX "subscriptions_discount_code_id_idx" ON "subscriptions"("discount_code_id");
 
 -- CreateIndex
+CREATE INDEX "payments_member_id_idx" ON "payments"("member_id");
+
+-- CreateIndex
+CREATE INDEX "payments_invoice_id_idx" ON "payments"("invoice_id");
+
+-- CreateIndex
+CREATE INDEX "payments_subscription_id_idx" ON "payments"("subscription_id");
+
+-- CreateIndex
+CREATE INDEX "payments_status_idx" ON "payments"("status");
+
+-- CreateIndex
+CREATE INDEX "payments_provider_idx" ON "payments"("provider");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "members_user_id_key" ON "members"("user_id");
 
 -- CreateIndex
 CREATE INDEX "members_user_id_idx" ON "members"("user_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "member_retention_risks_member_id_key" ON "member_retention_risks"("member_id");
+
+-- CreateIndex
+CREATE INDEX "member_retention_risks_risk_level_idx" ON "member_retention_risks"("risk_level");
+
+-- CreateIndex
+CREATE INDEX "member_retention_risks_score_idx" ON "member_retention_risks"("score");
+
+-- CreateIndex
+CREATE INDEX "member_retention_risks_last_evaluated_at_idx" ON "member_retention_risks"("last_evaluated_at");
+
+-- CreateIndex
+CREATE INDEX "retention_tasks_member_id_idx" ON "retention_tasks"("member_id");
+
+-- CreateIndex
+CREATE INDEX "retention_tasks_assigned_to_user_id_idx" ON "retention_tasks"("assigned_to_user_id");
+
+-- CreateIndex
+CREATE INDEX "retention_tasks_status_idx" ON "retention_tasks"("status");
+
+-- CreateIndex
+CREATE INDEX "retention_tasks_due_date_idx" ON "retention_tasks"("due_date");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "trainers_user_id_key" ON "trainers"("user_id");
@@ -715,18 +783,6 @@ CREATE INDEX "equipments_category_idx" ON "equipments"("category");
 CREATE INDEX "equipments_isActive_idx" ON "equipments"("isActive");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "payments_transaction_ref_key" ON "payments"("transaction_ref");
-
--- CreateIndex
-CREATE INDEX "payments_member_id_idx" ON "payments"("member_id");
-
--- CreateIndex
-CREATE INDEX "payments_status_idx" ON "payments"("status");
-
--- CreateIndex
-CREATE INDEX "payments_paid_at_idx" ON "payments"("paid_at");
-
--- CreateIndex
 CREATE UNIQUE INDEX "invoices_invoice_number_key" ON "invoices"("invoice_number");
 
 -- CreateIndex
@@ -740,15 +796,6 @@ CREATE INDEX "invoices_due_date_idx" ON "invoices"("due_date");
 
 -- CreateIndex
 CREATE INDEX "invoice_items_invoice_id_idx" ON "invoice_items"("invoice_id");
-
--- CreateIndex
-CREATE UNIQUE INDEX "discounts_code_key" ON "discounts"("code");
-
--- CreateIndex
-CREATE INDEX "discounts_code_idx" ON "discounts"("code");
-
--- CreateIndex
-CREATE INDEX "discounts_is_active_idx" ON "discounts"("is_active");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "staff_user_id_key" ON "staff"("user_id");
@@ -877,7 +924,25 @@ ALTER TABLE "subscriptions" ADD CONSTRAINT "subscriptions_member_id_fkey" FOREIG
 ALTER TABLE "subscriptions" ADD CONSTRAINT "subscriptions_membership_plan_id_fkey" FOREIGN KEY ("membership_plan_id") REFERENCES "membership_plans"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "payments" ADD CONSTRAINT "payments_member_id_fkey" FOREIGN KEY ("member_id") REFERENCES "members"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "payments" ADD CONSTRAINT "payments_invoice_id_fkey" FOREIGN KEY ("invoice_id") REFERENCES "invoices"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "payments" ADD CONSTRAINT "payments_subscription_id_fkey" FOREIGN KEY ("subscription_id") REFERENCES "subscriptions"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "members" ADD CONSTRAINT "members_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "member_retention_risks" ADD CONSTRAINT "member_retention_risks_member_id_fkey" FOREIGN KEY ("member_id") REFERENCES "members"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "retention_tasks" ADD CONSTRAINT "retention_tasks_member_id_fkey" FOREIGN KEY ("member_id") REFERENCES "members"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "retention_tasks" ADD CONSTRAINT "retention_tasks_assigned_to_user_id_fkey" FOREIGN KEY ("assigned_to_user_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "trainers" ADD CONSTRAINT "trainers_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -917,12 +982,6 @@ ALTER TABLE "user_progress" ADD CONSTRAINT "user_progress_member_id_fkey" FOREIG
 
 -- AddForeignKey
 ALTER TABLE "attendance" ADD CONSTRAINT "attendance_member_id_fkey" FOREIGN KEY ("member_id") REFERENCES "members"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "payments" ADD CONSTRAINT "payments_invoice_id_fkey" FOREIGN KEY ("invoice_id") REFERENCES "invoices"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "payments" ADD CONSTRAINT "payments_member_id_fkey" FOREIGN KEY ("member_id") REFERENCES "members"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "invoices" ADD CONSTRAINT "invoices_member_id_fkey" FOREIGN KEY ("member_id") REFERENCES "members"("id") ON DELETE CASCADE ON UPDATE CASCADE;

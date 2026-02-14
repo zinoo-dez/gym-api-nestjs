@@ -1,4 +1,9 @@
-import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
+import {
+  Module,
+  NestModule,
+  MiddlewareConsumer,
+  RequestMethod,
+} from '@nestjs/common';
 import { APP_GUARD, APP_FILTER } from '@nestjs/core';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { CacheModule } from '@nestjs/cache-manager';
@@ -28,6 +33,7 @@ import { FeaturesModule } from './features/features.module';
 import { StaffModule } from './staff/staff.module';
 import { PaymentsModule } from './payments/payments.module';
 import { UploadsModule } from './uploads/uploads.module';
+import { RetentionModule } from './retention/retention.module';
 
 @Module({
   imports: [
@@ -65,6 +71,7 @@ import { UploadsModule } from './uploads/uploads.module';
     StaffModule,
     PaymentsModule,
     UploadsModule,
+    RetentionModule,
   ],
   controllers: [AppController],
   providers: [
@@ -88,6 +95,8 @@ import { UploadsModule } from './uploads/uploads.module';
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     // Apply sanitization middleware to all routes
-    consumer.apply(SanitizationMiddleware).forRoutes('*');
+    consumer
+      .apply(SanitizationMiddleware)
+      .forRoutes({ path: '*path', method: RequestMethod.ALL });
   }
 }

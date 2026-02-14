@@ -12,3 +12,4 @@ export * from "./notifications.service";
 export * from "./discount-codes.service";
 export * from "./payments.service";
 export * from "./uploads.service";
+export * from "./retention.service";

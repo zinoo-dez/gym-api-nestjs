@@ -41,10 +41,11 @@ export class AttendanceController {
   ) {}
 
   @Post('check-in')
-  @Roles(UserRole.ADMIN, UserRole.TRAINER, UserRole.MEMBER)
+  @Roles(UserRole.ADMIN, UserRole.STAFF)
   @ApiOperation({
     summary: 'Check in member',
-    description: 'Record a member check-in for gym visit or class attendance.',
+    description:
+      'Record a member check-in for gym visit or class attendance. Only ADMIN or STAFF can perform this action.',
   })
   @ApiResponse({
     status: 201,
@@ -53,6 +54,10 @@ export class AttendanceController {
   })
   @ApiResponse({ status: 400, description: 'Invalid input data' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Admin or Staff role required',
+  })
   @ApiResponse({ status: 403, description: 'Member has no active membership' })
   @ApiResponse({ status: 404, description: 'Member or class not found' })
   async checkIn(
@@ -62,10 +67,10 @@ export class AttendanceController {
   }
 
   @Post(':id/check-out')
-  @Roles(UserRole.ADMIN, UserRole.TRAINER, UserRole.MEMBER)
+  @Roles(UserRole.ADMIN, UserRole.STAFF)
   @ApiOperation({
     summary: 'Check out member',
-    description: 'Record a member check-out.',
+    description: 'Record a member check-out. Only ADMIN or STAFF can perform this action.',
   })
   @ApiParam({
     name: 'id',
@@ -78,6 +83,10 @@ export class AttendanceController {
     type: AttendanceResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Admin or Staff role required',
+  })
   @ApiResponse({ status: 404, description: 'Attendance record not found' })
   async checkOut(@Param('id') id: string): Promise<AttendanceResponseDto> {
     return this.attendanceService.checkOut(id);
