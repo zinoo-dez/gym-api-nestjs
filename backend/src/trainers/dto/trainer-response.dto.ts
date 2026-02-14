@@ -14,6 +14,8 @@ export class TrainerResponseDto {
   specializations!: string[];
   certifications!: string[];
   isActive!: boolean;
+  experience?: number;
+  hourlyRate?: number;
   createdAt!: Date;
   updatedAt!: Date;
   classes?: ClassSummaryDto[];

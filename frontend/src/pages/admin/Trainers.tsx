@@ -1,83 +1,416 @@
-import { useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { trainers as initialTrainers, Trainer } from "@/data/mockData";
+import {
+  trainersService,
+  type Trainer,
+  type CreateTrainerRequest,
+  type UpdateTrainerRequest,
+} from "@/services/trainers.service";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Search, Pencil, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 const Trainers = () => {
-  const [list, setList] = useState<Trainer[]>(initialTrainers);
+  const [list, setList] = useState<Trainer[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Trainer | null>(null);
-  const [form, setForm] = useState({ name: "", email: "", phone: "", specialization: "", schedule: "", status: "active" as Trainer["status"], clients: 0 });
+  const [form, setForm] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    specializations: "",
+    certifications: "",
+    experience: "",
+    hourlyRate: "",
+  });
 
-  const filtered = list.filter((t) => t.name.toLowerCase().includes(search.toLowerCase()) || t.specialization.toLowerCase().includes(search.toLowerCase()));
+  const loadTrainers = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const response = await trainersService.getAll({
+        limit: 200,
+        specialization: search || undefined,
+      });
+      setList(Array.isArray(response.data) ? response.data : []);
+    } catch (err) {
+      console.error("Failed to load trainers", err);
+      setList([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [search]);
 
-  const openAdd = () => { setEditing(null); setForm({ name: "", email: "", phone: "", specialization: "", schedule: "", status: "active", clients: 0 }); setDialogOpen(true); };
-  const openEdit = (t: Trainer) => { setEditing(t); setForm({ name: t.name, email: t.email, phone: t.phone, specialization: t.specialization, schedule: t.schedule, status: t.status, clients: t.clients }); setDialogOpen(true); };
+  useEffect(() => {
+    loadTrainers();
+  }, [loadTrainers]);
 
-  const handleSave = () => {
-    if (!form.name) return;
-    if (editing) setList((p) => p.map((t) => t.id === editing.id ? { ...t, ...form } : t));
-    else setList((p) => [...p, { ...form, id: Date.now().toString() }]);
-    setDialogOpen(false);
+  const filtered = useMemo(() => {
+    if (!search) return list;
+    const lower = search.toLowerCase();
+    return list.filter(
+      (t) =>
+        `${t.firstName} ${t.lastName}`.toLowerCase().includes(lower) ||
+        t.specializations.join(", ").toLowerCase().includes(lower),
+    );
+  }, [list, search]);
+
+  const openAdd = () => {
+    setEditing(null);
+    setForm({
+      firstName: "",
+      lastName: "",
+      email: "",
+      password: "",
+      specializations: "",
+      certifications: "",
+      experience: "",
+      hourlyRate: "",
+    });
+    setDialogOpen(true);
   };
 
-  const handleDelete = (id: string) => setList((p) => p.filter((t) => t.id !== id));
-  const statusColor = (s: Trainer["status"]) => s === "active" ? "default" : s === "on-leave" ? "secondary" : "destructive";
+  const openEdit = (t: Trainer) => {
+    setEditing(t);
+    setForm({
+      firstName: t.firstName,
+      lastName: t.lastName,
+      email: t.email,
+      password: "",
+      specializations: t.specializations.join(", "),
+      certifications: t.certifications.join(", "),
+      experience: t.experience !== undefined ? String(t.experience) : "",
+      hourlyRate: t.hourlyRate !== undefined ? String(t.hourlyRate) : "",
+    });
+    setDialogOpen(true);
+  };
+
+  const parseList = (value: string) =>
+    value
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
+
+  const handleSave = async () => {
+    if (!form.firstName.trim() || !form.lastName.trim() || !form.email.trim()) {
+      toast.error("Name and email are required.");
+      return;
+    }
+
+    const specializations = parseList(form.specializations);
+    if (specializations.length === 0) {
+      toast.error("Add at least one specialization.");
+      return;
+    }
+
+    try {
+      if (editing) {
+        const payload: UpdateTrainerRequest = {
+          firstName: form.firstName.trim(),
+          lastName: form.lastName.trim(),
+          specializations,
+          certifications: parseList(form.certifications),
+          experience: form.experience ? Number(form.experience) : undefined,
+          hourlyRate: form.hourlyRate ? Number(form.hourlyRate) : undefined,
+        };
+        const updated = await trainersService.update(editing.id, payload);
+        setList((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
+        toast.success("Trainer updated");
+      } else {
+        if (!form.password || form.password.length < 8) {
+          toast.error("Password must be at least 8 characters.");
+          return;
+        }
+        const payload: CreateTrainerRequest = {
+          email: form.email.trim(),
+          password: form.password,
+          firstName: form.firstName.trim(),
+          lastName: form.lastName.trim(),
+          specializations,
+          certifications: parseList(form.certifications),
+          experience: form.experience ? Number(form.experience) : undefined,
+          hourlyRate: form.hourlyRate ? Number(form.hourlyRate) : undefined,
+        };
+        const created = await trainersService.create(payload);
+        setList((prev) => [created, ...prev]);
+        toast.success("Trainer created");
+      }
+      setDialogOpen(false);
+    } catch (err: any) {
+      const message = err?.response?.data?.message || "Failed to save trainer.";
+      toast.error(message);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await trainersService.deactivate(id);
+      setList((prev) =>
+        prev.map((t) => (t.id === id ? { ...t, isActive: false } : t)),
+      );
+      toast.success("Trainer deactivated");
+    } catch (err: any) {
+      const message =
+        err?.response?.data?.message || "Failed to delete trainer.";
+      toast.error(message);
+    }
+  };
+
+  const statusColor = (isActive: boolean) =>
+    isActive ? "default" : "secondary";
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div><h1 className="text-2xl font-bold">Trainers</h1><p className="text-muted-foreground">{list.length} trainers</p></div>
-        <Button onClick={openAdd}><Plus className="h-4 w-4 mr-2" />Add Trainer</Button>
+        <div>
+          <h1 className="text-2xl font-bold">Trainers</h1>
+          <p className="text-muted-foreground">{list.length} trainers</p>
+        </div>
+        <Button onClick={openAdd}>
+          <Plus className="h-4 w-4 mr-2" />
+          Add Trainer
+        </Button>
       </div>
       <Card>
         <CardHeader>
-          <div className="relative max-w-sm"><Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" /><Input placeholder="Search trainers..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" /></div>
+          <div className="relative max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search trainers..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9"
+            />
+          </div>
         </CardHeader>
         <CardContent>
           <Table>
-            <TableHeader><TableRow><TableHead>Name</TableHead><TableHead className="hidden md:table-cell">Specialization</TableHead><TableHead className="hidden sm:table-cell">Schedule</TableHead><TableHead>Status</TableHead><TableHead className="hidden lg:table-cell">Clients</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead className="hidden md:table-cell">
+                  Specialization
+                </TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="hidden lg:table-cell">Created</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
             <TableBody>
-              {filtered.map((t) => (
-                <TableRow key={t.id}>
-                  <TableCell className="font-medium"><Link to={`/trainer/${t.id}`} className="text-primary hover:underline">{t.name}</Link></TableCell>
-                  <TableCell className="hidden md:table-cell">{t.specialization}</TableCell>
-                  <TableCell className="hidden sm:table-cell">{t.schedule}</TableCell>
-                  <TableCell><Badge variant={statusColor(t.status)}>{t.status}</Badge></TableCell>
-                  <TableCell className="hidden lg:table-cell">{t.clients}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-1">
-                      <Button variant="ghost" size="icon" onClick={() => openEdit(t)}><Pencil className="h-4 w-4" /></Button>
-                      <AlertDialog><AlertDialogTrigger asChild><Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Delete Trainer</AlertDialogTitle><AlertDialogDescription>Delete {t.name}?</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => handleDelete(t.id)}>Delete</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
-                    </div>
+              {isLoading ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={5}
+                    className="text-center text-muted-foreground"
+                  >
+                    Loading trainers...
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : filtered.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={5}
+                    className="text-center text-muted-foreground"
+                  >
+                    No trainers found.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filtered.map((t) => (
+                  <TableRow key={t.id}>
+                    <TableCell className="font-medium">
+                      <Link
+                        to={`/trainer/${t.id}`}
+                        className="text-primary hover:underline"
+                      >
+                        {t.firstName} {t.lastName}
+                      </Link>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      {t.specializations.join(", ") || "—"}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={statusColor(t.isActive)}>
+                        {t.isActive ? "Active" : "Inactive"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="hidden lg:table-cell">
+                      {t.createdAt
+                        ? new Date(t.createdAt).toLocaleDateString()
+                        : "—"}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => openEdit(t)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>
+                                Delete Trainer
+                              </AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Delete {t.firstName} {t.lastName}?
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDelete(t.id)}
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>
       </Card>
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
-          <DialogHeader><DialogTitle>{editing ? "Edit" : "Add"} Trainer</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>{editing ? "Edit" : "Add"} Trainer</DialogTitle>
+          </DialogHeader>
           <div className="space-y-4">
-            <div className="space-y-2"><Label>Name</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
-            <div className="space-y-2"><Label>Email</Label><Input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
-            <div className="space-y-2"><Label>Phone</Label><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></div>
-            <div className="space-y-2"><Label>Specialization</Label><Input value={form.specialization} onChange={(e) => setForm({ ...form, specialization: e.target.value })} /></div>
-            <div className="space-y-2"><Label>Schedule</Label><Input value={form.schedule} onChange={(e) => setForm({ ...form, schedule: e.target.value })} /></div>
-            <div className="space-y-2"><Label>Status</Label><Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v as Trainer["status"] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="active">Active</SelectItem><SelectItem value="on-leave">On Leave</SelectItem><SelectItem value="inactive">Inactive</SelectItem></SelectContent></Select></div>
-            <Button onClick={handleSave} className="w-full">{editing ? "Update" : "Add"} Trainer</Button>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>First name</Label>
+                <Input
+                type="text"
+                  value={form.firstName}
+                  onChange={(e) =>
+                    setForm({ ...form, firstName: e.target.value })
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Last name</Label>
+                <Input
+                type="text"
+                  value={form.lastName}
+                  onChange={(e) =>
+                    setForm({ ...form, lastName: e.target.value })
+                  }
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Email</Label>
+              <Input
+              type="email"
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+              />
+            </div>
+            {!editing && (
+              <div className="space-y-2">
+                <Label>Password</Label>
+                <Input
+                  type="password"
+                  value={form.password}
+                  onChange={(e) =>
+                    setForm({ ...form, password: e.target.value })
+                  }
+                />
+              </div>
+            )}
+            <div className="space-y-2">
+              <Label>Specializations</Label>
+              <Input
+                type="text"
+                placeholder="e.g. Strength, Yoga"
+                value={form.specializations}
+                onChange={(e) =>
+                  setForm({ ...form, specializations: e.target.value })
+                }
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Certifications</Label>
+              <Input
+                type="text"
+                placeholder="Optional"
+                value={form.certifications}
+                onChange={(e) =>
+                  setForm({ ...form, certifications: e.target.value })
+                }
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Experience (years)</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  value={form.experience}
+                  onChange={(e) =>
+                    setForm({ ...form, experience: e.target.value })
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Hourly rate</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={form.hourlyRate}
+                  onChange={(e) =>
+                    setForm({ ...form, hourlyRate: e.target.value })
+                  }
+                />
+              </div>
+            </div>
+            <Button onClick={handleSave} className="w-full">
+              {editing ? "Update" : "Add"} Trainer
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

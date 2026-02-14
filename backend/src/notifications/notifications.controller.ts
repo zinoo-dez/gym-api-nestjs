@@ -1,4 +1,4 @@
-import { Controller, Get, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Patch, Param, Delete, UseGuards, Post, Body } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { NotificationsService } from './notifications.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -7,6 +7,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { UserRole } from '@prisma/client';
 import { NotificationResponseDto } from './dto/notification-response.dto';
+import { CreateNotificationDto } from './dto/create-notification.dto';
 
 @ApiTags('notifications')
 @ApiBearerAuth('JWT-auth')
@@ -24,15 +25,32 @@ export class NotificationsController {
   }
 
   @Get('me')
-  @Roles(UserRole.ADMIN, UserRole.MEMBER, UserRole.TRAINER)
+  @Roles(UserRole.ADMIN, UserRole.MEMBER, UserRole.TRAINER, UserRole.STAFF)
   @ApiOperation({ summary: 'Get current user notifications' })
   @ApiResponse({ status: 200, type: [NotificationResponseDto] })
   async getMyNotifications(@CurrentUser() user: any): Promise<NotificationResponseDto[]> {
     return this.notificationsService.getUserNotifications(user.userId);
   }
 
+  @Post('admin')
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Create admin/broadcast notification' })
+  async createAdminNotification(@Body() dto: CreateNotificationDto) {
+    const roles = dto.targetRole === 'ALL' || !dto.targetRole
+      ? [UserRole.ADMIN, UserRole.MEMBER, UserRole.TRAINER, UserRole.STAFF]
+      : [dto.targetRole as UserRole];
+    const count = await this.notificationsService.createBroadcast({
+      roles,
+      title: dto.title,
+      message: dto.message,
+      type: dto.type,
+      actionUrl: dto.actionUrl,
+    });
+    return { message: 'Notifications sent', count };
+  }
+
   @Patch(':id/read')
-  @Roles(UserRole.ADMIN, UserRole.MEMBER, UserRole.TRAINER)
+  @Roles(UserRole.ADMIN, UserRole.MEMBER, UserRole.TRAINER, UserRole.STAFF)
   @ApiOperation({ summary: 'Mark notification as read' })
   async markRead(@Param('id') id: string) {
     return this.notificationsService.markRead(id);
@@ -47,7 +65,7 @@ export class NotificationsController {
   }
 
   @Patch('me/read-all')
-  @Roles(UserRole.ADMIN, UserRole.MEMBER, UserRole.TRAINER)
+  @Roles(UserRole.ADMIN, UserRole.MEMBER, UserRole.TRAINER, UserRole.STAFF)
   @ApiOperation({ summary: 'Mark all current user notifications as read' })
   async markAllUserRead(@CurrentUser() user: any) {
     await this.notificationsService.markAllReadForUser(user.userId);
@@ -55,7 +73,7 @@ export class NotificationsController {
   }
 
   @Delete(':id')
-  @Roles(UserRole.ADMIN, UserRole.MEMBER, UserRole.TRAINER)
+  @Roles(UserRole.ADMIN, UserRole.MEMBER, UserRole.TRAINER, UserRole.STAFF)
   @ApiOperation({ summary: 'Delete a notification' })
   async delete(@Param('id') id: string) {
     await this.notificationsService.delete(id);

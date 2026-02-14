@@ -1,13 +1,12 @@
-import { useGymSettings } from "@/hooks/use-gym-settings";
-
 /**
  * ColorPreview Component
- * Demonstrates how gym settings colors are applied throughout the app
- * Use this in the settings page to preview color changes
+ * Demonstrates how theme colors are applied throughout the app
  */
 export function ColorPreview() {
-  const { primaryColor, secondaryColor, backgroundColor, textColor } =
-    useGymSettings();
+  const primaryColor = "var(--primary)";
+  const secondaryColor = "var(--accent)";
+  const backgroundColor = "var(--background)";
+  const textColor = "var(--foreground)";
 
   return (
     <div className="space-y-4">

@@ -23,70 +23,6 @@ export class GymSettingsService {
       description:
         'Everything you need to achieve your fitness goals under one roof, backed by expert support.',
       favicon: '',
-      primaryColor: '#22c55e',
-      secondaryColor: '#4ade80',
-      backgroundColor: '#0a0a0a',
-      textColor: '#ffffff',
-      heroTitle: 'Build your strongest self',
-      heroSubtitle:
-        'World-class training, expert coaches, and a community that pushes you forward.',
-      heroCtaPrimary: 'Start Free Trial',
-      heroCtaSecondary: 'View Membership Plans',
-      heroBadgeText: 'Now Open 24/7',
-      featuresTitle: 'World-Class Facilities',
-      featuresSubtitle:
-        'Premium equipment, expert guidance, and a space built for results.',
-      features: [
-        {
-          title: 'State-of-the-Art Equipment',
-          description: 'Access to premium fitness machines and free weights',
-          icon: '💪',
-        },
-        {
-          title: 'Expert Personal Trainers',
-          description: 'Certified professionals to guide your fitness journey',
-          icon: '🏋️',
-        },
-        {
-          title: 'Diverse Group Classes',
-          description: 'From HIIT to yoga, find your perfect workout style',
-          icon: '🧘',
-        },
-        {
-          title: '24/7 Access',
-          description: 'Work out on your schedule, any time day or night',
-          icon: '⏰',
-        },
-      ],
-      classesTitle: 'Group Fitness Classes',
-      classesSubtitle:
-        'Find the perfect class to match your goals and schedule.',
-      trainersTitle: 'Expert Trainers',
-      trainersSubtitle:
-        'Certified professionals focused on your progress and performance.',
-      trainersCtaLabel: 'View All Trainers',
-      workoutsTitle: 'Workout Plans',
-      workoutsSubtitle:
-        'Structured programs designed to help you reach your goals.',
-      workoutsCtaLabel: 'Browse All Plans',
-      pricingTitle: 'Transparent Pricing',
-      pricingSubtitle: 'Choose a plan that fits your lifestyle and goals.',
-      footerTagline: 'Train smarter. Live stronger.',
-      appShowcaseTitle: 'Your Gym, In Your Pocket',
-      appShowcaseSubtitle:
-        'Book classes, track progress, and manage your membership anywhere.',
-      ctaTitle: 'Ready to start?',
-      ctaSubtitle:
-        'Join today and get access to world-class facilities and expert coaching.',
-      ctaButtonLabel: 'Get Started',
-      fontFamily: 'Inter',
-      heroBgImage: '',
-      featuresBgImage: '',
-      classesBgImage: '',
-      trainersBgImage: '',
-      workoutsBgImage: '',
-      pricingBgImage: '',
-      ctaBgImage: '',
     };
 
     const settings = await this.prisma.gymSetting.findFirst();
@@ -103,101 +39,8 @@ export class GymSettingsService {
           logo: process.env.GYM_LOGO ?? defaults.logo,
           description: process.env.GYM_DESCRIPTION ?? defaults.description,
           favicon: process.env.GYM_FAVICON ?? defaults.favicon,
-          primaryColor: process.env.GYM_PRIMARY_COLOR ?? defaults.primaryColor,
-          secondaryColor:
-            process.env.GYM_SECONDARY_COLOR ?? defaults.secondaryColor,
-          backgroundColor:
-            process.env.GYM_BACKGROUND_COLOR ?? defaults.backgroundColor,
-          textColor: process.env.GYM_TEXT_COLOR ?? defaults.textColor,
-          heroTitle: process.env.GYM_HERO_TITLE ?? defaults.heroTitle,
-          heroSubtitle: process.env.GYM_HERO_SUBTITLE ?? defaults.heroSubtitle,
-          heroCtaPrimary:
-            process.env.GYM_HERO_CTA_PRIMARY ?? defaults.heroCtaPrimary,
-          heroCtaSecondary:
-            process.env.GYM_HERO_CTA_SECONDARY ?? defaults.heroCtaSecondary,
-          heroBadgeText:
-            process.env.GYM_HERO_BADGE_TEXT ?? defaults.heroBadgeText,
-          featuresTitle:
-            process.env.GYM_FEATURES_TITLE ?? defaults.featuresTitle,
-          featuresSubtitle:
-            process.env.GYM_FEATURES_SUBTITLE ?? defaults.featuresSubtitle,
-          features: defaults.features,
-          classesTitle: process.env.GYM_CLASSES_TITLE ?? defaults.classesTitle,
-          classesSubtitle:
-            process.env.GYM_CLASSES_SUBTITLE ?? defaults.classesSubtitle,
-          trainersTitle:
-            process.env.GYM_TRAINERS_TITLE ?? defaults.trainersTitle,
-          trainersSubtitle:
-            process.env.GYM_TRAINERS_SUBTITLE ?? defaults.trainersSubtitle,
-          trainersCtaLabel:
-            process.env.GYM_TRAINERS_CTA_LABEL ?? defaults.trainersCtaLabel,
-          workoutsTitle:
-            process.env.GYM_WORKOUTS_TITLE ?? defaults.workoutsTitle,
-          workoutsSubtitle:
-            process.env.GYM_WORKOUTS_SUBTITLE ?? defaults.workoutsSubtitle,
-          workoutsCtaLabel:
-            process.env.GYM_WORKOUTS_CTA_LABEL ?? defaults.workoutsCtaLabel,
-          pricingTitle: process.env.GYM_PRICING_TITLE ?? defaults.pricingTitle,
-          pricingSubtitle:
-            process.env.GYM_PRICING_SUBTITLE ?? defaults.pricingSubtitle,
-          footerTagline:
-            process.env.GYM_FOOTER_TAGLINE ?? defaults.footerTagline,
-          appShowcaseTitle:
-            process.env.GYM_APP_SHOWCASE_TITLE ?? defaults.appShowcaseTitle,
-          appShowcaseSubtitle:
-            process.env.GYM_APP_SHOWCASE_SUBTITLE ??
-            defaults.appShowcaseSubtitle,
-          ctaTitle: process.env.GYM_CTA_TITLE ?? defaults.ctaTitle,
-          ctaSubtitle: process.env.GYM_CTA_SUBTITLE ?? defaults.ctaSubtitle,
-          ctaButtonLabel:
-            process.env.GYM_CTA_BUTTON_LABEL ?? defaults.ctaButtonLabel,
-          fontFamily: process.env.GYM_FONT_FAMILY ?? defaults.fontFamily,
-          heroBgImage: process.env.GYM_HERO_BG_IMAGE ?? defaults.heroBgImage,
-          featuresBgImage:
-            process.env.GYM_FEATURES_BG_IMAGE ?? defaults.featuresBgImage,
-          classesBgImage:
-            process.env.GYM_CLASSES_BG_IMAGE ?? defaults.classesBgImage,
-          trainersBgImage:
-            process.env.GYM_TRAINERS_BG_IMAGE ?? defaults.trainersBgImage,
-          workoutsBgImage:
-            process.env.GYM_WORKOUTS_BG_IMAGE ?? defaults.workoutsBgImage,
-          pricingBgImage:
-            process.env.GYM_PRICING_BG_IMAGE ?? defaults.pricingBgImage,
-          ctaBgImage: process.env.GYM_CTA_BG_IMAGE ?? defaults.ctaBgImage,
         },
       });
-    }
-
-    const operatingHours = await this.prisma.gymOperatingHours.findMany({
-      orderBy: { dayOfWeek: 'asc' },
-    });
-
-    let heroBadgeText = settings?.heroBadgeText || defaults.heroBadgeText;
-
-    if (operatingHours.length > 0) {
-      const is24x7 =
-        operatingHours.length === 7 &&
-        operatingHours.every(
-          (h) =>
-            !h.isClosed && h.openTime === '00:00' && h.closeTime === '23:59',
-        );
-
-      if (is24x7) {
-        heroBadgeText = 'Now Open 24/7';
-      } else {
-        const todayOfWeek = new Date().getDay();
-        const todayHours = operatingHours.find(
-          (h) => h.dayOfWeek === todayOfWeek,
-        );
-
-        if (todayHours) {
-          if (todayHours.isClosed) {
-            heroBadgeText = 'Closed Today';
-          } else {
-            heroBadgeText = `Open Today: ${todayHours.openTime} - ${todayHours.closeTime}`;
-          }
-        }
-      }
     }
 
     return {
@@ -205,43 +48,6 @@ export class GymSettingsService {
       name: settings?.name || defaults.name,
       tagLine: settings?.tagLine || defaults.tagLine,
       description: settings?.description || defaults.description,
-      primaryColor: settings?.primaryColor || defaults.primaryColor,
-      secondaryColor: settings?.secondaryColor || defaults.secondaryColor,
-      backgroundColor: settings?.backgroundColor || defaults.backgroundColor,
-      textColor: settings?.textColor || defaults.textColor,
-      heroTitle: settings?.heroTitle || defaults.heroTitle,
-      heroSubtitle: settings?.heroSubtitle || defaults.heroSubtitle,
-      heroCtaPrimary: settings?.heroCtaPrimary || defaults.heroCtaPrimary,
-      heroCtaSecondary: settings?.heroCtaSecondary || defaults.heroCtaSecondary,
-      heroBadgeText,
-      featuresTitle: settings?.featuresTitle || defaults.featuresTitle,
-      featuresSubtitle: settings?.featuresSubtitle || defaults.featuresSubtitle,
-      features: settings?.features || defaults.features,
-      classesTitle: settings?.classesTitle || defaults.classesTitle,
-      classesSubtitle: settings?.classesSubtitle || defaults.classesSubtitle,
-      trainersTitle: settings?.trainersTitle || defaults.trainersTitle,
-      trainersSubtitle: settings?.trainersSubtitle || defaults.trainersSubtitle,
-      trainersCtaLabel: settings?.trainersCtaLabel || defaults.trainersCtaLabel,
-      workoutsTitle: settings?.workoutsTitle || defaults.workoutsTitle,
-      workoutsSubtitle: settings?.workoutsSubtitle || defaults.workoutsSubtitle,
-      workoutsCtaLabel: settings?.workoutsCtaLabel || defaults.workoutsCtaLabel,
-      pricingTitle: settings?.pricingTitle || defaults.pricingTitle,
-      pricingSubtitle: settings?.pricingSubtitle || defaults.pricingSubtitle,
-      footerTagline: settings?.footerTagline || defaults.footerTagline,
-      appShowcaseTitle: settings?.appShowcaseTitle || defaults.appShowcaseTitle,
-      appShowcaseSubtitle:
-        settings?.appShowcaseSubtitle || defaults.appShowcaseSubtitle,
-      ctaTitle: settings?.ctaTitle || defaults.ctaTitle,
-      ctaSubtitle: settings?.ctaSubtitle || defaults.ctaSubtitle,
-      ctaButtonLabel: settings?.ctaButtonLabel || defaults.ctaButtonLabel,
-      fontFamily: settings?.fontFamily || defaults.fontFamily,
-      heroBgImage: settings?.heroBgImage || defaults.heroBgImage,
-      featuresBgImage: settings?.featuresBgImage || defaults.featuresBgImage,
-      classesBgImage: settings?.classesBgImage || defaults.classesBgImage,
-      trainersBgImage: settings?.trainersBgImage || defaults.trainersBgImage,
-      workoutsBgImage: settings?.workoutsBgImage || defaults.workoutsBgImage,
-      pricingBgImage: settings?.pricingBgImage || defaults.pricingBgImage,
-      ctaBgImage: settings?.ctaBgImage || defaults.ctaBgImage,
     };
   }
 
@@ -287,33 +93,9 @@ export class GymSettingsService {
       });
     };
 
-    const sanitizedFeatures = Array.isArray(dto.features)
-      ? dto.features.map(
-          (feature: {
-            title?: string;
-            description?: string;
-            icon?: string;
-          }) => ({
-            title: sanitizeContent(feature?.title || ''),
-            description: sanitizeContent(feature?.description || ''),
-            icon: feature?.icon || '',
-          }),
-        )
-      : undefined;
-
     const sanitizedDto: UpdateGymSettingDto = {
       ...dto,
       description: sanitizeContent(dto.description),
-      heroSubtitle: sanitizeContent(dto.heroSubtitle),
-      featuresSubtitle: sanitizeContent(dto.featuresSubtitle),
-      classesSubtitle: sanitizeContent(dto.classesSubtitle),
-      trainersSubtitle: sanitizeContent(dto.trainersSubtitle),
-      workoutsSubtitle: sanitizeContent(dto.workoutsSubtitle),
-      pricingSubtitle: sanitizeContent(dto.pricingSubtitle),
-      appShowcaseSubtitle: sanitizeContent(dto.appShowcaseSubtitle),
-      ctaSubtitle: sanitizeContent(dto.ctaSubtitle),
-      footerTagline: sanitizeContent(dto.footerTagline),
-      features: sanitizedFeatures ?? (dto.features as any),
     };
 
     const updated = await this.prisma.gymSetting.update({

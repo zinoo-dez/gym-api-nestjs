@@ -13,7 +13,7 @@ import {
 } from './dto';
 import { PaginatedResponseDto } from '../common/dto';
 import * as bcrypt from 'bcrypt';
-import { UserRole } from '@prisma/client';
+import { UserRole, UserStatus } from '@prisma/client';
 import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
@@ -110,7 +110,12 @@ export class TrainersService {
       };
     }
 
-    // isActive removed from schema, ignoring availability filter for now
+    if (filters?.availability !== undefined) {
+      const userStatus: any = {
+        status: filters.availability ? UserStatus.ACTIVE : UserStatus.INACTIVE,
+      };
+      where.user = where.user ? { AND: [where.user, userStatus] } : userStatus;
+    }
 
     // Get total count
     const total = await this.prisma.trainer.count({ where });
@@ -212,8 +217,26 @@ export class TrainersService {
     return this.toResponseDto(updatedTrainer);
   }
 
-  async deactivate(_id: string): Promise<void> {
-    // Deprecated / No-op
+  async deactivate(id: string): Promise<void> {
+    const existingTrainer = await this.prisma.trainer.findUnique({
+      where: { id },
+      select: { id: true },
+    });
+
+    if (!existingTrainer) {
+      throw new NotFoundException(`Trainer with ID ${id} not found`);
+    }
+
+    await this.prisma.trainer.update({
+      where: { id },
+      data: {
+        user: {
+          update: {
+            status: UserStatus.INACTIVE,
+          },
+        },
+      },
+    });
   }
 
   async hasScheduleConflict(
@@ -235,7 +258,11 @@ export class TrainersService {
       lastName: trainer.user.lastName,
       specializations: trainer.specialization ? [trainer.specialization] : [], // Convert back to array for DTO
       certifications: trainer.certification ? [trainer.certification] : [],
-      isActive: true, // Mock
+      isActive: trainer.user?.status
+        ? trainer.user.status === UserStatus.ACTIVE
+        : true,
+      experience: trainer.experience ?? undefined,
+      hourlyRate: trainer.hourlyRate ?? undefined,
       createdAt: trainer.createdAt,
       updatedAt: trainer.updatedAt,
     };

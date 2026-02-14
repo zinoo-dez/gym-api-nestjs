@@ -35,6 +35,32 @@ export class NotificationsService {
     }
   }
 
+  async createBroadcast(params: {
+    roles: UserRole[];
+    title: string;
+    message: string;
+    type?: string;
+    actionUrl?: string;
+  }) {
+    try {
+      const data = params.roles.map((role) => ({
+        role,
+        title: params.title,
+        message: params.message,
+        type: params.type ?? 'info',
+        actionUrl: params.actionUrl,
+      }));
+
+      const result = await this.prisma.notification.createMany({ data });
+      return result.count;
+    } catch (error) {
+      this.logger.error(
+        'Failed to create broadcast notifications',
+        error instanceof Error ? error.stack : String(error),
+      );
+      return 0;
+    }
+  }
   async createForUser(params: {
     userId: string;
     title: string;
@@ -112,6 +138,7 @@ export class NotificationsService {
       type: notification.type,
       read: notification.read,
       actionUrl: notification.actionUrl ?? undefined,
+      role: notification.role ?? undefined,
       createdAt: notification.createdAt,
     };
   }

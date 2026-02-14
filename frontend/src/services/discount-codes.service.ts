@@ -1,6 +1,6 @@
 import { apiClient } from "@/lib/api-client";
 
-export type DiscountType = "PERCENT" | "FIXED";
+export type DiscountType = "PERCENTAGE" | "FIXED";
 
 export interface DiscountCode {
   id: string;

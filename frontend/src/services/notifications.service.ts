@@ -8,6 +8,7 @@ export interface NotificationItem {
   read: boolean;
   createdAt: string;
   actionUrl?: string;
+  role?: string;
 }
 
 interface ApiResponse<T> {
@@ -56,6 +57,20 @@ export const notificationsService = {
   async delete(id: string) {
     const response = await apiClient.delete<ApiResponse<any>>(
       `/notifications/${id}`,
+    );
+    return response.data.data ?? response.data;
+  },
+
+  async createAdmin(payload: {
+    title: string;
+    message: string;
+    type?: string;
+    targetRole?: string;
+    actionUrl?: string;
+  }) {
+    const response = await apiClient.post<ApiResponse<any>>(
+      "/notifications/admin",
+      payload,
     );
     return response.data.data ?? response.data;
   },

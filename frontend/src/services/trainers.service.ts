@@ -8,6 +8,8 @@ export interface Trainer {
     specializations: string[];
     certifications: string[];
     isActive: boolean;
+    experience?: number;
+    hourlyRate?: number;
     createdAt: string;
     updatedAt: string;
     classes?: Array<{

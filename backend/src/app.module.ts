@@ -25,6 +25,7 @@ import { LoggingInterceptor } from './common/interceptors';
 import { DiscountCodesModule } from './discount-codes/discount-codes.module';
 import { GymOperatingHoursModule } from './gym-operating-hours/gym-operating-hours.module';
 import { FeaturesModule } from './features/features.module';
+import { StaffModule } from './staff/staff.module';
 
 @Module({
   imports: [
@@ -59,6 +60,7 @@ import { FeaturesModule } from './features/features.module';
     DiscountCodesModule,
     GymOperatingHoursModule,
     FeaturesModule,
+    StaffModule,
   ],
   controllers: [AppController],
   providers: [

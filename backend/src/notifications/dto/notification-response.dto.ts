@@ -22,6 +22,9 @@ export class NotificationResponseDto {
   @ApiPropertyOptional({ description: 'Action URL', example: '/admin/members' })
   actionUrl?: string;
 
+  @ApiPropertyOptional({ description: 'Target role', example: 'ADMIN' })
+  role?: string;
+
   @ApiProperty({ description: 'Created at', example: '2024-01-01T00:00:00.000Z' })
   createdAt!: Date;
 }

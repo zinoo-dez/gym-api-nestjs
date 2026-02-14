@@ -13,7 +13,7 @@ import {
   PaginatedResponseDto,
 } from './dto';
 import * as bcrypt from 'bcrypt';
-import { UserRole, Prisma, SubscriptionStatus } from '@prisma/client';
+import { UserRole, UserStatus, Prisma, SubscriptionStatus } from '@prisma/client';
 import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
@@ -158,21 +158,16 @@ export class MembersService {
     }
 
     if (filters?.isActive !== undefined) {
-      const now = new Date();
-      if (filters.isActive) {
-        where.subscriptions = {
-          some: {
-            status: SubscriptionStatus.ACTIVE,
-            endDate: { gte: now },
-          },
+      const userStatus: Prisma.UserWhereInput = {
+        status: filters.isActive ? UserStatus.ACTIVE : UserStatus.INACTIVE,
+      };
+      if (where.user) {
+        const prevUserWhere = where.user as Prisma.UserWhereInput;
+        where.user = {
+          AND: [prevUserWhere, userStatus],
         };
       } else {
-        where.subscriptions = {
-          none: {
-            status: SubscriptionStatus.ACTIVE,
-            endDate: { gte: now },
-          },
-        };
+        where.user = userStatus;
       }
     }
 
@@ -340,7 +335,6 @@ export class MembersService {
   }
 
   async deactivate(id: string): Promise<void> {
-    // isActive field no longer exists in schema. This function is deprecated/no-op.
     const existingMember = await this.prisma.member.findUnique({
       where: { id },
       select: { id: true },
@@ -350,8 +344,16 @@ export class MembersService {
       throw new NotFoundException(`Member with ID ${id} not found`);
     }
 
-    // Logic removed as isActive is removed from schema
-    // await this.prisma.member.update({ ... });
+    await this.prisma.member.update({
+      where: { id },
+      data: {
+        user: {
+          update: {
+            status: UserStatus.INACTIVE,
+          },
+        },
+      },
+    });
   }
 
   async hasActiveMembership(memberId: string): Promise<boolean> {
@@ -445,14 +447,9 @@ export class MembersService {
   }
 
   toResponseDto(member: any): MemberResponseDto {
-    const now = new Date();
-    const latestSubscription = Array.isArray(member.subscriptions)
-      ? member.subscriptions[0]
-      : undefined;
-    const isActive =
-      !!latestSubscription &&
-      latestSubscription.status === SubscriptionStatus.ACTIVE &&
-      new Date(latestSubscription.endDate) >= now;
+    const isActive = member.user?.status
+      ? member.user.status === UserStatus.ACTIVE
+      : false;
 
     return {
       id: member.id,
