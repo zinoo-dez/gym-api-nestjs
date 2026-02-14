@@ -21,6 +21,7 @@ export interface AuthResponse {
     firstName: string;
     lastName: string;
     phone?: string;
+    avatarUrl?: string;
     role: string;
     createdAt: string;
     updatedAt: string;

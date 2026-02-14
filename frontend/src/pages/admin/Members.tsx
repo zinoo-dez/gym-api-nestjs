@@ -54,6 +54,7 @@ const Members = () => {
         lastName: "",
         email: "",
         phone: "",
+        avatarUrl: "",
         dateOfBirth: "",
         password: "",
         gender: "",
@@ -113,6 +114,7 @@ const Members = () => {
             lastName: "",
             email: "",
             phone: "",
+            avatarUrl: "",
             dateOfBirth: "",
             password: "",
             gender: "",
@@ -131,6 +133,7 @@ const Members = () => {
             lastName: member.lastName,
             email: member.email,
             phone: member.phone || "",
+            avatarUrl: member.avatarUrl || "",
             dateOfBirth: member.dateOfBirth ? member.dateOfBirth.split("T")[0] : "",
             password: "",
             gender: member.gender || "",
@@ -154,6 +157,7 @@ const Members = () => {
                     firstName: form.firstName.trim(),
                     lastName: form.lastName.trim(),
                     phone: form.phone.trim() || undefined,
+                    avatarUrl: form.avatarUrl.trim() || undefined,
                     dateOfBirth: form.dateOfBirth || undefined,
                     gender: form.gender.trim() || undefined,
                     height: form.height ? Number(form.height) : undefined,
@@ -177,6 +181,7 @@ const Members = () => {
                     firstName: form.firstName.trim(),
                     lastName: form.lastName.trim(),
                     phone: form.phone.trim() || undefined,
+                    avatarUrl: form.avatarUrl.trim() || undefined,
                     dateOfBirth: form.dateOfBirth || undefined,
                     gender: form.gender.trim() || undefined,
                     height: form.height ? Number(form.height) : undefined,
@@ -198,11 +203,41 @@ const Members = () => {
 
     const handleDelete = async (id: string) => {
         try {
-            await membersService.deactivate(id);
+            await membersService.deleteHard(id);
             setMembers((prev) => prev.filter((member) => member.id !== id));
-            toast.success("Member removed");
+            toast.success("Member deleted");
         } catch (err: any) {
             const message = err?.response?.data?.message || "Failed to delete member.";
+            toast.error(message);
+        }
+    };
+
+    const handleDeactivate = async (id: string) => {
+        try {
+            await membersService.deactivate(id);
+            setMembers((prev) =>
+                prev.map((member) =>
+                    member.id === id ? { ...member, isActive: false } : member,
+                ),
+            );
+            toast.success("Member deactivated");
+        } catch (err: any) {
+            const message = err?.response?.data?.message || "Failed to deactivate member.";
+            toast.error(message);
+        }
+    };
+
+    const handleActivate = async (id: string) => {
+        try {
+            await membersService.activate(id);
+            setMembers((prev) =>
+                prev.map((member) =>
+                    member.id === id ? { ...member, isActive: true } : member,
+                ),
+            );
+            toast.success("Member activated");
+        } catch (err: any) {
+            const message = err?.response?.data?.message || "Failed to activate member.";
             toast.error(message);
         }
     };
@@ -344,6 +379,25 @@ const Members = () => {
                                         </TableCell>
                                         <TableCell className="text-right">
                                             <div className="flex justify-end gap-1">
+                                                {member.isActive ? (
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        onClick={() => handleDeactivate(member.id)}
+                                                        title="Deactivate"
+                                                    >
+                                                        <span className="text-xs font-semibold">Off</span>
+                                                    </Button>
+                                                ) : (
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        onClick={() => handleActivate(member.id)}
+                                                        title="Activate"
+                                                    >
+                                                        <span className="text-xs font-semibold">On</span>
+                                                    </Button>
+                                                )}
                                                 <Button variant="ghost" size="icon" onClick={() => openEdit(member)}>
                                                     <Pencil className="h-4 w-4" />
                                                 </Button>
@@ -426,6 +480,14 @@ const Members = () => {
                                 type="tel"
                                 value={form.phone}
                                 onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Profile image URL</Label>
+                            <Input
+                                type="text"
+                                value={form.avatarUrl}
+                                onChange={(e) => setForm({ ...form, avatarUrl: e.target.value })}
                             />
                         </div>
                         <div className="space-y-2">

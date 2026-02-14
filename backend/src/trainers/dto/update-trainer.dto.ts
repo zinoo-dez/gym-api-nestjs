@@ -10,6 +10,10 @@ export class UpdateTrainerDto {
   lastName?: string;
 
   @IsOptional()
+  @IsString()
+  avatarUrl?: string;
+
+  @IsOptional()
   @IsArray()
   @IsString({ each: true })
   specializations?: string[];

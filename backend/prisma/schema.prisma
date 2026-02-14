@@ -15,6 +15,7 @@ model User {
     firstName               String                   @map("first_name")
     lastName                String                   @map("last_name")
     phone                   String?                  @unique @map("phone_number")
+    avatarUrl               String?                  @default("") @map("avatar_url")
     updatedAt               DateTime                 @updatedAt @map("updated_at")
     status                  UserStatus               @default(ACTIVE)
     member                  Member?

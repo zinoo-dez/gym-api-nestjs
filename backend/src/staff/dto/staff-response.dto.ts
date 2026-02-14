@@ -6,6 +6,7 @@ export class StaffResponseDto {
   firstName!: string;
   lastName!: string;
   phone?: string;
+  avatarUrl?: string;
   staffRole!: StaffRole;
   employeeId!: string;
   hireDate!: Date;

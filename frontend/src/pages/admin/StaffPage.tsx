@@ -53,6 +53,7 @@ const StaffPage = () => {
     firstName: "",
     lastName: "",
     email: "",
+    avatarUrl: "",
     password: "",
     phone: "",
     staffRole: "RECEPTIONIST" as StaffRole,
@@ -102,6 +103,7 @@ const StaffPage = () => {
       firstName: "",
       lastName: "",
       email: "",
+      avatarUrl: "",
       password: "",
       phone: "",
       staffRole: "RECEPTIONIST",
@@ -121,6 +123,7 @@ const StaffPage = () => {
       firstName: staff.firstName,
       lastName: staff.lastName,
       email: staff.email,
+      avatarUrl: staff.avatarUrl || "",
       password: "",
       phone: staff.phone || "",
       staffRole: staff.staffRole,
@@ -150,6 +153,7 @@ const StaffPage = () => {
           firstName: form.firstName.trim(),
           lastName: form.lastName.trim(),
           phone: form.phone.trim() || undefined,
+          avatarUrl: form.avatarUrl.trim() || undefined,
           staffRole: form.staffRole,
           employeeId: form.employeeId.trim(),
           hireDate: form.hireDate,
@@ -172,6 +176,7 @@ const StaffPage = () => {
           firstName: form.firstName.trim(),
           lastName: form.lastName.trim(),
           phone: form.phone.trim() || undefined,
+          avatarUrl: form.avatarUrl.trim() || undefined,
           staffRole: form.staffRole,
           employeeId: form.employeeId.trim(),
           hireDate: form.hireDate,
@@ -321,6 +326,10 @@ const StaffPage = () => {
             <div className="space-y-2">
               <Label>Email</Label>
               <Input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+            </div>
+            <div className="space-y-2">
+              <Label>Profile image URL</Label>
+              <Input value={form.avatarUrl} onChange={(e) => setForm({ ...form, avatarUrl: e.target.value })} />
             </div>
             {!editing && (
               <div className="space-y-2">

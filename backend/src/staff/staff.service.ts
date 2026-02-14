@@ -39,6 +39,7 @@ export class StaffService {
           firstName: createStaffDto.firstName,
           lastName: createStaffDto.lastName,
           phone: createStaffDto.phone,
+          avatarUrl: createStaffDto.avatarUrl ?? '',
         },
       });
 
@@ -168,6 +169,7 @@ export class StaffService {
             firstName: updateStaffDto.firstName,
             lastName: updateStaffDto.lastName,
             phone: updateStaffDto.phone,
+            avatarUrl: updateStaffDto.avatarUrl,
           },
         },
       },
@@ -206,6 +208,7 @@ export class StaffService {
       firstName: staff.user.firstName,
       lastName: staff.user.lastName,
       phone: staff.user.phone,
+      avatarUrl: staff.user.avatarUrl,
       staffRole: staff.staffRole,
       employeeId: staff.employeeId,
       hireDate: staff.hireDate,

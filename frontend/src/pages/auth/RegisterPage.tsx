@@ -144,6 +144,23 @@ export default function RegisterPage() {
           />
         </div>
 
+        {/* Role */}
+        <div>
+          <label
+            htmlFor="role"
+            className="block text-sm font-medium text-foreground mb-2"
+          >
+            Account type
+          </label>
+          <input
+            id="role"
+            type="text"
+            readOnly
+            value="Member"
+            className="w-full px-4 py-3 bg-secondary border border-border rounded-lg text-muted-foreground"
+          />
+        </div>
+
         {/* Phone */}
         <div>
           <label

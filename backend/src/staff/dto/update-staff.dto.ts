@@ -15,6 +15,10 @@ export class UpdateStaffDto {
   phone?: string;
 
   @IsOptional()
+  @IsString()
+  avatarUrl?: string;
+
+  @IsOptional()
   @IsEnum(StaffRole)
   staffRole?: StaffRole;
 

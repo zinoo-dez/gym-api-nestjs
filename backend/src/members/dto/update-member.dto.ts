@@ -30,6 +30,11 @@ export class UpdateMemberDto {
   phone?: string;
 
   @ApiPropertyOptional({
+    description: 'Profile image URL',
+    example: 'https://example.com/avatar.jpg',
+  })
+
+  @ApiPropertyOptional({
     description: 'Member date of birth (ISO 8601 format)',
     example: '1990-01-15',
     format: 'date',
@@ -81,4 +86,8 @@ export class UpdateMemberDto {
   @IsOptional()
   @IsString()
   emergencyContact?: string;
+
+  @IsOptional()
+  @IsString()
+  avatarUrl?: string;
 }

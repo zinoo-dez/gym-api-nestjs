@@ -46,6 +46,7 @@ export class MembersService {
           firstName: createMemberDto.firstName,
           lastName: createMemberDto.lastName,
           phone: createMemberDto.phone,
+          avatarUrl: createMemberDto.avatarUrl ?? '',
         },
       });
 
@@ -333,6 +334,7 @@ export class MembersService {
             firstName: updateMemberDto.firstName,
             lastName: updateMemberDto.lastName,
             phone: updateMemberDto.phone,
+            avatarUrl: updateMemberDto.avatarUrl,
           },
         },
       },
@@ -347,7 +349,7 @@ export class MembersService {
   async deactivate(id: string): Promise<void> {
     const existingMember = await this.prisma.member.findUnique({
       where: { id },
-      select: { id: true },
+      select: { id: true, userId: true },
     });
 
     if (!existingMember) {
@@ -363,6 +365,43 @@ export class MembersService {
           },
         },
       },
+    });
+  }
+
+  async activate(id: string): Promise<void> {
+    const existingMember = await this.prisma.member.findUnique({
+      where: { id },
+      select: { id: true },
+    });
+
+    if (!existingMember) {
+      throw new NotFoundException(`Member with ID ${id} not found`);
+    }
+
+    await this.prisma.member.update({
+      where: { id },
+      data: {
+        user: {
+          update: {
+            status: UserStatus.ACTIVE,
+          },
+        },
+      },
+    });
+  }
+
+  async deleteHard(id: string): Promise<void> {
+    const existingMember = await this.prisma.member.findUnique({
+      where: { id },
+      select: { id: true, userId: true },
+    });
+
+    if (!existingMember) {
+      throw new NotFoundException(`Member with ID ${id} not found`);
+    }
+
+    await this.prisma.user.delete({
+      where: { id: existingMember.userId },
     });
   }
 
@@ -467,6 +506,7 @@ export class MembersService {
       firstName: member.user.firstName,
       lastName: member.user.lastName,
       phone: member.user.phone,
+      avatarUrl: member.user.avatarUrl,
       dateOfBirth: member.dateOfBirth,
       gender: member.gender,
       height: member.height,

@@ -19,6 +19,10 @@ export class CreateStaffDto {
   @IsString()
   phone?: string;
 
+  @IsOptional()
+  @IsString()
+  avatarUrl?: string;
+
   @IsEnum(StaffRole)
   staffRole!: StaffRole;
 

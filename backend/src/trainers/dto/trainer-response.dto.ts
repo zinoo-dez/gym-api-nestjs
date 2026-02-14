@@ -11,6 +11,7 @@ export class TrainerResponseDto {
   email!: string;
   firstName!: string;
   lastName!: string;
+  avatarUrl?: string;
   specializations!: string[];
   certifications!: string[];
   isActive!: boolean;

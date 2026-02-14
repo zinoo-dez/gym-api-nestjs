@@ -20,6 +20,10 @@ export class CreateTrainerDto {
   @IsString({ message: 'Last name must be a string' })
   lastName!: string;
 
+  @IsOptional()
+  @IsString({ message: 'Avatar URL must be a string' })
+  avatarUrl?: string;
+
   @IsArray({ message: 'Specializations must be an array' })
   @IsString({ each: true, message: 'Each specialization must be a string' })
   specializations!: string[];

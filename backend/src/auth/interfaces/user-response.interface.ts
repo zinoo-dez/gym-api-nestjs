@@ -5,6 +5,7 @@ export interface UserResponse {
   email: string;
   firstName: string;
   lastName: string;
+  avatarUrl?: string;
   role: UserRole;
   createdAt: Date;
   updatedAt: Date;

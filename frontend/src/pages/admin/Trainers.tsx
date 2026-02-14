@@ -49,6 +49,7 @@ const Trainers = () => {
     firstName: "",
     lastName: "",
     email: "",
+    avatarUrl: "",
     password: "",
     specializations: "",
     certifications: "",
@@ -92,6 +93,7 @@ const Trainers = () => {
       firstName: "",
       lastName: "",
       email: "",
+      avatarUrl: "",
       password: "",
       specializations: "",
       certifications: "",
@@ -107,6 +109,7 @@ const Trainers = () => {
       firstName: t.firstName,
       lastName: t.lastName,
       email: t.email,
+      avatarUrl: t.avatarUrl || "",
       password: "",
       specializations: t.specializations.join(", "),
       certifications: t.certifications.join(", "),
@@ -139,6 +142,7 @@ const Trainers = () => {
         const payload: UpdateTrainerRequest = {
           firstName: form.firstName.trim(),
           lastName: form.lastName.trim(),
+          avatarUrl: form.avatarUrl.trim() || undefined,
           specializations,
           certifications: parseList(form.certifications),
           experience: form.experience ? Number(form.experience) : undefined,
@@ -157,6 +161,7 @@ const Trainers = () => {
           password: form.password,
           firstName: form.firstName.trim(),
           lastName: form.lastName.trim(),
+          avatarUrl: form.avatarUrl.trim() || undefined,
           specializations,
           certifications: parseList(form.certifications),
           experience: form.experience ? Number(form.experience) : undefined,
@@ -347,6 +352,14 @@ const Trainers = () => {
               type="email"
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Profile image URL</Label>
+              <Input
+                type="text"
+                value={form.avatarUrl}
+                onChange={(e) => setForm({ ...form, avatarUrl: e.target.value })}
               />
             </div>
             {!editing && (

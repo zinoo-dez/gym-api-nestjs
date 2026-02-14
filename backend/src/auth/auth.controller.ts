@@ -1,4 +1,4 @@
-import { Controller, Post, Body, HttpCode, HttpStatus, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, HttpCode, HttpStatus, UseGuards, BadRequestException } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { LoginDto, RegisterDto, ChangePasswordDto, ForgotPasswordDto } from './dto';
@@ -40,6 +40,9 @@ export class AuthController {
     description: 'Email already exists',
   })
   async register(@Body() registerDto: RegisterDto) {
+    if (registerDto.role !== 'MEMBER') {
+      throw new BadRequestException('Only MEMBER registration is allowed');
+    }
     return this.authService.register(registerDto);
   }
 

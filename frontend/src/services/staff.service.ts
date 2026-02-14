@@ -13,6 +13,7 @@ export interface StaffMember {
   firstName: string;
   lastName: string;
   phone?: string;
+  avatarUrl?: string;
   staffRole: StaffRole;
   employeeId: string;
   hireDate: string;
@@ -39,6 +40,7 @@ export interface CreateStaffRequest {
   firstName: string;
   lastName: string;
   phone?: string;
+  avatarUrl?: string;
   staffRole: StaffRole;
   employeeId: string;
   hireDate: string;
@@ -52,6 +54,7 @@ export interface UpdateStaffRequest {
   firstName?: string;
   lastName?: string;
   phone?: string;
+  avatarUrl?: string;
   staffRole?: StaffRole;
   employeeId?: string;
   hireDate?: string;

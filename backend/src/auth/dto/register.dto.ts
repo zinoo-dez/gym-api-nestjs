@@ -1,5 +1,5 @@
-import { IsEmail, IsString, MinLength, IsEnum } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import { IsEmail, IsString, MinLength, IsEnum, IsOptional } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 
 export class RegisterDto {
@@ -33,6 +33,14 @@ export class RegisterDto {
   })
   @IsString({ message: 'Last name must be a string' })
   lastName!: string;
+
+  @ApiPropertyOptional({
+    description: 'Profile image URL',
+    example: 'https://example.com/avatar.jpg',
+  })
+  @IsOptional()
+  @IsString({ message: 'Avatar URL must be a string' })
+  avatarUrl?: string;
 
   @ApiProperty({
     description: 'User role in the system',

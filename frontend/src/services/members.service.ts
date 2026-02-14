@@ -21,6 +21,7 @@ export interface Member {
   firstName: string;
   lastName: string;
   phone?: string;
+  avatarUrl?: string;
   dateOfBirth?: string;
   gender?: string;
   height?: number;
@@ -47,6 +48,7 @@ export interface CreateMemberRequest {
   firstName: string;
   lastName: string;
   phone?: string;
+  avatarUrl?: string;
   dateOfBirth?: string;
   gender?: string;
   height?: number;
@@ -59,6 +61,7 @@ export interface UpdateMemberRequest {
   firstName?: string;
   lastName?: string;
   phone?: string;
+  avatarUrl?: string;
   dateOfBirth?: string;
   gender?: string;
   height?: number;
@@ -131,6 +134,20 @@ export const membersService = {
   },
 
   async deactivate(id: string) {
+    const response = await apiClient.patch<ApiResponse<{ message: string }>>(
+      `/members/${id}/deactivate`,
+    );
+    return response.data.data ?? response.data;
+  },
+
+  async activate(id: string) {
+    const response = await apiClient.patch<ApiResponse<{ message: string }>>(
+      `/members/${id}/activate`,
+    );
+    return response.data.data ?? response.data;
+  },
+
+  async deleteHard(id: string) {
     const response = await apiClient.delete<ApiResponse<{ message: string }>>(
       `/members/${id}`,
     );

@@ -87,6 +87,12 @@ export class MemberResponseDto {
   phone?: string;
 
   @ApiPropertyOptional({
+    description: 'Profile image URL',
+    example: 'https://example.com/avatar.jpg',
+  })
+  avatarUrl?: string;
+
+  @ApiPropertyOptional({
     description: 'Member date of birth',
     example: '1990-01-15T00:00:00.000Z',
   })

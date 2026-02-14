@@ -82,7 +82,30 @@ export default function Settings() {
   const handleSave = async () => {
     try {
       setSaving(true);
-      const updated = await gymSettingsService.updateSettings(form);
+      const payload = {
+        name: form.name,
+        tagLine: form.tagLine,
+        address: form.address,
+        phone: form.phone,
+        email: form.email,
+        logo: form.logo,
+        description: form.description,
+        favicon: form.favicon,
+        emailNotification: form.emailNotification,
+        smsNotification: form.smsNotification,
+        newMemberNotification: form.newMemberNotification,
+        newTrainerNotification: form.newTrainerNotification,
+        newMembershipNotification: form.newMembershipNotification,
+        newPaymentNotification: form.newPaymentNotification,
+        newSessionNotification: form.newSessionNotification,
+        newWorkoutPlanNotification: form.newWorkoutPlanNotification,
+        newProgressNotification: form.newProgressNotification,
+        newAttendanceNotification: form.newAttendanceNotification,
+        newEquipmentNotification: form.newEquipmentNotification,
+        newGymSettingNotification: form.newGymSettingNotification,
+        newUserSettingNotification: form.newUserSettingNotification,
+      };
+      const updated = await gymSettingsService.updateSettings(payload);
       updateSettings(updated);
       toast.success("Settings updated");
     } catch (err: any) {

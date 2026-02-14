@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/sidebar";
 
 import { useAuthStore } from "@/store/auth.store";
+import { useGymSettingsStore } from "@/store/gym-settings.store";
 
 const adminItems = [
   { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
@@ -24,6 +25,7 @@ const adminItems = [
 
 export function AppSidebar() {
   const { user } = useAuthStore();
+  const { settings } = useGymSettingsStore();
 
   const getItems = () => {
     if (!user) return [];
@@ -46,7 +48,7 @@ export function AppSidebar() {
       <div className="p-4 border-b border-sidebar-border">
         <div className="flex items-center gap-2">
           <Dumbbell className="h-6 w-6 text-primary" />
-          <span className="font-bold text-lg">GymPro</span>
+          <span className="font-bold text-lg">{settings?.name || "GymPro"}</span>
         </div>
       </div>
       <SidebarContent>

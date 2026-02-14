@@ -182,9 +182,8 @@ export class MembersController {
   @Delete(':id')
   @Roles(UserRole.ADMIN)
   @ApiOperation({
-    summary: 'Deactivate member',
-    description:
-      'Soft delete a member account (sets isActive to false). Requires ADMIN role.',
+    summary: 'Delete member permanently',
+    description: 'Hard delete a member account. Requires ADMIN role.',
   })
   @ApiParam({
     name: 'id',
@@ -193,17 +192,39 @@ export class MembersController {
   })
   @ApiResponse({
     status: 200,
-    description: 'Member deactivated successfully',
+    description: 'Member deleted successfully',
     schema: {
-      example: { message: 'Member deactivated successfully' },
+      example: { message: 'Member deleted successfully' },
     },
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden - Admin role required' })
   @ApiResponse({ status: 404, description: 'Member not found' })
   async deactivate(@Param('id') id: string): Promise<{ message: string }> {
+    await this.membersService.deleteHard(id);
+    return { message: 'Member deleted successfully' };
+  }
+
+  @Patch(':id/deactivate')
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({
+    summary: 'Deactivate member',
+    description: 'Set member status to inactive. Requires ADMIN role.',
+  })
+  async deactivateMember(@Param('id') id: string): Promise<{ message: string }> {
     await this.membersService.deactivate(id);
     return { message: 'Member deactivated successfully' };
+  }
+
+  @Patch(':id/activate')
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({
+    summary: 'Activate member',
+    description: 'Set member status to active. Requires ADMIN role.',
+  })
+  async activateMember(@Param('id') id: string): Promise<{ message: string }> {
+    await this.membersService.activate(id);
+    return { message: 'Member activated successfully' };
   }
 
   @Get(':id/bookings')

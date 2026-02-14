@@ -52,6 +52,14 @@ export class CreateMemberDto {
   phone?: string;
 
   @ApiPropertyOptional({
+    description: 'Profile image URL',
+    example: 'https://example.com/avatar.jpg',
+  })
+  @IsOptional()
+  @IsString()
+  avatarUrl?: string;
+
+  @ApiPropertyOptional({
     description: 'Member date of birth (ISO 8601 format)',
     example: '1990-01-15',
     format: 'date',
