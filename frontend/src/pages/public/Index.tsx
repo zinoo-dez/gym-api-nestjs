@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -27,6 +27,7 @@ import { gymSettingsService } from "@/services/gym-settings.service";
 import { membershipsService, type MembershipPlan } from "@/services/memberships.service";
 import { trainersService, type Trainer } from "@/services/trainers.service";
 import { membersService } from "@/services/members.service";
+import { useAuthStore } from "@/store/auth.store";
 
 const fallbackGym = {
   name: "FitZone",
@@ -108,6 +109,8 @@ const testimonials = [
 ];
 
 const LandingPage = () => {
+  const navigate = useNavigate();
+  const { user, isAuthenticated, isLoading, clearAuth } = useAuthStore();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [gymInfo, setGymInfo] = useState(fallbackGym);
   const [plans, setPlans] = useState(fallbackPlans);
@@ -197,10 +200,22 @@ const LandingPage = () => {
   }, []);
 
   const currentYear = useMemo(() => new Date().getFullYear(), []);
+  const displayName = useMemo(() => {
+    const firstName = user?.firstName?.trim() || "";
+    const lastName = user?.lastName?.trim() || "";
+    const fullName = `${firstName} ${lastName}`.trim();
+    return fullName || user?.email || "User";
+  }, [user]);
 
   const scrollTo = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
     setMobileMenuOpen(false);
+  };
+
+  const handleLogout = () => {
+    clearAuth();
+    setMobileMenuOpen(false);
+    navigate("/");
   };
 
   return (
@@ -223,14 +238,29 @@ const LandingPage = () => {
             ))}
           </div>
           <div className="hidden md:flex items-center gap-3">
-            <Link to="/login">
-              <Button
-                variant="outline"
-                className="border-[hsl(82,85%,50%)] text-[hsl(82,85%,50%)] hover:bg-[hsl(82,85%,50%)] hover:text-[hsl(222,18%,7%)] bg-transparent"
-              >
-                Admin Login
-              </Button>
-            </Link>
+            {isLoading ? (
+              <span className="text-sm text-[hsl(210,20%,94%)]/70">Loading...</span>
+            ) : isAuthenticated ? (
+              <>
+                <span className="text-sm text-[hsl(210,20%,94%)]/90">{displayName}</span>
+                <Button
+                  variant="outline"
+                  onClick={handleLogout}
+                  className="border-[hsl(82,85%,50%)] text-[hsl(82,85%,50%)] hover:bg-[hsl(82,85%,50%)] hover:text-[hsl(222,18%,7%)] bg-transparent"
+                >
+                  Logout
+                </Button>
+              </>
+            ) : (
+              <Link to="/login">
+                <Button
+                  variant="outline"
+                  className="border-[hsl(82,85%,50%)] text-[hsl(82,85%,50%)] hover:bg-[hsl(82,85%,50%)] hover:text-[hsl(222,18%,7%)] bg-transparent"
+                >
+                  Login
+                </Button>
+              </Link>
+            )}
             <Button
               onClick={() => scrollTo("pricing")}
               className="bg-[hsl(82,85%,50%)] text-[hsl(222,18%,7%)] hover:bg-[hsl(82,85%,60%)] font-bold"
@@ -253,14 +283,29 @@ const LandingPage = () => {
                 {s}
               </button>
             ))}
-            <Link to="/login" className="block">
-              <Button
-                variant="outline"
-                className="w-full border-[hsl(82,85%,50%)] text-[hsl(82,85%,50%)] bg-transparent"
-              >
-                Admin Login
-              </Button>
-            </Link>
+            {isLoading ? (
+              <p className="text-sm text-[hsl(210,20%,94%)]/70">Loading...</p>
+            ) : isAuthenticated ? (
+              <div className="space-y-2">
+                <p className="text-sm text-[hsl(210,20%,94%)]/90">{displayName}</p>
+                <Button
+                  variant="outline"
+                  onClick={handleLogout}
+                  className="w-full border-[hsl(82,85%,50%)] text-[hsl(82,85%,50%)] bg-transparent"
+                >
+                  Logout
+                </Button>
+              </div>
+            ) : (
+              <Link to="/login" className="block">
+                <Button
+                  variant="outline"
+                  className="w-full border-[hsl(82,85%,50%)] text-[hsl(82,85%,50%)] bg-transparent"
+                >
+                  Login
+                </Button>
+              </Link>
+            )}
           </div>
         )}
       </nav>
@@ -589,9 +634,6 @@ const LandingPage = () => {
           <div className="flex gap-6 text-sm text-[hsl(215,15%,55%)]">
             <button className="hover:text-[hsl(82,85%,50%)]">Privacy</button>
             <button className="hover:text-[hsl(82,85%,50%)]">Terms</button>
-            <Link to="/login" className="hover:text-[hsl(82,85%,50%)]">
-              Admin
-            </Link>
           </div>
         </div>
       </footer>

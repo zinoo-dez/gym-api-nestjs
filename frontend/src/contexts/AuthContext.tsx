@@ -30,9 +30,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = (email: string, password: string): boolean => {
     let authUser: User | null = null;
 
-    if (email === "admin@gym.com" && password === "admin123") {
-      authUser = { email, name: "Admin User", role: "admin", id: "a1" };
-    } else if (email === "member@gym.com" && password === "member123") {
+    if (email === "member@gym.com" && password === "member123") {
       authUser = { email, name: "Member User", role: "member", id: "m1" };
     } else if (email === "trainer@gym.com" && password === "trainer123") {
       authUser = { email, name: "Trainer User", role: "trainer", id: "t1" };
