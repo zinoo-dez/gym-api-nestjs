@@ -8,6 +8,7 @@ import {
 } from "@/services/discount-codes.service";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { DateTimePicker } from "@/components/ui/date-time-picker";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -33,6 +34,14 @@ import {
 } from "@/components/ui/select";
 import { Plus, Search, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+
+const toDateTimeLocalValue = (value?: string | null) => {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
+  return date.toISOString().slice(0, 16);
+};
 
 const Discounts = () => {
   const [list, setList] = useState<DiscountCode[]>([]);
@@ -103,8 +112,8 @@ const Discounts = () => {
       description: discount.description || "",
       type: discount.type,
       amount: String(discount.amount),
-      startsAt: discount.startsAt ? discount.startsAt.slice(0, 10) : "",
-      endsAt: discount.endsAt ? discount.endsAt.slice(0, 10) : "",
+      startsAt: toDateTimeLocalValue(discount.startsAt),
+      endsAt: toDateTimeLocalValue(discount.endsAt),
       maxRedemptions: discount.maxRedemptions ? String(discount.maxRedemptions) : "",
       isActive: discount.isActive,
     });
@@ -238,8 +247,8 @@ const Discounts = () => {
                       {d.type === "PERCENTAGE" ? `${d.amount}%` : `$${d.amount}`}
                     </TableCell>
                     <TableCell className="hidden md:table-cell">
-                      {d.startsAt ? d.startsAt.slice(0, 10) : "—"} →{" "}
-                      {d.endsAt ? d.endsAt.slice(0, 10) : "—"}
+                      {d.startsAt ? new Date(d.startsAt).toLocaleString() : "—"} →{" "}
+                      {d.endsAt ? new Date(d.endsAt).toLocaleString() : "—"}
                     </TableCell>
                     <TableCell className="hidden md:table-cell">
                       {d.maxRedemptions ?? "—"}
@@ -347,18 +356,18 @@ const Discounts = () => {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Valid From</Label>
-                <Input
-                  type="date"
+                <DateTimePicker
                   value={form.startsAt}
-                  onChange={(e) => setForm({ ...form, startsAt: e.target.value })}
+                  onChange={(value) => setForm({ ...form, startsAt: value })}
                 />
               </div>
               <div className="space-y-2">
                 <Label>Valid To</Label>
-                <Input
-                  type="date"
+                <DateTimePicker
                   value={form.endsAt}
-                  onChange={(e) => setForm({ ...form, endsAt: e.target.value })}
+                  durationFromValue={form.startsAt}
+                  showDurationLabels
+                  onChange={(value) => setForm({ ...form, endsAt: value })}
                 />
               </div>
             </div>

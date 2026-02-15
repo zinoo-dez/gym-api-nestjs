@@ -9,6 +9,7 @@ import {
 import { membershipsService, type MembershipPlan } from "@/services/memberships.service";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { DateTimePicker } from "@/components/ui/date-time-picker";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -531,10 +532,10 @@ const Members = () => {
                         </div>
                         <div className="space-y-2">
                             <Label>Date of Birth</Label>
-                            <Input
-                                type="date"
+                            <DateTimePicker
+                                mode="date"
                                 value={form.dateOfBirth}
-                                onChange={(e) => setForm({ ...form, dateOfBirth: e.target.value })}
+                                onChange={(value) => setForm({ ...form, dateOfBirth: value })}
                             />
                         </div>
                         <div className="grid grid-cols-2 gap-4">

@@ -96,6 +96,7 @@ export class CreateCampaignDto {
 
   @ApiPropertyOptional({
     example: '2026-02-20T09:00:00.000Z',
+    format: 'date-time',
     description:
       'If provided with SCHEDULED status, campaign will be sent by job runner.',
   })

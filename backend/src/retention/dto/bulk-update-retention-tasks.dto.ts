@@ -41,7 +41,10 @@ export class BulkUpdateRetentionTasksDto {
   @IsString()
   note?: string;
 
-  @ApiPropertyOptional({ example: '2026-02-16T12:00:00.000Z' })
+  @ApiPropertyOptional({
+    example: '2026-02-16T12:00:00.000Z',
+    format: 'date-time',
+  })
   @IsOptional()
   @IsDateString()
   dueDate?: string;

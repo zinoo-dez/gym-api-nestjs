@@ -5,6 +5,7 @@ import {
   Min,
   IsOptional,
 } from 'class-validator';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class UpdateClassDto {
   @IsOptional()
@@ -19,6 +20,10 @@ export class UpdateClassDto {
   @IsString()
   trainerId?: string;
 
+  @ApiPropertyOptional({
+    example: '2026-02-15T10:30:00.000Z',
+    format: 'date-time',
+  })
   @IsOptional()
   @IsDateString()
   schedule?: string;

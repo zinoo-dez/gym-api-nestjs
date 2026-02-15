@@ -3,6 +3,7 @@ import * as React from "react"
 import { Link } from "react-router-dom"
 import { AuthLayout } from "../../layouts"
 import { PrimaryButton, SecondaryButton } from "@/components/gym"
+import { Input } from "@/components/ui/input"
 import { authService } from "@/services/auth.service"
 import { toast } from "sonner"
 
@@ -98,17 +99,14 @@ export default function ForgotPasswordPage() {
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Email */}
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">
-            Email address
-          </label>
-          <input
+          <Input
             id="email"
             type="email"
             autoComplete="email"
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-4 py-3 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+            floatingLabel="Email address"
             placeholder="you@example.com"
           />
         </div>

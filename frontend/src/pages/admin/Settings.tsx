@@ -3,8 +3,10 @@ import { useGymSettingsStore } from "@/store/gym-settings.store";
 import { gymSettingsService, type GymSettings } from "@/services/gym-settings.service";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { DateTimePicker } from "@/components/ui/date-time-picker";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { TimePicker } from "@/components/ui/time-picker";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
@@ -311,23 +313,23 @@ export default function Settings() {
           {hours.map((h, idx) => (
             <div key={h.dayOfWeek} className="grid grid-cols-4 gap-4 items-center">
               <div className="text-sm font-medium">{days[idx]}</div>
-              <Input
-                type="time"
+              <TimePicker
                 value={h.openTime}
                 disabled={h.isClosed}
-                onChange={(e) => {
+                onChange={(value) => {
                   const next = [...hours];
-                  next[idx] = { ...next[idx], openTime: e.target.value };
+                  next[idx] = { ...next[idx], openTime: value };
                   setHours(next);
                 }}
               />
-              <Input
-                type="time"
+              <TimePicker
                 value={h.closeTime}
                 disabled={h.isClosed}
-                onChange={(e) => {
+                durationFromValue={h.openTime}
+                showDurationLabels
+                onChange={(value) => {
                   const next = [...hours];
-                  next[idx] = { ...next[idx], closeTime: e.target.value };
+                  next[idx] = { ...next[idx], closeTime: value };
                   setHours(next);
                 }}
               />
@@ -358,11 +360,10 @@ export default function Settings() {
           <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label>Date</Label>
-              <Input
-                type="date"
+              <DateTimePicker
                 value={newClosure.date}
-                onChange={(e) =>
-                  setNewClosure({ ...newClosure, date: e.target.value })
+                onChange={(value) =>
+                  setNewClosure({ ...newClosure, date: value })
                 }
               />
             </div>
@@ -386,7 +387,7 @@ export default function Settings() {
               {closures.map((c) => (
                 <div key={c.id} className="flex items-center justify-between border border-border rounded-lg p-3">
                   <div>
-                    <p className="text-sm font-medium">{c.date}</p>
+                    <p className="text-sm font-medium">{new Date(c.date).toLocaleString()}</p>
                     <p className="text-xs text-muted-foreground">{c.reason || "—"}</p>
                   </div>
                   <Button variant="outline" onClick={() => removeClosure(c.id)}>

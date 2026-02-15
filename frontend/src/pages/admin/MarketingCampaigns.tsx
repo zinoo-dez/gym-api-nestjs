@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { DateTimePicker } from "@/components/ui/date-time-picker";
 import {
   Dialog,
   DialogContent,
@@ -34,6 +35,14 @@ import {
 } from "./marketing-shared";
 import { BarChart3, Plus, RefreshCcw, Send } from "lucide-react";
 import { toast } from "sonner";
+
+const toDateTimeLocalValue = (value?: string | null) => {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
+  return date.toISOString().slice(0, 16);
+};
 
 const MarketingCampaigns = () => {
   const navigate = useNavigate();
@@ -103,9 +112,7 @@ const MarketingCampaigns = () => {
       subject: campaign.subject || "",
       content: campaign.content,
       specialOffer: campaign.specialOffer || "",
-      scheduledAt: campaign.scheduledAt
-        ? new Date(campaign.scheduledAt).toISOString().slice(0, 16)
-        : "",
+      scheduledAt: toDateTimeLocalValue(campaign.scheduledAt),
     });
     setCampaignOpen(true);
   };
@@ -401,11 +408,10 @@ const MarketingCampaigns = () => {
             </div>
             <div className="space-y-2 md:col-span-2">
               <Label>Scheduled At (for SCHEDULED)</Label>
-              <Input
-                type="datetime-local"
+              <DateTimePicker
                 value={campaignForm.scheduledAt}
-                onChange={(event) =>
-                  setCampaignForm((prev) => ({ ...prev, scheduledAt: event.target.value }))
+                onChange={(value) =>
+                  setCampaignForm((prev) => ({ ...prev, scheduledAt: value }))
                 }
               />
             </div>

@@ -23,7 +23,6 @@ import RegisterPage from "../pages/auth/RegisterPage";
 import ForgotPasswordPage from "../pages/auth/ForgotPasswordPage";
 
 // Admin Pages
-import DashboardPage from "../pages/admin/Dashboard";
 import MembersPage from "../pages/admin/Members";
 import AdminTrainersPage from "../pages/admin/Trainers";
 import PlansPage from "../pages/admin/MembershipPlans";
@@ -43,6 +42,7 @@ import RecoveryPage from "../pages/admin/Recovery";
 import SalesDashboardPage from "../pages/admin/SalesDashboard";
 import PosSalesPage from "../pages/admin/PosSales";
 import InventoryManagementPage from "../pages/admin/InventoryManagement";
+import GymManagementM3DashboardPage from "../pages/admin/GymManagementM3Dashboard";
 
 // Member/Trainer/Staff Pages
 import MemberDashboardPage from "../pages/member/MemberDashboard";
@@ -74,7 +74,7 @@ const AppRoutes = () => {
           path="/admin"
           element={withTransition(
             <AdminRoute>
-              <AdminLayout><DashboardPage /></AdminLayout>
+              <AdminLayout><GymManagementM3DashboardPage /></AdminLayout>
             </AdminRoute>,
           )}
         />

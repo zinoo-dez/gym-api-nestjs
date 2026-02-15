@@ -9,6 +9,7 @@ import {
 } from "@/services/staff.service";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { DateTimePicker } from "@/components/ui/date-time-picker";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -43,6 +44,14 @@ const staffRoles: StaffRole[] = [
   "CLEANING",
   "SECURITY",
 ];
+
+const toDateTimeLocalValue = (value?: string | null) => {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
+  return date.toISOString().slice(0, 16);
+};
 
 const StaffPage = () => {
   const [list, setList] = useState<StaffMember[]>([]);
@@ -130,7 +139,7 @@ const StaffPage = () => {
       phone: staff.phone || "",
       staffRole: staff.staffRole,
       employeeId: staff.employeeId,
-      hireDate: staff.hireDate ? staff.hireDate.slice(0, 10) : "",
+      hireDate: toDateTimeLocalValue(staff.hireDate),
       department: staff.department || "",
       position: staff.position,
       emergencyContact: staff.emergencyContact || "",
@@ -406,7 +415,7 @@ const StaffPage = () => {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Hire Date</Label>
-                <Input type="date" value={form.hireDate} onChange={(e) => setForm({ ...form, hireDate: e.target.value })} />
+                <DateTimePicker value={form.hireDate} onChange={(value) => setForm({ ...form, hireDate: value })} />
               </div>
               <div className="space-y-2">
                 <Label>Emergency Contact</Label>

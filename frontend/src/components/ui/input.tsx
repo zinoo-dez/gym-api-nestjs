@@ -2,16 +2,45 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
-const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
-  ({ className, type, ...props }, ref) => {
+export interface InputProps extends React.ComponentProps<"input"> {
+  floatingLabel?: string;
+  containerClassName?: string;
+  error?: boolean;
+}
+
+const Input = React.forwardRef<HTMLInputElement, InputProps>(
+  ({ className, containerClassName, type, floatingLabel, placeholder, error, ...props }, ref) => {
+    const inputBaseClass = cn(
+      "w-full rounded-xl border bg-card text-foreground shadow-[var(--surface-shadow-1)] transition-[border-color,box-shadow,background-color] placeholder:text-muted-foreground/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50",
+      error ? "border-destructive focus-visible:ring-destructive/60" : "border-input hover:border-primary/35",
+      floatingLabel ? "peer h-12 px-4 pb-1.5 pt-5 text-sm placeholder:text-transparent" : "h-11 px-4 py-2 text-sm",
+      className,
+    );
+
+    if (floatingLabel) {
+      return (
+        <label className={cn("relative block", containerClassName)}>
+          <input ref={ref} type={type} className={inputBaseClass} placeholder={placeholder ?? " "} {...props} />
+          <span
+            className={cn(
+              "pointer-events-none absolute left-3 top-2 z-[1] bg-card px-1 text-[11px] font-medium text-muted-foreground transition-all duration-150",
+              "peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:px-0 peer-placeholder-shown:text-sm",
+              "peer-focus:top-2 peer-focus:translate-y-0 peer-focus:px-1 peer-focus:text-[11px] peer-focus:text-primary",
+              error && "text-destructive peer-focus:text-destructive",
+            )}
+          >
+            {floatingLabel}
+          </span>
+        </label>
+      );
+    }
+
     return (
       <input
         type={type}
-        className={cn(
-          "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-          className,
-        )}
+        className={inputBaseClass}
         ref={ref}
+        placeholder={placeholder}
         {...props}
       />
     );

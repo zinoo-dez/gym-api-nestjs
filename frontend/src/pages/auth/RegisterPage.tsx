@@ -2,6 +2,7 @@ import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthLayout } from "../../layouts/AuthLayout";
 import { PrimaryButton } from "@/components/gym";
+import { Input } from "@/components/ui/input";
 import { authService } from "@/services/auth.service";
 import { useAuthStore } from "@/store/auth.store";
 import { toast } from "sonner";
@@ -73,7 +74,7 @@ export default function RegisterPage() {
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* Error Message */}
         {error && (
-          <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
+          <div className="bg-destructive/10 border border-destructive/25 rounded-lg p-4 animate-feedback-shake">
             <p className="text-destructive text-sm">{error}</p>
           </div>
         )}
@@ -81,13 +82,7 @@ export default function RegisterPage() {
         {/* Name Fields */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label
-              htmlFor="firstName"
-              className="block text-sm font-medium text-foreground mb-2"
-            >
-              First name
-            </label>
-            <input
+            <Input
               id="firstName"
               type="text"
               autoComplete="given-name"
@@ -96,18 +91,12 @@ export default function RegisterPage() {
               onChange={(e) =>
                 setFormData({ ...formData, firstName: e.target.value })
               }
-              className="w-full px-4 py-3 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+              floatingLabel="First name"
               placeholder="John"
             />
           </div>
           <div>
-            <label
-              htmlFor="lastName"
-              className="block text-sm font-medium text-foreground mb-2"
-            >
-              Last name
-            </label>
-            <input
+            <Input
               id="lastName"
               type="text"
               autoComplete="family-name"
@@ -116,7 +105,7 @@ export default function RegisterPage() {
               onChange={(e) =>
                 setFormData({ ...formData, lastName: e.target.value })
               }
-              className="w-full px-4 py-3 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+              floatingLabel="Last name"
               placeholder="Doe"
             />
           </div>
@@ -124,13 +113,7 @@ export default function RegisterPage() {
 
         {/* Email */}
         <div>
-          <label
-            htmlFor="email"
-            className="block text-sm font-medium text-foreground mb-2"
-          >
-            Email address
-          </label>
-          <input
+          <Input
             id="email"
             type="email"
             autoComplete="email"
@@ -139,37 +122,25 @@ export default function RegisterPage() {
             onChange={(e) =>
               setFormData({ ...formData, email: e.target.value })
             }
-            className="w-full px-4 py-3 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+            floatingLabel="Email address"
             placeholder="you@example.com"
           />
         </div>
 
         {/* Role */}
         <div>
-          <label
-            htmlFor="role"
-            className="block text-sm font-medium text-foreground mb-2"
-          >
-            Account type
-          </label>
-          <input
+          <Input
             id="role"
             type="text"
             readOnly
             value="Member"
-            className="w-full px-4 py-3 bg-secondary border border-border rounded-lg text-muted-foreground"
+            floatingLabel="Account type"
           />
         </div>
 
         {/* Phone */}
         <div>
-          <label
-            htmlFor="phone"
-            className="block text-sm font-medium text-foreground mb-2"
-          >
-            Phone number
-          </label>
-          <input
+          <Input
             id="phone"
             type="tel"
             autoComplete="tel"
@@ -177,20 +148,14 @@ export default function RegisterPage() {
             onChange={(e) =>
               setFormData({ ...formData, phone: e.target.value })
             }
-            className="w-full px-4 py-3 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+            floatingLabel="Phone number"
             placeholder="(555) 123-4567"
           />
         </div>
 
         {/* Password */}
         <div>
-          <label
-            htmlFor="password"
-            className="block text-sm font-medium text-foreground mb-2"
-          >
-            Password
-          </label>
-          <input
+          <Input
             id="password"
             type="password"
             autoComplete="new-password"
@@ -200,20 +165,14 @@ export default function RegisterPage() {
             onChange={(e) =>
               setFormData({ ...formData, password: e.target.value })
             }
-            className="w-full px-4 py-3 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+            floatingLabel="Password"
             placeholder="Min. 8 characters"
           />
         </div>
 
         {/* Confirm Password */}
         <div>
-          <label
-            htmlFor="confirmPassword"
-            className="block text-sm font-medium text-foreground mb-2"
-          >
-            Confirm password
-          </label>
-          <input
+          <Input
             id="confirmPassword"
             type="password"
             autoComplete="new-password"
@@ -222,7 +181,7 @@ export default function RegisterPage() {
             onChange={(e) =>
               setFormData({ ...formData, confirmPassword: e.target.value })
             }
-            className="w-full px-4 py-3 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+            floatingLabel="Confirm password"
             placeholder="Re-enter your password"
           />
         </div>
@@ -237,7 +196,7 @@ export default function RegisterPage() {
             onChange={(e) =>
               setFormData({ ...formData, agreeToTerms: e.target.checked })
             }
-            className="w-4 h-4 mt-0.5 bg-secondary border-border rounded text-primary focus:ring-primary focus:ring-offset-background"
+            className="w-4 h-4 mt-0.5 bg-secondary border-border rounded-[4px] text-primary focus:ring-primary focus:ring-offset-background"
           />
           <label
             htmlFor="agree-terms"

@@ -6,6 +6,7 @@ export class ClassFiltersDto extends PaginationDto {
   @ApiPropertyOptional({
     description: 'Filter by start date (ISO 8601 format)',
     example: '2024-01-01T00:00:00Z',
+    format: 'date-time',
   })
   @IsOptional()
   @IsDateString()
@@ -14,6 +15,7 @@ export class ClassFiltersDto extends PaginationDto {
   @ApiPropertyOptional({
     description: 'Filter by end date (ISO 8601 format)',
     example: '2024-12-31T23:59:59Z',
+    format: 'date-time',
   })
   @IsOptional()
   @IsDateString()

@@ -5,6 +5,7 @@ import {
   Min,
   IsOptional,
 } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
 import { IsFutureDate } from '../../common/validators';
 
 export class CreateClassDto {
@@ -18,6 +19,7 @@ export class CreateClassDto {
   @IsString({ message: 'Trainer ID must be a string' })
   trainerId!: string;
 
+  @ApiProperty({ example: '2026-02-15T10:30:00.000Z', format: 'date-time' })
   @IsDateString({}, { message: 'Schedule must be a valid ISO 8601 date' })
   @IsFutureDate({ message: 'Schedule must be in the future' })
   schedule!: string;

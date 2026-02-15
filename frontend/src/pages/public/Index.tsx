@@ -219,11 +219,11 @@ const LandingPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[hsl(222,18%,7%)] text-[hsl(210,20%,94%)] overflow-x-hidden">
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-[hsl(222,18%,7%)]/90 backdrop-blur-md border-b border-[hsl(222,12%,16%)]">
+    <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-md border-b border-border/70">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
           <div className="flex items-center gap-2">
-            <Dumbbell className="h-7 w-7 text-[hsl(82,85%,50%)]" />
+            <Dumbbell className="h-7 w-7 text-primary" />
             <span className="text-xl font-black tracking-tight uppercase">{gymInfo.name}</span>
           </div>
           <div className="hidden md:flex items-center gap-8 text-sm font-medium">
@@ -231,7 +231,7 @@ const LandingPage = () => {
               <button
                 key={s}
                 onClick={() => scrollTo(s)}
-                className="capitalize hover:text-[hsl(82,85%,50%)] transition-colors"
+                className="capitalize hover:text-primary transition-colors"
               >
                 {s}
               </button>
@@ -239,14 +239,14 @@ const LandingPage = () => {
           </div>
           <div className="hidden md:flex items-center gap-3">
             {isLoading ? (
-              <span className="text-sm text-[hsl(210,20%,94%)]/70">Loading...</span>
+              <span className="text-sm text-muted-foreground">Loading...</span>
             ) : isAuthenticated ? (
               <>
-                <span className="text-sm text-[hsl(210,20%,94%)]/90">{displayName}</span>
+                <span className="text-sm text-foreground/90">{displayName}</span>
                 <Button
                   variant="outline"
                   onClick={handleLogout}
-                  className="border-[hsl(82,85%,50%)] text-[hsl(82,85%,50%)] hover:bg-[hsl(82,85%,50%)] hover:text-[hsl(222,18%,7%)] bg-transparent"
+                  className="border-primary text-primary hover:bg-primary hover:text-primary-foreground bg-transparent"
                 >
                   Logout
                 </Button>
@@ -255,7 +255,7 @@ const LandingPage = () => {
               <Link to="/login">
                 <Button
                   variant="outline"
-                  className="border-[hsl(82,85%,50%)] text-[hsl(82,85%,50%)] hover:bg-[hsl(82,85%,50%)] hover:text-[hsl(222,18%,7%)] bg-transparent"
+                  className="border-primary text-primary hover:bg-primary hover:text-primary-foreground bg-transparent"
                 >
                   Login
                 </Button>
@@ -263,7 +263,7 @@ const LandingPage = () => {
             )}
             <Button
               onClick={() => scrollTo("pricing")}
-              className="bg-[hsl(82,85%,50%)] text-[hsl(222,18%,7%)] hover:bg-[hsl(82,85%,60%)] font-bold"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold"
             >
               Join Now <ArrowRight className="ml-1 h-4 w-4" />
             </Button>
@@ -273,25 +273,25 @@ const LandingPage = () => {
           </button>
         </div>
         {mobileMenuOpen && (
-          <div className="md:hidden bg-[hsl(222,16%,11%)] border-t border-[hsl(222,12%,16%)] px-4 py-4 space-y-3">
+          <div className="md:hidden bg-card border-t border-border/70 px-4 py-4 space-y-3">
             {["home", "about", "services", "pricing", "trainers", "contact"].map((s) => (
               <button
                 key={s}
                 onClick={() => scrollTo(s)}
-                className="block w-full text-left capitalize py-2 hover:text-[hsl(82,85%,50%)]"
+                className="block w-full text-left capitalize py-2 hover:text-primary"
               >
                 {s}
               </button>
             ))}
             {isLoading ? (
-              <p className="text-sm text-[hsl(210,20%,94%)]/70">Loading...</p>
+              <p className="text-sm text-muted-foreground">Loading...</p>
             ) : isAuthenticated ? (
               <div className="space-y-2">
-                <p className="text-sm text-[hsl(210,20%,94%)]/90">{displayName}</p>
+                <p className="text-sm text-foreground/90">{displayName}</p>
                 <Button
                   variant="outline"
                   onClick={handleLogout}
-                  className="w-full border-[hsl(82,85%,50%)] text-[hsl(82,85%,50%)] bg-transparent"
+                  className="w-full border-primary text-primary bg-transparent"
                 >
                   Logout
                 </Button>
@@ -300,7 +300,7 @@ const LandingPage = () => {
               <Link to="/login" className="block">
                 <Button
                   variant="outline"
-                  className="w-full border-[hsl(82,85%,50%)] text-[hsl(82,85%,50%)] bg-transparent"
+                  className="w-full border-primary text-primary bg-transparent"
                 >
                   Login
                 </Button>
@@ -313,29 +313,29 @@ const LandingPage = () => {
       <section id="home" className="relative min-h-screen flex items-center pt-16">
         <div className="absolute inset-0">
           <img src={heroImg} alt="Gym hero" className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[hsl(222,18%,7%)] via-[hsl(222,18%,7%)]/80 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-transparent" />
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <div className="max-w-2xl">
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black uppercase leading-[1.05] tracking-tight">
               {gymInfo.tagLine.split(",")[0] || "Sculpt Your Body"}
               <br />
-              <span className="text-[hsl(82,85%,50%)]">
+              <span className="text-primary">
                 {gymInfo.tagLine.split(",")[1]?.trim() || "Elevate Your Spirit"}
               </span>
             </h1>
-            <p className="mt-6 text-lg text-[hsl(215,15%,55%)] max-w-lg">{gymInfo.description}</p>
+            <p className="mt-6 text-lg text-muted-foreground max-w-lg">{gymInfo.description}</p>
             <div className="mt-8 flex flex-wrap gap-4">
               <Button
                 onClick={() => scrollTo("pricing")}
-                className="bg-[hsl(82,85%,50%)] text-[hsl(222,18%,7%)] hover:bg-[hsl(82,85%,60%)] font-bold px-8 py-6 text-base rounded-full"
+                className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold px-8 py-6 text-base rounded-full"
               >
                 Try For Free <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
               <Button
                 variant="outline"
                 onClick={() => scrollTo("contact")}
-                className="border-[hsl(210,20%,94%)]/30 text-[hsl(210,20%,94%)] hover:bg-[hsl(210,20%,94%)]/10 bg-transparent px-8 py-6 text-base rounded-full"
+                className="border-foreground/30 text-foreground hover:bg-foreground/10 bg-transparent px-8 py-6 text-base rounded-full"
               >
                 <Clock className="mr-2 h-5 w-5" /> Schedule Time
               </Button>
@@ -345,63 +345,63 @@ const LandingPage = () => {
                 {[1, 2, 3, 4].map((i) => (
                   <div
                     key={i}
-                    className="w-10 h-10 rounded-full bg-[hsl(82,85%,50%)]/20 border-2 border-[hsl(222,18%,7%)] flex items-center justify-center text-xs font-bold text-[hsl(82,85%,50%)]"
+                    className="w-10 h-10 rounded-full bg-primary/20 border-2 border-background flex items-center justify-center text-xs font-bold text-primary"
                   >
                     {String.fromCharCode(64 + i)}
                   </div>
                 ))}
               </div>
               <p className="text-sm">
-                <span className="text-[hsl(82,85%,50%)] font-bold">{stats[0].value}</span> Active Members
+                <span className="text-primary font-bold">{stats[0].value}</span> Active Members
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="py-16 bg-[hsl(222,16%,11%)]">
+      <section className="py-16 bg-card">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 sm:grid-cols-3 gap-8">
           {stats.map((s) => (
             <div
               key={s.label}
-              className="flex flex-col items-center text-center gap-4 p-8 rounded-2xl bg-[hsl(222,18%,9%)] border border-[hsl(222,12%,16%)]"
+              className="flex flex-col items-center text-center gap-4 p-8 rounded-2xl bg-card border border-border/70"
             >
-              <div className="w-14 h-14 rounded-xl bg-[hsl(82,85%,50%)]/10 flex items-center justify-center">
-                <s.icon className="h-7 w-7 text-[hsl(82,85%,50%)]" />
+              <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center">
+                <s.icon className="h-7 w-7 text-primary" />
               </div>
-              <p className="text-4xl font-black text-[hsl(82,85%,50%)]">{s.value}</p>
-              <p className="text-sm uppercase tracking-wider text-[hsl(215,15%,55%)] font-semibold">{s.label}</p>
+              <p className="text-4xl font-black text-primary">{s.value}</p>
+              <p className="text-sm uppercase tracking-wider text-muted-foreground font-semibold">{s.label}</p>
             </div>
           ))}
         </div>
       </section>
 
-      <section id="about" className="py-24 bg-[hsl(222,18%,7%)]">
+      <section id="about" className="py-24 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid md:grid-cols-2 gap-16 items-center">
           <div className="relative">
             <img src={aboutImg} alt="About gym" className="rounded-2xl w-full object-cover aspect-[4/5]" />
-            <div className="absolute bottom-6 left-6 bg-[hsl(82,85%,50%)] text-[hsl(222,18%,7%)] px-5 py-3 rounded-xl font-black text-lg flex items-center gap-2">
+            <div className="absolute bottom-6 left-6 bg-primary text-primary-foreground px-5 py-3 rounded-xl font-black text-lg flex items-center gap-2">
               25+ <span className="text-sm font-medium">Years of Fitness Experience</span>
             </div>
-            <button className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-[hsl(82,85%,50%)]/90 flex items-center justify-center hover:scale-110 transition-transform">
-              <Play className="h-6 w-6 text-[hsl(222,18%,7%)] ml-1" />
+            <button className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-primary/90 flex items-center justify-center hover:scale-110 transition-transform">
+              <Play className="h-6 w-6 text-primary-foreground ml-1" />
             </button>
           </div>
           <div>
-            <span className="text-sm uppercase tracking-widest text-[hsl(82,85%,50%)] font-bold border border-[hsl(82,85%,50%)]/30 px-4 py-1.5 rounded-full">
+            <span className="text-sm uppercase tracking-widest text-primary font-bold border border-primary/30 px-4 py-1.5 rounded-full">
               About Company
             </span>
             <h2 className="mt-6 text-4xl sm:text-5xl font-black uppercase leading-tight">
-              Dedicated to Igniting Your <span className="text-[hsl(82,85%,50%)]">Fitness Health</span>
+              Dedicated to Igniting Your <span className="text-primary">Fitness Health</span>
             </h2>
-            <p className="mt-6 text-[hsl(215,15%,55%)] leading-relaxed">
+            <p className="mt-6 text-muted-foreground leading-relaxed">
               We believe fitness is more than a workout, it is a lifestyle. Our modern facilities,
               diverse programs, and expert team are dedicated to helping you reach your peak potential.
             </p>
             <div className="mt-8 grid grid-cols-2 gap-4">
               {["Modern Facilities", "Expert Team", "Diverse Offering", "Fitness Focus"].map((f) => (
                 <div key={f} className="flex items-center gap-2 text-sm font-medium">
-                  <CheckCircle2 className="h-5 w-5 text-[hsl(82,85%,50%)]" />
+                  <CheckCircle2 className="h-5 w-5 text-primary" />
                   {f}
                 </div>
               ))}
@@ -409,7 +409,7 @@ const LandingPage = () => {
             <Button
               onClick={() => scrollTo("contact")}
               variant="outline"
-              className="mt-8 border-[hsl(82,85%,50%)] text-[hsl(82,85%,50%)] hover:bg-[hsl(82,85%,50%)] hover:text-[hsl(222,18%,7%)] bg-transparent rounded-full px-6"
+              className="mt-8 border-primary text-primary hover:bg-primary hover:text-primary-foreground bg-transparent rounded-full px-6"
             >
               More About Us <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
@@ -417,20 +417,20 @@ const LandingPage = () => {
         </div>
       </section>
 
-      <section id="services" className="py-24 bg-[hsl(222,16%,11%)]">
+      <section id="services" className="py-24 bg-card">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-14">
             <div>
-              <span className="text-sm uppercase tracking-widest text-[hsl(82,85%,50%)] font-bold border border-[hsl(82,85%,50%)]/30 px-4 py-1.5 rounded-full">
+              <span className="text-sm uppercase tracking-widest text-primary font-bold border border-primary/30 px-4 py-1.5 rounded-full">
                 Why Choose Us
               </span>
               <h2 className="mt-6 text-4xl sm:text-5xl font-black uppercase leading-tight">
                 Experience Reliable
                 <br />
-                Fitness <span className="text-[hsl(82,85%,50%)]">Services</span>
+                Fitness <span className="text-primary">Services</span>
               </h2>
             </div>
-            <p className="text-[hsl(215,15%,55%)] max-w-md">
+            <p className="text-muted-foreground max-w-md">
               Our diverse programs cater to every fitness goal. From personal training to group classes,
               we have everything you need.
             </p>
@@ -443,12 +443,12 @@ const LandingPage = () => {
                   alt={s.title}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[hsl(222,18%,7%)] via-[hsl(222,18%,7%)]/30 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-6">
-                  <p className="text-xs text-[hsl(82,85%,50%)] font-mono mb-1">{s.num}</p>
+                  <p className="text-xs text-primary font-mono mb-1">{s.num}</p>
                   <h3 className="text-xl font-black uppercase">{s.title}</h3>
-                  <div className="mt-3 w-10 h-10 rounded-full bg-[hsl(82,85%,50%)] flex items-center justify-center group-hover:translate-x-2 transition-transform">
-                    <ChevronRight className="h-5 w-5 text-[hsl(222,18%,7%)]" />
+                  <div className="mt-3 w-10 h-10 rounded-full bg-primary flex items-center justify-center group-hover:translate-x-2 transition-transform">
+                    <ChevronRight className="h-5 w-5 text-primary-foreground" />
                   </div>
                 </div>
               </div>
@@ -457,9 +457,9 @@ const LandingPage = () => {
         </div>
       </section>
 
-      <section id="pricing" className="py-24 bg-[hsl(222,18%,7%)]">
+      <section id="pricing" className="py-24 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <span className="text-sm uppercase tracking-widest text-[hsl(82,85%,50%)] font-bold border border-[hsl(82,85%,50%)]/30 px-4 py-1.5 rounded-full">
+          <span className="text-sm uppercase tracking-widest text-primary font-bold border border-primary/30 px-4 py-1.5 rounded-full">
             Choose Our Pricing
           </span>
           <h2 className="mt-6 text-4xl sm:text-5xl font-black uppercase">Subscription Plans</h2>
@@ -467,27 +467,27 @@ const LandingPage = () => {
             {plans.map((p) => (
               <Card
                 key={p.id}
-                className={`relative rounded-2xl border bg-[hsl(222,16%,11%)] text-[hsl(210,20%,94%)] ${
+                className={`relative rounded-2xl border bg-card text-foreground ${
                   p.popular
-                    ? "border-[hsl(82,85%,50%)] ring-2 ring-[hsl(82,85%,50%)]/20"
-                    : "border-[hsl(222,12%,16%)]"
+                    ? "border-primary ring-2 ring-primary/20"
+                    : "border-border/70"
                 }`}
               >
                 {p.popular && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[hsl(82,85%,50%)] text-[hsl(222,18%,7%)] text-xs font-bold uppercase px-4 py-1 rounded-full">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs font-bold uppercase px-4 py-1 rounded-full">
                     Most Popular
                   </div>
                 )}
                 <CardContent className="p-8">
                   <h3 className="text-lg font-bold uppercase">{p.name}</h3>
                   <div className="mt-4">
-                    <span className="text-5xl font-black text-[hsl(82,85%,50%)]">${p.price}</span>
-                    <span className="text-[hsl(215,15%,55%)]">/{p.period}</span>
+                    <span className="text-5xl font-black text-primary">${p.price}</span>
+                    <span className="text-muted-foreground">/{p.period}</span>
                   </div>
                   <ul className="mt-8 space-y-3 text-left">
                     {p.features.map((f) => (
                       <li key={f} className="flex items-center gap-3 text-sm">
-                        <CheckCircle2 className="h-4 w-4 text-[hsl(82,85%,50%)] shrink-0" />
+                        <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
                         {f}
                       </li>
                     ))}
@@ -495,8 +495,8 @@ const LandingPage = () => {
                   <Button
                     className={`w-full mt-8 rounded-full font-bold ${
                       p.popular
-                        ? "bg-[hsl(82,85%,50%)] text-[hsl(222,18%,7%)] hover:bg-[hsl(82,85%,60%)]"
-                        : "bg-transparent border border-[hsl(82,85%,50%)] text-[hsl(82,85%,50%)] hover:bg-[hsl(82,85%,50%)] hover:text-[hsl(222,18%,7%)]"
+                        ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                        : "bg-transparent border border-primary text-primary hover:bg-primary hover:text-primary-foreground"
                     }`}
                   >
                     Get Started <ArrowRight className="ml-2 h-4 w-4" />
@@ -508,58 +508,58 @@ const LandingPage = () => {
         </div>
       </section>
 
-      <section id="trainers" className="py-24 bg-[hsl(222,16%,11%)]">
+      <section id="trainers" className="py-24 bg-card">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <span className="text-sm uppercase tracking-widest text-[hsl(82,85%,50%)] font-bold border border-[hsl(82,85%,50%)]/30 px-4 py-1.5 rounded-full">
+          <span className="text-sm uppercase tracking-widest text-primary font-bold border border-primary/30 px-4 py-1.5 rounded-full">
             Our Best Professional
           </span>
           <h2 className="mt-6 text-4xl sm:text-5xl font-black uppercase">
-            Fitness <span className="text-[hsl(82,85%,50%)]">Trainers</span>
+            Fitness <span className="text-primary">Trainers</span>
           </h2>
           <div className="mt-14 grid grid-cols-2 lg:grid-cols-4 gap-6">
             {trainers.map((t) => (
               <div key={t.name} className="group">
-                <div className="aspect-square rounded-2xl bg-[hsl(222,18%,9%)] border border-[hsl(222,12%,16%)] flex items-center justify-center mb-4 overflow-hidden">
-                  <div className="w-20 h-20 rounded-full bg-[hsl(82,85%,50%)]/10 flex items-center justify-center text-2xl font-black text-[hsl(82,85%,50%)]">
+                <div className="aspect-square rounded-2xl bg-card border border-border/70 flex items-center justify-center mb-4 overflow-hidden">
+                  <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center text-2xl font-black text-primary">
                     {initials(t.name)}
                   </div>
                 </div>
                 <h3 className="font-bold text-lg">{t.name}</h3>
-                <p className="text-sm text-[hsl(82,85%,50%)]">{t.role}</p>
+                <p className="text-sm text-primary">{t.role}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="py-24 bg-[hsl(222,18%,7%)]">
+      <section className="py-24 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
-            <span className="text-sm uppercase tracking-widest text-[hsl(82,85%,50%)] font-bold border border-[hsl(82,85%,50%)]/30 px-4 py-1.5 rounded-full">
+            <span className="text-sm uppercase tracking-widest text-primary font-bold border border-primary/30 px-4 py-1.5 rounded-full">
               What Our Clients Say
             </span>
             <h2 className="mt-6 text-4xl sm:text-5xl font-black uppercase">
-              About <span className="text-[hsl(82,85%,50%)]">Fitness</span>
+              About <span className="text-primary">Fitness</span>
             </h2>
           </div>
           <div className="grid md:grid-cols-3 gap-8">
             {testimonials.map((t) => (
               <Card
                 key={t.name}
-                className="rounded-2xl bg-[hsl(222,16%,11%)] border-[hsl(222,12%,16%)] text-[hsl(210,20%,94%)]"
+                className="rounded-2xl bg-card border-border/70 text-foreground"
               >
                 <CardContent className="p-8">
                   <div className="flex gap-1 mb-4">
                     {Array.from({ length: t.rating }).map((_, i) => (
                       <Star
                         key={i}
-                        className="h-4 w-4 fill-[hsl(82,85%,50%)] text-[hsl(82,85%,50%)]"
+                        className="h-4 w-4 fill-primary text-primary"
                       />
                     ))}
                   </div>
-                  <p className="text-[hsl(215,15%,55%)] leading-relaxed mb-6">"{t.text}"</p>
+                  <p className="text-muted-foreground leading-relaxed mb-6">"{t.text}"</p>
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-[hsl(82,85%,50%)]/10 flex items-center justify-center text-sm font-bold text-[hsl(82,85%,50%)]">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary">
                       {t.name[0]}
                     </div>
                     <p className="font-bold">{t.name}</p>
@@ -571,27 +571,27 @@ const LandingPage = () => {
         </div>
       </section>
 
-      <section id="contact" className="py-24 bg-[hsl(222,16%,11%)]">
+      <section id="contact" className="py-24 bg-card">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="rounded-3xl bg-gradient-to-br from-[hsl(82,85%,50%)]/10 to-transparent border border-[hsl(82,85%,50%)]/20 p-10 md:p-16 flex flex-col md:flex-row items-center gap-10">
+          <div className="rounded-3xl bg-gradient-to-br from-primary/10 to-transparent border border-primary/20 p-10 md:p-16 flex flex-col md:flex-row items-center gap-10">
             <div className="flex-1">
               <h2 className="text-4xl sm:text-5xl font-black uppercase">
-                Let's Get <span className="text-[hsl(82,85%,50%)]">Started</span>!
+                Let's Get <span className="text-primary">Started</span>!
               </h2>
-              <p className="mt-4 text-[hsl(215,15%,55%)] max-w-lg">
+              <p className="mt-4 text-muted-foreground max-w-lg">
                 Join our community today and start your transformation journey. First session is always free.
               </p>
               <div className="mt-8 space-y-4">
                 <div className="flex items-center gap-3 text-sm">
-                  <Phone className="h-5 w-5 text-[hsl(82,85%,50%)]" />
+                  <Phone className="h-5 w-5 text-primary" />
                   {gymInfo.phone}
                 </div>
                 <div className="flex items-center gap-3 text-sm">
-                  <Mail className="h-5 w-5 text-[hsl(82,85%,50%)]" />
+                  <Mail className="h-5 w-5 text-primary" />
                   {gymInfo.email}
                 </div>
                 <div className="flex items-center gap-3 text-sm">
-                  <MapPin className="h-5 w-5 text-[hsl(82,85%,50%)]" />
+                  <MapPin className="h-5 w-5 text-primary" />
                   {gymInfo.address}
                 </div>
               </div>
@@ -600,22 +600,22 @@ const LandingPage = () => {
               <div className="space-y-4">
                 <input
                   placeholder="Your Name"
-                  className="w-full px-5 py-3 rounded-xl bg-[hsl(222,18%,9%)] border border-[hsl(222,12%,20%)] text-[hsl(210,20%,94%)] placeholder:text-[hsl(215,15%,40%)] focus:outline-none focus:border-[hsl(82,85%,50%)]"
+                  className="w-full px-5 py-3 rounded-xl bg-card border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary"
                 />
                 <input
                   placeholder="Your Email"
-                  className="w-full px-5 py-3 rounded-xl bg-[hsl(222,18%,9%)] border border-[hsl(222,12%,20%)] text-[hsl(210,20%,94%)] placeholder:text-[hsl(215,15%,40%)] focus:outline-none focus:border-[hsl(82,85%,50%)]"
+                  className="w-full px-5 py-3 rounded-xl bg-card border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary"
                 />
                 <input
                   placeholder="Phone Number"
-                  className="w-full px-5 py-3 rounded-xl bg-[hsl(222,18%,9%)] border border-[hsl(222,12%,20%)] text-[hsl(210,20%,94%)] placeholder:text-[hsl(215,15%,40%)] focus:outline-none focus:border-[hsl(82,85%,50%)]"
+                  className="w-full px-5 py-3 rounded-xl bg-card border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary"
                 />
                 <textarea
                   placeholder="Your Message"
                   rows={4}
-                  className="w-full px-5 py-3 rounded-xl bg-[hsl(222,18%,9%)] border border-[hsl(222,12%,20%)] text-[hsl(210,20%,94%)] placeholder:text-[hsl(215,15%,40%)] focus:outline-none focus:border-[hsl(82,85%,50%)] resize-none"
+                  className="w-full px-5 py-3 rounded-xl bg-card border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary resize-none"
                 />
-                <Button className="w-full bg-[hsl(82,85%,50%)] text-[hsl(222,18%,7%)] hover:bg-[hsl(82,85%,60%)] font-bold py-6 rounded-xl text-base">
+                <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-bold py-6 rounded-xl text-base">
                   Send Message <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </div>
@@ -624,16 +624,16 @@ const LandingPage = () => {
         </div>
       </section>
 
-      <footer className="py-10 bg-[hsl(222,18%,7%)] border-t border-[hsl(222,12%,16%)]">
+      <footer className="py-10 bg-background border-t border-border/70">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <Dumbbell className="h-5 w-5 text-[hsl(82,85%,50%)]" />
+            <Dumbbell className="h-5 w-5 text-primary" />
             <span className="font-black uppercase">{gymInfo.name}</span>
           </div>
-          <p className="text-sm text-[hsl(215,15%,55%)]">© {currentYear} {gymInfo.name}. All rights reserved.</p>
-          <div className="flex gap-6 text-sm text-[hsl(215,15%,55%)]">
-            <button className="hover:text-[hsl(82,85%,50%)]">Privacy</button>
-            <button className="hover:text-[hsl(82,85%,50%)]">Terms</button>
+          <p className="text-sm text-muted-foreground">© {currentYear} {gymInfo.name}. All rights reserved.</p>
+          <div className="flex gap-6 text-sm text-muted-foreground">
+            <button className="hover:text-primary">Privacy</button>
+            <button className="hover:text-primary">Terms</button>
           </div>
         </div>
       </footer>

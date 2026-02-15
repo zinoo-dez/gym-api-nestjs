@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DateTimeRangePicker, type DateTimeRangeValue } from "@/components/ui/date-time-range-picker";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +13,46 @@ import {
   type CreateTrainerSessionRequest,
   type TrainerSession,
 } from "@/services/trainer-sessions.service";
+
+const roundToQuarterHour = (date: Date) => {
+  const next = new Date(date);
+  const roundedMinutes = Math.ceil(next.getMinutes() / 15) * 15;
+  next.setMinutes(roundedMinutes, 0, 0);
+  return next;
+};
+
+const minutesToTime = (minutesValue: number) => {
+  const hours = Math.floor(minutesValue / 60);
+  const minutes = minutesValue % 60;
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+};
+
+const toLocalDateTimeValue = (date: Date, time: string) => {
+  const [hours, minutes] = time.split(":").map(Number);
+  const localDateTime = new Date(date);
+  localDateTime.setHours(hours, minutes, 0, 0);
+
+  const y = localDateTime.getFullYear();
+  const m = String(localDateTime.getMonth() + 1).padStart(2, "0");
+  const d = String(localDateTime.getDate()).padStart(2, "0");
+  const h = String(localDateTime.getHours()).padStart(2, "0");
+  const mm = String(localDateTime.getMinutes()).padStart(2, "0");
+  return `${y}-${m}-${d}T${h}:${mm}`;
+};
+
+const getDefaultSessionRange = (): DateTimeRangeValue => {
+  const start = roundToQuarterHour(new Date());
+  const rawStartMinutes = start.getHours() * 60 + start.getMinutes();
+  const startMinutes = Math.min(rawStartMinutes, 22 * 60 + 45);
+  const endMinutes = Math.min(startMinutes + 60, 23 * 60 + 45);
+
+  return {
+    date: new Date(start.getFullYear(), start.getMonth(), start.getDate(), 0, 0, 0, 0),
+    startTime: minutesToTime(startMinutes),
+    endTime: minutesToTime(endMinutes),
+    durationMinutes: endMinutes - startMinutes,
+  };
+};
 
 const emptyProgress = {
   weight: "",
@@ -31,11 +72,12 @@ const TrainerSessions = () => {
   const [creating, setCreating] = useState(false);
   const [selectedSessionId, setSelectedSessionId] = useState("");
   const [sessionFilter, setSessionFilter] = useState("");
+  const [sessionRange, setSessionRange] = useState<DateTimeRangeValue>(() => getDefaultSessionRange());
 
   const [createForm, setCreateForm] = useState<CreateTrainerSessionRequest>({
     memberId: "",
-    sessionDate: "",
-    duration: 60,
+    sessionDate: toLocalDateTimeValue(sessionRange.date, sessionRange.startTime),
+    duration: sessionRange.durationMinutes,
     title: "Personal Training",
     description: "",
     notes: "",
@@ -93,10 +135,12 @@ const TrainerSessions = () => {
         rate: Number(createForm.rate),
       });
       toast.success("Session created");
+      const defaultRange = getDefaultSessionRange();
+      setSessionRange(defaultRange);
       setCreateForm({
         memberId: "",
-        sessionDate: "",
-        duration: 60,
+        sessionDate: toLocalDateTimeValue(defaultRange.date, defaultRange.startTime),
+        duration: defaultRange.durationMinutes,
         title: "Personal Training",
         description: "",
         notes: "",
@@ -176,10 +220,18 @@ const TrainerSessions = () => {
           </div>
           <div>
             <Label>Date & time</Label>
-            <Input
-              type="datetime-local"
-              value={createForm.sessionDate}
-              onChange={(e) => setCreateForm((p) => ({ ...p, sessionDate: e.target.value }))}
+            <DateTimeRangePicker
+              date={sessionRange.date}
+              startTime={sessionRange.startTime}
+              endTime={sessionRange.endTime}
+              onChange={(value) => {
+                setSessionRange(value);
+                setCreateForm((previous) => ({
+                  ...previous,
+                  sessionDate: toLocalDateTimeValue(value.date, value.startTime),
+                  duration: value.durationMinutes,
+                }));
+              }}
             />
           </div>
           <div>
@@ -190,9 +242,9 @@ const TrainerSessions = () => {
             <Label>Duration (min)</Label>
             <Input
               type="number"
-              min="15"
+              min="0"
               value={createForm.duration}
-              onChange={(e) => setCreateForm((p) => ({ ...p, duration: Number(e.target.value) }))}
+              readOnly
             />
           </div>
           <div>

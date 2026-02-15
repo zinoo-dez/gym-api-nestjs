@@ -20,7 +20,7 @@ export class CreateTrainerSessionDto {
   @IsString()
   trainerId?: string;
 
-  @ApiProperty()
+  @ApiProperty({ format: 'date-time', example: '2026-02-15T10:30:00.000Z' })
   @IsDateString()
   sessionDate!: string;
 

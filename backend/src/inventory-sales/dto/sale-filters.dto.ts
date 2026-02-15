@@ -25,12 +25,18 @@ export class SaleFiltersDto {
   @Min(1)
   limit?: number;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({
+    example: '2026-02-01T00:00:00.000Z',
+    format: 'date-time',
+  })
   @IsOptional()
   @IsDateString()
   startDate?: string;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({
+    example: '2026-02-15T23:59:59.000Z',
+    format: 'date-time',
+  })
   @IsOptional()
   @IsDateString()
   endDate?: string;

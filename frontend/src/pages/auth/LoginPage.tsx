@@ -3,6 +3,7 @@ import * as React from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { AuthLayout } from "../../layouts"
 import { PrimaryButton } from "@/components/gym"
+import { Input } from "@/components/ui/input"
 import { authService } from "@/services/auth.service"
 import { useAuthStore } from "@/store/auth.store"
 import { toast } from "sonner"
@@ -60,24 +61,21 @@ export default function LoginPage() {
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Error Message */}
         {error && (
-          <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
+          <div className="bg-destructive/10 border border-destructive/25 rounded-lg p-4 animate-feedback-shake">
             <p className="text-destructive text-sm">{error}</p>
           </div>
         )}
 
         {/* Email */}
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">
-            Email address
-          </label>
-          <input
+          <Input
             id="email"
             type="email"
             autoComplete="email"
             required
             value={formData.email}
             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            className="w-full px-4 py-3 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+            floatingLabel="Email address"
             placeholder="you@example.com"
           />
         </div>
@@ -95,14 +93,14 @@ export default function LoginPage() {
               Forgot password?
             </Link>
           </div>
-          <input
+          <Input
             id="password"
             type="password"
             autoComplete="current-password"
             required
             value={formData.password}
             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-            className="w-full px-4 py-3 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+            floatingLabel="Password"
             placeholder="Enter your password"
           />
         </div>
@@ -114,7 +112,7 @@ export default function LoginPage() {
             type="checkbox"
             checked={formData.rememberMe}
             onChange={(e) => setFormData({ ...formData, rememberMe: e.target.checked })}
-            className="w-4 h-4 bg-secondary border-border rounded text-primary focus:ring-primary focus:ring-offset-background"
+            className="w-4 h-4 bg-secondary border-border rounded-[4px] text-primary focus:ring-primary focus:ring-offset-background"
           />
           <label htmlFor="remember-me" className="ml-2 text-sm text-muted-foreground">
             Remember me for 30 days

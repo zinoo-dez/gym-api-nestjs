@@ -3,12 +3,18 @@ import { Type } from 'class-transformer';
 import { IsDateString, IsInt, IsOptional, Max, Min } from 'class-validator';
 
 export class SalesReportQueryDto {
-  @ApiPropertyOptional({ example: '2026-02-01T00:00:00.000Z' })
+  @ApiPropertyOptional({
+    example: '2026-02-01T00:00:00.000Z',
+    format: 'date-time',
+  })
   @IsOptional()
   @IsDateString()
   startDate?: string;
 
-  @ApiPropertyOptional({ example: '2026-02-15T23:59:59.000Z' })
+  @ApiPropertyOptional({
+    example: '2026-02-15T23:59:59.000Z',
+    format: 'date-time',
+  })
   @IsOptional()
   @IsDateString()
   endDate?: string;
