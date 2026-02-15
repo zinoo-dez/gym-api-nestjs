@@ -190,6 +190,21 @@ export class TrainersService {
       );
     }
 
+    if (updateTrainerDto.email) {
+      const existingEmailUser = await this.prisma.user.findUnique({
+        where: { email: updateTrainerDto.email },
+        select: { id: true },
+      });
+
+      if (existingEmailUser && existingEmailUser.id !== existingTrainer.userId) {
+        throw new ConflictException('User with this email already exists');
+      }
+    }
+
+    const hashedPassword = updateTrainerDto.password
+      ? await bcrypt.hash(updateTrainerDto.password, 10)
+      : undefined;
+
     // Update trainer
     const updatedTrainer = await this.prisma.trainer.update({
       where: { id },
@@ -206,6 +221,8 @@ export class TrainersService {
         hourlyRate: updateTrainerDto.hourlyRate,
         user: {
           update: {
+            email: updateTrainerDto.email,
+            password: hashedPassword,
             firstName: updateTrainerDto.firstName,
             lastName: updateTrainerDto.lastName,
             address: updateTrainerDto.address,

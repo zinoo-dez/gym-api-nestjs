@@ -39,7 +39,9 @@ import RecoveryPage from "../pages/admin/Recovery";
 // Member/Trainer/Staff Pages
 import MemberDashboardPage from "../pages/member/MemberDashboard";
 import MemberRenewalPage from "../pages/member/MemberRenewal";
+import MemberProgressPage from "../pages/member/MemberProgress";
 import TrainerDashboardPage from "../pages/trainer/TrainerDashboard";
+import TrainerSessionsPage from "../pages/trainer/TrainerSessions";
 import StaffDashboardPage from "../pages/staff/StaffDashboard";
 
 const AppRoutes = () => {
@@ -174,6 +176,14 @@ const AppRoutes = () => {
             </MemberRoute>,
           )}
         />
+        <Route
+          path="/member/progress"
+          element={withTransition(
+            <MemberRoute>
+              <MemberLayout><MemberProgressPage /></MemberLayout>
+            </MemberRoute>,
+          )}
+        />
 
         {/* Trainer Routes - Protected */}
         <Route
@@ -181,6 +191,14 @@ const AppRoutes = () => {
           element={withTransition(
             <TrainerRoute>
               <TrainerLayout><TrainerDashboardPage /></TrainerLayout>
+            </TrainerRoute>,
+          )}
+        />
+        <Route
+          path="/trainer/sessions"
+          element={withTransition(
+            <TrainerRoute>
+              <TrainerLayout><TrainerSessionsPage /></TrainerLayout>
             </TrainerRoute>,
           )}
         />

@@ -58,6 +58,10 @@ export interface SubscribeMembershipRequest {
   discountCode?: string;
 }
 
+export interface SwitchMembershipPlanRequest {
+  newPlanId: string;
+}
+
 export interface Membership {
   id: string;
   memberId: string;
@@ -175,6 +179,28 @@ export const membershipsService = {
   async cancelMembership(id: string) {
     const response = await apiClient.post<ApiResponse<Membership>>(
       `/memberships/${id}/cancel`,
+    );
+    return response.data.data ?? response.data;
+  },
+
+  async pauseMembership(id: string) {
+    const response = await apiClient.post<ApiResponse<Membership>>(
+      `/memberships/${id}/freeze`,
+    );
+    return response.data.data ?? response.data;
+  },
+
+  async resumeMembership(id: string) {
+    const response = await apiClient.post<ApiResponse<Membership>>(
+      `/memberships/${id}/unfreeze`,
+    );
+    return response.data.data ?? response.data;
+  },
+
+  async switchMyPlan(data: SwitchMembershipPlanRequest) {
+    const response = await apiClient.post<ApiResponse<Membership>>(
+      `/memberships/me/switch-plan`,
+      data,
     );
     return response.data.data ?? response.data;
   },

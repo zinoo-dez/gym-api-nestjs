@@ -8,10 +8,13 @@ import {
 } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { PaginatedResponseDto } from '../common/dto';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import {
+  BulkUpdateRetentionTasksDto,
+  BulkUpdateRetentionTasksResponseDto,
   RecalculateRetentionResponseDto,
   RetentionMemberDetailDto,
   RetentionMemberFiltersDto,
@@ -116,6 +119,25 @@ export class RetentionController {
     return this.retentionService.getTasks(filters);
   }
 
+  @Patch('tasks/bulk')
+  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @ApiOperation({
+    summary: 'Bulk update retention tasks',
+    description:
+      'Bulk update retention task status, priority, assignee, note, or due date.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Retention tasks updated successfully',
+    type: BulkUpdateRetentionTasksResponseDto,
+  })
+  async bulkUpdateTasks(
+    @Body() dto: BulkUpdateRetentionTasksDto,
+    @CurrentUser() user: any,
+  ): Promise<BulkUpdateRetentionTasksResponseDto> {
+    return this.retentionService.bulkUpdateTasks(dto, user?.id);
+  }
+
   @Patch('tasks/:id')
   @Roles(UserRole.ADMIN, UserRole.STAFF)
   @ApiOperation({
@@ -137,7 +159,8 @@ export class RetentionController {
   async updateTask(
     @Param('id') id: string,
     @Body() dto: UpdateRetentionTaskDto,
+    @CurrentUser() user: any,
   ): Promise<RetentionTaskResponseDto> {
-    return this.retentionService.updateTask(id, dto);
+    return this.retentionService.updateTask(id, dto, user?.id);
   }
 }

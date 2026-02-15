@@ -1,4 +1,9 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import {
   RetentionRiskLevel,
@@ -11,6 +16,8 @@ import { PaginatedResponseDto } from '../common/dto';
 import { NotificationsService } from '../notifications/notifications.service';
 import { PrismaService } from '../prisma/prisma.service';
 import {
+  BulkUpdateRetentionTasksDto,
+  BulkUpdateRetentionTasksResponseDto,
   RecalculateRetentionResponseDto,
   RetentionMemberDetailDto,
   RetentionMemberFiltersDto,
@@ -38,6 +45,7 @@ type MemberRiskSnapshot = {
 @Injectable()
 export class RetentionService {
   private readonly logger = new Logger(RetentionService.name);
+  private readonly followUpTaskCooldownDays = 14;
 
   constructor(
     private readonly prisma: PrismaService,
@@ -336,6 +344,7 @@ export class RetentionService {
         ? { priority: filters.priority }
         : {}),
       ...(filters.assignedToId ? { assignedToId: filters.assignedToId } : {}),
+      ...(filters.memberId ? { memberId: filters.memberId } : {}),
     };
 
     const [total, rows] = await Promise.all([
@@ -363,6 +372,7 @@ export class RetentionService {
   async updateTask(
     id: string,
     dto: UpdateRetentionTaskDto,
+    changedByUserId?: string,
   ): Promise<RetentionTaskResponseDto> {
     const existing = await this.prisma.retentionTask.findUnique({
       where: { id },
@@ -426,6 +436,24 @@ export class RetentionService {
       },
     });
 
+    const historyData = this.buildHistoryEntry({
+      taskId: existing.id,
+      changedByUserId,
+      fromStatus: existing.status,
+      toStatus: updated.status,
+      fromPriority: existing.priority,
+      toPriority: updated.priority,
+      fromAssignedToId: existing.assignedToId,
+      toAssignedToId: updated.assignedToId,
+      fromNote: existing.note,
+      toNote: updated.note,
+      fromDueDate: existing.dueDate,
+      toDueDate: updated.dueDate,
+    });
+    if (historyData) {
+      await this.prisma.retentionTaskHistory.create({ data: historyData });
+    }
+
     if (nextStatus === RetentionTaskStatus.DONE) {
       await this.notificationsService.createForRole({
         role: UserRole.ADMIN,
@@ -437,6 +465,107 @@ export class RetentionService {
     }
 
     return this.toTaskDto(updated);
+  }
+
+  async bulkUpdateTasks(
+    dto: BulkUpdateRetentionTasksDto,
+    changedByUserId?: string,
+  ): Promise<BulkUpdateRetentionTasksResponseDto> {
+    const hasUpdatableField =
+      dto.status !== undefined ||
+      dto.priority !== undefined ||
+      dto.assignedToId !== undefined ||
+      dto.note !== undefined ||
+      dto.dueDate !== undefined;
+
+    if (!hasUpdatableField) {
+      throw new BadRequestException(
+        'At least one field to update is required',
+      );
+    }
+
+    if (dto.assignedToId) {
+      const assignee = await this.prisma.user.findUnique({
+        where: { id: dto.assignedToId },
+        select: { id: true, role: true },
+      });
+      if (!assignee) {
+        throw new NotFoundException(
+          `Assignee user with ID ${dto.assignedToId} not found`,
+        );
+      }
+      if (assignee.role !== UserRole.ADMIN && assignee.role !== UserRole.STAFF) {
+        throw new NotFoundException('Assignee must be an ADMIN or STAFF user');
+      }
+    }
+
+    const resolvedAtUpdate =
+      dto.status === RetentionTaskStatus.DONE
+        ? new Date()
+        : dto.status
+          ? null
+          : undefined;
+
+    const existingTasks = await this.prisma.retentionTask.findMany({
+      where: { id: { in: dto.taskIds } },
+      select: {
+        id: true,
+        status: true,
+        priority: true,
+        assignedToId: true,
+        note: true,
+        dueDate: true,
+      },
+    });
+
+    const result = await this.prisma.retentionTask.updateMany({
+      where: { id: { in: dto.taskIds } },
+      data: {
+        status: dto.status,
+        priority: dto.priority,
+        assignedToId: dto.assignedToId,
+        note: dto.note,
+        dueDate: dto.dueDate ? new Date(dto.dueDate) : undefined,
+        resolvedAt: resolvedAtUpdate,
+      },
+    });
+
+    const historyRows = existingTasks
+      .map((task) =>
+        this.buildHistoryEntry({
+          taskId: task.id,
+          changedByUserId,
+          fromStatus: task.status,
+          toStatus: dto.status ?? task.status,
+          fromPriority: task.priority,
+          toPriority: dto.priority ?? task.priority,
+          fromAssignedToId: task.assignedToId,
+          toAssignedToId: dto.assignedToId ?? task.assignedToId,
+          fromNote: task.note,
+          toNote: dto.note ?? task.note,
+          fromDueDate: task.dueDate,
+          toDueDate: dto.dueDate ? new Date(dto.dueDate) : task.dueDate,
+        }),
+      )
+      .filter((row) => !!row);
+
+    if (historyRows.length > 0) {
+      await this.prisma.retentionTaskHistory.createMany({
+        data: historyRows,
+      });
+    }
+
+    if (dto.status === RetentionTaskStatus.DONE && result.count > 0) {
+      await this.notificationsService.createForRole({
+        role: UserRole.ADMIN,
+        title: 'Retention tasks completed',
+        message: `${result.count} retention task(s) were marked as completed.`,
+        type: 'success',
+        actionUrl: '/admin/retention/tasks',
+      });
+    }
+
+    return { updatedCount: result.count };
   }
 
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
@@ -468,9 +597,31 @@ export class RetentionService {
 
     if (existing) return;
 
+    const cooldownCutoff = new Date(
+      Date.now() - this.followUpTaskCooldownDays * 24 * 60 * 60 * 1000,
+    );
+    const recentResolvedTask = await this.prisma.retentionTask.findFirst({
+      where: {
+        memberId,
+        status: {
+          in: [RetentionTaskStatus.DONE, RetentionTaskStatus.DISMISSED],
+        },
+        OR: [
+          { resolvedAt: { gte: cooldownCutoff } },
+          { updatedAt: { gte: cooldownCutoff } },
+        ],
+      },
+      select: { id: true },
+    });
+
+    if (recentResolvedTask) return;
+
+    const assignedToId = await this.findAutoAssigneeId();
+
     await this.prisma.retentionTask.create({
       data: {
         memberId,
+        assignedToId,
         status: RetentionTaskStatus.OPEN,
         priority: 1,
         title: 'Follow up high-risk member',
@@ -486,6 +637,93 @@ export class RetentionService {
       type: 'warning',
       actionUrl: '/admin/retention/tasks',
     });
+  }
+
+  private async findAutoAssigneeId(): Promise<string | undefined> {
+    const candidates = await this.prisma.user.findMany({
+      where: {
+        status: UserStatus.ACTIVE,
+        role: { in: [UserRole.ADMIN, UserRole.STAFF] },
+      },
+      select: { id: true, createdAt: true },
+    });
+
+    if (!candidates.length) {
+      return undefined;
+    }
+
+    const openWorkloads = await this.prisma.retentionTask.groupBy({
+      by: ['assignedToId'],
+      where: {
+        assignedToId: { in: candidates.map((candidate) => candidate.id) },
+        status: {
+          in: [RetentionTaskStatus.OPEN, RetentionTaskStatus.IN_PROGRESS],
+        },
+      },
+      _count: { _all: true },
+    });
+
+    const workloadByUserId = new Map<string, number>();
+    for (const workload of openWorkloads) {
+      if (!workload.assignedToId) continue;
+      workloadByUserId.set(workload.assignedToId, workload._count._all);
+    }
+
+    const bestCandidate = [...candidates].sort((a, b) => {
+      const aWorkload = workloadByUserId.get(a.id) ?? 0;
+      const bWorkload = workloadByUserId.get(b.id) ?? 0;
+      if (aWorkload !== bWorkload) return aWorkload - bWorkload;
+      const createdAtDiff = a.createdAt.getTime() - b.createdAt.getTime();
+      if (createdAtDiff !== 0) return createdAtDiff;
+      return a.id.localeCompare(b.id);
+    })[0];
+
+    return bestCandidate?.id;
+  }
+
+  private buildHistoryEntry(input: {
+    taskId: string;
+    changedByUserId?: string;
+    fromStatus: RetentionTaskStatus | null;
+    toStatus: RetentionTaskStatus | null;
+    fromPriority: number | null;
+    toPriority: number | null;
+    fromAssignedToId: string | null;
+    toAssignedToId: string | null;
+    fromNote: string | null;
+    toNote: string | null;
+    fromDueDate: Date | null;
+    toDueDate: Date | null;
+  }) {
+    const changed =
+      input.fromStatus !== input.toStatus ||
+      input.fromPriority !== input.toPriority ||
+      input.fromAssignedToId !== input.toAssignedToId ||
+      input.fromNote !== input.toNote ||
+      !this.areDatesEqual(input.fromDueDate, input.toDueDate);
+
+    if (!changed) return null;
+
+    return {
+      taskId: input.taskId,
+      changedByUserId: input.changedByUserId,
+      fromStatus: input.fromStatus,
+      toStatus: input.toStatus,
+      fromPriority: input.fromPriority,
+      toPriority: input.toPriority,
+      fromAssignedToId: input.fromAssignedToId,
+      toAssignedToId: input.toAssignedToId,
+      fromNote: input.fromNote,
+      toNote: input.toNote,
+      fromDueDate: input.fromDueDate,
+      toDueDate: input.toDueDate,
+    };
+  }
+
+  private areDatesEqual(a: Date | null, b: Date | null): boolean {
+    if (!a && !b) return true;
+    if (!a || !b) return false;
+    return a.getTime() === b.getTime();
   }
 
   private buildSnapshot(input: {

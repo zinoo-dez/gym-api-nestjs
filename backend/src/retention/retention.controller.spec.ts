@@ -15,6 +15,7 @@ describe('RetentionController (integration)', () => {
     getMemberDetail: jest.fn(),
     recalculateAll: jest.fn(),
     getTasks: jest.fn(),
+    bulkUpdateTasks: jest.fn(),
     updateTask: jest.fn(),
   };
 
@@ -144,7 +145,26 @@ describe('RetentionController (integration)', () => {
     expect(patchResponse.body.status).toBe('DONE');
     expect(retentionServiceMock.updateTask).toHaveBeenCalledWith('t-1', {
       status: 'DONE',
+    }, undefined);
+  });
+
+  it('PATCH /api/retention/tasks/bulk updates tasks', async () => {
+    retentionServiceMock.bulkUpdateTasks.mockResolvedValue({
+      updatedCount: 2,
     });
+
+    const response = await request(app.getHttpServer())
+      .patch('/api/retention/tasks/bulk')
+      .send({
+        taskIds: ['t-1', 't-2'],
+        status: 'DISMISSED',
+      });
+
+    expect(response.status).toBe(200);
+    expect(response.body.updatedCount).toBe(2);
+    expect(retentionServiceMock.bulkUpdateTasks).toHaveBeenCalledWith({
+      taskIds: ['t-1', 't-2'],
+      status: 'DISMISSED',
+    }, undefined);
   });
 });
-

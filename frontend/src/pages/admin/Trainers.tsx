@@ -50,8 +50,10 @@ const Trainers = () => {
     firstName: "",
     lastName: "",
     email: "",
+    address: "",
     avatarUrl: "",
     password: "",
+    confirmPassword: "",
     specializations: "",
     certifications: "",
     experience: "",
@@ -95,8 +97,10 @@ const Trainers = () => {
       firstName: "",
       lastName: "",
       email: "",
+      address: "",
       avatarUrl: "",
       password: "",
+      confirmPassword: "",
       specializations: "",
       certifications: "",
       experience: "",
@@ -111,8 +115,10 @@ const Trainers = () => {
       firstName: t.firstName,
       lastName: t.lastName,
       email: t.email,
+      address: t.address || "",
       avatarUrl: t.avatarUrl || "",
       password: "",
+      confirmPassword: "",
       specializations: t.specializations.join(", "),
       certifications: t.certifications.join(", "),
       experience: t.experience !== undefined ? String(t.experience) : "",
@@ -139,11 +145,25 @@ const Trainers = () => {
       return;
     }
 
+    if (form.password) {
+      if (form.password.length < 8) {
+        toast.error("Password must be at least 8 characters.");
+        return;
+      }
+      if (form.password !== form.confirmPassword) {
+        toast.error("Password and confirm password do not match.");
+        return;
+      }
+    }
+
     try {
       if (editing) {
         const payload: UpdateTrainerRequest = {
+          email: form.email.trim(),
+          password: form.password || undefined,
           firstName: form.firstName.trim(),
           lastName: form.lastName.trim(),
+          address: form.address.trim() || undefined,
           avatarUrl: form.avatarUrl.trim() || undefined,
           specializations,
           certifications: parseList(form.certifications),
@@ -154,8 +174,8 @@ const Trainers = () => {
         setList((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
         toast.success("Trainer updated");
       } else {
-        if (!form.password || form.password.length < 8) {
-          toast.error("Password must be at least 8 characters.");
+        if (!form.password) {
+          toast.error("Password is required.");
           return;
         }
         const payload: CreateTrainerRequest = {
@@ -163,6 +183,7 @@ const Trainers = () => {
           password: form.password,
           firstName: form.firstName.trim(),
           lastName: form.lastName.trim(),
+          address: form.address.trim() || undefined,
           avatarUrl: form.avatarUrl.trim() || undefined,
           specializations,
           certifications: parseList(form.certifications),
@@ -370,6 +391,14 @@ const Trainers = () => {
               />
             </div>
             <div className="space-y-2">
+              <Label>Address</Label>
+              <Input
+                type="text"
+                value={form.address}
+                onChange={(e) => setForm({ ...form, address: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
               <Label>Profile image URL</Label>
               <Input
                 type="file"
@@ -386,18 +415,30 @@ const Trainers = () => {
                 <p className="text-xs text-muted-foreground">Uploaded: {form.avatarUrl}</p>
               )}
             </div>
-            {!editing && (
-              <div className="space-y-2">
-                <Label>Password</Label>
-                <Input
-                  type="password"
-                  value={form.password}
-                  onChange={(e) =>
-                    setForm({ ...form, password: e.target.value })
-                  }
-                />
-              </div>
-            )}
+            <div className="space-y-2">
+              <Label>
+                {editing ? "New password (optional)" : "Password"}
+              </Label>
+              <Input
+                type="password"
+                value={form.password}
+                onChange={(e) =>
+                  setForm({ ...form, password: e.target.value })
+                }
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>
+                {editing ? "Confirm new password" : "Confirm password"}
+              </Label>
+              <Input
+                type="password"
+                value={form.confirmPassword}
+                onChange={(e) =>
+                  setForm({ ...form, confirmPassword: e.target.value })
+                }
+              />
+            </div>
             <div className="space-y-2">
               <Label>Specializations</Label>
               <Input

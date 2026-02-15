@@ -26,6 +26,7 @@ model User {
   trainer                 Trainer?
   userSetting             UserSetting?
   assignedRetentionTasks  RetentionTask[]
+  retentionTaskChanges    RetentionTaskHistory[]
 
   @@index([email])
   @@index([role])
@@ -171,12 +172,37 @@ model RetentionTask {
   updatedAt    DateTime            @updatedAt @map("updated_at")
   member       Member              @relation(fields: [memberId], references: [id], onDelete: Cascade)
   assignedTo   User?               @relation(fields: [assignedToId], references: [id])
+  history      RetentionTaskHistory[]
 
   @@index([memberId])
   @@index([assignedToId])
   @@index([status])
   @@index([dueDate])
   @@map("retention_tasks")
+}
+
+model RetentionTaskHistory {
+  id               String              @id @default(cuid())
+  taskId           String              @map("task_id")
+  changedByUserId  String?             @map("changed_by_user_id")
+  fromStatus       RetentionTaskStatus? @map("from_status")
+  toStatus         RetentionTaskStatus? @map("to_status")
+  fromPriority     Int?                @map("from_priority")
+  toPriority       Int?                @map("to_priority")
+  fromAssignedToId String?             @map("from_assigned_to_user_id")
+  toAssignedToId   String?             @map("to_assigned_to_user_id")
+  fromNote         String?             @map("from_note")
+  toNote           String?             @map("to_note")
+  fromDueDate      DateTime?           @map("from_due_date")
+  toDueDate        DateTime?           @map("to_due_date")
+  createdAt        DateTime            @default(now()) @map("created_at")
+  task             RetentionTask       @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  changedByUser    User?               @relation(fields: [changedByUserId], references: [id])
+
+  @@index([taskId])
+  @@index([changedByUserId])
+  @@index([createdAt])
+  @@map("retention_task_history")
 }
 
 model Trainer {

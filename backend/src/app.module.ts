@@ -34,6 +34,7 @@ import { StaffModule } from './staff/staff.module';
 import { PaymentsModule } from './payments/payments.module';
 import { UploadsModule } from './uploads/uploads.module';
 import { RetentionModule } from './retention/retention.module';
+import { TrainerSessionsModule } from './trainer-sessions/trainer-sessions.module';
 
 @Module({
   imports: [
@@ -72,6 +73,7 @@ import { RetentionModule } from './retention/retention.module';
     PaymentsModule,
     UploadsModule,
     RetentionModule,
+    TrainerSessionsModule,
   ],
   controllers: [AppController],
   providers: [

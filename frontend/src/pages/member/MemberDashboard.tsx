@@ -119,6 +119,10 @@ const MemberDashboard = () => {
     () => member?.subscriptions?.some((s) => s.status === "ACTIVE" || s.status === "PENDING") || false,
     [member],
   );
+  const hasPendingSubscription = useMemo(
+    () => member?.subscriptions?.some((s) => s.status === "PENDING") || false,
+    [member],
+  );
 
   const latestPayment = useMemo(() => {
     if (!activeSubscription) return undefined;
@@ -248,6 +252,75 @@ const MemberDashboard = () => {
       toast.success("Payment submitted. Awaiting admin review.");
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Failed to submit payment.");
+    }
+  };
+
+  const handlePauseMembership = async () => {
+    if (!activeSubscription) return;
+    try {
+      await membershipsService.pauseMembership(activeSubscription.id);
+      const refreshed = await membersService.getMe();
+      setMember(refreshed);
+      toast.success("Membership paused");
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to pause membership");
+    }
+  };
+
+  const handleResumeMembership = async () => {
+    if (!activeSubscription) return;
+    try {
+      await membershipsService.resumeMembership(activeSubscription.id);
+      const refreshed = await membersService.getMe();
+      setMember(refreshed);
+      toast.success("Membership resumed");
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to resume membership");
+    }
+  };
+
+  const handleCancelMembership = async () => {
+    if (!activeSubscription) return;
+    try {
+      await membershipsService.cancelMembership(activeSubscription.id);
+      const refreshed = await membersService.getMe();
+      setMember(refreshed);
+      toast.success("Membership cancelled");
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to cancel membership");
+    }
+  };
+
+  const handleSwitchPlan = async () => {
+    if (!selectedPlan || !activeSubscription) return;
+    if (activeSubscription.membershipPlan?.id === selectedPlan.id) {
+      toast.error("You are already on this plan.");
+      return;
+    }
+    try {
+      await membershipsService.switchMyPlan({ newPlanId: selectedPlan.id });
+      const refreshed = await membersService.getMe();
+      setMember(refreshed);
+      toast.success("Plan switched successfully");
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to switch plan");
+    }
+  };
+
+  const handleDownloadInvoice = async () => {
+    if (!activeSubscription) return;
+    try {
+      const blob = await membershipsService.downloadInvoice(activeSubscription.id);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `invoice_${activeSubscription.id.slice(-8)}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to download invoice");
     }
   };
 
@@ -505,6 +578,28 @@ const MemberDashboard = () => {
                 {daysToExpiry === 1 ? "" : "s"}.
               </div>
             )}
+            <div className="flex flex-wrap gap-2 pt-1">
+              {activeSubscription?.status === "ACTIVE" && (
+                <Button size="sm" variant="outline" onClick={handlePauseMembership}>
+                  Pause
+                </Button>
+              )}
+              {activeSubscription?.status === "FROZEN" && (
+                <Button size="sm" variant="outline" onClick={handleResumeMembership}>
+                  Resume
+                </Button>
+              )}
+              {activeSubscription && (
+                <Button size="sm" variant="outline" onClick={handleDownloadInvoice}>
+                  Download Invoice
+                </Button>
+              )}
+              {activeSubscription && activeSubscription.status !== "CANCELLED" && (
+                <Button size="sm" variant="outline" onClick={handleCancelMembership}>
+                  Cancel
+                </Button>
+              )}
+            </div>
           </CardContent>
         </Card>
 
@@ -585,9 +680,9 @@ const MemberDashboard = () => {
           <CardTitle>Choose a Membership Plan</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {hasActiveOrPending && (
+          {hasPendingSubscription && (
             <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-700">
-              You already have an active or pending membership. New subscriptions are disabled until approval or expiry.
+              You currently have a pending membership request. Plan selection is temporarily disabled.
             </div>
           )}
           {plans.length === 0 ? (
@@ -621,7 +716,7 @@ const MemberDashboard = () => {
                     className="mt-3"
                     variant={selectedPlan?.id === plan.id ? "default" : "outline"}
                     onClick={() => setSelectedPlan(plan)}
-                    disabled={hasActiveOrPending}
+                    disabled={hasPendingSubscription}
                   >
                     {selectedPlan?.id === plan.id ? "Selected" : "Choose Plan"}
                   </Button>
@@ -786,9 +881,18 @@ const MemberDashboard = () => {
             )}
           </div>
 
-          <Button onClick={handleSubmitPayment} disabled={isUploadingProof}>
-            {isUploadingProof ? "Uploading..." : "Submit Payment"}
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button onClick={handleSubmitPayment} disabled={isUploadingProof}>
+              {isUploadingProof ? "Uploading..." : "Submit Payment"}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleSwitchPlan}
+              disabled={!selectedPlan || !activeSubscription || isUploadingProof}
+            >
+              Switch Plan
+            </Button>
+          </div>
             </>
           )}
         </CardContent>

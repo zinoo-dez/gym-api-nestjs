@@ -1,146 +1,171 @@
-import { useParams, Link } from "react-router-dom";
-import { trainers, members } from "@/data/mockData";
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import { CalendarDays, CheckCircle2, Clock3, Users } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, Users, Calendar, TrendingUp, Star, Clock, Award, CheckCircle2 } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
-
-const sessionData = [
-  { day: "Mon", sessions: 4 }, { day: "Tue", sessions: 6 }, { day: "Wed", sessions: 3 },
-  { day: "Thu", sessions: 7 }, { day: "Fri", sessions: 5 }, { day: "Sat", sessions: 8 }, { day: "Sun", sessions: 2 },
-];
-
-const monthlyClients = [
-  { month: "Jan", clients: 8 }, { month: "Feb", clients: 10 }, { month: "Mar", clients: 12 },
-  { month: "Apr", clients: 11 }, { month: "May", clients: 15 }, { month: "Jun", clients: 18 },
-];
+import { trainerSessionsService, type TrainerSession } from "@/services/trainer-sessions.service";
+import { useAuthStore } from "@/store/auth.store";
+import { toast } from "sonner";
 
 const TrainerDashboard = () => {
-  const { id } = useParams();
-  const trainer = trainers.find((t) => t.id === id);
+  const user = useAuthStore((state) => state.user);
+  const [sessions, setSessions] = useState<TrainerSession[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  if (!trainer) return (
-    <div className="flex flex-col items-center justify-center h-64 gap-4">
-      <p className="text-muted-foreground">Trainer not found</p>
-      <Button variant="outline" asChild><Link to="/trainers"><ArrowLeft className="h-4 w-4 mr-2" />Back</Link></Button>
-    </div>
+  useEffect(() => {
+    const load = async () => {
+      setIsLoading(true);
+      try {
+        const rows = await trainerSessionsService.getAll();
+        setSessions(Array.isArray(rows) ? rows : []);
+      } catch (err: any) {
+        toast.error(err?.response?.data?.message || "Failed to load trainer dashboard");
+        setSessions([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    load();
+  }, []);
+
+  const now = Date.now();
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+  const endOfToday = new Date();
+  endOfToday.setHours(23, 59, 59, 999);
+
+  const stats = useMemo(() => {
+    const upcoming = sessions.filter(
+      (s) => s.status === "SCHEDULED" && new Date(s.sessionDate).getTime() > now,
+    );
+    const completed = sessions.filter((s) => s.status === "COMPLETED");
+    const activeClients = new Set(sessions.map((s) => s.memberId)).size;
+
+    return {
+      total: sessions.length,
+      upcoming: upcoming.length,
+      completed: completed.length,
+      activeClients,
+    };
+  }, [sessions, now]);
+
+  const todaySchedule = useMemo(
+    () =>
+      sessions
+        .filter((s) => {
+          const t = new Date(s.sessionDate).getTime();
+          return t >= startOfToday.getTime() && t <= endOfToday.getTime();
+        })
+        .sort((a, b) => +new Date(a.sessionDate) - +new Date(b.sessionDate)),
+    [sessions, startOfToday, endOfToday],
   );
 
-  const statusColor = trainer.status === "active" ? "default" : trainer.status === "on-leave" ? "secondary" : "destructive";
+  const recentSessions = useMemo(
+    () => [...sessions].sort((a, b) => +new Date(b.sessionDate) - +new Date(a.sessionDate)).slice(0, 8),
+    [sessions],
+  );
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild><Link to="/trainers"><ArrowLeft className="h-5 w-5" /></Link></Button>
-        <div className="flex-1">
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold">Hi {trainer.name.split(" ")[0]},</h1>
-            <span className="text-muted-foreground text-lg">Welcome back!</span>
-          </div>
-          <p className="text-sm text-muted-foreground">Trainer Dashboard • {trainer.specialization}</p>
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold">Trainer Dashboard</h1>
+          <p className="text-sm text-muted-foreground">
+            {user?.firstName ? `Welcome back, ${user.firstName}.` : "Manage your sessions and members."}
+          </p>
         </div>
-        <Badge variant={statusColor} className="text-sm">{trainer.status}</Badge>
+        <Button asChild>
+          <Link to="/trainer/sessions">Manage Sessions</Link>
+        </Button>
       </div>
 
-      {/* Stats Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { icon: Users, label: "Active Clients", value: trainer.clients, change: "↑ 12%", color: "bg-primary/20 text-primary" },
-          { icon: Calendar, label: "Sessions/Week", value: 35, change: "↑ 8%", color: "bg-blue-500/20 text-blue-500" },
-          { icon: Star, label: "Rating", value: "4.9", change: "↑ 0.2", color: "bg-yellow-500/20 text-yellow-500" },
-          { icon: Award, label: "Completion Rate", value: "96%", change: "↑ 3%", color: "bg-green-500/20 text-green-500" },
-        ].map((stat, i) => (
-          <Card key={i} className="bg-card border-border">
+          { title: "Total Sessions", value: stats.total, icon: CalendarDays },
+          { title: "Upcoming", value: stats.upcoming, icon: Clock3 },
+          { title: "Completed", value: stats.completed, icon: CheckCircle2 },
+          { title: "Active Clients", value: stats.activeClients, icon: Users },
+        ].map((item) => (
+          <Card key={item.title}>
             <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className={`h-10 w-10 rounded-xl ${stat.color} flex items-center justify-center`}><stat.icon className="h-5 w-5" /></div>
+              <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-2xl font-bold">{stat.value}</p>
-                  <p className="text-xs text-muted-foreground">{stat.label}</p>
+                  <p className="text-xs text-muted-foreground">{item.title}</p>
+                  <p className="text-2xl font-bold">{item.value}</p>
                 </div>
-                <Badge variant="secondary" className="ml-auto text-xs">{stat.change}</Badge>
+                <item.icon className="h-5 w-5 text-muted-foreground" />
               </div>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <Card className="lg:col-span-2 bg-card border-border">
-          <CardHeader className="pb-2"><CardTitle className="text-lg">Weekly Sessions</CardTitle></CardHeader>
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>Today&apos;s Schedule</CardTitle>
+          </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={sessionData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="day" stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} />
-                <Bar dataKey="sessions" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-card border-border">
-          <CardHeader className="pb-2"><CardTitle className="text-lg">Client Growth</CardTitle></CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={220}>
-              <LineChart data={monthlyClients}>
-                <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} />
-                <Line type="monotone" dataKey="clients" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ fill: "hsl(var(--primary))" }} />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Schedule & Performance */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <Card className="bg-card border-border">
-          <CardHeader className="pb-2"><CardTitle className="text-lg">Today's Schedule</CardTitle></CardHeader>
-          <CardContent className="space-y-3">
-            {[
-              { time: "6:00 AM", client: "Alex Johnson", type: "Strength" },
-              { time: "7:30 AM", client: "Lisa Anderson", type: "HIIT" },
-              { time: "9:00 AM", client: "David Brown", type: "Cardio" },
-              { time: "10:30 AM", client: "Mike Chen", type: "Flexibility" },
-              { time: "2:00 PM", client: "Sarah Williams", type: "Strength" },
-            ].map((session, i) => (
-              <div key={i} className="flex items-center justify-between py-2 border-b border-border last:border-0">
-                <div className="flex items-center gap-3">
-                  <Clock className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium">{session.client}</p>
-                    <p className="text-xs text-muted-foreground">{session.time}</p>
+            {isLoading ? (
+              <p className="text-sm text-muted-foreground">Loading schedule...</p>
+            ) : todaySchedule.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No sessions scheduled for today.</p>
+            ) : (
+              <div className="space-y-3">
+                {todaySchedule.map((session) => (
+                  <div key={session.id} className="rounded-lg border p-3 flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-medium">{session.title}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(session.sessionDate).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                        {" • "}
+                        {session.duration} min
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Member: {session.member?.user?.firstName || ""} {session.member?.user?.lastName || ""}
+                      </p>
+                    </div>
+                    <Badge variant={session.status === "COMPLETED" ? "default" : "secondary"}>
+                      {session.status}
+                    </Badge>
                   </div>
-                </div>
-                <Badge variant="outline">{session.type}</Badge>
+                ))}
               </div>
-            ))}
+            )}
           </CardContent>
         </Card>
 
-        <Card className="bg-card border-border">
-          <CardHeader className="pb-2"><CardTitle className="text-lg">Performance</CardTitle></CardHeader>
-          <CardContent className="space-y-4">
-            {[
-              { label: "Client Satisfaction", value: 96 },
-              { label: "Session Completion", value: 92 },
-              { label: "Goal Achievement", value: 88 },
-              { label: "On-Time Rate", value: 98 },
-            ].map((metric, i) => (
-              <div key={i} className="space-y-1">
-                <div className="flex justify-between text-sm">
-                  <span>{metric.label}</span>
-                  <span className="font-medium">{metric.value}%</span>
-                </div>
-                <Progress value={metric.value} className="h-2" />
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Sessions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <p className="text-sm text-muted-foreground">Loading sessions...</p>
+            ) : recentSessions.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No sessions found.</p>
+            ) : (
+              <div className="space-y-3">
+                {recentSessions.map((session) => (
+                  <div key={session.id} className="rounded-lg border p-3 flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-medium">{session.title}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(session.sessionDate).toLocaleString()} • {session.rate}
+                      </p>
+                    </div>
+                    <Badge variant={session.status === "COMPLETED" ? "default" : "outline"}>
+                      {session.status}
+                    </Badge>
+                  </div>
+                ))}
               </div>
-            ))}
+            )}
           </CardContent>
         </Card>
       </div>

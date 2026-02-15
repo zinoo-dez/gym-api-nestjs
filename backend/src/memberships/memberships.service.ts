@@ -711,7 +711,10 @@ export class MembershipsService {
     );
   }
 
-  async freezeMembership(id: string): Promise<MembershipResponseDto> {
+  async freezeMembership(
+    id: string,
+    currentUser?: { userId: string; role: UserRole },
+  ): Promise<MembershipResponseDto> {
     const membership = await this.prisma.subscription.findUnique({
       where: { id },
       include: { membershipPlan: true, discountCode: true },
@@ -719,6 +722,15 @@ export class MembershipsService {
 
     if (!membership) {
       throw new NotFoundException(`Membership with ID ${id} not found`);
+    }
+    if (currentUser?.role === UserRole.MEMBER) {
+      const member = await this.prisma.member.findUnique({
+        where: { id: membership.memberId },
+        select: { userId: true },
+      });
+      if (!member || member.userId !== currentUser.userId) {
+        throw new ForbiddenException('You can only pause your own membership');
+      }
     }
 
     const updated = await this.prisma.subscription.update({
@@ -762,7 +774,10 @@ export class MembershipsService {
     return this.toMembershipResponseDto(updated);
   }
 
-  async unfreezeMembership(id: string): Promise<MembershipResponseDto> {
+  async unfreezeMembership(
+    id: string,
+    currentUser?: { userId: string; role: UserRole },
+  ): Promise<MembershipResponseDto> {
     const membership = await this.prisma.subscription.findUnique({
       where: { id },
       include: { membershipPlan: true, discountCode: true },
@@ -770,6 +785,15 @@ export class MembershipsService {
 
     if (!membership) {
       throw new NotFoundException(`Membership with ID ${id} not found`);
+    }
+    if (currentUser?.role === UserRole.MEMBER) {
+      const member = await this.prisma.member.findUnique({
+        where: { id: membership.memberId },
+        select: { userId: true },
+      });
+      if (!member || member.userId !== currentUser.userId) {
+        throw new ForbiddenException('You can only resume your own membership');
+      }
     }
 
     const newStatus =
@@ -818,7 +842,10 @@ export class MembershipsService {
     return this.toMembershipResponseDto(updated);
   }
 
-  async cancelMembership(id: string): Promise<MembershipResponseDto> {
+  async cancelMembership(
+    id: string,
+    currentUser?: { userId: string; role: UserRole },
+  ): Promise<MembershipResponseDto> {
     const membership = await this.prisma.subscription.findUnique({
       where: { id },
       include: { membershipPlan: true, discountCode: true },
@@ -826,6 +853,15 @@ export class MembershipsService {
 
     if (!membership) {
       throw new NotFoundException(`Membership with ID ${id} not found`);
+    }
+    if (currentUser?.role === UserRole.MEMBER) {
+      const member = await this.prisma.member.findUnique({
+        where: { id: membership.memberId },
+        select: { userId: true },
+      });
+      if (!member || member.userId !== currentUser.userId) {
+        throw new ForbiddenException('You can only cancel your own membership');
+      }
     }
 
     const updated = await this.prisma.subscription.update({
@@ -867,6 +903,25 @@ export class MembershipsService {
     }
 
     return this.toMembershipResponseDto(updated);
+  }
+
+  async switchMyPlan(
+    userId: string,
+    upgradeDto: UpgradeMembershipDto,
+  ): Promise<MembershipResponseDto> {
+    const member = await this.prisma.member.findUnique({
+      where: { userId },
+      select: { id: true },
+    });
+
+    if (!member) {
+      throw new NotFoundException('Member profile not found');
+    }
+
+    return this.upgradeMembership(member.id, upgradeDto, {
+      userId,
+      role: UserRole.MEMBER,
+    });
   }
 
   async generateInvoicePdf(

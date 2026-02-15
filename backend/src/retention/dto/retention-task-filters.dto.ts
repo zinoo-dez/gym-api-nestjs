@@ -22,6 +22,11 @@ export class RetentionTaskFiltersDto {
   @IsString()
   assignedToId?: string;
 
+  @ApiPropertyOptional({ example: 'cm1234567890abcdefghijkl' })
+  @IsOptional()
+  @IsString()
+  memberId?: string;
+
   @ApiPropertyOptional({ example: 1, default: 1 })
   @IsOptional()
   @Type(() => Number)

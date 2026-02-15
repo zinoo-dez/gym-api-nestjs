@@ -315,35 +315,49 @@ export class MembershipsController {
   }
 
   @Post('memberships/:id/freeze')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.MEMBER)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Freeze a membership',
-    description: 'Freeze a member subscription. Requires ADMIN role.',
+    description: 'Freeze a member subscription. Requires ADMIN or MEMBER role.',
   })
-  async freezeMembership(@Param('id') id: string) {
-    return this.membershipsService.freezeMembership(id);
+  async freezeMembership(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.membershipsService.freezeMembership(id, user);
   }
 
   @Post('memberships/:id/unfreeze')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.MEMBER)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Unfreeze a membership',
-    description: 'Unfreeze a member subscription. Requires ADMIN role.',
+    description: 'Unfreeze a member subscription. Requires ADMIN or MEMBER role.',
   })
-  async unfreezeMembership(@Param('id') id: string) {
-    return this.membershipsService.unfreezeMembership(id);
+  async unfreezeMembership(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.membershipsService.unfreezeMembership(id, user);
   }
 
   @Post('memberships/:id/cancel')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.MEMBER)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Cancel a membership',
-    description: 'Cancel a member subscription. Requires ADMIN role.',
+    description: 'Cancel a member subscription. Requires ADMIN or MEMBER role.',
   })
-  async cancelMembership(@Param('id') id: string) {
-    return this.membershipsService.cancelMembership(id);
+  async cancelMembership(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.membershipsService.cancelMembership(id, user);
+  }
+
+  @Post('memberships/me/switch-plan')
+  @Roles(UserRole.MEMBER)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'Switch current member to another plan',
+    description: 'Switches current member subscription to a new plan.',
+  })
+  async switchMyPlan(
+    @Body() upgradeDto: UpgradeMembershipDto,
+    @CurrentUser() user: any,
+  ) {
+    return this.membershipsService.switchMyPlan(user.userId, upgradeDto);
   }
 }

@@ -6,3 +6,5 @@ export * from './recalculate-retention-response.dto';
 export * from './retention-task-filters.dto';
 export * from './retention-task-response.dto';
 export * from './update-retention-task.dto';
+export * from './bulk-update-retention-tasks.dto';
+export * from './bulk-update-retention-tasks-response.dto';

@@ -1,6 +1,7 @@
 import {
   LayoutDashboard, Users, Dumbbell, UserCog, CreditCard, Percent,
-  DollarSign, Bell, Settings, ShieldAlert, ListChecks, RefreshCcw,
+  DollarSign, Bell, Settings, ShieldAlert, ListChecks, RefreshCcw, Activity,
+  CalendarClock,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
@@ -26,6 +27,16 @@ const adminItems = [
   { title: "Settings", url: "/admin/settings", icon: Settings },
 ];
 
+const memberItems = [
+  { title: "Dashboard", url: "/member", icon: LayoutDashboard },
+  { title: "My Progress", url: "/member/progress", icon: Activity },
+];
+
+const trainerItems = [
+  { title: "Dashboard", url: "/trainer", icon: LayoutDashboard },
+  { title: "Sessions", url: "/trainer/sessions", icon: CalendarClock },
+];
+
 export function AppSidebar() {
   const { user } = useAuthStore();
   const { settings } = useGymSettingsStore();
@@ -35,9 +46,9 @@ export function AppSidebar() {
     
     switch (user.role) {
       case "MEMBER":
-        return [{ title: "Dashboard", url: "/member", icon: LayoutDashboard }];
+        return memberItems;
       case "TRAINER":
-        return [{ title: "Dashboard", url: "/trainer", icon: LayoutDashboard }];
+        return trainerItems;
       case "STAFF":
         return [{ title: "Dashboard", url: "/staff", icon: LayoutDashboard }];
       default:

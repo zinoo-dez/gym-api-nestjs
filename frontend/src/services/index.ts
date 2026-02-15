@@ -13,3 +13,4 @@ export * from "./discount-codes.service";
 export * from "./payments.service";
 export * from "./uploads.service";
 export * from "./retention.service";
+export * from "./trainer-sessions.service";
