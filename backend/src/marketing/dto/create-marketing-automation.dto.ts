@@ -14,12 +14,12 @@ import {
 export class CreateMarketingAutomationDto {
   @ApiProperty({ enum: MarketingAutomationType })
   @IsEnum(MarketingAutomationType)
-  type: MarketingAutomationType;
+  type!: MarketingAutomationType;
 
   @ApiProperty({ example: 'Default Birthday Wishes' })
   @IsString()
   @MaxLength(120)
-  name: string;
+  name!: string;
 
   @ApiPropertyOptional({ default: true })
   @IsOptional()
@@ -44,7 +44,7 @@ export class CreateMarketingAutomationDto {
 
   @ApiProperty({ example: 'Hi {{firstName}}, we miss you. Enjoy {{specialOffer}}.' })
   @IsString()
-  content: string;
+  content!: string;
 
   @ApiPropertyOptional({ example: 'Free class pass this week' })
   @IsOptional()

@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, Users, Dumbbell, UserCog, CreditCard, Percent,
   DollarSign, Bell, Settings, ShieldAlert, ListChecks, RefreshCcw, Activity,
-  CalendarClock,
+  CalendarClock, Megaphone,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
@@ -24,6 +24,7 @@ const adminItems = [
   { title: "Payments", url: "/admin/payments", icon: DollarSign },
   { title: "Recovery Queue", url: "/admin/recovery", icon: RefreshCcw },
   { title: "Notifications", url: "/admin/notifications", icon: Bell },
+  { title: "Marketing", url: "/admin/marketing", icon: Megaphone },
   { title: "Settings", url: "/admin/settings", icon: Settings },
 ];
 

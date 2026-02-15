@@ -30,6 +30,7 @@ import PlansPage from "../pages/admin/MembershipPlans";
 import DiscountsPage from "../pages/admin/Discounts";
 import PaymentsPage from "../pages/admin/Payments";
 import NotificationsPage from "../pages/admin/Notifications";
+import MarketingPage from "../pages/admin/Marketing";
 import SettingsPage from "../pages/admin/Settings";
 import StaffPage from "../pages/admin/StaffPage";
 import RetentionDashboardPage from "../pages/admin/RetentionDashboard";
@@ -123,6 +124,14 @@ const AppRoutes = () => {
           element={withTransition(
             <AdminRoute>
               <AdminLayout><NotificationsPage /></AdminLayout>
+            </AdminRoute>,
+          )}
+        />
+        <Route
+          path="/admin/marketing"
+          element={withTransition(
+            <AdminRoute>
+              <AdminLayout><MarketingPage /></AdminLayout>
             </AdminRoute>,
           )}
         />

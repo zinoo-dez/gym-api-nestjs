@@ -19,7 +19,7 @@ export class CreateCampaignDto {
   @ApiProperty({ example: 'March Member Comeback Campaign' })
   @IsString()
   @MaxLength(120)
-  name: string;
+  name!: string;
 
   @ApiPropertyOptional({ example: 'Campaign to re-engage inactive members.' })
   @IsOptional()
@@ -29,7 +29,7 @@ export class CreateCampaignDto {
 
   @ApiProperty({ enum: NotificationType, example: NotificationType.EMAIL })
   @IsEnum(NotificationType)
-  type: NotificationType;
+  type!: NotificationType;
 
   @ApiPropertyOptional({
     enum: NotificationCategory,
@@ -86,7 +86,7 @@ export class CreateCampaignDto {
     example: 'Hi {{firstName}}, enjoy {{specialOffer}} this week at our gym.',
   })
   @IsString()
-  content: string;
+  content!: string;
 
   @ApiPropertyOptional({ example: '20% off annual membership upgrade' })
   @IsOptional()

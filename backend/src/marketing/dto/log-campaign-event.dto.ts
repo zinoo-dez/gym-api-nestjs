@@ -5,5 +5,5 @@ import { IsEnum } from 'class-validator';
 export class LogCampaignEventDto {
   @ApiProperty({ enum: CampaignEventType })
   @IsEnum(CampaignEventType)
-  eventType: CampaignEventType;
+  eventType!: CampaignEventType;
 }

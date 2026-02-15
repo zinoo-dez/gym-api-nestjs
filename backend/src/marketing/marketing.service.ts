@@ -267,11 +267,14 @@ export class MarketingService {
 
     for (const user of recipients) {
       const destination = this.resolveDestination(campaign.type, user);
-      const renderedSubject = this.renderTemplate(
-        campaign.subject ?? campaign.template?.subject ?? null,
-        user,
-        campaign.specialOffer,
-      );
+      const renderedSubject =
+        campaign.subject || campaign.template?.subject
+          ? this.renderTemplate(
+              campaign.subject ?? campaign.template?.subject ?? '',
+              user,
+              campaign.specialOffer,
+            )
+          : null;
       const renderedContent = this.renderTemplate(
         campaign.content || campaign.template?.body || '',
         user,
@@ -911,14 +914,10 @@ export class MarketingService {
   }
 
   private renderTemplate(
-    raw: string | null,
+    raw: string,
     user: CampaignRecipientUser,
     specialOffer: string | null,
-  ): string | null {
-    if (!raw) {
-      return null;
-    }
-
+  ): string {
     return raw
       .replaceAll('{{firstName}}', user.firstName)
       .replaceAll('{{lastName}}', user.lastName)

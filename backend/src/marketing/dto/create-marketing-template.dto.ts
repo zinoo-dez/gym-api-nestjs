@@ -6,11 +6,11 @@ export class CreateMarketingTemplateDto {
   @ApiProperty({ example: 'Birthday Greeting Template' })
   @IsString()
   @MaxLength(120)
-  name: string;
+  name!: string;
 
   @ApiProperty({ enum: NotificationType, example: NotificationType.EMAIL })
   @IsEnum(NotificationType)
-  type: NotificationType;
+  type!: NotificationType;
 
   @ApiPropertyOptional({
     enum: NotificationCategory,
@@ -28,7 +28,7 @@ export class CreateMarketingTemplateDto {
 
   @ApiProperty({ example: 'Hi {{firstName}}, happy birthday! Enjoy {{specialOffer}}.' })
   @IsString()
-  body: string;
+  body!: string;
 
   @ApiPropertyOptional({ default: true })
   @IsOptional()
