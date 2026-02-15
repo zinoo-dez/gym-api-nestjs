@@ -27,6 +27,8 @@ model User {
   userSetting             UserSetting?
   assignedRetentionTasks  RetentionTask[]
   retentionTaskChanges    RetentionTaskHistory[]
+  createdMarketingCampaigns MarketingCampaign[]
+  campaignRecipients      CampaignRecipient[]
 
   @@index([email])
   @@index([role])
@@ -236,6 +238,8 @@ model Class {
   updatedAt   DateTime        @updatedAt @map("updated_at")
   maxCapacity Int             @map("max_capacity")
   schedules   ClassSchedule[]
+  marketingCampaigns  MarketingCampaign[]
+  marketingAutomations MarketingAutomation[]
 
   @@index([category])
   @@index([level])
@@ -536,6 +540,8 @@ model NotificationTemplate {
   isActive  Boolean              @default(true) @map("is_active")
   createdAt DateTime             @default(now()) @map("created_at")
   updatedAt DateTime             @updatedAt @map("updated_at")
+  marketingCampaigns  MarketingCampaign[]
+  marketingAutomations MarketingAutomation[]
 
   @@index([type])
   @@index([category])
@@ -715,6 +721,104 @@ model Notification {
   @@map("notifications")
 }
 
+model MarketingCampaign {
+  id              String                @id @default(cuid())
+  name            String
+  description     String?
+  type            NotificationType
+  category        NotificationCategory  @default(MARKETING)
+  status          MarketingCampaignStatus @default(DRAFT)
+  audienceType    CampaignAudienceType  @default(ALL_MEMBERS) @map("audience_type")
+  customUserIds   String[]              @default([]) @map("custom_user_ids")
+  classId         String?               @map("class_id")
+  templateId      String?               @map("template_id")
+  createdByUserId String?               @map("created_by_user_id")
+  subject         String?
+  content         String
+  specialOffer    String?               @map("special_offer")
+  scheduledAt     DateTime?             @map("scheduled_at")
+  sentAt          DateTime?             @map("sent_at")
+  createdAt       DateTime              @default(now()) @map("created_at")
+  updatedAt       DateTime              @updatedAt @map("updated_at")
+  recipients      CampaignRecipient[]
+  template        NotificationTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  createdByUser   User?                 @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
+  class           Class?                @relation(fields: [classId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([audienceType])
+  @@index([scheduledAt])
+  @@index([classId])
+  @@index([templateId])
+  @@index([createdByUserId])
+  @@map("marketing_campaigns")
+}
+
+model CampaignRecipient {
+  id          String                  @id @default(cuid())
+  campaignId  String                  @map("campaign_id")
+  userId      String                  @map("user_id")
+  destination String
+  type        NotificationType
+  status      CampaignRecipientStatus @default(PENDING)
+  sentAt      DateTime?               @map("sent_at")
+  openedAt    DateTime?               @map("opened_at")
+  clickedAt   DateTime?               @map("clicked_at")
+  failReason  String?                 @map("fail_reason")
+  createdAt   DateTime                @default(now()) @map("created_at")
+  updatedAt   DateTime                @updatedAt @map("updated_at")
+  campaign    MarketingCampaign       @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  user        User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  events      CampaignEvent[]
+
+  @@unique([campaignId, userId, type])
+  @@index([campaignId])
+  @@index([userId])
+  @@index([status])
+  @@index([sentAt])
+  @@map("campaign_recipients")
+}
+
+model CampaignEvent {
+  id          String                @id @default(cuid())
+  recipientId String                @map("recipient_id")
+  eventType   CampaignEventType     @map("event_type")
+  metadata    String?
+  createdAt   DateTime              @default(now()) @map("created_at")
+  recipient   CampaignRecipient     @relation(fields: [recipientId], references: [id], onDelete: Cascade)
+
+  @@index([recipientId])
+  @@index([eventType])
+  @@index([createdAt])
+  @@map("campaign_events")
+}
+
+model MarketingAutomation {
+  id           String                @id @default(cuid())
+  type         MarketingAutomationType
+  name         String
+  isActive     Boolean               @default(true) @map("is_active")
+  channel      NotificationType      @default(EMAIL)
+  templateId   String?               @map("template_id")
+  subject      String?
+  content      String
+  specialOffer String?               @map("special_offer")
+  inactiveDays Int                   @default(30) @map("inactive_days")
+  classId      String?               @map("class_id")
+  lastRunAt    DateTime?             @map("last_run_at")
+  createdAt    DateTime              @default(now()) @map("created_at")
+  updatedAt    DateTime              @updatedAt @map("updated_at")
+  template     NotificationTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  class        Class?                @relation(fields: [classId], references: [id], onDelete: SetNull)
+
+  @@unique([type, name])
+  @@index([type])
+  @@index([isActive])
+  @@index([classId])
+  @@index([templateId])
+  @@map("marketing_automations")
+}
+
 enum UserRole {
   ADMIN
   TRAINER
@@ -821,6 +925,46 @@ enum NotificationCategory {
   ANNOUNCEMENT
   WORKOUT_PROGRESS
   ATTENDANCE
+}
+
+enum MarketingCampaignStatus {
+  DRAFT
+  SCHEDULED
+  SENDING
+  SENT
+  PARTIAL
+  FAILED
+  CANCELLED
+}
+
+enum CampaignAudienceType {
+  ALL_MEMBERS
+  INACTIVE_MEMBERS
+  BIRTHDAY_MEMBERS
+  CLASS_ATTENDEES
+  CUSTOM
+}
+
+enum CampaignRecipientStatus {
+  PENDING
+  SENT
+  FAILED
+  OPENED
+  CLICKED
+}
+
+enum CampaignEventType {
+  DELIVERED
+  OPENED
+  CLICKED
+  FAILED
+}
+
+enum MarketingAutomationType {
+  BIRTHDAY_WISHES
+  REENGAGEMENT
+  CLASS_PROMOTION
+  NEWSLETTER
 }
 
 enum DiscountType {
