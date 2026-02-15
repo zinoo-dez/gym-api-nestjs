@@ -20,4 +20,3 @@ export class SendRecoveryFollowUpDto {
   @IsBoolean()
   markAsRetryRequested?: boolean;
 }
-

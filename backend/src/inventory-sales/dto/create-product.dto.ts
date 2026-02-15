@@ -1,6 +1,13 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ProductCategory } from '@prisma/client';
-import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import {
+  IsBoolean,
+  IsEnum,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Min,
+} from 'class-validator';
 
 export class CreateProductDto {
   @ApiProperty({ example: 'Whey Protein Isolate' })
@@ -11,7 +18,10 @@ export class CreateProductDto {
   @IsString()
   sku!: string;
 
-  @ApiPropertyOptional({ enum: ProductCategory, default: ProductCategory.OTHER })
+  @ApiPropertyOptional({
+    enum: ProductCategory,
+    default: ProductCategory.OTHER,
+  })
   @IsOptional()
   @IsEnum(ProductCategory)
   category?: ProductCategory;

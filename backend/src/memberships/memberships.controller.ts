@@ -330,7 +330,8 @@ export class MembershipsController {
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Unfreeze a membership',
-    description: 'Unfreeze a member subscription. Requires ADMIN or MEMBER role.',
+    description:
+      'Unfreeze a member subscription. Requires ADMIN or MEMBER role.',
   })
   async unfreezeMembership(@Param('id') id: string, @CurrentUser() user: any) {
     return this.membershipsService.unfreezeMembership(id, user);

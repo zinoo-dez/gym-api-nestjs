@@ -3,7 +3,12 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma, PaymentStatus, SubscriptionStatus, UserRole } from '@prisma/client';
+import {
+  Prisma,
+  PaymentStatus,
+  SubscriptionStatus,
+  UserRole,
+} from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { PaginatedResponseDto } from '../common/dto/paginated-response.dto';
 import { CreatePaymentDto } from './dto/create-payment.dto';
@@ -105,7 +110,9 @@ export class PaymentsService {
           member: {
             user: {
               OR: [
-                { firstName: { contains: filters.search, mode: 'insensitive' } },
+                {
+                  firstName: { contains: filters.search, mode: 'insensitive' },
+                },
                 { lastName: { contains: filters.search, mode: 'insensitive' } },
                 { email: { contains: filters.search, mode: 'insensitive' } },
               ],
@@ -220,7 +227,9 @@ export class PaymentsService {
 
   async getRecoveryQueue(days = 7): Promise<RecoveryQueueResponseDto> {
     const now = new Date();
-    const horizon = new Date(now.getTime() + Math.max(1, days) * 24 * 60 * 60 * 1000);
+    const horizon = new Date(
+      now.getTime() + Math.max(1, days) * 24 * 60 * 60 * 1000,
+    );
 
     const [expiringSubscriptions, pendingPayments, rejectedPayments] =
       await Promise.all([
@@ -231,7 +240,11 @@ export class PaymentsService {
           },
           include: {
             member: {
-              include: { user: { select: { firstName: true, lastName: true, email: true } } },
+              include: {
+                user: {
+                  select: { firstName: true, lastName: true, email: true },
+                },
+              },
             },
             membershipPlan: { select: { name: true } },
           },
@@ -242,7 +255,11 @@ export class PaymentsService {
           where: { status: PaymentStatus.PENDING },
           include: {
             member: {
-              include: { user: { select: { firstName: true, lastName: true, email: true } } },
+              include: {
+                user: {
+                  select: { firstName: true, lastName: true, email: true },
+                },
+              },
             },
           },
           orderBy: { createdAt: 'asc' },
@@ -257,7 +274,11 @@ export class PaymentsService {
           },
           include: {
             member: {
-              include: { user: { select: { firstName: true, lastName: true, email: true } } },
+              include: {
+                user: {
+                  select: { firstName: true, lastName: true, email: true },
+                },
+              },
             },
           },
           orderBy: { createdAt: 'desc' },
@@ -269,13 +290,16 @@ export class PaymentsService {
       expiringSoon: expiringSubscriptions.map((sub) => ({
         subscriptionId: sub.id,
         memberId: sub.memberId,
-        memberName: `${sub.member.user.firstName} ${sub.member.user.lastName}`.trim(),
+        memberName:
+          `${sub.member.user.firstName} ${sub.member.user.lastName}`.trim(),
         memberEmail: sub.member.user.email,
         planName: sub.membershipPlan?.name ?? 'Plan',
         endDate: sub.endDate,
         daysToExpiry: Math.max(
           0,
-          Math.ceil((sub.endDate.getTime() - now.getTime()) / (24 * 60 * 60 * 1000)),
+          Math.ceil(
+            (sub.endDate.getTime() - now.getTime()) / (24 * 60 * 60 * 1000),
+          ),
         ),
       })),
       pendingPayments: pendingPayments.map((payment) =>
@@ -322,7 +346,10 @@ export class PaymentsService {
     });
 
     let nextStatus = payment.status;
-    if (dto.markAsRetryRequested === true && payment.status === PaymentStatus.REJECTED) {
+    if (
+      dto.markAsRetryRequested === true &&
+      payment.status === PaymentStatus.REJECTED
+    ) {
       nextStatus = PaymentStatus.PENDING;
     }
 
@@ -410,7 +437,8 @@ export class PaymentsService {
     return {
       paymentId: payment.id,
       memberId: payment.memberId,
-      memberName: `${payment.member.user.firstName} ${payment.member.user.lastName}`.trim(),
+      memberName:
+        `${payment.member.user.firstName} ${payment.member.user.lastName}`.trim(),
       memberEmail: payment.member.user.email,
       status: payment.status,
       amount: payment.amount,

@@ -196,7 +196,10 @@ export class TrainersService {
         select: { id: true },
       });
 
-      if (existingEmailUser && existingEmailUser.id !== existingTrainer.userId) {
+      if (
+        existingEmailUser &&
+        existingEmailUser.id !== existingTrainer.userId
+      ) {
         throw new ConflictException('User with this email already exists');
       }
     }

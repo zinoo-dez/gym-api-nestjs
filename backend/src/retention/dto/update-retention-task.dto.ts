@@ -1,6 +1,14 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { RetentionTaskStatus } from '@prisma/client';
-import { IsDateString, IsEnum, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
+import {
+  IsDateString,
+  IsEnum,
+  IsInt,
+  IsOptional,
+  IsString,
+  Max,
+  Min,
+} from 'class-validator';
 
 export class UpdateRetentionTaskDto {
   @ApiPropertyOptional({ enum: RetentionTaskStatus })
@@ -30,4 +38,3 @@ export class UpdateRetentionTaskDto {
   @IsDateString()
   dueDate?: string;
 }
-

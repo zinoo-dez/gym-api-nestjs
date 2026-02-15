@@ -26,7 +26,10 @@ export class CreateMarketingAutomationDto {
   @IsBoolean()
   isActive?: boolean;
 
-  @ApiPropertyOptional({ enum: NotificationType, default: NotificationType.EMAIL })
+  @ApiPropertyOptional({
+    enum: NotificationType,
+    default: NotificationType.EMAIL,
+  })
   @IsOptional()
   @IsEnum(NotificationType)
   channel?: NotificationType;
@@ -42,7 +45,9 @@ export class CreateMarketingAutomationDto {
   @MaxLength(255)
   subject?: string;
 
-  @ApiProperty({ example: 'Hi {{firstName}}, we miss you. Enjoy {{specialOffer}}.' })
+  @ApiProperty({
+    example: 'Hi {{firstName}}, we miss you. Enjoy {{specialOffer}}.',
+  })
   @IsString()
   content!: string;
 

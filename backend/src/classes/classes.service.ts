@@ -165,13 +165,15 @@ export class ClassesService {
       throw new BadRequestException('Only WEEKLY recurrence is supported');
     }
 
-    const byDays = rule.byDay.length > 0 ? rule.byDay : [this.getDayOfWeek(startTime)];
+    const byDays =
+      rule.byDay.length > 0 ? rule.byDay : [this.getDayOfWeek(startTime)];
     const byHour = rule.byHour ?? startTime.getHours();
     const byMinute = rule.byMinute ?? startTime.getMinutes();
 
     const occurrences: Array<{ start: Date; end: Date }> = [];
     const startDate = new Date(startTime);
-    const until = rule.until ?? new Date(startTime.getTime() + 84 * 24 * 60 * 60 * 1000);
+    const until =
+      rule.until ?? new Date(startTime.getTime() + 84 * 24 * 60 * 60 * 1000);
     const maxCount = occurrencesLimit ?? rule.count ?? 24;
 
     const dayMap: Record<string, number> = {
@@ -184,7 +186,9 @@ export class ClassesService {
       Saturday: 6,
     };
 
-    const byDayIndexes = byDays.map((day) => dayMap[day]).filter((d) => d !== undefined);
+    const byDayIndexes = byDays
+      .map((day) => dayMap[day])
+      .filter((d) => d !== undefined);
     const cursor = new Date(
       startDate.getFullYear(),
       startDate.getMonth(),
@@ -236,11 +240,13 @@ export class ClassesService {
     count?: number;
     until?: Date;
   } | null {
-    const parts = rule.split(';').reduce<Record<string, string>>((acc, part) => {
-      const [key, value] = part.split('=');
-      if (key && value) acc[key.trim().toUpperCase()] = value.trim();
-      return acc;
-    }, {});
+    const parts = rule
+      .split(';')
+      .reduce<Record<string, string>>((acc, part) => {
+        const [key, value] = part.split('=');
+        if (key && value) acc[key.trim().toUpperCase()] = value.trim();
+        return acc;
+      }, {});
 
     if (!parts.FREQ) return null;
 
@@ -560,7 +566,11 @@ export class ClassesService {
   ): Promise<ClassBookingResponseDto> {
     const member = await this.prisma.member.findUnique({
       where: { id: bookDto.memberId },
-      select: { id: true, userId: true, user: { select: { firstName: true, lastName: true } } },
+      select: {
+        id: true,
+        userId: true,
+        user: { select: { firstName: true, lastName: true } },
+      },
     });
 
     if (!member) {

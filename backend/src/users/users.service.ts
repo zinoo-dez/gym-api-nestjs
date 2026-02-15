@@ -212,9 +212,11 @@ export class UsersService {
     updateUserDto: UpdateUserDto,
     requestingUserRole: UserRole,
   ) {
-    if (requestingUserRole !== UserRole.ADMIN &&
-        requestingUserRole !== UserRole.MEMBER &&
-        requestingUserRole !== UserRole.TRAINER) {
+    if (
+      requestingUserRole !== UserRole.ADMIN &&
+      requestingUserRole !== UserRole.MEMBER &&
+      requestingUserRole !== UserRole.TRAINER
+    ) {
       throw new ForbiddenException('Not authorized to update user');
     }
 

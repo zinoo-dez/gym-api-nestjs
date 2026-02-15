@@ -40,7 +40,9 @@ export class InventorySalesController {
   @Roles(UserRole.ADMIN, UserRole.STAFF)
   @ApiOperation({ summary: 'Create inventory product' })
   @ApiResponse({ status: 201, type: ProductResponseDto })
-  async createProduct(@Body() dto: CreateProductDto): Promise<ProductResponseDto> {
+  async createProduct(
+    @Body() dto: CreateProductDto,
+  ): Promise<ProductResponseDto> {
     return this.inventorySalesService.createProduct(dto);
   }
 

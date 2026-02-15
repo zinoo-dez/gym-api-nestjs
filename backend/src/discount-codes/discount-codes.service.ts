@@ -16,9 +16,7 @@ import { PaginatedResponseDto } from '../common/dto';
 export class DiscountCodesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(
-    dto: CreateDiscountCodeDto,
-  ): Promise<DiscountCodeResponseDto> {
+  async create(dto: CreateDiscountCodeDto): Promise<DiscountCodeResponseDto> {
     const existing = await this.prisma.discountCode.findFirst({
       where: { code: { equals: dto.code, mode: 'insensitive' } },
       select: { id: true },
@@ -96,7 +94,9 @@ export class DiscountCodesService {
     id: string,
     dto: UpdateDiscountCodeDto,
   ): Promise<DiscountCodeResponseDto> {
-    const existing = await this.prisma.discountCode.findUnique({ where: { id } });
+    const existing = await this.prisma.discountCode.findUnique({
+      where: { id },
+    });
     if (!existing) {
       throw new NotFoundException('Discount code not found');
     }
@@ -147,7 +147,9 @@ export class DiscountCodesService {
   }
 
   async remove(id: string): Promise<void> {
-    const existing = await this.prisma.discountCode.findUnique({ where: { id } });
+    const existing = await this.prisma.discountCode.findUnique({
+      where: { id },
+    });
     if (!existing) {
       throw new NotFoundException('Discount code not found');
     }

@@ -7,15 +7,15 @@
         "frontend"
     ],
     "scripts": {
-        "dev:backend": "npm --prefix backend run dev",
-        "dev:frontend": "npm --prefix frontend run dev",
-        "dev": "npx concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
-        "build:backend": "npm --prefix backend run build",
-        "build:frontend": "npm --prefix frontend run build",
-        "build": "npm run build:backend && npm run build:frontend",
-        "lint": "npm --prefix backend run lint && npm --prefix frontend run lint",
-        "prisma:migrate": "npm --prefix backend run prisma:migrate",
-        "prisma:generate": "npm --prefix backend run prisma:generate"
+        "dev:backend": "pnpm --filter backend run dev",
+        "dev:frontend": "pnpm --filter frontend run dev",
+        "dev": "npx concurrently \"pnpm run dev:backend\" \"pnpm run dev:frontend\"",
+        "build:backend": "pnpm --filter backend run build",
+        "build:frontend": "pnpm --filter frontend run build",
+        "build": "pnpm run build:backend && pnpm run build:frontend",
+        "lint": "pnpm --filter backend run lint && pnpm --filter frontend run lint",
+        "prisma:migrate": "pnpm --filter backend run prisma:migrate",
+        "prisma:generate": "pnpm --filter backend run prisma:generate"
     },
     "devDependencies": {
         "concurrently": "^8.2.2",

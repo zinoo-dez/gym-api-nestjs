@@ -297,7 +297,7 @@ export class WorkoutPlansService {
   // }
 
   private toResponseDto(workoutPlan: any): WorkoutPlanResponseDto {
-    let exercises = [];
+    let exercises;
     if (typeof workoutPlan.exercises === 'string') {
       try {
         exercises = JSON.parse(workoutPlan.exercises);
@@ -314,7 +314,7 @@ export class WorkoutPlansService {
       description: workoutPlan.description,
       memberId: workoutPlan.memberId,
       trainerId: workoutPlan.trainerId,
-      goal: workoutPlan.goal as any, // Cast to match DTO enum
+      goal: workoutPlan.goal, // Cast to match DTO enum
       isActive: workoutPlan.isActive,
       createdAt: workoutPlan.createdAt,
       updatedAt: workoutPlan.updatedAt,

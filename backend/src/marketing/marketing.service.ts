@@ -87,12 +87,22 @@ export class MarketingService {
   }
 
   async createCampaign(dto: CreateCampaignDto, createdByUserId?: string) {
-    if (dto.audienceType === CampaignAudienceType.CLASS_ATTENDEES && !dto.classId) {
-      throw new BadRequestException('classId is required for CLASS_ATTENDEES campaigns');
+    if (
+      dto.audienceType === CampaignAudienceType.CLASS_ATTENDEES &&
+      !dto.classId
+    ) {
+      throw new BadRequestException(
+        'classId is required for CLASS_ATTENDEES campaigns',
+      );
     }
 
-    if (dto.audienceType === CampaignAudienceType.CUSTOM && !dto.customUserIds?.length) {
-      throw new BadRequestException('customUserIds is required for CUSTOM campaigns');
+    if (
+      dto.audienceType === CampaignAudienceType.CUSTOM &&
+      !dto.customUserIds?.length
+    ) {
+      throw new BadRequestException(
+        'customUserIds is required for CUSTOM campaigns',
+      );
     }
 
     if (dto.templateId) {
@@ -101,7 +111,9 @@ export class MarketingService {
 
     const status = dto.status ?? MarketingCampaignStatus.DRAFT;
     if (status === MarketingCampaignStatus.SCHEDULED && !dto.scheduledAt) {
-      throw new BadRequestException('scheduledAt is required when status is SCHEDULED');
+      throw new BadRequestException(
+        'scheduledAt is required when status is SCHEDULED',
+      );
     }
 
     return this.prisma.marketingCampaign.create({
@@ -139,7 +151,9 @@ export class MarketingService {
         ? {
             OR: [
               { name: { contains: filters.search, mode: 'insensitive' } },
-              { description: { contains: filters.search, mode: 'insensitive' } },
+              {
+                description: { contains: filters.search, mode: 'insensitive' },
+              },
               { content: { contains: filters.search, mode: 'insensitive' } },
             ],
           }
@@ -192,34 +206,54 @@ export class MarketingService {
       await this.ensureTemplateExists(dto.templateId);
     }
 
-    if (dto.audienceType === CampaignAudienceType.CLASS_ATTENDEES && !dto.classId) {
-      throw new BadRequestException('classId is required for CLASS_ATTENDEES campaigns');
+    if (
+      dto.audienceType === CampaignAudienceType.CLASS_ATTENDEES &&
+      !dto.classId
+    ) {
+      throw new BadRequestException(
+        'classId is required for CLASS_ATTENDEES campaigns',
+      );
     }
 
-    if (dto.audienceType === CampaignAudienceType.CUSTOM && !dto.customUserIds?.length) {
-      throw new BadRequestException('customUserIds is required for CUSTOM campaigns');
+    if (
+      dto.audienceType === CampaignAudienceType.CUSTOM &&
+      !dto.customUserIds?.length
+    ) {
+      throw new BadRequestException(
+        'customUserIds is required for CUSTOM campaigns',
+      );
     }
 
     const newStatus = dto.status;
     if (newStatus === MarketingCampaignStatus.SCHEDULED && !dto.scheduledAt) {
-      throw new BadRequestException('scheduledAt is required when status is SCHEDULED');
+      throw new BadRequestException(
+        'scheduledAt is required when status is SCHEDULED',
+      );
     }
 
     return this.prisma.marketingCampaign.update({
       where: { id },
       data: {
         ...(dto.name !== undefined ? { name: dto.name } : {}),
-        ...(dto.description !== undefined ? { description: dto.description } : {}),
+        ...(dto.description !== undefined
+          ? { description: dto.description }
+          : {}),
         ...(dto.type !== undefined ? { type: dto.type } : {}),
         ...(dto.category !== undefined ? { category: dto.category } : {}),
         ...(dto.status !== undefined ? { status: dto.status } : {}),
-        ...(dto.audienceType !== undefined ? { audienceType: dto.audienceType } : {}),
-        ...(dto.customUserIds !== undefined ? { customUserIds: dto.customUserIds } : {}),
+        ...(dto.audienceType !== undefined
+          ? { audienceType: dto.audienceType }
+          : {}),
+        ...(dto.customUserIds !== undefined
+          ? { customUserIds: dto.customUserIds }
+          : {}),
         ...(dto.classId !== undefined ? { classId: dto.classId } : {}),
         ...(dto.templateId !== undefined ? { templateId: dto.templateId } : {}),
         ...(dto.subject !== undefined ? { subject: dto.subject } : {}),
         ...(dto.content !== undefined ? { content: dto.content } : {}),
-        ...(dto.specialOffer !== undefined ? { specialOffer: dto.specialOffer } : {}),
+        ...(dto.specialOffer !== undefined
+          ? { specialOffer: dto.specialOffer }
+          : {}),
         ...(dto.scheduledAt !== undefined
           ? { scheduledAt: dto.scheduledAt ? new Date(dto.scheduledAt) : null }
           : {}),
@@ -402,53 +436,63 @@ export class MarketingService {
     };
   }
 
-  async getCampaignAnalytics(id: string): Promise<MarketingAnalyticsResponseDto> {
+  async getCampaignAnalytics(
+    id: string,
+  ): Promise<MarketingAnalyticsResponseDto> {
     await this.ensureCampaignExists(id);
 
-    const [totalRecipients, deliveredCount, failedCount, openedCount, clickedCount] =
-      await Promise.all([
-        this.prisma.campaignRecipient.count({ where: { campaignId: id } }),
-        this.prisma.campaignRecipient.count({
-          where: {
-            campaignId: id,
-            status: {
-              in: [
-                CampaignRecipientStatus.SENT,
-                CampaignRecipientStatus.OPENED,
-                CampaignRecipientStatus.CLICKED,
-              ],
-            },
+    const [
+      totalRecipients,
+      deliveredCount,
+      failedCount,
+      openedCount,
+      clickedCount,
+    ] = await Promise.all([
+      this.prisma.campaignRecipient.count({ where: { campaignId: id } }),
+      this.prisma.campaignRecipient.count({
+        where: {
+          campaignId: id,
+          status: {
+            in: [
+              CampaignRecipientStatus.SENT,
+              CampaignRecipientStatus.OPENED,
+              CampaignRecipientStatus.CLICKED,
+            ],
           },
-        }),
-        this.prisma.campaignRecipient.count({
-          where: {
-            campaignId: id,
-            status: CampaignRecipientStatus.FAILED,
-          },
-        }),
-        this.prisma.campaignRecipient.count({
-          where: {
-            campaignId: id,
-            OR: [
-              { openedAt: { not: null } },
-              {
-                status: {
-                  in: [CampaignRecipientStatus.OPENED, CampaignRecipientStatus.CLICKED],
-                },
+        },
+      }),
+      this.prisma.campaignRecipient.count({
+        where: {
+          campaignId: id,
+          status: CampaignRecipientStatus.FAILED,
+        },
+      }),
+      this.prisma.campaignRecipient.count({
+        where: {
+          campaignId: id,
+          OR: [
+            { openedAt: { not: null } },
+            {
+              status: {
+                in: [
+                  CampaignRecipientStatus.OPENED,
+                  CampaignRecipientStatus.CLICKED,
+                ],
               },
-            ],
-          },
-        }),
-        this.prisma.campaignRecipient.count({
-          where: {
-            campaignId: id,
-            OR: [
-              { clickedAt: { not: null } },
-              { status: CampaignRecipientStatus.CLICKED },
-            ],
-          },
-        }),
-      ]);
+            },
+          ],
+        },
+      }),
+      this.prisma.campaignRecipient.count({
+        where: {
+          campaignId: id,
+          OR: [
+            { clickedAt: { not: null } },
+            { status: CampaignRecipientStatus.CLICKED },
+          ],
+        },
+      }),
+    ]);
 
     const openRate = deliveredCount
       ? Number(((openedCount / deliveredCount) * 100).toFixed(2))
@@ -582,8 +626,12 @@ export class MarketingService {
         ...(dto.templateId !== undefined ? { templateId: dto.templateId } : {}),
         ...(dto.subject !== undefined ? { subject: dto.subject } : {}),
         ...(dto.content !== undefined ? { content: dto.content } : {}),
-        ...(dto.specialOffer !== undefined ? { specialOffer: dto.specialOffer } : {}),
-        ...(dto.inactiveDays !== undefined ? { inactiveDays: dto.inactiveDays } : {}),
+        ...(dto.specialOffer !== undefined
+          ? { specialOffer: dto.specialOffer }
+          : {}),
+        ...(dto.inactiveDays !== undefined
+          ? { inactiveDays: dto.inactiveDays }
+          : {}),
         ...(dto.classId !== undefined ? { classId: dto.classId } : {}),
       },
     });
@@ -606,7 +654,11 @@ export class MarketingService {
 
     const summary = {
       processed: 0,
-      results: [] as Array<{ automationId: string; type: MarketingAutomationType; sent: number }>,
+      results: [] as Array<{
+        automationId: string;
+        type: MarketingAutomationType;
+        sent: number;
+      }>,
     };
 
     for (const automation of automations) {
@@ -671,7 +723,9 @@ export class MarketingService {
     if (automation.type === MarketingAutomationType.BIRTHDAY_WISHES) {
       recipients = await this.findBirthdayMembers();
     } else if (automation.type === MarketingAutomationType.REENGAGEMENT) {
-      recipients = await this.findInactiveMembers(automation.inactiveDays ?? 30);
+      recipients = await this.findInactiveMembers(
+        automation.inactiveDays ?? 30,
+      );
     } else if (
       automation.type === MarketingAutomationType.CLASS_PROMOTION &&
       automation.classId
@@ -741,7 +795,9 @@ export class MarketingService {
 
     if (campaign.audienceType === CampaignAudienceType.CLASS_ATTENDEES) {
       if (!campaign.classId) {
-        throw new BadRequestException('Campaign classId is required for CLASS_ATTENDEES audience');
+        throw new BadRequestException(
+          'Campaign classId is required for CLASS_ATTENDEES audience',
+        );
       }
       return this.findClassAttendees(campaign.classId);
     }
@@ -849,7 +905,9 @@ export class MarketingService {
       .map((item) => item.user);
   }
 
-  private async findClassAttendees(classId: string): Promise<CampaignRecipientUser[]> {
+  private async findClassAttendees(
+    classId: string,
+  ): Promise<CampaignRecipientUser[]> {
     const members = await this.prisma.member.findMany({
       where: {
         user: {
@@ -881,7 +939,9 @@ export class MarketingService {
     return members.map((item) => item.user);
   }
 
-  private async findUsersByIds(userIds: string[]): Promise<CampaignRecipientUser[]> {
+  private async findUsersByIds(
+    userIds: string[],
+  ): Promise<CampaignRecipientUser[]> {
     return this.prisma.user.findMany({
       where: {
         id: { in: userIds },

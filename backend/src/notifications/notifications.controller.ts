@@ -1,5 +1,19 @@
-import { Controller, Get, Patch, Param, Delete, UseGuards, Post, Body } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Post,
+  Body,
+} from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { NotificationsService } from './notifications.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -31,7 +45,9 @@ export class NotificationsController {
   @Roles(UserRole.ADMIN, UserRole.MEMBER, UserRole.TRAINER, UserRole.STAFF)
   @ApiOperation({ summary: 'Get current user notifications' })
   @ApiResponse({ status: 200, type: [NotificationResponseDto] })
-  async getMyNotifications(@CurrentUser() user: any): Promise<NotificationResponseDto[]> {
+  async getMyNotifications(
+    @CurrentUser() user: any,
+  ): Promise<NotificationResponseDto[]> {
     return this.notificationsService.getUserNotifications(user.userId);
   }
 
@@ -39,9 +55,10 @@ export class NotificationsController {
   @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Create admin/broadcast notification' })
   async createAdminNotification(@Body() dto: CreateNotificationDto) {
-    const roles = dto.targetRole === 'ALL' || !dto.targetRole
-      ? [UserRole.ADMIN, UserRole.MEMBER, UserRole.TRAINER, UserRole.STAFF]
-      : [dto.targetRole as UserRole];
+    const roles =
+      dto.targetRole === 'ALL' || !dto.targetRole
+        ? [UserRole.ADMIN, UserRole.MEMBER, UserRole.TRAINER, UserRole.STAFF]
+        : [dto.targetRole];
     const count = await this.notificationsService.createBroadcast({
       roles,
       title: dto.title,

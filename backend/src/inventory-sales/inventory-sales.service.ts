@@ -342,7 +342,9 @@ export class InventorySalesService {
       );
     }
 
-    const productById = new Map(products.map((product) => [product.id, product]));
+    const productById = new Map(
+      products.map((product) => [product.id, product]),
+    );
 
     const lineItems = dto.items.map((item) => {
       const product = productById.get(item.productId);
@@ -713,7 +715,9 @@ export class InventorySalesService {
       },
     });
 
-    const productMap = new Map(products.map((product) => [product.id, product]));
+    const productMap = new Map(
+      products.map((product) => [product.id, product]),
+    );
 
     const totalSalesCount = summary._count._all;
     const grossRevenue = summary._sum.subtotal ?? 0;
@@ -783,7 +787,10 @@ export class InventorySalesService {
       stockQuantity: product.stockQuantity,
       lowStockThreshold: product.lowStockThreshold,
       isLowStock: product.stockQuantity <= product.lowStockThreshold,
-      lowStockDeficit: Math.max(0, product.lowStockThreshold - product.stockQuantity),
+      lowStockDeficit: Math.max(
+        0,
+        product.lowStockThreshold - product.stockQuantity,
+      ),
       isActive: product.isActive,
       createdAt: product.createdAt,
       updatedAt: product.updatedAt,

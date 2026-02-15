@@ -96,7 +96,8 @@ export class CreateCampaignDto {
 
   @ApiPropertyOptional({
     example: '2026-02-20T09:00:00.000Z',
-    description: 'If provided with SCHEDULED status, campaign will be sent by job runner.',
+    description:
+      'If provided with SCHEDULED status, campaign will be sent by job runner.',
   })
   @IsOptional()
   @IsDateString()

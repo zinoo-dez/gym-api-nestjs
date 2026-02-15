@@ -97,5 +97,4 @@ export class UpdateMemberDto {
   @IsOptional()
   @IsString()
   emergencyContact?: string;
-
 }

@@ -37,7 +37,10 @@ export class CreateSaleDto {
   @IsString()
   memberId?: string;
 
-  @ApiPropertyOptional({ enum: PosPaymentMethod, default: PosPaymentMethod.CASH })
+  @ApiPropertyOptional({
+    enum: PosPaymentMethod,
+    default: PosPaymentMethod.CASH,
+  })
   @IsOptional()
   @IsEnum(PosPaymentMethod)
   paymentMethod?: PosPaymentMethod;

@@ -1080,7 +1080,11 @@ export class MembershipsService {
 
   private async sendRenewalReminders(): Promise<number> {
     const now = new Date();
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const todayStart = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+    );
     const daysBefore = [7, 3, 1];
     let sent = 0;
 
@@ -1101,7 +1105,12 @@ export class MembershipsService {
           member: {
             include: {
               user: {
-                select: { id: true, firstName: true, lastName: true, email: true },
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  email: true,
+                },
               },
             },
           },

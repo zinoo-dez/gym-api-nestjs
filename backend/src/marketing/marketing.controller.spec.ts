@@ -46,11 +46,16 @@ describe('MarketingController', () => {
     const result = await controller.createCampaign(dto, { id: 'admin-1' });
 
     expect(result).toEqual({ id: 'camp-1' });
-    expect(marketingServiceMock.createCampaign).toHaveBeenCalledWith(dto, 'admin-1');
+    expect(marketingServiceMock.createCampaign).toHaveBeenCalledWith(
+      dto,
+      'admin-1',
+    );
   });
 
   it('sends campaign', async () => {
-    marketingServiceMock.sendCampaign.mockResolvedValue({ campaignId: 'camp-1' });
+    marketingServiceMock.sendCampaign.mockResolvedValue({
+      campaignId: 'camp-1',
+    });
 
     const result = await controller.sendCampaign('camp-1');
 
@@ -68,13 +73,17 @@ describe('MarketingController', () => {
     const result = await controller.getCampaignAnalytics('camp-1');
 
     expect(result).toMatchObject({ campaignId: 'camp-1', openRate: 50 });
-    expect(marketingServiceMock.getCampaignAnalytics).toHaveBeenCalledWith('camp-1');
+    expect(marketingServiceMock.getCampaignAnalytics).toHaveBeenCalledWith(
+      'camp-1',
+    );
   });
 
   it('runs selected automation type', async () => {
     marketingServiceMock.runAutomations.mockResolvedValue({ processed: 1 });
 
-    const result = await controller.runAutomationByType('BIRTHDAY_WISHES' as any);
+    const result = await controller.runAutomationByType(
+      'BIRTHDAY_WISHES' as any,
+    );
 
     expect(result).toEqual({ processed: 1 });
     expect(marketingServiceMock.runAutomations).toHaveBeenCalledWith(

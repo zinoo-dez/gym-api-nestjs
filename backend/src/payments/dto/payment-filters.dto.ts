@@ -1,7 +1,11 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsOptional, IsString, IsNumber } from 'class-validator';
 import { Type } from 'class-transformer';
-import { PaymentMethodType, PaymentProvider, PaymentStatus } from '@prisma/client';
+import {
+  PaymentMethodType,
+  PaymentProvider,
+  PaymentStatus,
+} from '@prisma/client';
 
 export class PaymentFiltersDto {
   @ApiPropertyOptional()

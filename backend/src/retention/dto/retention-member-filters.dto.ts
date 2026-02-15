@@ -37,4 +37,3 @@ export class RetentionMemberFiltersDto {
   @Max(100)
   limit?: number = 20;
 }
-

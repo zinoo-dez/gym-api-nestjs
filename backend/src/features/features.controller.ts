@@ -84,9 +84,7 @@ export class FeaturesController {
   @ApiOperation({ summary: 'Restore system feature default name' })
   @ApiParam({ name: 'id', description: 'Feature ID' })
   @ApiResponse({ status: 200, type: FeatureResponseDto })
-  async restoreDefault(
-    @Param('id') id: string,
-  ): Promise<FeatureResponseDto> {
+  async restoreDefault(@Param('id') id: string): Promise<FeatureResponseDto> {
     return this.featuresService.restoreDefaultName(id);
   }
 

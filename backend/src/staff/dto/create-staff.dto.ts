@@ -1,4 +1,10 @@
-import { IsEmail, IsOptional, IsString, MinLength, IsEnum } from 'class-validator';
+import {
+  IsEmail,
+  IsOptional,
+  IsString,
+  MinLength,
+  IsEnum,
+} from 'class-validator';
 import { StaffRole } from '@prisma/client';
 
 export class CreateStaffDto {
@@ -21,7 +27,6 @@ export class CreateStaffDto {
 
   @IsOptional()
   @IsString()
-
   @IsOptional()
   @IsString()
   avatarUrl?: string;

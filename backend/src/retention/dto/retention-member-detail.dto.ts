@@ -55,4 +55,3 @@ export class RetentionMemberDetailDto {
   @ApiProperty({ type: [MemberSubscriptionSummaryDto] })
   recentSubscriptions!: MemberSubscriptionSummaryDto[];
 }
-

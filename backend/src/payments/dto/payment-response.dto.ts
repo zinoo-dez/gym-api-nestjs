@@ -1,4 +1,8 @@
-import { PaymentMethodType, PaymentProvider, PaymentStatus } from '@prisma/client';
+import {
+  PaymentMethodType,
+  PaymentProvider,
+  PaymentStatus,
+} from '@prisma/client';
 
 export class PaymentMemberDto {
   id!: string;

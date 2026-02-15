@@ -11,7 +11,12 @@ import {
   AttendanceReportDto,
   AttendanceFiltersDto,
 } from './dto';
-import { AttendanceType, Prisma, SubscriptionStatus, UserRole } from '@prisma/client';
+import {
+  AttendanceType,
+  Prisma,
+  SubscriptionStatus,
+  UserRole,
+} from '@prisma/client';
 import { PaginatedResponseDto } from '../common/dto';
 import { NotificationsService } from '../notifications/notifications.service';
 

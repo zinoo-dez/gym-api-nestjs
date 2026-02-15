@@ -46,4 +46,3 @@ export class BulkUpdateRetentionTasksDto {
   @IsDateString()
   dueDate?: string;
 }
-

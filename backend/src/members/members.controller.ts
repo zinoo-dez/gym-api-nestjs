@@ -211,7 +211,9 @@ export class MembersController {
     summary: 'Deactivate member',
     description: 'Set member status to inactive. Requires ADMIN role.',
   })
-  async deactivateMember(@Param('id') id: string): Promise<{ message: string }> {
+  async deactivateMember(
+    @Param('id') id: string,
+  ): Promise<{ message: string }> {
     await this.membersService.deactivate(id);
     return { message: 'Member deactivated successfully' };
   }

@@ -101,7 +101,9 @@ describe('MarketingService', () => {
       2,
       expect.objectContaining({
         where: { id: 'camp-1' },
-        data: expect.objectContaining({ status: MarketingCampaignStatus.FAILED }),
+        data: expect.objectContaining({
+          status: MarketingCampaignStatus.FAILED,
+        }),
       }),
     );
   });

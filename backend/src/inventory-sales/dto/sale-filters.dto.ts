@@ -1,7 +1,14 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { PosPaymentMethod, ProductSaleStatus } from '@prisma/client';
 import { Type } from 'class-transformer';
-import { IsDateString, IsEnum, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import {
+  IsDateString,
+  IsEnum,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Min,
+} from 'class-validator';
 
 export class SaleFiltersDto {
   @ApiPropertyOptional()
@@ -43,7 +50,9 @@ export class SaleFiltersDto {
   @IsString()
   memberId?: string;
 
-  @ApiPropertyOptional({ description: 'Search by sale number, member, product, or SKU' })
+  @ApiPropertyOptional({
+    description: 'Search by sale number, member, product, or SKU',
+  })
   @IsOptional()
   @IsString()
   search?: string;

@@ -85,7 +85,10 @@ describe('TrainerSessionsController (integration)', () => {
       });
 
     expect(response.status).toBe(201);
-    expect(response.body).toMatchObject({ id: 's-2', title: 'Strength Session' });
+    expect(response.body).toMatchObject({
+      id: 's-2',
+      title: 'Strength Session',
+    });
     expect(trainerSessionsServiceMock.createSession).toHaveBeenCalled();
   });
 

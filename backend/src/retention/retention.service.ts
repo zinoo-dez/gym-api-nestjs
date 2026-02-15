@@ -155,7 +155,11 @@ export class RetentionService {
             },
           },
         },
-        orderBy: [{ riskLevel: 'desc' }, { score: 'desc' }, { updatedAt: 'desc' }],
+        orderBy: [
+          { riskLevel: 'desc' },
+          { score: 'desc' },
+          { updatedAt: 'desc' },
+        ],
         skip,
         take: limit,
       }),
@@ -285,8 +289,9 @@ export class RetentionService {
         email: member.user.email,
         lastCheckInAt: member.attendance[0]?.checkInTime,
         subscriptionEndsAt: member.subscriptions[0]?.endDate,
-        unpaidPendingCount: member.payments.filter((p) => p.status === 'PENDING')
-          .length,
+        unpaidPendingCount: member.payments.filter(
+          (p) => p.status === 'PENDING',
+        ).length,
         hasRecentRejectedPayment: member.payments.some(
           (p) => p.status === 'REJECTED',
         ),
@@ -355,7 +360,9 @@ export class RetentionService {
           assignedTo: { select: { id: true, email: true } },
           member: {
             include: {
-              user: { select: { firstName: true, lastName: true, email: true } },
+              user: {
+                select: { firstName: true, lastName: true, email: true },
+              },
             },
           },
         },
@@ -401,10 +408,11 @@ export class RetentionService {
           `Assignee user with ID ${dto.assignedToId} not found`,
         );
       }
-      if (assignee.role !== UserRole.ADMIN && assignee.role !== UserRole.STAFF) {
-        throw new NotFoundException(
-          'Assignee must be an ADMIN or STAFF user',
-        );
+      if (
+        assignee.role !== UserRole.ADMIN &&
+        assignee.role !== UserRole.STAFF
+      ) {
+        throw new NotFoundException('Assignee must be an ADMIN or STAFF user');
       }
     }
 
@@ -479,9 +487,7 @@ export class RetentionService {
       dto.dueDate !== undefined;
 
     if (!hasUpdatableField) {
-      throw new BadRequestException(
-        'At least one field to update is required',
-      );
+      throw new BadRequestException('At least one field to update is required');
     }
 
     if (dto.assignedToId) {
@@ -494,7 +500,10 @@ export class RetentionService {
           `Assignee user with ID ${dto.assignedToId} not found`,
         );
       }
-      if (assignee.role !== UserRole.ADMIN && assignee.role !== UserRole.STAFF) {
+      if (
+        assignee.role !== UserRole.ADMIN &&
+        assignee.role !== UserRole.STAFF
+      ) {
         throw new NotFoundException('Assignee must be an ADMIN or STAFF user');
       }
     }
@@ -817,7 +826,8 @@ export class RetentionService {
   }): RetentionMemberResponseDto {
     return {
       memberId: row.memberId,
-      fullName: `${row.member.user.firstName} ${row.member.user.lastName}`.trim(),
+      fullName:
+        `${row.member.user.firstName} ${row.member.user.lastName}`.trim(),
       email: row.member.user.email,
       riskLevel: row.riskLevel,
       score: row.score,
@@ -854,7 +864,8 @@ export class RetentionService {
     return {
       id: row.id,
       memberId: row.memberId,
-      memberName: `${row.member.user.firstName} ${row.member.user.lastName}`.trim(),
+      memberName:
+        `${row.member.user.firstName} ${row.member.user.lastName}`.trim(),
       memberEmail: row.member.user.email,
       assignedToId: row.assignedToId ?? undefined,
       assignedToEmail: row.assignedTo?.email ?? undefined,

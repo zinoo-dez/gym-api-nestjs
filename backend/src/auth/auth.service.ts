@@ -7,7 +7,12 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
-import { LoginDto, RegisterDto, ChangePasswordDto, ForgotPasswordDto } from './dto';
+import {
+  LoginDto,
+  RegisterDto,
+  ChangePasswordDto,
+  ForgotPasswordDto,
+} from './dto';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { UserResponse } from './interfaces/user-response.interface';
 import { UserRole } from '@prisma/client';
@@ -201,7 +206,10 @@ export class AuthService {
       throw new NotFoundException('User not found');
     }
 
-    const isValid = await this.comparePasswords(dto.currentPassword, user.password);
+    const isValid = await this.comparePasswords(
+      dto.currentPassword,
+      user.password,
+    );
     if (!isValid) {
       throw new UnauthorizedException('Current password is incorrect');
     }

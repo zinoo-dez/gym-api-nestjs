@@ -22,6 +22,9 @@ export class MarketingAnalyticsResponseDto {
   @ApiProperty({ example: 40, description: 'Open rate in percentage.' })
   openRate!: number;
 
-  @ApiProperty({ example: 18.18, description: 'Click-through rate in percentage.' })
+  @ApiProperty({
+    example: 18.18,
+    description: 'Click-through rate in percentage.',
+  })
   clickRate!: number;
 }

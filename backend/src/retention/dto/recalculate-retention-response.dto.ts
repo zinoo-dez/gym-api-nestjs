@@ -13,4 +13,3 @@ export class RecalculateRetentionResponseDto {
   @ApiProperty()
   low!: number;
 }
-

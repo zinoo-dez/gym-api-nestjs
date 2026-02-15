@@ -96,7 +96,9 @@ export class NotificationsService {
     return notifications.map(this.toResponseDto);
   }
 
-  async getUserNotifications(userId: string): Promise<NotificationResponseDto[]> {
+  async getUserNotifications(
+    userId: string,
+  ): Promise<NotificationResponseDto[]> {
     const notifications = await this.prisma.notification.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },

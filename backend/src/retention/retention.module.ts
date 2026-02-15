@@ -11,4 +11,3 @@ import { RetentionService } from './retention.service';
   exports: [RetentionService],
 })
 export class RetentionModule {}
-

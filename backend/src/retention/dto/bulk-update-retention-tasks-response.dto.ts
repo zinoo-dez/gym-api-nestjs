@@ -4,4 +4,3 @@ export class BulkUpdateRetentionTasksResponseDto {
   @ApiProperty({ example: 3 })
   updatedCount!: number;
 }
-

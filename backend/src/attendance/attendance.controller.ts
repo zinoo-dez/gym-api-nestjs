@@ -70,7 +70,8 @@ export class AttendanceController {
   @Roles(UserRole.ADMIN, UserRole.STAFF)
   @ApiOperation({
     summary: 'Check out member',
-    description: 'Record a member check-out. Only ADMIN or STAFF can perform this action.',
+    description:
+      'Record a member check-out. Only ADMIN or STAFF can perform this action.',
   })
   @ApiParam({
     name: 'id',

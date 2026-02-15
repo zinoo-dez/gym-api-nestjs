@@ -10,4 +10,3 @@ import { TrainerSessionsService } from './trainer-sessions.service';
   providers: [TrainerSessionsService],
 })
 export class TrainerSessionsModule {}
-

@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
@@ -17,7 +26,9 @@ import { TrainerSessionsService } from './trainer-sessions.service';
 @Controller('trainer-sessions')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class TrainerSessionsController {
-  constructor(private readonly trainerSessionsService: TrainerSessionsService) {}
+  constructor(
+    private readonly trainerSessionsService: TrainerSessionsService,
+  ) {}
 
   @Post()
   @Roles(UserRole.ADMIN, UserRole.TRAINER, UserRole.STAFF)

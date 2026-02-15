@@ -143,9 +143,13 @@ describe('RetentionController (integration)', () => {
       .send({ status: 'DONE' });
     expect(patchResponse.status).toBe(200);
     expect(patchResponse.body.status).toBe('DONE');
-    expect(retentionServiceMock.updateTask).toHaveBeenCalledWith('t-1', {
-      status: 'DONE',
-    }, undefined);
+    expect(retentionServiceMock.updateTask).toHaveBeenCalledWith(
+      't-1',
+      {
+        status: 'DONE',
+      },
+      undefined,
+    );
   });
 
   it('PATCH /api/retention/tasks/bulk updates tasks', async () => {
@@ -162,9 +166,12 @@ describe('RetentionController (integration)', () => {
 
     expect(response.status).toBe(200);
     expect(response.body.updatedCount).toBe(2);
-    expect(retentionServiceMock.bulkUpdateTasks).toHaveBeenCalledWith({
-      taskIds: ['t-1', 't-2'],
-      status: 'DISMISSED',
-    }, undefined);
+    expect(retentionServiceMock.bulkUpdateTasks).toHaveBeenCalledWith(
+      {
+        taskIds: ['t-1', 't-2'],
+        status: 'DISMISSED',
+      },
+      undefined,
+    );
   });
 });

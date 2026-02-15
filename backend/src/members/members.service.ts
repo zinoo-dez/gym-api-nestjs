@@ -13,7 +13,12 @@ import {
   PaginatedResponseDto,
 } from './dto';
 import * as bcrypt from 'bcrypt';
-import { UserRole, UserStatus, Prisma, SubscriptionStatus } from '@prisma/client';
+import {
+  UserRole,
+  UserStatus,
+  Prisma,
+  SubscriptionStatus,
+} from '@prisma/client';
 import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()

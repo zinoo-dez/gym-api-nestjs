@@ -69,7 +69,10 @@ export class MarketingController {
   @Post('campaigns')
   @Roles(UserRole.ADMIN, UserRole.STAFF)
   @ApiOperation({ summary: 'Create campaign draft/scheduled campaign' })
-  async createCampaign(@Body() dto: CreateCampaignDto, @CurrentUser() user: any) {
+  async createCampaign(
+    @Body() dto: CreateCampaignDto,
+    @CurrentUser() user: any,
+  ) {
     return this.marketingService.createCampaign(dto, user?.id);
   }
 
@@ -93,7 +96,10 @@ export class MarketingController {
   @Patch('campaigns/:id')
   @Roles(UserRole.ADMIN, UserRole.STAFF)
   @ApiOperation({ summary: 'Update campaign' })
-  async updateCampaign(@Param('id') id: string, @Body() dto: UpdateCampaignDto) {
+  async updateCampaign(
+    @Param('id') id: string,
+    @Body() dto: UpdateCampaignDto,
+  ) {
     return this.marketingService.updateCampaign(id, dto);
   }
 
@@ -140,7 +146,8 @@ export class MarketingController {
   @Roles(UserRole.ADMIN)
   @ApiOperation({
     summary: 'Create marketing automation config',
-    description: 'Configure birthday wishes, re-engagement, class promotion, or newsletter automation.',
+    description:
+      'Configure birthday wishes, re-engagement, class promotion, or newsletter automation.',
   })
   async createAutomation(@Body() dto: CreateMarketingAutomationDto) {
     return this.marketingService.createAutomation(dto);
@@ -160,12 +167,11 @@ export class MarketingController {
   @Roles(UserRole.ADMIN)
   @ApiOperation({
     summary: 'Run active automations now',
-    description: 'Optionally provide automation type query to run one type only.',
+    description:
+      'Optionally provide automation type query to run one type only.',
   })
   @ApiQuery({ name: 'type', enum: MarketingAutomationType, required: false })
-  async runAutomations(
-    @Query('type') type?: MarketingAutomationType,
-  ) {
+  async runAutomations(@Query('type') type?: MarketingAutomationType) {
     return this.marketingService.runAutomations(type);
   }
 
@@ -173,9 +179,7 @@ export class MarketingController {
   @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Run one automation type now' })
   @ApiParam({ name: 'type', enum: MarketingAutomationType })
-  async runAutomationByType(
-    @Param('type') type: MarketingAutomationType,
-  ) {
+  async runAutomationByType(@Param('type') type: MarketingAutomationType) {
     return this.marketingService.runAutomations(type);
   }
 }

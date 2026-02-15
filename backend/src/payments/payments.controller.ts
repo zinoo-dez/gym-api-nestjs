@@ -69,7 +69,8 @@ export class PaymentsController {
   @Get('recovery-queue')
   @Roles(UserRole.ADMIN, UserRole.STAFF)
   @ApiOperation({
-    summary: 'Get recovery queue (expiring memberships + pending/failed payments)',
+    summary:
+      'Get recovery queue (expiring memberships + pending/failed payments)',
   })
   @ApiResponse({ status: 200, type: RecoveryQueueResponseDto })
   async getRecoveryQueue(

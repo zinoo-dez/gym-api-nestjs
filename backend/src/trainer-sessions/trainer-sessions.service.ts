@@ -165,7 +165,9 @@ export class TrainerSessionsService {
       currentUser.role === UserRole.TRAINER &&
       session.trainer.userId !== currentUser.userId
     ) {
-      throw new ForbiddenException('You can only record your own session progress');
+      throw new ForbiddenException(
+        'You can only record your own session progress',
+      );
     }
 
     const progress = await this.prisma.userProgress.create({

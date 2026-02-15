@@ -35,4 +35,3 @@ export class RetentionMemberResponseDto {
   @ApiProperty()
   lastEvaluatedAt!: Date;
 }
-

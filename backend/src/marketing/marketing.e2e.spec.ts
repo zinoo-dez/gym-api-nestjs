@@ -6,7 +6,8 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { MarketingController } from './marketing.controller';
 import { MarketingService } from './marketing.service';
 
-const describeHttp = process.env.ENABLE_HTTP_TESTS === 'true' ? describe : describe.skip;
+const describeHttp =
+  process.env.ENABLE_HTTP_TESTS === 'true' ? describe : describe.skip;
 
 describeHttp('MarketingController (http e2e)', () => {
   let app: INestApplication;
@@ -23,7 +24,9 @@ describeHttp('MarketingController (http e2e)', () => {
   beforeAll(async () => {
     const moduleRef: TestingModule = await Test.createTestingModule({
       controllers: [MarketingController],
-      providers: [{ provide: MarketingService, useValue: marketingServiceMock }],
+      providers: [
+        { provide: MarketingService, useValue: marketingServiceMock },
+      ],
     })
       .overrideGuard(JwtAuthGuard)
       .useValue({ canActivate: () => true })
@@ -47,7 +50,9 @@ describeHttp('MarketingController (http e2e)', () => {
   it('GET /api/marketing/templates', async () => {
     marketingServiceMock.listTemplates.mockResolvedValue([{ id: 'tpl-1' }]);
 
-    const response = await request(app.getHttpServer()).get('/api/marketing/templates');
+    const response = await request(app.getHttpServer()).get(
+      '/api/marketing/templates',
+    );
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual([{ id: 'tpl-1' }]);

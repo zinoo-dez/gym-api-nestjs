@@ -1,6 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { NotificationCategory, NotificationType } from '@prisma/client';
-import { IsBoolean, IsEnum, IsOptional, IsString, MaxLength } from 'class-validator';
+import {
+  IsBoolean,
+  IsEnum,
+  IsOptional,
+  IsString,
+  MaxLength,
+} from 'class-validator';
 
 export class CreateMarketingTemplateDto {
   @ApiProperty({ example: 'Birthday Greeting Template' })
@@ -26,7 +32,9 @@ export class CreateMarketingTemplateDto {
   @MaxLength(255)
   subject?: string;
 
-  @ApiProperty({ example: 'Hi {{firstName}}, happy birthday! Enjoy {{specialOffer}}.' })
+  @ApiProperty({
+    example: 'Hi {{firstName}}, happy birthday! Enjoy {{specialOffer}}.',
+  })
   @IsString()
   body!: string;
 
