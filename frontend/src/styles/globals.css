@@ -190,6 +190,26 @@
   .animate-feedback-pulse {
     animation: feedback-pulse 420ms ease-out;
   }
+
+  .m3-admin-page {
+    @apply space-y-6;
+  }
+
+  .m3-admin-page > :first-child {
+    @apply rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-[var(--surface-shadow-1)];
+  }
+
+  .m3-admin-page > :first-child h1 {
+    @apply text-2xl font-semibold text-gray-900;
+  }
+
+  .m3-admin-page > :first-child p {
+    @apply text-sm text-gray-500;
+  }
+
+  .m3-inline-surface {
+    @apply rounded-2xl border border-gray-200 bg-white p-4 shadow-[var(--surface-shadow-1)];
+  }
 }
 
 @keyframes feedback-shake {

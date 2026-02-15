@@ -217,7 +217,7 @@ const MembershipPlans = () => {
   }, [features, featureSelection]);
 
   return (
-    <div className="space-y-6 px-6">
+    <div className="m3-admin-page">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">Membership Plans</h1>
@@ -450,7 +450,7 @@ const MembershipPlans = () => {
                   {featureRows.map((feature) => (
                     <div
                       key={feature.id}
-                      className="flex flex-col gap-2 rounded-lg border border-border p-3"
+                      className="m3-inline-surface flex flex-col gap-2 p-3"
                     >
                       <div className="flex items-center gap-2 justify-between">
                         <div className="flex items-center gap-2">

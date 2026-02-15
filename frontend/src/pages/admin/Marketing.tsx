@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { M3KpiCard } from "@/components/ui/m3-kpi-card";
 import { marketingService, type MarketingCampaignStatus } from "@/services/marketing.service";
 import { BarChart3, Layers, Megaphone, RefreshCcw, Workflow } from "lucide-react";
 import { toast } from "sonner";
@@ -105,7 +106,7 @@ const Marketing = () => {
   ];
 
   return (
-    <div className="space-y-6 px-6">
+    <div className="m3-admin-page">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">Marketing Dashboard</h1>
@@ -121,19 +122,16 @@ const Marketing = () => {
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {cards.map((card) => (
-          <Card key={card.title}>
-            <CardContent className="p-6 space-y-3">
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-muted-foreground">{card.title}</p>
-                <card.icon className="h-4 w-4 text-muted-foreground" />
-              </div>
-              <p className="text-2xl font-bold">{card.value}</p>
-              <p className="text-xs text-muted-foreground">{card.subtitle}</p>
-              <Button size="sm" variant="outline" onClick={card.action}>
-                {card.actionLabel}
-              </Button>
-            </CardContent>
-          </Card>
+          <M3KpiCard
+            key={card.title}
+            title={card.title}
+            value={card.value}
+            subtitle={card.subtitle}
+            icon={card.icon}
+            tone="primary"
+            actionLabel={card.actionLabel}
+            onAction={card.action}
+          />
         ))}
       </div>
 
@@ -142,21 +140,14 @@ const Marketing = () => {
           <h2 className="text-lg font-semibold">Campaign Pipeline</h2>
         </CardHeader>
         <CardContent className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <PipelineStat label="Draft" value={statusCounts.DRAFT} />
-          <PipelineStat label="Scheduled" value={statusCounts.SCHEDULED} />
-          <PipelineStat label="Sent" value={statusCounts.SENT} />
-          <PipelineStat label="Failed" value={statusCounts.FAILED} />
+          <M3KpiCard title="Draft" value={statusCounts.DRAFT} tone="neutral" />
+          <M3KpiCard title="Scheduled" value={statusCounts.SCHEDULED} tone="warning" />
+          <M3KpiCard title="Sent" value={statusCounts.SENT} tone="success" />
+          <M3KpiCard title="Failed" value={statusCounts.FAILED} tone="danger" />
         </CardContent>
       </Card>
     </div>
   );
 };
-
-const PipelineStat = ({ label, value }: { label: string; value: number }) => (
-  <div className="rounded-lg border p-4">
-    <p className="text-xs text-muted-foreground">{label}</p>
-    <p className="text-xl font-semibold">{value}</p>
-  </div>
-);
 
 export default Marketing;

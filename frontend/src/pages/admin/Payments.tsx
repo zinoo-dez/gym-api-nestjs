@@ -7,6 +7,7 @@ import {
   type PaymentProvider,
 } from "@/services/payments.service";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { M3KpiCard } from "@/components/ui/m3-kpi-card";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -104,46 +105,31 @@ const Payments = () => {
   };
 
   return (
-    <div className="space-y-6 px-6">
+    <div className="m3-admin-page">
       <div>
         <h1 className="text-2xl font-bold">Payments</h1>
         <p className="text-muted-foreground">Manual payment review</p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <Card>
-          <CardContent className="p-6 flex items-center gap-4">
-            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-              <DollarSign className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Total Paid</p>
-              <p className="text-xl font-bold">{totals.totalPaid.toLocaleString()} MMK</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6 flex items-center gap-4">
-            <div className="h-10 w-10 rounded-lg bg-yellow-500/10 flex items-center justify-center">
-              <Clock className="h-5 w-5 text-yellow-500" />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Pending</p>
-              <p className="text-xl font-bold">{totals.totalPending.toLocaleString()} MMK</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6 flex items-center gap-4">
-            <div className="h-10 w-10 rounded-lg bg-destructive/10 flex items-center justify-center">
-              <AlertCircle className="h-5 w-5 text-destructive" />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Rejected</p>
-              <p className="text-xl font-bold">{totals.totalRejected}</p>
-            </div>
-          </CardContent>
-        </Card>
+        <M3KpiCard
+          title="Total Paid"
+          value={`${totals.totalPaid.toLocaleString()} MMK`}
+          icon={DollarSign}
+          tone="success"
+        />
+        <M3KpiCard
+          title="Pending"
+          value={`${totals.totalPending.toLocaleString()} MMK`}
+          icon={Clock}
+          tone="warning"
+        />
+        <M3KpiCard
+          title="Rejected"
+          value={totals.totalRejected}
+          icon={AlertCircle}
+          tone="danger"
+        />
       </div>
 
       <Card>

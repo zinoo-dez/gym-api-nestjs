@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { M3KpiCard } from "@/components/ui/m3-kpi-card";
 import {
   Select,
   SelectContent,
@@ -78,7 +79,7 @@ const MarketingAnalytics = () => {
   }, [loadAnalytics, selectedCampaignId, setSearchParams]);
 
   return (
-    <div className="space-y-6 px-6">
+    <div className="m3-admin-page">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">Campaign Analytics</h1>
@@ -138,20 +139,21 @@ const MarketingAnalytics = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              <Metric title="Recipients" value={analytics.totalRecipients} />
-              <Metric title="Delivered" value={analytics.deliveredCount} />
-              <Metric title="Failed" value={analytics.failedCount} />
-              <Metric title="Opened" value={analytics.openedCount} />
-              <Metric title="Clicked" value={analytics.clickedCount} />
-              <Metric title="Open Rate" value={`${analytics.openRate}%`} />
-              <Metric title="Click Rate" value={`${analytics.clickRate}%`} />
-              <Metric
+              <M3KpiCard title="Recipients" value={analytics.totalRecipients} tone="primary" />
+              <M3KpiCard title="Delivered" value={analytics.deliveredCount} tone="success" />
+              <M3KpiCard title="Failed" value={analytics.failedCount} tone="danger" />
+              <M3KpiCard title="Opened" value={analytics.openedCount} tone="neutral" />
+              <M3KpiCard title="Clicked" value={analytics.clickedCount} tone="neutral" />
+              <M3KpiCard title="Open Rate" value={`${analytics.openRate}%`} tone="primary" />
+              <M3KpiCard title="Click Rate" value={`${analytics.clickRate}%`} tone="primary" />
+              <M3KpiCard
                 title="Delivery Rate"
                 value={`${
                   analytics.totalRecipients > 0
                     ? Math.round((analytics.deliveredCount / analytics.totalRecipients) * 100)
                     : 0
                 }%`}
+                tone="success"
               />
             </CardContent>
           </Card>
@@ -160,12 +162,5 @@ const MarketingAnalytics = () => {
     </div>
   );
 };
-
-const Metric = ({ title, value }: { title: string; value: string | number }) => (
-  <div className="rounded-lg border p-4">
-    <p className="text-xs text-muted-foreground">{title}</p>
-    <p className="text-xl font-semibold">{value}</p>
-  </div>
-);
 
 export default MarketingAnalytics;

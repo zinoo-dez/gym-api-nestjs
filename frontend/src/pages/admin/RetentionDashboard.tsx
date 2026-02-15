@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AlertTriangle, Users, UserX, RefreshCcw } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { M3KpiCard } from "@/components/ui/m3-kpi-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -85,21 +86,25 @@ const RetentionDashboard = () => {
         title: "High Risk",
         value: overview?.highRisk ?? 0,
         icon: AlertTriangle,
+        tone: "danger" as const,
       },
       {
         title: "Medium Risk",
         value: overview?.mediumRisk ?? 0,
         icon: UserX,
+        tone: "warning" as const,
       },
       {
         title: "Open Tasks",
         value: overview?.openTasks ?? 0,
         icon: Users,
+        tone: "primary" as const,
       },
       {
         title: "Evaluated Members",
         value: overview?.evaluatedMembers ?? 0,
         icon: Users,
+        tone: "success" as const,
       },
     ],
     [overview],
@@ -112,7 +117,7 @@ const RetentionDashboard = () => {
   };
 
   return (
-    <div className="space-y-6 px-6">
+    <div className="m3-admin-page">
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">Retention Dashboard</h1>
@@ -126,17 +131,13 @@ const RetentionDashboard = () => {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((item) => (
-          <Card key={item.title}>
-            <CardContent className="p-6 flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">{item.title}</p>
-                <p className="text-2xl font-bold mt-1">{item.value}</p>
-              </div>
-              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <item.icon className="h-5 w-5 text-primary" />
-              </div>
-            </CardContent>
-          </Card>
+          <M3KpiCard
+            key={item.title}
+            title={item.title}
+            value={item.value}
+            icon={item.icon}
+            tone={item.tone}
+          />
         ))}
       </div>
 
@@ -220,4 +221,3 @@ const RetentionDashboard = () => {
 };
 
 export default RetentionDashboard;
-

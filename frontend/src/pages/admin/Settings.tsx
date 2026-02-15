@@ -175,7 +175,7 @@ export default function Settings() {
   };
 
   return (
-    <div className="space-y-6 px-6">
+    <div className="m3-admin-page">
       <div>
         <h1 className="text-2xl font-bold">Settings</h1>
         <p className="text-muted-foreground">
@@ -385,7 +385,7 @@ export default function Settings() {
           ) : (
             <div className="space-y-2">
               {closures.map((c) => (
-                <div key={c.id} className="flex items-center justify-between border border-border rounded-lg p-3">
+                <div key={c.id} className="m3-inline-surface flex items-center justify-between p-3">
                   <div>
                     <p className="text-sm font-medium">{new Date(c.date).toLocaleString()}</p>
                     <p className="text-xs text-muted-foreground">{c.reason || "—"}</p>

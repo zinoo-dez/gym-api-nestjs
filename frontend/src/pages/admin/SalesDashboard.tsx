@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { M3KpiCard } from "@/components/ui/m3-kpi-card";
 import {
   Table,
   TableBody,
@@ -47,7 +48,7 @@ const SalesDashboard = () => {
   }, [loadData]);
 
   return (
-    <div className="space-y-6 px-6">
+    <div className="m3-admin-page">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">Sales Dashboard</h1>
@@ -62,13 +63,14 @@ const SalesDashboard = () => {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Metric title="Total Sales" value={report?.totalSalesCount ?? 0} />
-        <Metric title="Net Revenue" value={`${(report?.netRevenue ?? 0).toLocaleString()} MMK`} />
-        <Metric
+        <M3KpiCard title="Total Sales" value={report?.totalSalesCount ?? 0} tone="primary" />
+        <M3KpiCard title="Net Revenue" value={`${(report?.netRevenue ?? 0).toLocaleString()} MMK`} tone="success" />
+        <M3KpiCard
           title="Average Order"
           value={`${(report?.averageOrderValue ?? 0).toLocaleString()} MMK`}
+          tone="neutral"
         />
-        <Metric title="Low Stock Alerts" value={report?.lowStockCount ?? 0} />
+        <M3KpiCard title="Low Stock Alerts" value={report?.lowStockCount ?? 0} tone="warning" />
       </div>
 
       <div className="grid gap-6 xl:grid-cols-2">
@@ -184,14 +186,5 @@ const SalesDashboard = () => {
     </div>
   );
 };
-
-const Metric = ({ title, value }: { title: string; value: string | number }) => (
-  <Card>
-    <CardContent className="p-6">
-      <p className="text-sm text-muted-foreground">{title}</p>
-      <p className="text-2xl font-bold mt-1">{value}</p>
-    </CardContent>
-  </Card>
-);
 
 export default SalesDashboard;

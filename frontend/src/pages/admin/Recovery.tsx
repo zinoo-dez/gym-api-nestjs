@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { M3KpiCard } from "@/components/ui/m3-kpi-card";
 import {
   Table,
   TableBody,
@@ -57,7 +58,7 @@ const Recovery = () => {
   };
 
   return (
-    <div className="space-y-6 px-6">
+    <div className="m3-admin-page">
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">Recovery Queue</h1>
@@ -81,24 +82,9 @@ const Recovery = () => {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <Card>
-          <CardContent className="p-6">
-            <p className="text-sm text-muted-foreground">Expiring Soon</p>
-            <p className="text-2xl font-bold mt-1">{queue?.totalExpiringSoon ?? 0}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <p className="text-sm text-muted-foreground">Pending Payments</p>
-            <p className="text-2xl font-bold mt-1">{queue?.totalPendingPayments ?? 0}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <p className="text-sm text-muted-foreground">Rejected Payments</p>
-            <p className="text-2xl font-bold mt-1">{queue?.totalRejectedPayments ?? 0}</p>
-          </CardContent>
-        </Card>
+        <M3KpiCard title="Expiring Soon" value={queue?.totalExpiringSoon ?? 0} tone="warning" />
+        <M3KpiCard title="Pending Payments" value={queue?.totalPendingPayments ?? 0} tone="primary" />
+        <M3KpiCard title="Rejected Payments" value={queue?.totalRejectedPayments ?? 0} tone="danger" />
       </div>
 
       <Card>
@@ -151,7 +137,7 @@ const Recovery = () => {
         <CardContent className="space-y-4">
           {[...(queue?.pendingPayments ?? []), ...(queue?.rejectedPayments ?? [])].map(
             (item) => (
-              <div key={item.paymentId} className="rounded-lg border p-4 space-y-3">
+              <div key={item.paymentId} className="m3-inline-surface space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium">{item.memberName}</p>
@@ -193,4 +179,3 @@ const Recovery = () => {
 };
 
 export default Recovery;
-
