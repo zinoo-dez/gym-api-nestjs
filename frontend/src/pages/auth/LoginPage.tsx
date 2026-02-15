@@ -33,11 +33,13 @@ export default function LoginPage() {
       toast.success("Welcome back!")
       
       // Redirect based on role
-      const role = response.user.role.toLowerCase()
-      if (role === 'admin' || role === 'superadmin') {
+      const normalizedRole = response.user.role.toUpperCase()
+      if (normalizedRole === "ADMIN" || normalizedRole === "SUPERADMIN") {
         navigate("/admin")
-      } else if (role === 'trainer') {
+      } else if (normalizedRole === "TRAINER") {
         navigate("/trainer")
+      } else if (normalizedRole === "STAFF") {
+        navigate("/staff")
       } else {
         navigate("/member")
       }

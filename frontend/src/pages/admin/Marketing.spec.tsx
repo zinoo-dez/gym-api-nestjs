@@ -1,5 +1,16 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import Marketing from "./Marketing";
+
+const navigateMock = vi.fn();
+
+vi.mock("react-router-dom", async () => {
+  const actual = await vi.importActual<typeof import("react-router-dom")>("react-router-dom");
+  return {
+    ...actual,
+    useNavigate: () => navigateMock,
+  };
+});
 
 vi.mock("sonner", () => ({
   toast: {
@@ -11,24 +22,14 @@ vi.mock("sonner", () => ({
 vi.mock("@/services/marketing.service", () => ({
   marketingService: {
     listTemplates: vi.fn(),
-    createTemplate: vi.fn(),
-    updateTemplate: vi.fn(),
     listCampaigns: vi.fn(),
-    getCampaign: vi.fn(),
-    createCampaign: vi.fn(),
-    updateCampaign: vi.fn(),
-    sendCampaign: vi.fn(),
-    getCampaignAnalytics: vi.fn(),
     listAutomations: vi.fn(),
-    createAutomation: vi.fn(),
-    updateAutomation: vi.fn(),
-    runAutomations: vi.fn(),
   },
 }));
 
 import { marketingService } from "@/services/marketing.service";
 
-describe("Marketing page", () => {
+describe("Marketing dashboard", () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
@@ -38,8 +39,7 @@ describe("Marketing page", () => {
         name: "Birthday Template",
         type: "EMAIL",
         category: "MARKETING",
-        subject: "Happy Birthday",
-        body: "Hi {{firstName}}",
+        body: "Hi",
         isActive: true,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -54,7 +54,7 @@ describe("Marketing page", () => {
           description: "Bring inactive members back",
           type: "EMAIL",
           category: "MARKETING",
-          status: "DRAFT",
+          status: "SCHEDULED",
           audienceType: "INACTIVE_MEMBERS",
           customUserIds: [],
           content: "We miss you",
@@ -64,7 +64,7 @@ describe("Marketing page", () => {
         },
       ],
       page: 1,
-      limit: 50,
+      limit: 100,
       total: 1,
       totalPages: 1,
     } as any);
@@ -82,20 +82,21 @@ describe("Marketing page", () => {
         updatedAt: new Date().toISOString(),
       },
     ] as any);
-
-    vi.mocked(marketingService.updateTemplate).mockResolvedValue({ id: "tpl-1" } as any);
-    vi.mocked(marketingService.updateCampaign).mockResolvedValue({ id: "camp-1" } as any);
-    vi.mocked(marketingService.updateAutomation).mockResolvedValue({ id: "auto-1" } as any);
   });
 
-  it("renders campaigns/templates/automations", async () => {
-    render(<Marketing />);
+  it("renders marketing dashboard summary", async () => {
+    render(
+      <MemoryRouter>
+        <Marketing />
+      </MemoryRouter>,
+    );
 
     await waitFor(() => {
-      expect(screen.getByText("Marketing")).toBeInTheDocument();
-      expect(screen.getByText("Comeback Campaign")).toBeInTheDocument();
-      expect(screen.getByText("Birthday Template")).toBeInTheDocument();
-      expect(screen.getByText("Birthday Automation")).toBeInTheDocument();
+      expect(screen.getByText("Marketing Dashboard")).toBeInTheDocument();
+      expect(screen.getByText("Campaigns")).toBeInTheDocument();
+      expect(screen.getByText("Templates")).toBeInTheDocument();
+      expect(screen.getByText("Automations")).toBeInTheDocument();
+      expect(screen.getByText("Analytics")).toBeInTheDocument();
     });
 
     expect(marketingService.listTemplates).toHaveBeenCalled();
@@ -103,53 +104,16 @@ describe("Marketing page", () => {
     expect(marketingService.listAutomations).toHaveBeenCalled();
   });
 
-  it("edits template, campaign, and automation", async () => {
-    render(<Marketing />);
+  it("navigates to campaigns page from quick action", async () => {
+    render(
+      <MemoryRouter>
+        <Marketing />
+      </MemoryRouter>,
+    );
 
-    await screen.findByText("Comeback Campaign");
+    await screen.findByText("Manage Campaigns");
+    fireEvent.click(screen.getByRole("button", { name: "Manage Campaigns" }));
 
-    const editButtons = screen.getAllByRole("button", { name: "Edit" });
-
-    fireEvent.click(editButtons[0]);
-    expect(await screen.findByText("Edit Campaign")).toBeInTheDocument();
-    fireEvent.change(screen.getByDisplayValue("Comeback Campaign"), {
-      target: { value: "Comeback Campaign Updated" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: "Update Campaign" }));
-
-    await waitFor(() => {
-      expect(marketingService.updateCampaign).toHaveBeenCalledWith(
-        "camp-1",
-        expect.objectContaining({ name: "Comeback Campaign Updated" }),
-      );
-    });
-
-    fireEvent.click(editButtons[1]);
-    expect(await screen.findByText("Edit Template")).toBeInTheDocument();
-    fireEvent.change(screen.getByDisplayValue("Birthday Template"), {
-      target: { value: "Birthday Template Updated" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: "Update Template" }));
-
-    await waitFor(() => {
-      expect(marketingService.updateTemplate).toHaveBeenCalledWith(
-        "tpl-1",
-        expect.objectContaining({ name: "Birthday Template Updated" }),
-      );
-    });
-
-    fireEvent.click(editButtons[2]);
-    expect(await screen.findByText("Edit Automation")).toBeInTheDocument();
-    fireEvent.change(screen.getByDisplayValue("Birthday Automation"), {
-      target: { value: "Birthday Automation Updated" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: "Update Automation" }));
-
-    await waitFor(() => {
-      expect(marketingService.updateAutomation).toHaveBeenCalledWith(
-        "auto-1",
-        expect.objectContaining({ name: "Birthday Automation Updated" }),
-      );
-    });
+    expect(navigateMock).toHaveBeenCalledWith("/admin/marketing/campaigns");
   });
 });

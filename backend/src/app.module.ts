@@ -36,6 +36,7 @@ import { UploadsModule } from './uploads/uploads.module';
 import { RetentionModule } from './retention/retention.module';
 import { TrainerSessionsModule } from './trainer-sessions/trainer-sessions.module';
 import { MarketingModule } from './marketing/marketing.module';
+import { InventorySalesModule } from './inventory-sales/inventory-sales.module';
 
 @Module({
   imports: [
@@ -76,6 +77,7 @@ import { MarketingModule } from './marketing/marketing.module';
     RetentionModule,
     TrainerSessionsModule,
     MarketingModule,
+    InventorySalesModule,
   ],
   controllers: [AppController],
   providers: [

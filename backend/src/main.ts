@@ -50,6 +50,30 @@ async function bootstrap() {
   const allowedOrigins = new Set(
     [...defaultOrigins, ...envOrigins].filter(Boolean),
   );
+  const isPrivateNetworkHost = (hostname: string): boolean => {
+    if (hostname.startsWith('10.')) return true;
+    if (hostname.startsWith('192.168.')) return true;
+    if (/^172\.(1[6-9]|2\d|3[0-1])\./.test(hostname)) return true;
+    return false;
+  };
+  const isLocalDevOrigin = (origin: string): boolean => {
+    try {
+      const parsed = new URL(origin);
+      const { hostname, protocol } = parsed;
+      if (protocol !== 'http:' && protocol !== 'https:') {
+        return false;
+      }
+
+      return (
+        hostname === 'localhost' ||
+        hostname === '127.0.0.1' ||
+        hostname === '::1' ||
+        isPrivateNetworkHost(hostname)
+      );
+    } catch {
+      return false;
+    }
+  };
 
   app.enableCors({
     origin: (
@@ -61,7 +85,7 @@ async function bootstrap() {
         return callback(null, true);
       }
 
-      if (allowedOrigins.has(origin)) {
+      if (allowedOrigins.has(origin) || isLocalDevOrigin(origin)) {
         callback(null, true);
       } else {
         callback(new Error('Not allowed by CORS'));

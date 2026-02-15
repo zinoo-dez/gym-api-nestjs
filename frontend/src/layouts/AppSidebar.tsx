@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, Users, Dumbbell, UserCog, CreditCard, Percent,
   DollarSign, Bell, Settings, ShieldAlert, ListChecks, RefreshCcw, Activity,
-  CalendarClock, Megaphone,
+  CalendarClock, Megaphone, ShoppingBag, ShoppingCart, PackageSearch, FileText, Workflow, BarChart3,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
@@ -23,8 +23,15 @@ const adminItems = [
   { title: "Discounts", url: "/admin/discounts", icon: Percent },
   { title: "Payments", url: "/admin/payments", icon: DollarSign },
   { title: "Recovery Queue", url: "/admin/recovery", icon: RefreshCcw },
+  { title: "Sales Dashboard", url: "/admin/inventory-sales", icon: ShoppingBag },
+  { title: "POS Interface", url: "/admin/pos-sales", icon: ShoppingCart },
+  { title: "Inventory Mgmt", url: "/admin/inventory-management", icon: PackageSearch },
   { title: "Notifications", url: "/admin/notifications", icon: Bell },
   { title: "Marketing", url: "/admin/marketing", icon: Megaphone },
+  { title: "Campaigns", url: "/admin/marketing/campaigns", icon: Megaphone },
+  { title: "Templates", url: "/admin/marketing/templates", icon: FileText },
+  { title: "Automations", url: "/admin/marketing/automations", icon: Workflow },
+  { title: "Analytics", url: "/admin/marketing/analytics", icon: BarChart3 },
   { title: "Settings", url: "/admin/settings", icon: Settings },
 ];
 
@@ -36,6 +43,13 @@ const memberItems = [
 const trainerItems = [
   { title: "Dashboard", url: "/trainer", icon: LayoutDashboard },
   { title: "Sessions", url: "/trainer/sessions", icon: CalendarClock },
+];
+
+const staffItems = [
+  { title: "Dashboard", url: "/staff", icon: LayoutDashboard },
+  { title: "Sales Dashboard", url: "/staff/inventory-sales", icon: ShoppingBag },
+  { title: "POS Interface", url: "/staff/pos-sales", icon: ShoppingCart },
+  { title: "Inventory Mgmt", url: "/staff/inventory-management", icon: PackageSearch },
 ];
 
 export function AppSidebar() {
@@ -51,7 +65,7 @@ export function AppSidebar() {
       case "TRAINER":
         return trainerItems;
       case "STAFF":
-        return [{ title: "Dashboard", url: "/staff", icon: LayoutDashboard }];
+        return staffItems;
       default:
         return adminItems;
     }

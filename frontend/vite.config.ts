@@ -20,5 +20,9 @@ export default defineConfig({
     port: 5173,
     host: true,
     open: true,
+    allowedHosts: [
+      "quick-star-9f0d37ad.tunnl.gg",
+      ".tunnl.gg", // Allow all tunnl.gg subdomains
+    ],
   },
 });

@@ -24,6 +24,16 @@ This monorepo contains two workspaces:
 - React Router + TanStack Query
 - Tailwind CSS based UI
 
+### Roadmap (Upcoming)
+
+#### 4. Inventory & Product Sales
+
+- Sell supplements, merchandise, and protein shakes
+- Point of Sale (POS) integration
+- Stock management
+- Low stock alerts
+- Sales reports
+
 ## Prerequisites
 
 - **Node.js** 18 or higher

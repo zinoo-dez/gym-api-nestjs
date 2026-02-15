@@ -31,11 +31,18 @@ import DiscountsPage from "../pages/admin/Discounts";
 import PaymentsPage from "../pages/admin/Payments";
 import NotificationsPage from "../pages/admin/Notifications";
 import MarketingPage from "../pages/admin/Marketing";
+import MarketingCampaignsPage from "../pages/admin/MarketingCampaigns";
+import MarketingTemplatesPage from "../pages/admin/MarketingTemplates";
+import MarketingAutomationsPage from "../pages/admin/MarketingAutomations";
+import MarketingAnalyticsPage from "../pages/admin/MarketingAnalytics";
 import SettingsPage from "../pages/admin/Settings";
 import StaffPage from "../pages/admin/StaffPage";
 import RetentionDashboardPage from "../pages/admin/RetentionDashboard";
 import RetentionTasksPage from "../pages/admin/RetentionTasks";
 import RecoveryPage from "../pages/admin/Recovery";
+import SalesDashboardPage from "../pages/admin/SalesDashboard";
+import PosSalesPage from "../pages/admin/PosSales";
+import InventoryManagementPage from "../pages/admin/InventoryManagement";
 
 // Member/Trainer/Staff Pages
 import MemberDashboardPage from "../pages/member/MemberDashboard";
@@ -120,6 +127,30 @@ const AppRoutes = () => {
           )}
         />
         <Route
+          path="/admin/inventory-sales"
+          element={withTransition(
+            <AdminRoute>
+              <AdminLayout><SalesDashboardPage /></AdminLayout>
+            </AdminRoute>,
+          )}
+        />
+        <Route
+          path="/admin/pos-sales"
+          element={withTransition(
+            <AdminRoute>
+              <AdminLayout><PosSalesPage /></AdminLayout>
+            </AdminRoute>,
+          )}
+        />
+        <Route
+          path="/admin/inventory-management"
+          element={withTransition(
+            <AdminRoute>
+              <AdminLayout><InventoryManagementPage /></AdminLayout>
+            </AdminRoute>,
+          )}
+        />
+        <Route
           path="/admin/notifications"
           element={withTransition(
             <AdminRoute>
@@ -132,6 +163,38 @@ const AppRoutes = () => {
           element={withTransition(
             <AdminRoute>
               <AdminLayout><MarketingPage /></AdminLayout>
+            </AdminRoute>,
+          )}
+        />
+        <Route
+          path="/admin/marketing/campaigns"
+          element={withTransition(
+            <AdminRoute>
+              <AdminLayout><MarketingCampaignsPage /></AdminLayout>
+            </AdminRoute>,
+          )}
+        />
+        <Route
+          path="/admin/marketing/templates"
+          element={withTransition(
+            <AdminRoute>
+              <AdminLayout><MarketingTemplatesPage /></AdminLayout>
+            </AdminRoute>,
+          )}
+        />
+        <Route
+          path="/admin/marketing/automations"
+          element={withTransition(
+            <AdminRoute>
+              <AdminLayout><MarketingAutomationsPage /></AdminLayout>
+            </AdminRoute>,
+          )}
+        />
+        <Route
+          path="/admin/marketing/analytics"
+          element={withTransition(
+            <AdminRoute>
+              <AdminLayout><MarketingAnalyticsPage /></AdminLayout>
             </AdminRoute>,
           )}
         />
@@ -218,6 +281,30 @@ const AppRoutes = () => {
           element={withTransition(
             <StaffRoute>
               <StaffLayout><StaffDashboardPage /></StaffLayout>
+            </StaffRoute>,
+          )}
+        />
+        <Route
+          path="/staff/inventory-sales"
+          element={withTransition(
+            <StaffRoute>
+              <StaffLayout><SalesDashboardPage /></StaffLayout>
+            </StaffRoute>,
+          )}
+        />
+        <Route
+          path="/staff/pos-sales"
+          element={withTransition(
+            <StaffRoute>
+              <StaffLayout><PosSalesPage /></StaffLayout>
+            </StaffRoute>,
+          )}
+        />
+        <Route
+          path="/staff/inventory-management"
+          element={withTransition(
+            <StaffRoute>
+              <StaffLayout><InventoryManagementPage /></StaffLayout>
             </StaffRoute>,
           )}
         />
