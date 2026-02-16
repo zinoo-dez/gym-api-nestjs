@@ -109,7 +109,7 @@ const MarketingTemplates = () => {
   return (
     <div className="space-y-4">
       {/* Header section */}
-      <section className="rounded-2xl border border-gray-200 bg-white p-4">
+      <section className="rounded-2xl border border-border bg-card p-4">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <h1 className="m3-title-md">Communication Blueprints</h1>
@@ -122,7 +122,7 @@ const MarketingTemplates = () => {
               variant="outline" 
               onClick={loadTemplates} 
               disabled={loading}
-              className="h-10 rounded-xl border-gray-200 font-bold font-mono text-xs hover:bg-gray-50"
+              className="h-10 rounded-xl border-border font-bold font-mono text-xs hover:bg-muted"
             >
               <RefreshCcw className={cn("h-4 w-4 mr-2", loading && "animate-spin")} />
               Sync Library
@@ -141,28 +141,28 @@ const MarketingTemplates = () => {
       {/* Library Grid */}
       <div className="grid gap-4">
         {loading ? (
-          <div className="py-20 text-center rounded-2xl border-2 border-dashed border-gray-100 bg-white/50">
+          <div className="py-20 text-center rounded-2xl border-2 border-dashed border-border bg-card/50">
             <RefreshCcw className="h-12 w-12 mb-3 mx-auto text-blue-100 animate-spin" />
-            <p className="font-medium text-gray-400">Inventorying content templates...</p>
+            <p className="font-medium text-muted-foreground">Inventorying content templates...</p>
           </div>
         ) : templates.length === 0 ? (
-          <div className="py-20 text-center rounded-2xl border-2 border-dashed border-gray-100 bg-white/50">
-            <Layout className="h-12 w-12 mb-3 mx-auto text-gray-100" />
-            <p className="font-medium text-gray-400">Library is currently empty. Start by designing a blueprint.</p>
+          <div className="py-20 text-center rounded-2xl border-2 border-dashed border-border bg-card/50">
+            <Layout className="h-12 w-12 mb-3 mx-auto text-muted-foreground/70" />
+            <p className="font-medium text-muted-foreground">Library is currently empty. Start by designing a blueprint.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {templates.map((template) => (
-              <Card key={template.id} className="group relative overflow-hidden border-gray-200 hover:border-blue-300 transition-all shadow-none rounded-2xl bg-white">
+              <Card key={template.id} className="group relative overflow-hidden border-border hover:border-blue-300 transition-all shadow-none rounded-2xl bg-card">
                 <CardContent className="p-0">
                   <div className="p-5 space-y-4">
                     <div className="flex items-start justify-between">
-                      <div className="p-2.5 rounded-xl bg-gray-50 group-hover:bg-blue-50 transition-colors">
-                        <FileText className="h-5 w-5 text-gray-400 group-hover:text-blue-600" />
+                      <div className="p-2.5 rounded-xl bg-muted group-hover:bg-blue-50 transition-colors">
+                        <FileText className="h-5 w-5 text-muted-foreground group-hover:text-blue-600" />
                       </div>
                       <Badge className={cn(
                         "rounded-lg font-bold text-[10px] uppercase tracking-tight px-2 py-0.5",
-                        template.isActive ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-100" : "bg-gray-100 text-gray-600 hover:bg-gray-100"
+                        template.isActive ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-100" : "bg-muted/80 text-foreground hover:bg-muted/80"
                       )}>
                         {template.isActive ? "PRODUCTION" : "DRAFT"}
                       </Badge>
@@ -171,21 +171,21 @@ const MarketingTemplates = () => {
                     <div className="space-y-1">
                       <h3 className="m3-title-sm !text-sm !font-bold line-clamp-1">{template.name}</h3>
                       <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="rounded-lg bg-gray-50 border-gray-100 text-gray-500 font-bold text-[9px] uppercase">
+                        <Badge variant="outline" className="rounded-lg bg-muted border-border text-muted-foreground font-bold text-[9px] uppercase">
                           {template.type}
                         </Badge>
-                        <span className="text-[10px] text-gray-400 font-medium">• Content Blueprint</span>
+                        <span className="text-[10px] text-muted-foreground font-medium">• Content Blueprint</span>
                       </div>
                     </div>
 
-                    <div className="h-[80px] rounded-xl bg-gray-50/50 p-3 border border-gray-100/50">
-                      <p className="text-xs text-gray-500 line-clamp-3 leading-relaxed">
+                    <div className="h-[80px] rounded-xl bg-muted/50 p-3 border border-border/50">
+                      <p className="text-xs text-muted-foreground line-clamp-3 leading-relaxed">
                         {template.body}
                       </p>
                     </div>
 
-                    <div className="pt-2 border-t border-gray-50 flex items-center justify-between">
-                      <div className="flex items-center gap-1.5 text-[10px] font-medium text-gray-400">
+                    <div className="pt-2 border-t border-border flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 text-[10px] font-medium text-muted-foreground">
                         <Clock className="h-3 w-3" />
                         <span>Updated recently</span>
                       </div>
@@ -193,7 +193,7 @@ const MarketingTemplates = () => {
                         size="sm" 
                         variant="ghost" 
                         onClick={() => openEditTemplate(template)}
-                        className="h-8 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 text-xs font-bold"
+                        className="h-8 rounded-lg text-muted-foreground hover:text-blue-600 hover:bg-blue-50 text-xs font-bold"
                       >
                         <Edit2 className="h-3.5 w-3.5 mr-1.5" />
                         Modify
@@ -224,7 +224,7 @@ const MarketingTemplates = () => {
               <div className="space-y-2">
                 <Label className="m3-label">Blueprint Identifier</Label>
                 <Input
-                  className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium placeholder:text-gray-300"
+                  className="h-12 rounded-xl border-border bg-muted/50 focus:ring-blue-600 font-medium placeholder:text-muted-foreground/70"
                   placeholder="e.g., Welcome Email - Casual Tone"
                   value={templateForm.name}
                   onChange={(event) =>
@@ -241,7 +241,7 @@ const MarketingTemplates = () => {
                     setTemplateForm((prev) => ({ ...prev, type: value as NotificationType }))
                   }
                 >
-                  <SelectTrigger className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium font-mono text-xs uppercase tracking-tight">
+                  <SelectTrigger className="h-12 rounded-xl border-border bg-muted/50 focus:ring-blue-600 font-medium font-mono text-xs uppercase tracking-tight">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl">
@@ -255,7 +255,7 @@ const MarketingTemplates = () => {
               <div className="space-y-2">
                 <Label className="m3-label">Subject / Headline</Label>
                 <Input
-                  className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium placeholder:text-gray-300"
+                  className="h-12 rounded-xl border-border bg-muted/50 focus:ring-blue-600 font-medium placeholder:text-muted-foreground/70"
                   placeholder="The first thing your members will see..."
                   value={templateForm.subject}
                   onChange={(event) =>
@@ -267,7 +267,7 @@ const MarketingTemplates = () => {
               <div className="space-y-2">
                 <Label className="m3-label">Message Body Content</Label>
                 <Textarea
-                  className="min-h-[160px] rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium leading-relaxed"
+                  className="min-h-[160px] rounded-xl border-border bg-muted/50 focus:ring-blue-600 font-medium leading-relaxed"
                   placeholder="Compose your outreach payload. Use {{name}} for dynamic insertion."
                   value={templateForm.body}
                   onChange={(event) =>
@@ -279,7 +279,7 @@ const MarketingTemplates = () => {
               <div className="pt-4 flex gap-3">
                 <Button 
                   variant="outline" 
-                  className="flex-1 h-12 rounded-xl border-gray-200 font-bold text-gray-500"
+                  className="flex-1 h-12 rounded-xl border-border font-bold text-muted-foreground"
                   onClick={() => setTemplateOpen(false)}
                 >
                   Discard

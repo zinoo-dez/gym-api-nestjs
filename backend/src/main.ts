@@ -98,8 +98,15 @@ async function bootstrap() {
     maxAge: 3600, // Cache preflight requests for 1 hour
   });
 
-  // Serve uploaded files
-  app.use('/uploads', express.static(join(process.cwd(), 'uploads')));
+  // Serve uploaded files (allow cross-origin image embedding for frontend apps)
+  app.use(
+    '/uploads',
+    express.static(join(process.cwd(), 'uploads'), {
+      setHeaders: (res) => {
+        res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+      },
+    }),
+  );
 
   // Note: GlobalExceptionFilter is now provided via APP_FILTER in AppModule
   // This ensures proper dependency injection of LoggerService

@@ -107,16 +107,16 @@ const Payments = () => {
 
     return (
         <div className="space-y-4">
-            <section className="rounded-2xl border border-gray-200 bg-white p-4">
+            <section className="rounded-2xl border border-border bg-card p-4">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                     <div>
-                        <p className="text-sm font-semibold text-gray-900">Financial Overview</p>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm font-semibold text-foreground">Financial Overview</p>
+                        <p className="text-sm text-muted-foreground">
                             Monitor and manage member transactions and payment verifications.
                         </p>
                     </div>
                     <div className="flex gap-2">
-                        <Button variant="outline" onClick={loadPayments} disabled={isLoading} className="h-10 rounded-xl border-gray-200">
+                        <Button variant="outline" onClick={loadPayments} disabled={isLoading} className="h-10 rounded-xl border-border">
                             <RotateCcw className={cn("h-4 w-4 mr-2", isLoading && "animate-spin")} />
                             Refresh
                         </Button>
@@ -125,53 +125,53 @@ const Payments = () => {
             </section>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                <div className="rounded-2xl border border-gray-200 bg-white p-5 flex items-center gap-4">
+                <div className="rounded-2xl border border-border bg-card p-5 flex items-center gap-4">
                     <div className="rounded-xl bg-emerald-50 p-3 text-emerald-600">
                         <DollarSign className="h-6 w-6" />
                     </div>
                     <div>
-                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Total Received</p>
-                        <p className="text-xl font-bold text-gray-900">{totals.totalPaid.toLocaleString()} <span className="text-xs text-gray-400 font-normal">MMK</span></p>
+                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Total Received</p>
+                        <p className="text-xl font-bold text-foreground">{totals.totalPaid.toLocaleString()} <span className="text-xs text-muted-foreground font-normal">MMK</span></p>
                     </div>
                 </div>
-                <div className="rounded-2xl border border-gray-200 bg-white p-5 flex items-center gap-4">
+                <div className="rounded-2xl border border-border bg-card p-5 flex items-center gap-4">
                     <div className="rounded-xl bg-amber-50 p-3 text-amber-600">
                         <Clock className="h-6 w-6" />
                     </div>
                     <div>
-                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Pending Approval</p>
-                        <p className="text-xl font-bold text-gray-900">{totals.totalPending.toLocaleString()} <span className="text-xs text-gray-400 font-normal">MMK</span></p>
+                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Pending Approval</p>
+                        <p className="text-xl font-bold text-foreground">{totals.totalPending.toLocaleString()} <span className="text-xs text-muted-foreground font-normal">MMK</span></p>
                     </div>
                 </div>
-                <div className="rounded-2xl border border-gray-200 bg-white p-5 flex items-center gap-4">
+                <div className="rounded-2xl border border-border bg-card p-5 flex items-center gap-4">
                     <div className="rounded-xl bg-red-50 p-3 text-red-600">
                         <AlertCircle className="h-6 w-6" />
                     </div>
                     <div>
-                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Rejected Payments</p>
-                        <p className="text-xl font-bold text-gray-900">{totals.totalRejected}</p>
+                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Rejected Payments</p>
+                        <p className="text-xl font-bold text-foreground">{totals.totalRejected}</p>
                     </div>
                 </div>
             </div>
 
-            <section className="rounded-2xl border border-gray-200 bg-white p-5">
+            <section className="rounded-2xl border border-border bg-card p-5">
                 <div className="flex flex-wrap items-center justify-between gap-4 mb-5">
                     <div className="flex flex-col gap-2">
-                        <p className="text-sm font-semibold text-gray-900">Transaction History</p>
-                        <p className="text-xs text-gray-500">Manual review and verification logs</p>
+                        <p className="text-sm font-semibold text-foreground">Transaction History</p>
+                        <p className="text-xs text-muted-foreground">Manual review and verification logs</p>
                     </div>
                     <div className="flex flex-wrap gap-2">
                         <div className="relative w-full lg:w-64">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                             <Input
                                 placeholder="Search by name or email..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                className="pl-9 h-10 rounded-xl border-gray-200"
+                                className="pl-9 h-10 rounded-xl border-border"
                             />
                         </div>
                         <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as any)}>
-                            <SelectTrigger className="w-40 h-10 rounded-xl border-gray-200">
+                            <SelectTrigger className="w-40 h-10 rounded-xl border-border">
                                 <SelectValue placeholder="Status" />
                             </SelectTrigger>
                             <SelectContent>
@@ -181,7 +181,7 @@ const Payments = () => {
                             </SelectContent>
                         </Select>
                         <Select value={methodTypeFilter} onValueChange={(value) => setMethodTypeFilter(value as any)}>
-                            <SelectTrigger className="w-40 h-10 rounded-xl border-gray-200">
+                            <SelectTrigger className="w-40 h-10 rounded-xl border-border">
                                 <SelectValue placeholder="Method" />
                             </SelectTrigger>
                             <SelectContent>
@@ -191,7 +191,7 @@ const Payments = () => {
                             </SelectContent>
                         </Select>
                         <Select value={providerFilter} onValueChange={(value) => setProviderFilter(value as any)}>
-                            <SelectTrigger className="w-48 h-10 rounded-xl border-gray-200">
+                            <SelectTrigger className="w-48 h-10 rounded-xl border-border">
                                 <SelectValue placeholder="Provider" />
                             </SelectTrigger>
                             <SelectContent>
@@ -205,7 +205,7 @@ const Payments = () => {
 
                 <div className="overflow-x-auto -mx-5">
                     <table className="min-w-full text-sm">
-                        <thead className="bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500">
+                        <thead className="bg-muted text-left text-xs uppercase tracking-wide text-muted-foreground">
                             <tr>
                                 <th className="px-5 py-3 font-medium">Member</th>
                                 <th className="px-5 py-3 font-medium">Amount</th>
@@ -220,32 +220,32 @@ const Payments = () => {
                         <tbody>
                             {list.length === 0 ? (
                                 <tr>
-                                    <td colSpan={8} className="px-5 py-10 text-center text-gray-500 font-medium">
+                                    <td colSpan={8} className="px-5 py-10 text-center text-muted-foreground font-medium">
                                         No transactions found in this period.
                                     </td>
                                 </tr>
                             ) : (
                                 list.map((p) => {
                                     const variant = statusVariant(p.status);
-                                    let statusClass = "bg-gray-100 text-gray-700";
+                                    let statusClass = "bg-muted/80 text-foreground";
                                     if (variant === "emerald") statusClass = "bg-emerald-100 text-emerald-700";
                                     if (variant === "amber") statusClass = "bg-amber-100 text-amber-700";
                                     if (variant === "red") statusClass = "bg-red-100 text-red-700";
 
                                     return (
-                                        <tr key={p.id} className="border-t border-gray-100 hover:bg-gray-50/50 transition-colors">
+                                        <tr key={p.id} className="border-t border-border hover:bg-muted/50 transition-colors">
                                             <td className="px-5 py-4">
                                                 <div className="flex flex-col">
-                                                    <span className="font-semibold text-gray-900">
+                                                    <span className="font-semibold text-foreground">
                                                         {p.member ? `${p.member.firstName} ${p.member.lastName}` : "System Payment"}
                                                     </span>
-                                                    <span className="text-[11px] text-gray-400">{p.member?.email}</span>
+                                                    <span className="text-[11px] text-muted-foreground">{p.member?.email}</span>
                                                 </div>
                                             </td>
                                             <td className="px-5 py-4">
                                                 <div className="flex flex-col">
-                                                    <span className="font-bold text-gray-900">{p.amount.toLocaleString()} <span className="text-[10px] text-gray-400 font-normal">{p.currency}</span></span>
-                                                    <span className="text-[10px] text-gray-400">{new Date(p.createdAt).toLocaleDateString()}</span>
+                                                    <span className="font-bold text-foreground">{p.amount.toLocaleString()} <span className="text-[10px] text-muted-foreground font-normal">{p.currency}</span></span>
+                                                    <span className="text-[10px] text-muted-foreground">{new Date(p.createdAt).toLocaleDateString()}</span>
                                                 </div>
                                             </td>
                                             <td className="px-5 py-4 hidden md:table-cell">
@@ -253,14 +253,14 @@ const Payments = () => {
                                                     {p.subscription?.membershipPlan?.name || "One-time Payment"}
                                                 </span>
                                             </td>
-                                            <td className="px-5 py-4 hidden lg:table-cell text-center text-gray-600">
+                                            <td className="px-5 py-4 hidden lg:table-cell text-center text-foreground">
                                                 <div className="flex flex-col items-center">
                                                     <span className="text-xs font-medium uppercase tracking-tighter">{p.provider.replace("_", " ")}</span>
-                                                    <span className="text-[10px] text-gray-400">{p.methodType}</span>
+                                                    <span className="text-[10px] text-muted-foreground">{p.methodType}</span>
                                                 </div>
                                             </td>
                                             <td className="px-5 py-4 hidden lg:table-cell">
-                                                <code className="bg-gray-50 px-1.5 py-0.5 rounded text-[11px] text-gray-600 border border-gray-100">{p.transactionNo}</code>
+                                                <code className="bg-muted px-1.5 py-0.5 rounded text-[11px] text-foreground border border-border">{p.transactionNo}</code>
                                             </td>
                                             <td className="px-5 py-4 hidden xl:table-cell text-center">
                                                 {p.screenshotUrl ? (
@@ -274,7 +274,7 @@ const Payments = () => {
                                                         );
                                                     })()
                                                 ) : (
-                                                    <span className="text-gray-300 text-[11px]">No Image</span>
+                                                    <span className="text-muted-foreground/70 text-[11px]">No Image</span>
                                                 )}
                                             </td>
                                             <td className="px-5 py-4 text-center text-[11px] uppercase tracking-wider font-bold">
@@ -293,7 +293,7 @@ const Payments = () => {
                                                         </Button>
                                                     </div>
                                                 ) : (
-                                                    <span className="text-[11px] text-gray-400 italic">Settled</span>
+                                                    <span className="text-[11px] text-muted-foreground italic">Settled</span>
                                                 )}
                                             </td>
                                         </tr>

@@ -11,7 +11,7 @@ export function ThemeToggle() {
       variant="ghost"
       size="icon"
       onClick={toggleTheme}
-      className="relative h-9 w-9 rounded-full bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+      className="relative h-9 w-9 rounded-full bg-transparent hover:bg-muted/80 dark:hover:bg-muted/80 transition-colors"
     >
       <AnimatePresence mode="wait" initial={false}>
         {theme === "dark" ? (

@@ -32,6 +32,10 @@ import {
 import { useAuthStore } from "@/store/auth.store";
 import { useGymSettingsStore } from "@/store/gym-settings.store";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { resolveMediaUrl } from "@/lib/media-url";
+import { NotificationPopup } from "@/components/gym/NotificationPopup";
+import { useNotifications } from "@/hooks/use-notifications";
 
 interface NavItem {
   id: string;
@@ -125,6 +129,13 @@ const isPathActive = (pathname: string, path: string) => {
 export const AdminLayout = ({ children }: { children: ReactNode }) => {
   const { isAuthenticated, user, clearAuth } = useAuthStore();
   const { settings, fetchSettings } = useGymSettingsStore();
+  const {
+    notifications,
+    markAsRead,
+    markAllAsRead,
+    clearNotification,
+    clearAll,
+  } = useNotifications();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -145,6 +156,7 @@ export const AdminLayout = ({ children }: { children: ReactNode }) => {
   if (!isAuthenticated) return <Navigate to="/auth/login" replace />;
 
   const initials = (user?.email?.slice(0, 2) || "GU").toUpperCase();
+  const userAvatarSrc = resolveMediaUrl(user?.avatarUrl);
 
   return (
     <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
@@ -164,13 +176,13 @@ export const AdminLayout = ({ children }: { children: ReactNode }) => {
       >
         <div className="mb-6 flex items-center justify-between">
           <div className="min-w-0">
-            <p className="truncate text-sm font-semibold text-gray-900">{settings?.name || "Gym Management"}</p>
-            <p className="text-xs text-gray-500">Material 3</p>
+            <p className="truncate text-sm font-semibold text-foreground">{settings?.name || "Gym Management"}</p>
+            <p className="text-xs text-muted-foreground">Material 3</p>
           </div>
           <button
             type="button"
             onClick={() => setMobileDrawerOpen(false)}
-            className="rounded-lg p-2 text-gray-600 hover:bg-gray-100"
+            className="rounded-lg p-2 text-foreground hover:bg-muted/80"
           >
             <X className="h-4 w-4" />
           </button>
@@ -190,7 +202,7 @@ export const AdminLayout = ({ children }: { children: ReactNode }) => {
                   "flex w-full items-center gap-3 rounded-full px-4 py-2.5 text-sm font-medium transition",
                   active
                     ? "bg-blue-100 text-blue-700"
-                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900",
+                    : "text-foreground hover:bg-muted/80 hover:text-foreground",
                 )}
               >
                 <Icon className="h-4 w-4" />
@@ -201,8 +213,8 @@ export const AdminLayout = ({ children }: { children: ReactNode }) => {
         </nav>
 
         <div className="mt-6 rounded-2xl border border-border bg-muted/50 p-3">
-          <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Today</p>
-          <p className="mt-1 text-sm font-medium text-gray-700">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Today</p>
+          <p className="mt-1 text-sm font-medium text-foreground">
             {new Intl.DateTimeFormat("en-US", {
               weekday: "long",
               month: "short",
@@ -222,14 +234,14 @@ export const AdminLayout = ({ children }: { children: ReactNode }) => {
           <div className="flex h-16 items-center justify-between border-b border-border px-4">
             {!collapsedRail && (
               <div className="min-w-0">
-                <p className="truncate text-sm font-semibold text-gray-900">{settings?.name || "Gym Management"}</p>
-                <p className="text-xs text-gray-500">Material 3</p>
+                <p className="truncate text-sm font-semibold text-foreground">{settings?.name || "Gym Management"}</p>
+                <p className="text-xs text-muted-foreground">Material 3</p>
               </div>
             )}
             <button
               type="button"
               onClick={() => setCollapsedRail((value) => !value)}
-              className="rounded-lg p-1.5 text-gray-500 transition hover:bg-gray-100 hover:text-gray-800"
+              className="rounded-lg p-1.5 text-muted-foreground transition hover:bg-muted/80 hover:text-foreground"
               aria-label={collapsedRail ? "Expand navigation rail" : "Collapse navigation rail"}
             >
               <Menu className="h-4 w-4" />
@@ -251,7 +263,7 @@ export const AdminLayout = ({ children }: { children: ReactNode }) => {
                     collapsedRail ? "justify-center px-0" : "gap-3 px-4",
                     active
                       ? "bg-blue-100 text-blue-700"
-                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900",
+                      : "text-foreground hover:bg-muted/80 hover:text-foreground",
                   )}
                   title={collapsedRail ? item.id : undefined}
                 >
@@ -265,8 +277,8 @@ export const AdminLayout = ({ children }: { children: ReactNode }) => {
           {!collapsedRail && (
             <div className="border-t border-border p-4">
               <div className="rounded-2xl border border-border bg-muted/50 p-3">
-                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Today</p>
-                <p className="mt-1 text-sm font-medium text-gray-700">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Today</p>
+                <p className="mt-1 text-sm font-medium text-foreground">
                   {new Intl.DateTimeFormat("en-US", {
                     weekday: "long",
                     month: "short",
@@ -284,7 +296,7 @@ export const AdminLayout = ({ children }: { children: ReactNode }) => {
               <button
                 type="button"
                 onClick={() => setMobileDrawerOpen(true)}
-                className="rounded-lg p-2 text-gray-600 hover:bg-gray-100 md:hidden"
+                className="rounded-lg p-2 text-foreground hover:bg-muted/80 md:hidden"
               >
                 <Menu className="h-5 w-5" />
               </button>
@@ -296,7 +308,7 @@ export const AdminLayout = ({ children }: { children: ReactNode }) => {
                     searchFocused ? "max-w-3xl" : "max-w-xl",
                   )}
                 >
-                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <input
                     type="text"
                     placeholder="Search members, classes, invoices..."
@@ -307,22 +319,27 @@ export const AdminLayout = ({ children }: { children: ReactNode }) => {
                 </label>
               </div>
 
-              <button
-                type="button"
-                className="rounded-full p-2 text-muted-foreground transition hover:bg-muted hover:text-foreground"
-                aria-label="Notifications"
-              >
-                <Bell className="h-5 w-5" />
-              </button>
+              <NotificationPopup
+                notifications={notifications}
+                onMarkAsRead={markAsRead}
+                onMarkAllAsRead={markAllAsRead}
+                onClear={clearNotification}
+                onClearAll={clearAll}
+              />
 
               <ThemeToggle />
 
               <button
                 type="button"
-                className="h-9 w-9 overflow-hidden rounded-full border border-gray-200 bg-gradient-to-br from-blue-500 to-cyan-400 text-sm font-semibold text-white"
+                className="h-9 w-9 overflow-hidden rounded-full border border-border bg-gradient-to-br from-blue-500 to-cyan-400 text-sm font-semibold text-white"
                 aria-label="Open profile"
               >
-                {initials}
+                <Avatar className="h-full w-full">
+                  <AvatarImage src={userAvatarSrc || undefined} alt={user?.email || "Profile"} className="object-cover" />
+                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-cyan-400 text-sm font-semibold text-white">
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
               </button>
 
               <button
@@ -353,7 +370,7 @@ export const AdminLayout = ({ children }: { children: ReactNode }) => {
                 onClick={() => navigate(item.path)}
                 className={cn(
                   "flex flex-col items-center gap-1 px-2 py-2 text-[11px] font-medium transition",
-                  active ? "text-blue-700" : "text-gray-500",
+                  active ? "text-blue-700" : "text-muted-foreground",
                 )}
               >
                 <Icon className={cn("h-4 w-4", active && "text-blue-700")} />

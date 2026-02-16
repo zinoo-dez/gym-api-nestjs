@@ -39,9 +39,11 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Plus, Search, Pencil, Trash2, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { uploadsService } from "@/services/uploads.service";
+import { resolveMediaUrl } from "@/lib/media-url";
 
 const Members = () => {
     const [members, setMembers] = useState<Member[]>([]);
@@ -279,11 +281,11 @@ const Members = () => {
 
     return (
         <div className="space-y-4">
-            <section className="rounded-2xl border border-gray-200 bg-white p-4">
+            <section className="rounded-2xl border border-border bg-card p-4">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                     <div>
-                        <p className="text-sm font-semibold text-gray-900">Members Management</p>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm font-semibold text-foreground">Members Management</p>
+                        <p className="text-sm text-muted-foreground">
                             {members.length} total members enrolled in your gym.
                         </p>
                     </div>
@@ -294,24 +296,24 @@ const Members = () => {
                 </div>
             </section>
 
-            <section className="rounded-2xl border border-gray-200 bg-white p-5">
+            <section className="rounded-2xl border border-border bg-card p-5">
                 <div className="flex flex-wrap items-center justify-between gap-4 mb-5">
                     <div className="flex flex-col gap-2">
-                        <p className="text-sm font-semibold text-gray-900">Member Directory</p>
-                        <p className="text-xs text-gray-500">Filter and search your member base</p>
+                        <p className="text-sm font-semibold text-foreground">Member Directory</p>
+                        <p className="text-xs text-muted-foreground">Filter and search your member base</p>
                     </div>
                     <div className="flex flex-wrap gap-2">
                         <div className="relative w-full lg:w-64">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                             <Input
                                 placeholder="Search members..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                className="pl-9 h-10 rounded-xl border-gray-200"
+                                className="pl-9 h-10 rounded-xl border-border"
                             />
                         </div>
                         <Select value={statusFilter} onValueChange={setStatusFilter}>
-                            <SelectTrigger className="w-40 h-10 rounded-xl border-gray-200">
+                            <SelectTrigger className="w-40 h-10 rounded-xl border-border">
                                 <SelectValue placeholder="Status" />
                             </SelectTrigger>
                             <SelectContent>
@@ -321,7 +323,7 @@ const Members = () => {
                             </SelectContent>
                         </Select>
                         <Select value={planFilter} onValueChange={setPlanFilter}>
-                            <SelectTrigger className="w-44 h-10 rounded-xl border-gray-200">
+                            <SelectTrigger className="w-44 h-10 rounded-xl border-border">
                                 <SelectValue placeholder="Plan" />
                             </SelectTrigger>
                             <SelectContent>
@@ -342,7 +344,7 @@ const Members = () => {
 
                 <div className="overflow-x-auto -mx-5">
                     <table className="min-w-full text-sm">
-                        <thead className="bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500">
+                        <thead className="bg-muted text-left text-xs uppercase tracking-wide text-muted-foreground">
                             <tr>
                                 <th className="px-5 py-3 font-medium">Name</th>
                                 <th className="px-5 py-3 font-medium hidden md:table-cell">Email</th>
@@ -357,13 +359,13 @@ const Members = () => {
                         <tbody>
                             {isLoading ? (
                                 <tr>
-                                    <td colSpan={8} className="px-5 py-10 text-center text-gray-500">
+                                    <td colSpan={8} className="px-5 py-10 text-center text-muted-foreground">
                                         Loading members...
                                     </td>
                                 </tr>
                             ) : filtered.length === 0 ? (
                                 <tr>
-                                    <td colSpan={8} className="px-5 py-10 text-center text-gray-500">
+                                    <td colSpan={8} className="px-5 py-10 text-center text-muted-foreground">
                                         No members found.
                                     </td>
                                 </tr>
@@ -373,32 +375,33 @@ const Members = () => {
                                     const statusClass = variant === "emerald" 
                                         ? "bg-emerald-100 text-emerald-700" 
                                         : "bg-amber-100 text-amber-700";
+                                    const avatarSrc = resolveMediaUrl(member.avatarUrl);
+                                    const initials = `${member.firstName?.[0] || ""}${member.lastName?.[0] || ""}`.toUpperCase();
 
                                     return (
-                                        <tr key={member.id} className="border-t border-gray-100 hover:bg-gray-50/50 transition-colors">
+                                        <tr key={member.id} className="border-t border-border hover:bg-muted/50 transition-colors">
                                             <td className="px-5 py-4">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-cyan-400 text-[10px] font-semibold text-white">
-                                                        {member.avatarUrl ? (
-                                                            <img src={member.avatarUrl} alt="" className="h-full w-full rounded-full object-cover" />
-                                                        ) : (
-                                                            `${member.firstName[0]}${member.lastName[0]}`.toUpperCase()
-                                                        )}
-                                                    </div>
+                                                    <Avatar className="h-9 w-9">
+                                                        <AvatarImage src={avatarSrc || undefined} alt={`${member.firstName} ${member.lastName}`} className="object-cover" />
+                                                        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-cyan-400 text-[10px] font-semibold text-white">
+                                                            {initials}
+                                                        </AvatarFallback>
+                                                    </Avatar>
                                                     <div>
                                                         <Link
                                                             to={`/member/${member.id}`}
-                                                            className="font-medium text-gray-900 hover:text-blue-600 hover:underline"
+                                                            className="font-medium text-foreground hover:text-blue-600 hover:underline"
                                                         >
                                                             {member.firstName} {member.lastName}
                                                         </Link>
-                                                        <p className="text-[11px] text-gray-500 md:hidden">{member.email}</p>
+                                                        <p className="text-[11px] text-muted-foreground md:hidden">{member.email}</p>
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="px-5 py-4 hidden md:table-cell text-gray-600">{member.email}</td>
-                                            <td className="px-5 py-4 hidden lg:table-cell text-gray-600">{member.phone || "—"}</td>
-                                            <td className="px-5 py-4 hidden lg:table-cell text-gray-600 capitalize">{member.gender?.toLowerCase() || "—"}</td>
+                                            <td className="px-5 py-4 hidden md:table-cell text-foreground">{member.email}</td>
+                                            <td className="px-5 py-4 hidden lg:table-cell text-foreground">{member.phone || "—"}</td>
+                                            <td className="px-5 py-4 hidden lg:table-cell text-foreground capitalize">{member.gender?.toLowerCase() || "—"}</td>
                                             <td className="px-5 py-4 hidden xl:table-cell text-center">
                                                 <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-medium text-blue-700">
                                                     {getPlanLabel(member)}
@@ -409,7 +412,7 @@ const Members = () => {
                                                     {member.isActive ? "Active" : "Inactive"}
                                                 </span>
                                             </td>
-                                            <td className="px-5 py-4 hidden lg:table-cell text-gray-600">
+                                            <td className="px-5 py-4 hidden lg:table-cell text-foreground">
                                                 {member.createdAt ? new Date(member.createdAt).toLocaleDateString() : "—"}
                                             </td>
                                             <td className="px-5 py-4 text-right">
@@ -419,7 +422,7 @@ const Members = () => {
                                                             variant="ghost"
                                                             size="icon"
                                                             onClick={() => handleDeactivate(member.id)}
-                                                            className="h-8 w-8 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg"
+                                                            className="h-8 w-8 text-muted-foreground hover:text-amber-600 hover:bg-amber-50 rounded-lg"
                                                             title="Deactivate"
                                                         >
                                                             <span className="text-[10px] font-bold">OFF</span>
@@ -429,30 +432,30 @@ const Members = () => {
                                                             variant="ghost"
                                                             size="icon"
                                                             onClick={() => handleActivate(member.id)}
-                                                            className="h-8 w-8 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg"
+                                                            className="h-8 w-8 text-muted-foreground hover:text-emerald-600 hover:bg-emerald-50 rounded-lg"
                                                             title="Activate"
                                                         >
                                                             <span className="text-[10px] font-bold">ON</span>
                                                         </Button>
                                                     )}
-                                                    <Button variant="ghost" size="icon" onClick={() => openEdit(member)} className="h-8 w-8 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg">
+                                                    <Button variant="ghost" size="icon" onClick={() => openEdit(member)} className="h-8 w-8 text-muted-foreground hover:text-blue-600 hover:bg-blue-50 rounded-lg">
                                                         <Pencil className="h-3.5 w-3.5" />
                                                     </Button>
                                                     <AlertDialog>
                                                         <AlertDialogTrigger asChild>
-                                                            <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg">
+                                                            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-red-600 hover:bg-red-50 rounded-lg">
                                                                 <Trash2 className="h-3.5 w-3.5" />
                                                             </Button>
                                                         </AlertDialogTrigger>
                                                         <AlertDialogContent className="rounded-2xl border-none shadow-2xl">
                                                             <AlertDialogHeader>
-                                                                <AlertDialogTitle className="text-gray-900">Delete Member</AlertDialogTitle>
-                                                                <AlertDialogDescription className="text-gray-500">
+                                                                <AlertDialogTitle className="text-foreground">Delete Member</AlertDialogTitle>
+                                                                <AlertDialogDescription className="text-muted-foreground">
                                                                     Are you sure you want to delete {member.firstName} {member.lastName}? This action cannot be undone.
                                                                 </AlertDialogDescription>
                                                             </AlertDialogHeader>
                                                             <AlertDialogFooter className="gap-2 sm:gap-0">
-                                                                <AlertDialogCancel className="rounded-xl border-gray-200">Cancel</AlertDialogCancel>
+                                                                <AlertDialogCancel className="rounded-xl border-border">Cancel</AlertDialogCancel>
                                                                 <AlertDialogAction onClick={() => handleDelete(member.id)} className="rounded-xl bg-red-600 hover:bg-red-700">
                                                                     Delete Member
                                                                 </AlertDialogAction>
@@ -473,66 +476,66 @@ const Members = () => {
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <DialogContent className="rounded-2xl border-none shadow-2xl max-w-2xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
-                        <DialogTitle className="text-xl font-bold text-gray-900">{editing ? "Edit Member" : "Add New Member"}</DialogTitle>
-                        <p className="text-sm text-gray-500">Enter member details to manage their profile.</p>
+                        <DialogTitle className="text-xl font-bold text-foreground">{editing ? "Edit Member" : "Add New Member"}</DialogTitle>
+                        <p className="text-sm text-muted-foreground">Enter member details to manage their profile.</p>
                     </DialogHeader>
                     <div className="space-y-6 mt-4">
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label className="text-xs font-medium text-gray-500">First name</Label>
+                                <Label className="text-xs font-medium text-muted-foreground">First name</Label>
                                 <Input
                                     type="text"
                                     value={form.firstName}
                                     onChange={(e) => setForm({ ...form, firstName: e.target.value })}
-                                    className="h-10 rounded-xl border-gray-200"
+                                    className="h-10 rounded-xl border-border"
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label className="text-xs font-medium text-gray-500">Last name</Label>
+                                <Label className="text-xs font-medium text-muted-foreground">Last name</Label>
                                 <Input
                                     type="text"
                                     value={form.lastName}
                                     onChange={(e) => setForm({ ...form, lastName: e.target.value })}
-                                    className="h-10 rounded-xl border-gray-200"
+                                    className="h-10 rounded-xl border-border"
                                 />
                             </div>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label className="text-xs font-medium text-gray-500">Email</Label>
+                                <Label className="text-xs font-medium text-muted-foreground">Email</Label>
                                 <Input
                                     type="email"
                                     value={form.email}
                                     onChange={(e) => setForm({ ...form, email: e.target.value })}
-                                    className="h-10 rounded-xl border-gray-200"
+                                    className="h-10 rounded-xl border-border"
                                 />
                             </div>
                             {!editing && (
                                 <div className="space-y-2">
-                                    <Label className="text-xs font-medium text-gray-500">Password</Label>
+                                    <Label className="text-xs font-medium text-muted-foreground">Password</Label>
                                     <Input
                                         type="password"
                                         value={form.password}
                                         onChange={(e) => setForm({ ...form, password: e.target.value })}
-                                        className="h-10 rounded-xl border-gray-200"
+                                        className="h-10 rounded-xl border-border"
                                     />
                                 </div>
                             )}
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label className="text-xs font-medium text-gray-500">Phone</Label>
+                                <Label className="text-xs font-medium text-muted-foreground">Phone</Label>
                                 <Input
                                     type="tel"
                                     value={form.phone}
                                     onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                                    className="h-10 rounded-xl border-gray-200"
+                                    className="h-10 rounded-xl border-border"
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label className="text-xs font-medium text-gray-500">Gender</Label>
+                                <Label className="text-xs font-medium text-muted-foreground">Gender</Label>
                                 <Select value={form.gender} onValueChange={(v) => setForm({ ...form, gender: v })}>
-                                    <SelectTrigger className="h-10 rounded-xl border-gray-200">
+                                    <SelectTrigger className="h-10 rounded-xl border-border">
                                         <SelectValue placeholder="Select gender" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -544,17 +547,17 @@ const Members = () => {
                             </div>
                         </div>
                         <div className="space-y-2">
-                            <Label className="text-xs font-medium text-gray-500">Address</Label>
+                            <Label className="text-xs font-medium text-muted-foreground">Address</Label>
                             <Input
                                 type="text"
                                 value={form.address}
                                 onChange={(e) => setForm({ ...form, address: e.target.value })}
-                                className="h-10 rounded-xl border-gray-200"
+                                className="h-10 rounded-xl border-border"
                             />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label className="text-xs font-medium text-gray-500">Date of Birth</Label>
+                                <Label className="text-xs font-medium text-muted-foreground">Date of Birth</Label>
                                 <GoogleDateTimePicker
                                     mode="date"
                                     value={form.dateOfBirth}
@@ -564,49 +567,49 @@ const Members = () => {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label className="text-xs font-medium text-gray-500">Emergency Contact</Label>
+                                <Label className="text-xs font-medium text-muted-foreground">Emergency Contact</Label>
                                 <Input
                                     type="text"
                                     value={form.emergencyContact}
                                     onChange={(e) => setForm({ ...form, emergencyContact: e.target.value })}
-                                    className="h-10 rounded-xl border-gray-200"
+                                    className="h-10 rounded-xl border-border"
                                 />
                             </div>
                         </div>
                         <div className="grid grid-cols-3 gap-4">
                             <div className="space-y-2">
-                                <Label className="text-xs font-medium text-gray-500">Height (cm)</Label>
+                                <Label className="text-xs font-medium text-muted-foreground">Height (cm)</Label>
                                 <Input
                                     type="number"
                                     min="0"
                                     value={form.height}
                                     onChange={(e) => setForm({ ...form, height: e.target.value })}
-                                    className="h-10 rounded-xl border-gray-200"
+                                    className="h-10 rounded-xl border-border"
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label className="text-xs font-medium text-gray-500">Current (kg)</Label>
+                                <Label className="text-xs font-medium text-muted-foreground">Current (kg)</Label>
                                 <Input
                                     type="number"
                                     min="0"
                                     value={form.currentWeight}
                                     onChange={(e) => setForm({ ...form, currentWeight: e.target.value })}
-                                    className="h-10 rounded-xl border-gray-200"
+                                    className="h-10 rounded-xl border-border"
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label className="text-xs font-medium text-gray-500">Target (kg)</Label>
+                                <Label className="text-xs font-medium text-muted-foreground">Target (kg)</Label>
                                 <Input
                                     type="number"
                                     min="0"
                                     value={form.targetWeight}
                                     onChange={(e) => setForm({ ...form, targetWeight: e.target.value })}
-                                    className="h-10 rounded-xl border-gray-200"
+                                    className="h-10 rounded-xl border-border"
                                 />
                             </div>
                         </div>
                         <div className="space-y-2">
-                            <Label className="text-xs font-medium text-gray-500">Profile Image</Label>
+                            <Label className="text-xs font-medium text-muted-foreground">Profile Image</Label>
                             <Input
                                 type="file"
                                 accept="image/*"
@@ -617,7 +620,7 @@ const Members = () => {
                                         handleAvatarUpload(file);
                                     }
                                 }}
-                                className="h-10 rounded-xl border-gray-200"
+                                className="h-10 rounded-xl border-border"
                             />
                         </div>
                         <Button onClick={handleSave} className="w-full h-11 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-lg shadow-blue-100">

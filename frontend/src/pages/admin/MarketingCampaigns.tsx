@@ -185,7 +185,7 @@ const MarketingCampaigns = () => {
   return (
     <div className="space-y-4">
       {/* Header section */}
-      <section className="rounded-2xl border border-gray-200 bg-white p-4">
+      <section className="rounded-2xl border border-border bg-card p-4">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <h1 className="m3-title-md">Campaign Orchestration</h1>
@@ -198,7 +198,7 @@ const MarketingCampaigns = () => {
               variant="outline" 
               onClick={loadData} 
               disabled={loading}
-              className="h-10 rounded-xl border-gray-200 font-bold font-mono text-xs hover:bg-gray-50"
+              className="h-10 rounded-xl border-border font-bold font-mono text-xs hover:bg-muted"
             >
               <RefreshCcw className={cn("h-4 w-4 mr-2", loading && "animate-spin")} />
               Sync Archive
@@ -215,18 +215,18 @@ const MarketingCampaigns = () => {
       </section>
 
       {/* Search & Filter Toolbar */}
-      <section className="rounded-2xl border border-gray-200 bg-white p-3">
+      <section className="rounded-2xl border border-border bg-card p-3">
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              className="h-11 pl-10 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium placeholder:text-gray-400"
+              className="h-11 pl-10 rounded-xl border-border bg-muted/50 focus:ring-blue-600 font-medium placeholder:text-muted-foreground"
               placeholder="Query campaigns by name, subject, or content..."
               value={search}
               onChange={(event) => setSearch(event.target.value)}
             />
           </div>
-          <Button variant="outline" className="h-11 rounded-xl border-gray-100 text-gray-500">
+          <Button variant="outline" className="h-11 rounded-xl border-border text-muted-foreground">
             <Filter className="h-4 w-4 mr-2" />
             Filters
           </Button>
@@ -236,19 +236,19 @@ const MarketingCampaigns = () => {
       {/* Campaign Grid/List */}
       <div className="grid gap-4">
         {loading ? (
-          <div className="py-20 text-center rounded-2xl border-2 border-dashed border-gray-100 bg-white/50">
+          <div className="py-20 text-center rounded-2xl border-2 border-dashed border-border bg-card/50">
             <RefreshCcw className="h-12 w-12 mb-3 mx-auto text-blue-100 animate-spin" />
-            <p className="font-medium text-gray-400">Loading campaign archives...</p>
+            <p className="font-medium text-muted-foreground">Loading campaign archives...</p>
           </div>
         ) : filteredCampaigns.length === 0 ? (
-          <div className="py-20 text-center rounded-2xl border-2 border-dashed border-gray-100 bg-white/50">
-            <Megaphone className="h-12 w-12 mb-3 mx-auto text-gray-100" />
-            <p className="font-medium text-gray-400">No campaigns match your current query.</p>
+          <div className="py-20 text-center rounded-2xl border-2 border-dashed border-border bg-card/50">
+            <Megaphone className="h-12 w-12 mb-3 mx-auto text-muted-foreground/70" />
+            <p className="font-medium text-muted-foreground">No campaigns match your current query.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
             {filteredCampaigns.map((campaign) => (
-              <Card key={campaign.id} className="overflow-hidden border-gray-200 hover:border-blue-300 transition-colors shadow-none rounded-2xl">
+              <Card key={campaign.id} className="overflow-hidden border-border hover:border-blue-300 transition-colors shadow-none rounded-2xl">
                 <CardContent className="p-0">
                   <div className="p-5 space-y-4">
                     <div className="flex items-start justify-between gap-4">
@@ -262,21 +262,21 @@ const MarketingCampaigns = () => {
                             "rounded-lg font-bold text-[10px] uppercase",
                             campaign.status === "SENT" ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-100" :
                             campaign.status === "SCHEDULED" ? "bg-blue-100 text-blue-700 hover:bg-blue-100" :
-                            "bg-gray-100 text-gray-700 hover:bg-gray-100"
+                            "bg-muted/80 text-foreground hover:bg-muted/80"
                           )}>
                             {campaign.status}
                           </Badge>
                         </div>
-                        <p className="text-xs text-gray-500 line-clamp-2">
+                        <p className="text-xs text-muted-foreground line-clamp-2">
                           {campaign.description || campaign.content}
                         </p>
                       </div>
-                      <div className="p-2 rounded-xl bg-gray-50">
-                        <Megaphone className="h-5 w-5 text-gray-400" />
+                      <div className="p-2 rounded-xl bg-muted">
+                        <Megaphone className="h-5 w-5 text-muted-foreground" />
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-4 text-[11px] text-gray-400 font-medium">
+                    <div className="flex items-center gap-4 text-[11px] text-muted-foreground font-medium">
                       <div className="flex items-center gap-1.5 text-blue-600">
                         <Users className="h-3.5 w-3.5" />
                         <span>{campaign.recipientsCount ?? 0} targeted</span>
@@ -292,13 +292,13 @@ const MarketingCampaigns = () => {
                     </div>
                   </div>
 
-                  <div className="bg-gray-50 px-5 py-3 flex items-center justify-between border-t border-gray-100">
+                  <div className="bg-muted px-5 py-3 flex items-center justify-between border-t border-border">
                     <div className="flex gap-2">
                       <Button 
                         size="sm" 
                         variant="ghost" 
                         onClick={() => openEditCampaign(campaign)}
-                        className="h-8 rounded-lg text-gray-500 hover:text-blue-600 hover:bg-blue-50 text-xs font-bold"
+                        className="h-8 rounded-lg text-muted-foreground hover:text-blue-600 hover:bg-blue-50 text-xs font-bold"
                       >
                         <Edit3 className="h-3.5 w-3.5 mr-1.5" />
                         Modify
@@ -307,7 +307,7 @@ const MarketingCampaigns = () => {
                         size="sm" 
                         variant="ghost" 
                         onClick={() => navigate(`/admin/marketing/analytics?campaignId=${campaign.id}`)}
-                        className="h-8 rounded-lg text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 text-xs font-bold"
+                        className="h-8 rounded-lg text-muted-foreground hover:text-emerald-600 hover:bg-emerald-50 text-xs font-bold"
                       >
                         <BarChart3 className="h-3.5 w-3.5 mr-1.5" />
                         Performance
@@ -360,7 +360,7 @@ const MarketingCampaigns = () => {
                 <div className="space-y-2 md:col-span-2">
                   <Label className="m3-label">Engagement Name</Label>
                   <Input
-                    className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium"
+                    className="h-12 rounded-xl border-border bg-muted/50 focus:ring-blue-600 font-medium"
                     placeholder="e.g., Summer Fitness Blitz 2024"
                     value={campaignForm.name}
                     onChange={(event) =>
@@ -372,7 +372,7 @@ const MarketingCampaigns = () => {
                 <div className="space-y-2 md:col-span-2">
                   <Label className="m3-label">Internal Description</Label>
                   <Input
-                    className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium"
+                    className="h-12 rounded-xl border-border bg-muted/50 focus:ring-blue-600 font-medium"
                     placeholder="Brief objective for staff reference..."
                     value={campaignForm.description}
                     onChange={(event) =>
@@ -389,7 +389,7 @@ const MarketingCampaigns = () => {
                       setCampaignForm((prev) => ({ ...prev, type: value as NotificationType }))
                     }
                   >
-                    <SelectTrigger className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium font-mono text-xs uppercase tracking-tight">
+                    <SelectTrigger className="h-12 rounded-xl border-border bg-muted/50 focus:ring-blue-600 font-medium font-mono text-xs uppercase tracking-tight">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl">
@@ -411,7 +411,7 @@ const MarketingCampaigns = () => {
                       }))
                     }
                   >
-                    <SelectTrigger className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium font-mono text-xs uppercase tracking-tight">
+                    <SelectTrigger className="h-12 rounded-xl border-border bg-muted/50 focus:ring-blue-600 font-medium font-mono text-xs uppercase tracking-tight">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl">
@@ -432,7 +432,7 @@ const MarketingCampaigns = () => {
                       }))
                     }
                   >
-                    <SelectTrigger className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium font-mono text-xs uppercase tracking-tight">
+                    <SelectTrigger className="h-12 rounded-xl border-border bg-muted/50 focus:ring-blue-600 font-medium font-mono text-xs uppercase tracking-tight">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl">
@@ -454,7 +454,7 @@ const MarketingCampaigns = () => {
                       }))
                     }
                   >
-                    <SelectTrigger className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium font-mono text-xs uppercase tracking-tight">
+                    <SelectTrigger className="h-12 rounded-xl border-border bg-muted/50 focus:ring-blue-600 font-medium font-mono text-xs uppercase tracking-tight">
                       <SelectValue placeholder="Select template" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl">
@@ -469,7 +469,7 @@ const MarketingCampaigns = () => {
                 <div className="space-y-2 md:col-span-2">
                   <Label className="m3-label">Message Subject line</Label>
                   <Input
-                    className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium"
+                    className="h-12 rounded-xl border-border bg-muted/50 focus:ring-blue-600 font-medium"
                     placeholder="Subject for Email/Push notifications..."
                     value={campaignForm.subject}
                     onChange={(event) =>
@@ -481,7 +481,7 @@ const MarketingCampaigns = () => {
                 <div className="space-y-2 md:col-span-2">
                   <Label className="m3-label">Payload Content</Label>
                   <Textarea
-                    className="min-h-[120px] rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium"
+                    className="min-h-[120px] rounded-xl border-border bg-muted/50 focus:ring-blue-600 font-medium"
                     placeholder="Enter the primary message content for the outreach..."
                     value={campaignForm.content}
                     onChange={(event) =>
@@ -493,7 +493,7 @@ const MarketingCampaigns = () => {
                 <div className="space-y-2">
                   <Label className="m3-label">Promotional Offer</Label>
                   <Input
-                    className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium"
+                    className="h-12 rounded-xl border-border bg-muted/50 focus:ring-blue-600 font-medium"
                     placeholder="e.g., Use code SUMMER50"
                     value={campaignForm.specialOffer}
                     onChange={(event) =>
@@ -505,7 +505,7 @@ const MarketingCampaigns = () => {
                 <div className="space-y-2">
                   <Label className="m3-label">Restricted Class ID</Label>
                   <Input
-                    className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium"
+                    className="h-12 rounded-xl border-border bg-muted/50 focus:ring-blue-600 font-medium"
                     placeholder="Optional UUID for class-specific targeting"
                     value={campaignForm.classId}
                     onChange={(event) =>
@@ -518,7 +518,7 @@ const MarketingCampaigns = () => {
                   <div className="space-y-2 md:col-span-2">
                     <Label className="m3-label">Custom Recipient List (ID pool)</Label>
                     <Input
-                      className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium"
+                      className="h-12 rounded-xl border-border bg-muted/50 focus:ring-blue-600 font-medium"
                       placeholder="comma-separated user UUIDs..."
                       value={campaignForm.customUserIds}
                       onChange={(event) =>
@@ -531,20 +531,20 @@ const MarketingCampaigns = () => {
                 <div className="space-y-2 md:col-span-2">
                   <Label className="m3-label">Scheduled Transmission Time</Label>
                   <DateTimePicker
-                    className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600"
+                    className="h-12 rounded-xl border-border bg-muted/50 focus:ring-blue-600"
                     value={campaignForm.scheduledAt}
                     onChange={(value) =>
                       setCampaignForm((prev) => ({ ...prev, scheduledAt: value }))
                     }
                   />
-                  <p className="text-[10px] text-gray-400 italic ml-1 mt-1">Leave empty for instant draft initialization.</p>
+                  <p className="text-[10px] text-muted-foreground italic ml-1 mt-1">Leave empty for instant draft initialization.</p>
                 </div>
               </div>
               
               <div className="pt-4 flex gap-3">
                 <Button 
                   variant="outline" 
-                  className="flex-1 h-12 rounded-xl border-gray-200 font-bold text-gray-500"
+                  className="flex-1 h-12 rounded-xl border-border font-bold text-muted-foreground"
                   onClick={() => setCampaignOpen(false)}
                 >
                   Discard Changes

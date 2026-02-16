@@ -112,6 +112,7 @@ export function NotificationPopup({
         onClick={() => setIsOpen(!isOpen)}
         className="relative p-2 text-muted-foreground hover:text-foreground transition-colors"
         aria-label="Notifications"
+        title="Open notifications"
       >
         <svg
           className="w-5 h-5"
@@ -158,6 +159,7 @@ export function NotificationPopup({
                     <button
                       onClick={onMarkAllAsRead}
                       className="text-xs text-primary hover:text-primary/80 transition-colors"
+                      title="Mark all notifications as read"
                     >
                       Mark all read
                     </button>
@@ -165,6 +167,7 @@ export function NotificationPopup({
                   <button
                     onClick={onClearAll}
                     className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                    title="Clear all notifications"
                   >
                     Clear all
                   </button>
@@ -227,6 +230,7 @@ export function NotificationPopup({
                                 <button
                                   onClick={() => onMarkAsRead(notification.id)}
                                   className="text-xs text-primary hover:text-primary/80 transition-colors"
+                                  title="Mark as read"
                                 >
                                   Mark read
                                 </button>
@@ -234,6 +238,7 @@ export function NotificationPopup({
                               <button
                                 onClick={() => onClear(notification.id)}
                                 className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                                title="Clear notification"
                               >
                                 Clear
                               </button>

@@ -152,7 +152,7 @@ const PosSales = () => {
   return (
     <div className="space-y-4">
       {/* Header section */}
-      <section className="rounded-2xl border border-gray-200 bg-white p-4">
+      <section className="rounded-2xl border border-border bg-card p-4">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <h1 className="m3-title-md">Point of Sale (POS)</h1>
@@ -164,7 +164,7 @@ const PosSales = () => {
             variant="outline" 
             onClick={loadData} 
             disabled={isLoading}
-            className="h-10 rounded-xl border-gray-200 font-bold font-mono text-xs hover:bg-gray-50"
+            className="h-10 rounded-xl border-border font-bold font-mono text-xs hover:bg-muted"
           >
             <RefreshCcw className={cn("h-4 w-4 mr-2", isLoading && "animate-spin")} />
             Sync Catalog
@@ -174,7 +174,7 @@ const PosSales = () => {
 
       <div className="grid gap-4 lg:grid-cols-12">
         {/* Left Column: Cart Items */}
-        <section className="lg:col-span-8 rounded-2xl border border-gray-200 bg-white p-6">
+        <section className="lg:col-span-8 rounded-2xl border border-border bg-card p-6">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-xl bg-primary/10">
@@ -195,17 +195,17 @@ const PosSales = () => {
 
           <div className="space-y-3">
             {saleItems.map((row, index) => (
-              <div className="group grid gap-3 md:grid-cols-[1fr_120px_auto] items-end p-4 rounded-2xl border border-gray-100 bg-gray-50/30 hover:bg-white hover:border-blue-200 hover:shadow-lg hover:shadow-blue-50/50 transition-all" key={index}>
+              <div className="group grid gap-3 md:grid-cols-[1fr_120px_auto] items-end p-4 rounded-2xl border border-border bg-muted/30 hover:bg-card hover:border-blue-200 hover:shadow-lg hover:shadow-blue-50/50 transition-all" key={index}>
                 <div className="space-y-1.5">
                   <Label className="m3-label">Select Product</Label>
                   <Select
                     value={row.productId}
                     onValueChange={(value) => updateSaleItem(index, "productId", value)}
                   >
-                    <SelectTrigger className="h-11 rounded-xl border-gray-200 bg-white focus:ring-blue-600">
+                    <SelectTrigger className="h-11 rounded-xl border-border bg-card focus:ring-blue-600">
                       <SelectValue placeholder="Search product catalog..." />
                     </SelectTrigger>
-                    <SelectContent className="rounded-xl border-gray-200">
+                    <SelectContent className="rounded-xl border-border">
                       {products.map((product) => (
                         <SelectItem key={product.id} value={product.id} className="rounded-lg">
                           <div className="flex justify-between items-center w-full min-w-[300px]">
@@ -217,7 +217,7 @@ const PosSales = () => {
                               STK: {product.stockQuantity}
                             </Badge>
                           </div>
-                          <p className="text-[10px] text-gray-500 font-mono mt-0.5">{product.sku} • {product.salePrice.toLocaleString()} MMK</p>
+                          <p className="text-[10px] text-muted-foreground font-mono mt-0.5">{product.sku} • {product.salePrice.toLocaleString()} MMK</p>
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -230,7 +230,7 @@ const PosSales = () => {
                     min={1}
                     value={row.quantity}
                     onChange={(event) => updateSaleItem(index, "quantity", event.target.value)}
-                    className="h-11 rounded-xl border-gray-200 bg-white text-center font-mono font-bold focus-visible:ring-blue-600"
+                    className="h-11 rounded-xl border-border bg-card text-center font-mono font-bold focus-visible:ring-blue-600"
                   />
                 </div>
                 <Button
@@ -238,7 +238,7 @@ const PosSales = () => {
                   size="icon" 
                   onClick={() => removeSaleItemRow(index)}
                   disabled={saleItems.length === 1}
-                  className="h-11 w-11 rounded-xl text-gray-300 hover:text-red-500 hover:bg-red-50"
+                  className="h-11 w-11 rounded-xl text-muted-foreground/70 hover:text-red-500 hover:bg-red-50"
                 >
                   <Trash2 className="h-5 w-5" />
                 </Button>
@@ -247,7 +247,7 @@ const PosSales = () => {
           </div>
 
           {saleItems.length === 0 && (
-            <div className="py-20 text-center text-gray-400">
+            <div className="py-20 text-center text-muted-foreground">
               <ShoppingBag className="h-12 w-12 mb-3 mx-auto opacity-10" />
               <p className="font-medium">The basket is empty.</p>
             </div>
@@ -256,59 +256,59 @@ const PosSales = () => {
 
         {/* Right Column: Checkout Summary */}
         <section className="lg:col-span-4 space-y-4">
-          <div className="rounded-2xl border border-gray-200 bg-white p-6">
+          <div className="rounded-2xl border border-border bg-card p-6">
             <h3 className="m3-title-md !text-base mb-6 flex items-center gap-2">
               <CreditCard className="h-5 w-5 text-muted-foreground" />
               Order Summary
             </h3>
             
             <div className="space-y-6">
-              <div className="space-y-4 pt-4 border-t border-gray-100">
+              <div className="space-y-4 pt-4 border-t border-border">
                 <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-500">Retail Subtotal</span>
-                  <span className="font-mono font-bold text-gray-900">{saleSubtotal.toLocaleString()} MMK</span>
+                  <span className="text-muted-foreground">Retail Subtotal</span>
+                  <span className="font-mono font-bold text-foreground">{saleSubtotal.toLocaleString()} MMK</span>
                 </div>
                 <div className="space-y-3">
                   <div className="space-y-1.5">
                     <Label className="m3-label">Discount Amount</Label>
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400">MMK</span>
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-muted-foreground">MMK</span>
                       <Input
                         type="number"
                         min={0}
                         value={saleForm.discount}
                         onChange={(event) => setSaleForm((prev) => ({ ...prev, discount: event.target.value }))}
-                        className="h-10 pl-11 rounded-xl border-gray-200 font-mono text-xs focus-visible:ring-blue-600"
+                        className="h-10 pl-11 rounded-xl border-border font-mono text-xs focus-visible:ring-blue-600"
                       />
                     </div>
                   </div>
                   <div className="space-y-1.5">
                     <Label className="m3-label">Tax / Service Fees</Label>
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400">MMK</span>
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-muted-foreground">MMK</span>
                       <Input
                         type="number"
                         min={0}
                         value={saleForm.tax}
                         onChange={(event) => setSaleForm((prev) => ({ ...prev, tax: event.target.value }))}
-                        className="h-10 pl-11 rounded-xl border-gray-200 font-mono text-xs focus-visible:ring-blue-600"
+                        className="h-10 pl-11 rounded-xl border-border font-mono text-xs focus-visible:ring-blue-600"
                       />
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="pt-6 border-t border-gray-100 space-y-4">
+              <div className="pt-6 border-t border-border space-y-4">
                 <div className="space-y-1.5">
                   <Label className="m3-label">Payment Channel</Label>
                   <Select
                     value={saleForm.paymentMethod}
                     onValueChange={(value) => setSaleForm((prev) => ({ ...prev, paymentMethod: value as PosPaymentMethod }))}
                   >
-                    <SelectTrigger className="h-11 rounded-xl border-gray-200 focus:ring-blue-600">
+                    <SelectTrigger className="h-11 rounded-xl border-border focus:ring-blue-600">
                       <SelectValue placeholder="Method" />
                     </SelectTrigger>
-                    <SelectContent className="rounded-xl border-gray-200">
+                    <SelectContent className="rounded-xl border-border">
                       {posPaymentMethodOptions.map((option) => (
                         <SelectItem key={option.value} value={option.value} className="rounded-lg">
                           {option.label}
@@ -324,12 +324,12 @@ const PosSales = () => {
                     placeholder="Capture specialized requests or internal notes..."
                     value={saleForm.notes}
                     onChange={(event) => setSaleForm((prev) => ({ ...prev, notes: event.target.value }))}
-                    className="min-h-[80px] rounded-xl border-gray-200 focus-visible:ring-blue-600 text-xs py-3"
+                    className="min-h-[80px] rounded-xl border-border focus-visible:ring-blue-600 text-xs py-3"
                   />
                 </div>
               </div>
 
-              <div className="p-4 rounded-2xl bg-gray-900 text-white space-y-4 shadow-xl shadow-gray-200">
+              <div className="p-4 rounded-2xl bg-foreground text-background space-y-4 shadow-xl">
                 <div className="flex justify-between items-end">
                   <span className="m3-label !text-primary-foreground/70">Grand Total</span>
                   <span className="text-2xl font-bold font-mono tracking-tight">{saleTotal.toLocaleString()} <span className="text-xs font-normal">MMK</span></span>
@@ -348,7 +348,7 @@ const PosSales = () => {
         </section>
 
         {/* Audit Trail Section */}
-        <section className="lg:col-span-12 rounded-2xl border border-gray-200 bg-white p-6">
+        <section className="lg:col-span-12 rounded-2xl border border-border bg-card p-6">
           <div className="flex items-center gap-3 mb-6">
             <div className="p-2 rounded-xl bg-emerald-50">
               <Receipt className="h-5 w-5 text-emerald-600" />
@@ -373,26 +373,26 @@ const PosSales = () => {
               <tbody className="divide-y divide-gray-100">
                 {sales.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="py-20 text-center text-gray-400 italic">No records found.</td>
+                    <td colSpan={5} className="py-20 text-center text-muted-foreground italic">No records found.</td>
                   </tr>
                 ) : (
                   sales.map((sale) => (
-                    <tr key={sale.id} className="group hover:bg-gray-50/50 transition-colors">
+                    <tr key={sale.id} className="group hover:bg-muted/50 transition-colors">
                       <td className="px-5 py-4">
                         <span className="font-mono font-bold text-blue-600">{sale.saleNumber}</span>
                       </td>
-                      <td className="px-2 py-4 text-gray-600 font-medium">
+                      <td className="px-2 py-4 text-foreground font-medium">
                         {sale.items.length} Units
                       </td>
                       <td className="px-2 py-4">
-                        <Badge variant="outline" className="rounded-lg bg-gray-50 border-gray-200 text-gray-600 text-[10px] font-bold uppercase">
+                        <Badge variant="outline" className="rounded-lg bg-muted border-border text-foreground text-[10px] font-bold uppercase">
                           {sale.paymentMethod.replaceAll("_", " ")}
                         </Badge>
                       </td>
-                      <td className="px-2 py-4 font-bold text-gray-900">
-                        {sale.total.toLocaleString()} <span className="text-[10px] text-gray-400 font-normal">MMK</span>
+                      <td className="px-2 py-4 font-bold text-foreground">
+                        {sale.total.toLocaleString()} <span className="text-[10px] text-muted-foreground font-normal">MMK</span>
                       </td>
-                      <td className="px-5 py-4 text-right text-xs text-gray-400 font-medium">
+                      <td className="px-5 py-4 text-right text-xs text-muted-foreground font-medium">
                         {new Date(sale.soldAt).toLocaleString()}
                       </td>
                     </tr>

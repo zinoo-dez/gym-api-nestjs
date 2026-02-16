@@ -173,7 +173,7 @@ const InventoryManagement = () => {
   return (
     <div className="space-y-4">
       {/* Header section */}
-      <section className="rounded-2xl border border-gray-200 bg-white p-4">
+      <section className="rounded-2xl border border-border bg-card p-4">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <h1 className="m3-title-md">Inventory Management</h1>
@@ -206,7 +206,7 @@ const InventoryManagement = () => {
 
       <div className="grid gap-4 xl:grid-cols-12">
         {/* Add Product Form */}
-        <section className="xl:col-span-12 rounded-2xl border border-gray-200 bg-white p-6">
+        <section className="xl:col-span-12 rounded-2xl border border-border bg-card p-6">
           <div className="mb-6">
             <h2 className="m3-title-md">Add New Product</h2>
             <p className="text-xs text-muted-foreground">Register a new item in the gym's retail or supply inventory.</p>
@@ -220,7 +220,7 @@ const InventoryManagement = () => {
                   value={productForm.name}
                   onChange={(event) => setProductForm((prev) => ({ ...prev, name: event.target.value }))}
                   required
-                  className="h-11 rounded-xl border-gray-200 focus-visible:ring-blue-600"
+                  className="h-11 rounded-xl border-border focus-visible:ring-blue-600"
                 />
               </div>
               <div className="space-y-1.5">
@@ -230,7 +230,7 @@ const InventoryManagement = () => {
                   value={productForm.sku}
                   onChange={(event) => setProductForm((prev) => ({ ...prev, sku: event.target.value }))}
                   required
-                  className="h-11 rounded-xl border-gray-200 focus-visible:ring-blue-600"
+                  className="h-11 rounded-xl border-border focus-visible:ring-blue-600"
                 />
               </div>
               <div className="space-y-1.5">
@@ -239,10 +239,10 @@ const InventoryManagement = () => {
                   value={productForm.category}
                   onValueChange={(value) => setProductForm((prev) => ({ ...prev, category: value as ProductCategory }))}
                 >
-                  <SelectTrigger className="h-11 rounded-xl border-gray-200 focus:ring-blue-600">
+                  <SelectTrigger className="h-11 rounded-xl border-border focus:ring-blue-600">
                     <SelectValue placeholder="Select Category" />
                   </SelectTrigger>
-                  <SelectContent className="rounded-xl border-gray-200">
+                  <SelectContent className="rounded-xl border-border">
                     {productCategoryOptions.map((option) => (
                       <SelectItem key={option.value} value={option.value} className="rounded-lg">
                         {option.label}
@@ -260,7 +260,7 @@ const InventoryManagement = () => {
                   value={productForm.salePrice}
                   onChange={(event) => setProductForm((prev) => ({ ...prev, salePrice: event.target.value }))}
                   required
-                  className="h-11 rounded-xl border-gray-200 focus-visible:ring-blue-600 font-mono"
+                  className="h-11 rounded-xl border-border focus-visible:ring-blue-600 font-mono"
                 />
               </div>
               <div className="space-y-1.5">
@@ -271,7 +271,7 @@ const InventoryManagement = () => {
                   min={0}
                   value={productForm.costPrice}
                   onChange={(event) => setProductForm((prev) => ({ ...prev, costPrice: event.target.value }))}
-                  className="h-11 rounded-xl border-gray-200 focus-visible:ring-blue-600 font-mono"
+                  className="h-11 rounded-xl border-border focus-visible:ring-blue-600 font-mono"
                 />
               </div>
               <div className="space-y-1.5">
@@ -282,7 +282,7 @@ const InventoryManagement = () => {
                   min={0}
                   value={productForm.stockQuantity}
                   onChange={(event) => setProductForm((prev) => ({ ...prev, stockQuantity: event.target.value }))}
-                  className="h-11 rounded-xl border-gray-200 focus-visible:ring-blue-600"
+                  className="h-11 rounded-xl border-border focus-visible:ring-blue-600"
                 />
               </div>
               <div className="space-y-1.5">
@@ -293,7 +293,7 @@ const InventoryManagement = () => {
                   min={0}
                   value={productForm.lowStockThreshold}
                   onChange={(event) => setProductForm((prev) => ({ ...prev, lowStockThreshold: event.target.value }))}
-                  className="h-11 rounded-xl border-gray-200 focus-visible:ring-blue-600"
+                  className="h-11 rounded-xl border-border focus-visible:ring-blue-600"
                 />
               </div>
             </div>
@@ -303,7 +303,7 @@ const InventoryManagement = () => {
                 placeholder="Details about product specifications, flavor, size, etc."
                 value={productForm.description}
                 onChange={(event) => setProductForm((prev) => ({ ...prev, description: event.target.value }))}
-                className="min-h-[100px] rounded-xl border-gray-200 focus-visible:ring-blue-600 py-3"
+                className="min-h-[100px] rounded-xl border-border focus-visible:ring-blue-600 py-3"
               />
             </div>
             <div className="flex justify-end">
@@ -316,7 +316,7 @@ const InventoryManagement = () => {
 
         {/* Low Stock Alerts & Inventory List */}
         <div className="xl:col-span-12 space-y-4">
-          <section className="rounded-2xl border border-gray-200 bg-white p-5">
+          <section className="rounded-2xl border border-border bg-card p-5">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
               <div>
                 <h2 className="m3-title-md">Product Inventory</h2>
@@ -333,22 +333,22 @@ const InventoryManagement = () => {
               </div>
               <div className="flex flex-col sm:flex-row gap-2">
                 <div className="relative group">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-blue-600 transition-colors" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-blue-600 transition-colors" />
                   <Input
                     placeholder="Search name or SKU..."
                     value={productSearch}
                     onChange={(event) => setProductSearch(event.target.value)}
-                    className="pl-10 h-10 w-full sm:w-64 rounded-xl border-gray-200 focus-visible:ring-blue-600"
+                    className="pl-10 h-10 w-full sm:w-64 rounded-xl border-border focus-visible:ring-blue-600"
                   />
                 </div>
                 <Select
                   value={productCategoryFilter}
                   onValueChange={(value) => setProductCategoryFilter(value as ProductCategory | "ALL")}
                 >
-                  <SelectTrigger className="h-10 w-full sm:w-48 rounded-xl border-gray-200 focus:ring-blue-600">
+                  <SelectTrigger className="h-10 w-full sm:w-48 rounded-xl border-border focus:ring-blue-600">
                     <SelectValue placeholder="All Categories" />
                   </SelectTrigger>
-                  <SelectContent className="rounded-xl border-gray-200">
+                  <SelectContent className="rounded-xl border-border">
                     <SelectItem value="ALL" className="rounded-lg">All Categories</SelectItem>
                     {productCategoryOptions.map((option) => (
                       <SelectItem key={option.value} value={option.value} className="rounded-lg">
@@ -362,7 +362,7 @@ const InventoryManagement = () => {
 
             <div className="overflow-x-auto -mx-5 px-5">
               <table className="min-w-full text-sm">
-                <thead className="bg-gray-50/80 text-left text-[10px] uppercase tracking-widest text-gray-400 font-bold border-y border-gray-100">
+                <thead className="bg-muted/80 text-left text-[10px] uppercase tracking-widest text-muted-foreground font-bold border-y border-border">
                   <tr>
                     <th className="px-5 py-4">Product Details</th>
                     <th className="px-2 py-4">Category</th>
@@ -375,7 +375,7 @@ const InventoryManagement = () => {
                 <tbody className="divide-y divide-gray-100">
                   {filteredProducts.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="py-20 text-center text-gray-400">
+                      <td colSpan={6} className="py-20 text-center text-muted-foreground">
                         <div className="flex flex-col items-center">
                           <Package2 className="h-10 w-10 mb-2 opacity-20" />
                           <p className="font-medium">No products found in the catalog.</p>
@@ -384,25 +384,25 @@ const InventoryManagement = () => {
                     </tr>
                   ) : (
                     filteredProducts.map((product) => (
-                      <tr key={product.id} className="group hover:bg-gray-50/50 transition-colors">
+                      <tr key={product.id} className="group hover:bg-muted/50 transition-colors">
                         <td className="px-5 py-4">
-                          <div className="font-bold text-gray-900">{product.name}</div>
-                          <div className="text-[10px] font-mono font-medium text-gray-400 mt-0.5">{product.sku}</div>
+                          <div className="font-bold text-foreground">{product.name}</div>
+                          <div className="text-[10px] font-mono font-medium text-muted-foreground mt-0.5">{product.sku}</div>
                         </td>
                         <td className="px-2 py-4">
                           <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 text-[10px] font-bold uppercase">
                             {productCategoryLabel(product.category)}
                           </span>
                         </td>
-                        <td className="px-2 py-4 font-mono font-bold text-gray-700">
-                          {product.salePrice.toLocaleString()} <span className="text-[10px] text-gray-400">MMK</span>
+                        <td className="px-2 py-4 font-mono font-bold text-foreground">
+                          {product.salePrice.toLocaleString()} <span className="text-[10px] text-muted-foreground">MMK</span>
                         </td>
                         <td className="px-2 py-4 text-center">
                           <div className={cn(
                             "inline-flex items-center justify-center w-10 h-10 rounded-xl border text-sm font-bold",
                             product.isLowStock 
                               ? "bg-red-50 border-red-100 text-red-700" 
-                              : "bg-gray-50 border-gray-100 text-gray-700"
+                              : "bg-muted border-border text-foreground"
                           )}>
                             {product.stockQuantity}
                           </div>
@@ -410,7 +410,7 @@ const InventoryManagement = () => {
                         <td className="px-2 py-4">
                           <div className="flex gap-2 items-center">
                             <Input
-                              className="h-9 w-20 rounded-lg border-gray-200 text-center font-mono text-xs focus-visible:ring-blue-600"
+                              className="h-9 w-20 rounded-lg border-border text-center font-mono text-xs focus-visible:ring-blue-600"
                               type="number"
                               min={1}
                               placeholder="Qty"
@@ -426,7 +426,7 @@ const InventoryManagement = () => {
                               size="sm"
                               variant="outline"
                               onClick={() => handleRestock(product)}
-                              className="h-9 px-3 rounded-lg border-gray-200 text-[10px] font-bold uppercase transition-all hover:bg-blue-600 hover:text-white hover:border-blue-600"
+                              className="h-9 px-3 rounded-lg border-border text-[10px] font-bold uppercase transition-all hover:bg-blue-600 hover:text-white hover:border-blue-600"
                             >
                               Add
                             </Button>

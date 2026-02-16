@@ -172,21 +172,21 @@ export const GymScheduler = () => {
   const hours = Array.from({ length: TOTAL_HOURS }, (_, i) => START_HOUR + i);
 
   return (
-    <div className="flex flex-col h-screen bg-white text-gray-900 border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+    <div className="flex flex-col h-screen bg-card text-foreground border border-border rounded-xl overflow-hidden shadow-sm">
       {/* 1. Header Navigation */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-white">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-card">
         <div className="flex items-center gap-4">
-          <h1 className="text-xl font-normal text-gray-700">
+          <h1 className="text-xl font-normal text-foreground">
             {format(currentDate, "MMMM yyyy")}
           </h1>
-          <div className="flex items-center rounded-md border border-gray-300 bg-white shadow-sm">
-            <button onClick={prevWeek} className="p-1.5 hover:bg-gray-100 text-gray-600">
+          <div className="flex items-center rounded-md border border-border bg-card shadow-sm">
+            <button onClick={prevWeek} className="p-1.5 hover:bg-muted/80 text-foreground">
               <ChevronLeft className="w-5 h-5" />
             </button>
-            <button onClick={goToToday} className="px-3 py-1.5 text-sm font-medium border-x border-gray-300 hover:bg-gray-100 text-gray-700">
+            <button onClick={goToToday} className="px-3 py-1.5 text-sm font-medium border-x border-border hover:bg-muted/80 text-foreground">
               Today
             </button>
-            <button onClick={nextWeek} className="p-1.5 hover:bg-gray-100 text-gray-600">
+            <button onClick={nextWeek} className="p-1.5 hover:bg-muted/80 text-foreground">
               <ChevronRight className="w-5 h-5" />
             </button>
           </div>
@@ -194,20 +194,20 @@ export const GymScheduler = () => {
         
         <div className="flex items-center gap-3">
            {/* Placeholder for view switcher (Day/Week/Month) */}
-           <div className="px-3 py-1 text-sm font-medium text-gray-600 border border-gray-300 rounded-md">Week</div>
+           <div className="px-3 py-1 text-sm font-medium text-foreground border border-border rounded-md">Week</div>
         </div>
       </div>
 
       {/* 2. Calendar Grid */}
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar: Time Labels */}
-        <div className="w-16 flex-shrink-0 border-r border-gray-200 bg-white overflow-hidden pt-[50px]">
+        <div className="w-16 flex-shrink-0 border-r border-border bg-card overflow-hidden pt-[50px]">
              {/* The top spacing accounts for the day header height approx 50px */}
              <div className="relative" style={{ height: `${TOTAL_HOURS * CELL_HEIGHT}px` }}> {/* Match content height */}
                  {hours.map((hour) => (
                     <div
                       key={hour}
-                      className="absolute right-2 text-xs text-gray-500 transform -translate-y-1/2"
+                      className="absolute right-2 text-xs text-muted-foreground transform -translate-y-1/2"
                       style={{ top: `${(hour - START_HOUR) * CELL_HEIGHT}px` }}
                     >
                       {format(setHours(new Date(), hour), "ha")}
@@ -217,19 +217,19 @@ export const GymScheduler = () => {
         </div>
 
         {/* Scrollable Content */}
-        <div ref={scrollRef} className="flex-1 overflow-y-auto relative bg-white">
+        <div ref={scrollRef} className="flex-1 overflow-y-auto relative bg-card">
            <div className="min-w-[800px]"> {/* Ensure horizontal scroll on small screens */}
               
               {/* Days Header */}
-              <div className="sticky top-0 z-20 flex bg-white border-b border-gray-200 shadow-sm ml-1">
+              <div className="sticky top-0 z-20 flex bg-card border-b border-border shadow-sm ml-1">
                  {weekDays.map((day, i) => (
-                   <div key={i} className="flex-1 py-3 text-center border-l border-gray-100 first:border-l-0">
-                     <div className={cn("text-xs font-semibold uppercase mb-1", isSameDay(day, new Date()) ? "text-blue-600" : "text-gray-500")}>
+                   <div key={i} className="flex-1 py-3 text-center border-l border-border first:border-l-0">
+                     <div className={cn("text-xs font-semibold uppercase mb-1", isSameDay(day, new Date()) ? "text-blue-600" : "text-muted-foreground")}>
                        {format(day, "EEE")}
                      </div>
                      <div className={cn(
                        "text-xl font-normal h-8 w-8 mx-auto flex items-center justify-center rounded-full",
-                        isSameDay(day, new Date()) ? "bg-blue-600 text-white shadow-md shadow-blue-200" : "text-gray-800 hover:bg-gray-100 cursor-pointer"
+                        isSameDay(day, new Date()) ? "bg-blue-600 text-white shadow-md shadow-blue-200" : "text-foreground hover:bg-muted/80 cursor-pointer"
                        )}>
                        {format(day, "d")}
                      </div>
@@ -244,7 +244,7 @@ export const GymScheduler = () => {
                  {hours.map((_, i) => (
                     <div
                       key={i}
-                      className="absolute left-0 right-0 border-t border-gray-100 pointer-events-none"
+                      className="absolute left-0 right-0 border-t border-border pointer-events-none"
                       style={{ top: `${i * CELL_HEIGHT}px` }}
                     />
                  ))}
@@ -255,7 +255,7 @@ export const GymScheduler = () => {
                      const isTodayCol = isSameDay(day, new Date());
 
                      return (
-                      <div key={dayIndex} className="relative flex-1 border-l border-gray-100 first:border-l-0 h-full group">
+                      <div key={dayIndex} className="relative flex-1 border-l border-border first:border-l-0 h-full group">
                           
                           {/* Current Time Indicator for Today */}
                           {isTodayCol && <CurrentTimeIndicator />}
@@ -269,7 +269,7 @@ export const GymScheduler = () => {
                           {hours.map((hour) => (
                              <div
                                key={`${dayIndex}-${hour}`}
-                               className="absolute left-0 right-0 z-0 hover:bg-gray-50/50 cursor-pointer transition-colors"
+                               className="absolute left-0 right-0 z-0 hover:bg-muted/50 cursor-pointer transition-colors"
                                style={{ 
                                  top: `${(hour - START_HOUR) * CELL_HEIGHT}px`,
                                  height: `${CELL_HEIGHT}px`
@@ -289,26 +289,26 @@ export const GymScheduler = () => {
        <Dialog.Root open={isModalOpen} onOpenChange={setIsModalOpen}>
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 bg-black/50 z-50 backdrop-blur-sm" />
-          <Dialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow-xl p-6 w-[400px] z-50">
-            <Dialog.Title className="text-lg font-semibold mb-4 text-gray-900">Add New Session</Dialog.Title>
+          <Dialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card rounded-lg shadow-xl p-6 w-[400px] z-50">
+            <Dialog.Title className="text-lg font-semibold mb-4 text-foreground">Add New Session</Dialog.Title>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Event Name</label>
-                <input type="text" placeholder="e.g., Core Strength" className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" autoFocus />
+                <label className="block text-sm font-medium text-foreground mb-1">Event Name</label>
+                <input type="text" placeholder="e.g., Core Strength" className="w-full rounded-md border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" autoFocus />
               </div>
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Start</label>
-                  <div className="flex items-center gap-2 text-sm text-gray-600 bg-gray-50 px-3 py-2 rounded-md border border-gray-200">
+                  <label className="block text-sm font-medium text-foreground mb-1">Start</label>
+                  <div className="flex items-center gap-2 text-sm text-foreground bg-muted px-3 py-2 rounded-md border border-border">
                     <Clock className="w-4 h-4" />
                     {selectedSlot && format(selectedSlot.start, "h:mm a")}
                   </div>
                 </div>
                 <div>
-                   <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
-                   <select className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                   <label className="block text-sm font-medium text-foreground mb-1">Type</label>
+                   <select className="w-full rounded-md border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-card">
                       <option value="class">Class</option>
                       <option value="pt">Personal Training</option>
                       <option value="block">Block Time</option>
@@ -319,7 +319,7 @@ export const GymScheduler = () => {
                <div className="flex justify-end gap-2 mt-6">
                 <button 
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+                  className="px-4 py-2 text-sm font-medium text-foreground bg-muted/80 rounded-md hover:bg-border transition-colors"
                 >
                   Cancel
                 </button>

@@ -178,7 +178,7 @@ export default function Settings() {
 
   return (
     <div className="space-y-4">
-      <section className="rounded-2xl border border-gray-200 bg-white p-4">
+      <section className="rounded-2xl border border-border bg-card p-4">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <h1 className="m3-title-md">Gym Configuration</h1>
@@ -198,7 +198,7 @@ export default function Settings() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         {/* Profile Card */}
-        <section className="lg:col-span-8 rounded-2xl border border-gray-200 bg-white p-6">
+        <section className="lg:col-span-8 rounded-2xl border border-border bg-card p-6">
           <div className="mb-6">
             <h2 className="m3-title-md">Public Profile</h2>
             <p className="text-xs text-muted-foreground">This information will be visible to members on the mobile app and public portal.</p>
@@ -210,7 +210,7 @@ export default function Settings() {
                 <Input
                   value={form.name || ""}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className="h-11 rounded-xl border-gray-200 focus-visible:ring-blue-600"
+                  className="h-11 rounded-xl border-border focus-visible:ring-blue-600"
                   placeholder="e.g. Iron Forge Gym"
                 />
               </div>
@@ -219,7 +219,7 @@ export default function Settings() {
                 <Input
                   value={form.tagLine || ""}
                   onChange={(e) => setForm({ ...form, tagLine: e.target.value })}
-                  className="h-11 rounded-xl border-gray-200 focus-visible:ring-blue-600"
+                  className="h-11 rounded-xl border-border focus-visible:ring-blue-600"
                   placeholder="e.g. Strength through community"
                 />
               </div>
@@ -230,7 +230,7 @@ export default function Settings() {
                 <Input
                   value={form.email || ""}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  className="h-11 rounded-xl border-gray-200 focus-visible:ring-blue-600"
+                  className="h-11 rounded-xl border-border focus-visible:ring-blue-600"
                   placeholder="support@gym.com"
                 />
               </div>
@@ -239,7 +239,7 @@ export default function Settings() {
                 <Input
                   value={form.phone || ""}
                   onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                  className="h-11 rounded-xl border-gray-200 focus-visible:ring-blue-600"
+                  className="h-11 rounded-xl border-border focus-visible:ring-blue-600"
                   placeholder="+1 (555) 000-0000"
                 />
               </div>
@@ -249,7 +249,7 @@ export default function Settings() {
               <Input
                 value={form.address || ""}
                 onChange={(e) => setForm({ ...form, address: e.target.value })}
-                className="h-11 rounded-xl border-gray-200 focus-visible:ring-blue-600"
+                className="h-11 rounded-xl border-border focus-visible:ring-blue-600"
                 placeholder="123 Fitness St, Muscle City"
               />
             </div>
@@ -260,13 +260,13 @@ export default function Settings() {
                   value={form.logo || ""}
                   onChange={(e) => setForm({ ...form, logo: e.target.value })}
                   placeholder="Logo URL"
-                  className="h-11 rounded-xl border-gray-200 text-xs"
+                  className="h-11 rounded-xl border-border text-xs"
                 />
                 <Input
                   value={form.favicon || ""}
                   onChange={(e) => setForm({ ...form, favicon: e.target.value })}
                   placeholder="Favicon URL"
-                  className="h-11 rounded-xl border-gray-200 text-xs"
+                  className="h-11 rounded-xl border-border text-xs"
                 />
               </div>
             </div>
@@ -275,7 +275,7 @@ export default function Settings() {
               <Textarea
                 value={form.description || ""}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
-                className="min-h-[120px] rounded-xl border-gray-200 focus-visible:ring-blue-600 py-3"
+                className="min-h-[120px] rounded-xl border-border focus-visible:ring-blue-600 py-3"
                 placeholder="Write a brief overview of your gym's mission and facilities..."
               />
             </div>
@@ -284,7 +284,7 @@ export default function Settings() {
 
         {/* Side Panel: Notifications & Alerts */}
         <section className="lg:col-span-4 space-y-4">
-          <div className="rounded-2xl border border-gray-200 bg-white p-6">
+          <div className="rounded-2xl border border-border bg-card p-6">
             <div className="mb-6">
               <h2 className="m3-title-md">System Alerts</h2>
               <p className="text-xs text-muted-foreground">Configure global triggers for admin staff.</p>
@@ -313,8 +313,8 @@ export default function Settings() {
                 />
               </div>
 
-              <div className="pt-4 border-t border-gray-100">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Event Notifications</p>
+              <div className="pt-4 border-t border-border">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3">Event Notifications</p>
                 <div className="space-y-3">
                   {[
                     ["newMemberNotification", "New Member Signup"],
@@ -325,11 +325,11 @@ export default function Settings() {
                     ["newAttendanceNotification", "Check-in Events"],
                   ].map(([key, label]) => (
                     <div key={key} className="flex items-center justify-between group">
-                      <span className="text-xs font-medium text-gray-700 group-hover:text-gray-900 transition-colors">{label}</span>
+                      <span className="text-xs font-medium text-foreground group-hover:text-foreground transition-colors">{label}</span>
                       <Checkbox
                         checked={Boolean((form as any)[key])}
                         onCheckedChange={(value) => setForm({ ...form, [key]: Boolean(value) } as any)}
-                        className="rounded-md border-gray-300"
+                        className="rounded-md border-border"
                       />
                     </div>
                   ))}
@@ -340,7 +340,7 @@ export default function Settings() {
         </section>
 
         {/* Operating Hours */}
-        <section className="lg:col-span-8 rounded-2xl border border-gray-200 bg-white p-6">
+        <section className="lg:col-span-8 rounded-2xl border border-border bg-card p-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
             <div>
               <h2 className="m3-title-md">Standard Schedule</h2>
@@ -354,9 +354,9 @@ export default function Settings() {
             {hours.map((h, idx) => (
               <div key={h.dayOfWeek} className={cn(
                 "flex flex-wrap items-center gap-4 p-3 rounded-2xl transition-all",
-                h.isClosed ? "bg-gray-50 border border-dashed border-gray-200 grayscale" : "bg-white border border-gray-100 shadow-sm"
+                h.isClosed ? "bg-muted border border-dashed border-border grayscale" : "bg-card border border-border shadow-sm"
               )}>
-                <div className="w-24 text-sm font-bold text-gray-900">{days[idx]}</div>
+                <div className="w-24 text-sm font-bold text-foreground">{days[idx]}</div>
                 <div className="flex-1 flex gap-2 items-center">
                   <div className="relative group">
                     <TimePicker
@@ -367,10 +367,10 @@ export default function Settings() {
                         next[idx] = { ...next[idx], openTime: value };
                         setHours(next);
                       }}
-                      className="h-9 w-28 rounded-lg border-gray-200 text-xs font-semibold"
+                      className="h-9 w-28 rounded-lg border-border text-xs font-semibold"
                     />
                   </div>
-                  <span className="text-gray-300">→</span>
+                  <span className="text-muted-foreground/70">→</span>
                   <div className="relative group">
                     <TimePicker
                       value={h.closeTime}
@@ -382,11 +382,11 @@ export default function Settings() {
                         next[idx] = { ...next[idx], closeTime: value };
                         setHours(next);
                       }}
-                      className="h-9 w-28 rounded-lg border-gray-200 text-xs font-semibold"
+                      className="h-9 w-28 rounded-lg border-border text-xs font-semibold"
                     />
                   </div>
                 </div>
-                <div className="ml-auto flex items-center gap-2 px-3 py-1.5 rounded-xl border border-gray-100 bg-white shadow-sm hover:border-blue-200 transition-all cursor-pointer">
+                <div className="ml-auto flex items-center gap-2 px-3 py-1.5 rounded-xl border border-border bg-card shadow-sm hover:border-blue-200 transition-all cursor-pointer">
                   <Checkbox
                     checked={h.isClosed}
                     onCheckedChange={(value) => {
@@ -394,9 +394,9 @@ export default function Settings() {
                       next[idx] = { ...next[idx], isClosed: Boolean(value) };
                       setHours(next);
                     }}
-                    className="rounded-md border-gray-300"
+                    className="rounded-md border-border"
                   />
-                  <span className="text-[10px] font-bold uppercase tracking-tight text-gray-500">CLOSED</span>
+                  <span className="text-[10px] font-bold uppercase tracking-tight text-muted-foreground">CLOSED</span>
                 </div>
               </div>
             ))}
@@ -404,14 +404,14 @@ export default function Settings() {
         </section>
 
         {/* Seasonal Closures */}
-        <section className="lg:col-span-4 rounded-2xl border border-gray-200 bg-white p-6">
+        <section className="lg:col-span-4 rounded-2xl border border-border bg-card p-6">
           <div className="mb-6">
             <h2 className="m3-title-md">Staff Holidays</h2>
             <p className="text-xs text-muted-foreground">Plan facility closures and temporary schedule changes.</p>
           </div>
           <div className="space-y-4">
             <div className="space-y-1.5">
-              <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Effective Date</Label>
+              <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Effective Date</Label>
               <GoogleDateTimePicker
                 value={newClosure.date}
                 onChange={(value) => setNewClosure({ ...newClosure, date: value })}
@@ -419,11 +419,11 @@ export default function Settings() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Description</Label>
+              <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Description</Label>
               <Input
                 value={newClosure.reason}
                 onChange={(e) => setNewClosure({ ...newClosure, reason: e.target.value })}
-                className="h-10 rounded-xl border-gray-200 text-xs"
+                className="h-10 rounded-xl border-border text-xs"
                 placeholder="e.g. New Year's Day"
               />
             </div>
@@ -431,25 +431,25 @@ export default function Settings() {
               Schedule Holiday
             </Button>
 
-            <div className="pt-6 border-t border-gray-100">
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Planned Closures</p>
+            <div className="pt-6 border-t border-border">
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3">Planned Closures</p>
               {closures.length === 0 ? (
-                <div className="py-8 text-center bg-gray-50 rounded-2xl border border-dashed border-gray-200">
-                  <p className="text-[11px] text-gray-400 font-medium">No holidays scheduled.</p>
+                <div className="py-8 text-center bg-muted rounded-2xl border border-dashed border-border">
+                  <p className="text-[11px] text-muted-foreground font-medium">No holidays scheduled.</p>
                 </div>
               ) : (
                 <div className="space-y-2">
                   {closures.map((c) => (
-                    <div key={c.id} className="group flex items-center justify-between p-3 rounded-2xl bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all">
+                    <div key={c.id} className="group flex items-center justify-between p-3 rounded-2xl bg-card border border-border shadow-sm hover:shadow-md transition-all">
                       <div className="flex flex-col">
-                        <p className="text-xs font-bold text-gray-900">{new Date(c.date).toLocaleDateString()}</p>
-                        <p className="text-[10px] text-gray-500 truncate max-w-[120px]">{c.reason || "General Closure"}</p>
+                        <p className="text-xs font-bold text-foreground">{new Date(c.date).toLocaleDateString()}</p>
+                        <p className="text-[10px] text-muted-foreground truncate max-w-[120px]">{c.reason || "General Closure"}</p>
                       </div>
                       <Button 
                         variant="ghost" 
                         size="icon" 
                         onClick={() => removeClosure(c.id)}
-                        className="h-8 w-8 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg"
+                        className="h-8 w-8 text-muted-foreground/70 hover:text-red-500 hover:bg-red-50 rounded-lg"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>

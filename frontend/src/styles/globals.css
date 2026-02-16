@@ -99,6 +99,32 @@
   button {
     @apply transition-all duration-200 active:scale-[0.98];
   }
+
+  /* Global clickable affordance */
+  a[href],
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  [data-clickable="true"] {
+    cursor: pointer;
+  }
+
+  a[href],
+  [role="button"]:not([aria-disabled="true"]),
+  [data-clickable="true"] {
+    transition: transform 0.2s ease, opacity 0.2s ease;
+  }
+
+  a[href]:hover,
+  [role="button"]:not([aria-disabled="true"]):hover,
+  [data-clickable="true"]:hover {
+    transform: translateY(-1px);
+  }
+
+  a[href]:active,
+  [role="button"]:not([aria-disabled="true"]):active,
+  [data-clickable="true"]:active {
+    transform: translateY(0) scale(0.99);
+  }
 }
 
 @layer utilities {
@@ -140,6 +166,54 @@
   .btn-google-outline {
     @apply border border-border bg-transparent px-6 py-2.5 rounded-full font-medium hover:bg-secondary transition-colors;
   }
+
+  /* Global compatibility layer:
+     Remap legacy hardcoded utility colors to theme tokens so the app
+     keeps a consistent design without rewriting every file immediately. */
+  .bg-white { background-color: hsl(var(--card)) !important; }
+  .text-white { color: hsl(var(--primary-foreground)) !important; }
+
+  .bg-gray-50 { background-color: hsl(var(--muted)) !important; }
+  .bg-gray-100 { background-color: color-mix(in srgb, hsl(var(--muted)) 80%, hsl(var(--background))) !important; }
+  .bg-gray-200 { background-color: hsl(var(--border)) !important; }
+
+  .border-gray-50,
+  .border-gray-100,
+  .border-gray-200,
+  .border-gray-300 { border-color: hsl(var(--border)) !important; }
+
+  .text-gray-900,
+  .text-gray-800,
+  .text-gray-700,
+  .text-gray-600 { color: hsl(var(--foreground)) !important; }
+  .text-gray-500,
+  .text-gray-400 { color: hsl(var(--muted-foreground)) !important; }
+  .text-gray-300 { color: color-mix(in srgb, hsl(var(--muted-foreground)) 60%, hsl(var(--background))) !important; }
+
+  .bg-blue-50 { background-color: hsl(var(--accent)) !important; }
+  .bg-blue-100 { background-color: color-mix(in srgb, hsl(var(--primary)) 16%, hsl(var(--background))) !important; }
+  .bg-blue-500,
+  .bg-blue-600 { background-color: hsl(var(--primary)) !important; }
+  .bg-blue-700 { background-color: color-mix(in srgb, hsl(var(--primary)) 85%, black) !important; }
+
+  .text-blue-100 { color: color-mix(in srgb, hsl(var(--primary)) 20%, white) !important; }
+  .text-blue-600,
+  .text-blue-700 { color: hsl(var(--primary)) !important; }
+  .text-blue-800 { color: color-mix(in srgb, hsl(var(--primary)) 80%, black) !important; }
+
+  .border-blue-100,
+  .border-blue-200,
+  .border-blue-300,
+  .border-blue-400,
+  .border-blue-600 { border-color: color-mix(in srgb, hsl(var(--primary)) 40%, hsl(var(--border))) !important; }
+
+  .from-blue-500 { --tw-gradient-from: hsl(var(--primary)) var(--tw-gradient-from-position) !important; }
+  .to-cyan-400 { --tw-gradient-to: color-mix(in srgb, hsl(var(--primary)) 70%, cyan) var(--tw-gradient-to-position) !important; }
+
+  .hover\:bg-gray-50:hover { background-color: hsl(var(--muted)) !important; }
+  .hover\:bg-gray-100:hover { background-color: color-mix(in srgb, hsl(var(--muted)) 80%, hsl(var(--background))) !important; }
+  .hover\:bg-blue-50:hover { background-color: hsl(var(--accent)) !important; }
+  .hover\:text-blue-600:hover { color: hsl(var(--primary)) !important; }
 }
 
 /* Scrollbar styling (Chrome/Safari) */

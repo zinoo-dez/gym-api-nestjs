@@ -137,7 +137,7 @@ const RetentionDashboard = () => {
   return (
     <div className="space-y-4">
       {/* Header section */}
-      <section className="rounded-2xl border border-gray-200 bg-white p-4">
+      <section className="rounded-2xl border border-border bg-card p-4">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <h1 className="m3-title-md">Retention Dashboard</h1>
@@ -171,7 +171,7 @@ const RetentionDashboard = () => {
       </div>
 
       {/* Main Content: Risk List */}
-      <section className="rounded-2xl border border-gray-200 bg-white p-5">
+      <section className="rounded-2xl border border-border bg-card p-5">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div>
             <h2 className="m3-title-md">Member Risk Profile</h2>
@@ -188,19 +188,19 @@ const RetentionDashboard = () => {
           </div>
           <div className="flex flex-col sm:flex-row gap-2">
             <div className="relative group">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-blue-600 transition-colors" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-blue-600 transition-colors" />
               <Input
                 placeholder="Search name or email..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-10 h-10 w-full sm:w-64 rounded-xl border-gray-200 focus-visible:ring-blue-600"
+                className="pl-10 h-10 w-full sm:w-64 rounded-xl border-border focus-visible:ring-blue-600"
               />
             </div>
             <Select value={riskLevel} onValueChange={(v) => setRiskLevel(v as any)}>
               <SelectTrigger className="h-10 w-full sm:w-40 rounded-xl border-border focus:ring-primary m3-label !text-[11px]">
                 <SelectValue placeholder="All Risks" />
               </SelectTrigger>
-              <SelectContent className="rounded-xl border-gray-200">
+              <SelectContent className="rounded-xl border-border">
                 <SelectItem value="all" className="rounded-lg">All Risks</SelectItem>
                 <SelectItem value="HIGH" className="rounded-lg">Critical Risk</SelectItem>
                 <SelectItem value="MEDIUM" className="rounded-lg">At Risk</SelectItem>
@@ -208,7 +208,7 @@ const RetentionDashboard = () => {
               </SelectContent>
             </Select>
             <div className="relative">
-              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-3 w-3 text-gray-400" />
+              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
               <Input
                 type="number"
                 min={0}
@@ -216,7 +216,7 @@ const RetentionDashboard = () => {
                 placeholder="Score"
                 value={minScore}
                 onChange={(e) => setMinScore(e.target.value)}
-                className="pl-8 h-10 w-full sm:w-28 rounded-xl border-gray-200 text-xs font-mono focus-visible:ring-blue-600"
+                className="pl-8 h-10 w-full sm:w-28 rounded-xl border-border text-xs font-mono focus-visible:ring-blue-600"
               />
             </div>
           </div>
@@ -240,22 +240,22 @@ const RetentionDashboard = () => {
                   <td colSpan={6} className="py-20 text-center">
                     <div className="flex flex-col items-center">
                       <RefreshCcw className="h-8 w-8 text-blue-200 animate-spin mb-4" />
-                      <p className="text-gray-400 text-xs font-medium italic">Analyzing member behavior...</p>
+                      <p className="text-muted-foreground text-xs font-medium italic">Analyzing member behavior...</p>
                     </div>
                   </td>
                 </tr>
               ) : members.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-20 text-center text-gray-400">
+                  <td colSpan={6} className="py-20 text-center text-muted-foreground">
                     <p className="font-medium italic">No member risk profiles match these filters.</p>
                   </td>
                 </tr>
               ) : (
                 members.map((member) => (
-                  <tr key={member.memberId} className="group hover:bg-gray-50/50 transition-colors">
+                  <tr key={member.memberId} className="group hover:bg-muted/50 transition-colors">
                     <td className="px-5 py-4">
-                      <div className="font-bold text-gray-900">{member.fullName}</div>
-                      <div className="text-[10px] font-mono text-gray-400 mt-0.5">{member.email}</div>
+                      <div className="font-bold text-foreground">{member.fullName}</div>
+                      <div className="text-[10px] font-mono text-muted-foreground mt-0.5">{member.email}</div>
                     </td>
                     <td className="px-2 py-4">
                       {riskBadge(member.riskLevel)}
@@ -271,8 +271,8 @@ const RetentionDashboard = () => {
                       </div>
                     </td>
                     <td className="px-2 py-4 text-center">
-                      <span className="text-xs font-medium text-gray-600">
-                        {member.daysSinceCheckIn ?? "-"} <span className="text-[10px] text-gray-400 uppercase tracking-tighter">days</span>
+                      <span className="text-xs font-medium text-foreground">
+                        {member.daysSinceCheckIn ?? "-"} <span className="text-[10px] text-muted-foreground uppercase tracking-tighter">days</span>
                       </span>
                     </td>
                     <td className="px-2 py-4 text-center">
@@ -281,19 +281,19 @@ const RetentionDashboard = () => {
                           {member.unpaidPendingCount}
                         </div>
                       ) : (
-                        <span className="text-gray-300">—</span>
+                        <span className="text-muted-foreground/70">—</span>
                       )}
                     </td>
                     <td className="px-5 py-4 text-right hidden lg:table-cell">
                       <div className="flex flex-wrap justify-end gap-1">
                         {member.reasons.length > 0 ? (
                           member.reasons.map((reason, idx) => (
-                            <Badge key={idx} variant="outline" className="h-5 rounded-md text-[9px] font-medium border-gray-100 bg-gray-50 text-gray-500 max-w-[120px] truncate">
+                            <Badge key={idx} variant="outline" className="h-5 rounded-md text-[9px] font-medium border-border bg-muted text-muted-foreground max-w-[120px] truncate">
                               {reason}
                             </Badge>
                           ))
                         ) : (
-                          <span className="text-gray-300 italic text-[10px]">No anomalies</span>
+                          <span className="text-muted-foreground/70 italic text-[10px]">No anomalies</span>
                         )}
                       </div>
                     </td>

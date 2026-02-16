@@ -187,13 +187,42 @@ const Discounts = () => {
     }
   };
 
+  const copyCode = async (code: string) => {
+    try {
+      await navigator.clipboard.writeText(code);
+      toast.success(`Code copied: ${code}`);
+    } catch {
+      toast.error("Failed to copy code.");
+    }
+  };
+
+  const shareCode = async (discount: DiscountCode) => {
+    const text = `Use discount code ${discount.code} for ${
+      discount.type === "PERCENTAGE" ? `${discount.amount}% off` : `$${discount.amount} off`
+    }.`;
+
+    if (typeof navigator !== "undefined" && navigator.share) {
+      try {
+        await navigator.share({
+          title: `Discount code: ${discount.code}`,
+          text,
+        });
+        return;
+      } catch {
+        // Ignore and fallback to clipboard copy below.
+      }
+    }
+
+    await copyCode(discount.code);
+  };
+
   return (
     <div className="space-y-4">
-      <section className="rounded-2xl border border-gray-200 bg-white p-4">
+      <section className="rounded-2xl border border-border bg-card p-4">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-sm font-semibold text-gray-900">Promotions & Discounts</p>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm font-semibold text-foreground">Promotions & Discounts</p>
+            <p className="text-sm text-muted-foreground">
               Manage promotional codes, seasonal discounts, and membership referral incentives.
             </p>
           </div>
@@ -204,26 +233,26 @@ const Discounts = () => {
         </div>
       </section>
 
-      <section className="rounded-2xl border border-gray-200 bg-white p-5">
+      <section className="rounded-2xl border border-border bg-card p-5">
         <div className="flex flex-wrap items-center justify-between gap-4 mb-5">
           <div className="flex flex-col gap-2">
-            <p className="text-sm font-semibold text-gray-900">Active Campaign Codes</p>
-            <p className="text-xs text-gray-500">Track redemptions and campaign effectiveness</p>
+            <p className="text-sm font-semibold text-foreground">Active Campaign Codes</p>
+            <p className="text-xs text-muted-foreground">Track redemptions and campaign effectiveness</p>
           </div>
           <div className="relative w-full lg:w-80">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search by code (e.g. SUMMER24)..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 h-10 rounded-xl border-gray-200"
+              className="pl-9 h-10 rounded-xl border-border"
             />
           </div>
         </div>
 
         <div className="overflow-x-auto -mx-5">
           <table className="min-w-full text-sm">
-            <thead className="bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500">
+            <thead className="bg-muted text-left text-xs uppercase tracking-wide text-muted-foreground">
               <tr>
                 <th className="px-5 py-3 font-medium text-center">Code</th>
                 <th className="px-5 py-3 font-medium">Type</th>
@@ -238,13 +267,13 @@ const Discounts = () => {
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan={8} className="px-5 py-10 text-center text-gray-500 font-medium">
+                  <td colSpan={8} className="px-5 py-10 text-center text-muted-foreground font-medium">
                     Loading promotional campaigns...
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-5 py-10 text-center text-gray-500 font-medium">
+                  <td colSpan={8} className="px-5 py-10 text-center text-muted-foreground font-medium">
                     No discount codes found.
                   </td>
                 </tr>
@@ -255,37 +284,45 @@ const Discounts = () => {
                   const statusLabel = !d.isActive ? "Inactive" : isExpired ? "Expired" : isExhausted ? "Sold Out" : "Active";
                   
                   let statusClass = "bg-emerald-100 text-emerald-700";
-                  if (!d.isActive) statusClass = "bg-gray-100 text-gray-700";
+                  if (!d.isActive) statusClass = "bg-muted/80 text-foreground";
                   else if (isExpired) statusClass = "bg-red-100 text-red-700";
                   else if (isExhausted) statusClass = "bg-amber-100 text-amber-700";
 
                   return (
-                    <tr key={d.id} className="border-t border-gray-100 hover:bg-gray-50/50 transition-colors">
+                    <tr key={d.id} className="border-t border-border hover:bg-muted/50 transition-colors">
                       <td className="px-5 py-4 text-center">
-                        <code className="bg-blue-50 px-2.5 py-1 rounded-lg text-xs font-bold text-blue-700 border border-blue-100">
-                          {d.code}
-                        </code>
+                        <button
+                          type="button"
+                          onClick={() => shareCode(d)}
+                          title="Click to share or copy this discount code"
+                          aria-label={`Share or copy discount code ${d.code}`}
+                          className="inline-flex cursor-pointer rounded-lg transition-all duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:opacity-95 active:translate-y-0 active:scale-100 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                        >
+                          <code className="bg-blue-50 px-2.5 py-1 rounded-lg text-xs font-bold text-blue-700 border border-blue-100">
+                            {d.code}
+                          </code>
+                        </button>
                       </td>
-                      <td className="px-5 py-4 text-gray-600 font-medium">
+                      <td className="px-5 py-4 text-foreground font-medium">
                         {d.type === "PERCENTAGE" ? "Percentage" : "Fixed Amount"}
                       </td>
                       <td className="px-5 py-4">
                         <div className="flex flex-col leading-tight">
-                          <span className="font-bold text-gray-900">
+                          <span className="font-bold text-foreground">
                             {d.type === "PERCENTAGE" ? `${d.amount}% OFF` : `$${d.amount} OFF`}
                           </span>
-                          <span className="text-[10px] text-gray-400 capitalize">{d.type.toLowerCase()} discount</span>
+                          <span className="text-[10px] text-muted-foreground capitalize">{d.type.toLowerCase()} discount</span>
                         </div>
                       </td>
                       <td className="px-5 py-4 hidden md:table-cell">
-                        <div className="flex flex-col text-[11px] text-gray-500">
+                        <div className="flex flex-col text-[11px] text-muted-foreground">
                           <span>FS: {d.startsAt ? new Date(d.startsAt).toLocaleDateString() : "Immediate"}</span>
                           <span className={cn(isExpired && "text-red-500 font-medium")}>
                             TO: {d.endsAt ? new Date(d.endsAt).toLocaleDateString() : "Indefinite"}
                           </span>
                         </div>
                       </td>
-                      <td className="px-5 py-4 hidden md:table-cell text-center font-medium text-gray-600">
+                      <td className="px-5 py-4 hidden md:table-cell text-center font-medium text-foreground">
                         {d.maxRedemptions ?? "∞"}
                       </td>
                       <td className="px-5 py-4 text-center">
@@ -295,8 +332,8 @@ const Discounts = () => {
                       </td>
                       <td className="px-5 py-4 hidden lg:table-cell text-center">
                         <div className="flex flex-col">
-                          <span className="font-bold text-gray-900">{d.usedCount}</span>
-                          <span className="text-[10px] text-gray-400">Claims</span>
+                          <span className="font-bold text-foreground">{d.usedCount}</span>
+                          <span className="text-[10px] text-muted-foreground">Claims</span>
                         </div>
                       </td>
                       <td className="px-5 py-4 text-right">
@@ -310,24 +347,24 @@ const Discounts = () => {
                           >
                             <span className="text-[10px] font-bold uppercase">{d.isActive ? "Off" : "On"}</span>
                           </Button>
-                          <Button variant="ghost" size="icon" onClick={() => openEdit(d)} className="h-8 w-8 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg">
+                          <Button variant="ghost" size="icon" onClick={() => openEdit(d)} className="h-8 w-8 text-muted-foreground hover:text-blue-600 hover:bg-blue-50 rounded-lg">
                             <Pencil className="h-3.5 w-3.5" />
                           </Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg">
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-red-600 hover:bg-red-50 rounded-lg">
                                 <Trash2 className="h-4 w-4" />
                               </Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent className="rounded-2xl border-none shadow-2xl">
                               <AlertDialogHeader>
-                                <AlertDialogTitle className="text-gray-900">Delete Promotion</AlertDialogTitle>
-                                <AlertDialogDescription className="text-gray-500">
+                                <AlertDialogTitle className="text-foreground">Delete Promotion</AlertDialogTitle>
+                                <AlertDialogDescription className="text-muted-foreground">
                                   Are you sure you want to delete the code <strong>{d.code}</strong>? Past redemptions will still be visible in reports.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
-                                <AlertDialogCancel className="rounded-xl border-gray-200">Cancel</AlertDialogCancel>
+                                <AlertDialogCancel className="rounded-xl border-border">Cancel</AlertDialogCancel>
                                 <AlertDialogAction onClick={() => handleDelete(d.id)} className="rounded-xl bg-red-600 hover:bg-red-700">
                                   Confirm Delete
                                 </AlertDialogAction>
@@ -348,27 +385,27 @@ const Discounts = () => {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="rounded-2xl border-none shadow-2xl max-w-lg">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-gray-900">{editing ? "Modify Campaign Code" : "Design Promotional Offer"}</DialogTitle>
-            <p className="text-sm text-gray-500">Define the discount structure, lifecycle, and redemption limits.</p>
+            <DialogTitle className="text-2xl font-bold text-foreground">{editing ? "Modify Campaign Code" : "Design Promotional Offer"}</DialogTitle>
+            <p className="text-sm text-muted-foreground">Define the discount structure, lifecycle, and redemption limits.</p>
           </DialogHeader>
           <div className="space-y-6 mt-6">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Unique Code</Label>
+                <Label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Unique Code</Label>
                 <Input
                   value={form.code}
                   onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })}
-                  className="h-11 rounded-xl border-gray-200 font-mono font-bold text-blue-600"
+                  className="h-11 rounded-xl border-border font-mono font-bold text-blue-600"
                   placeholder="e.g. SAVE50"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Internal Status</Label>
+                <Label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Internal Status</Label>
                 <Select
                   value={form.isActive ? "active" : "inactive"}
                   onValueChange={(value) => setForm({ ...form, isActive: value === "active" })}
                 >
-                  <SelectTrigger className="h-11 rounded-xl border-gray-200">
+                  <SelectTrigger className="h-11 rounded-xl border-border">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl border-none shadow-xl">
@@ -380,23 +417,23 @@ const Discounts = () => {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Description</Label>
+              <Label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Description</Label>
               <Input
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
-                className="h-11 rounded-xl border-gray-200"
+                className="h-11 rounded-xl border-border"
                 placeholder="e.g. 10% off for new member annual signups"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Calculation Type</Label>
+                <Label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Calculation Type</Label>
                 <Select
                   value={form.type}
                   onValueChange={(value) => setForm({ ...form, type: value as DiscountType })}
                 >
-                  <SelectTrigger className="h-11 rounded-xl border-gray-200">
+                  <SelectTrigger className="h-11 rounded-xl border-border">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl border-none shadow-xl">
@@ -406,20 +443,20 @@ const Discounts = () => {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Benefit Amount</Label>
+                <Label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Benefit Amount</Label>
                 <Input
                   type="number"
                   min="0"
                   value={form.amount}
                   onChange={(e) => setForm({ ...form, amount: e.target.value })}
-                  className="h-11 rounded-xl border-gray-200 font-bold"
+                  className="h-11 rounded-xl border-border font-bold"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Rollout Date</Label>
+                <Label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Rollout Date</Label>
                 <GoogleDateTimePicker
                   value={form.startsAt}
                   onChange={(value) => setForm({ ...form, startsAt: value })}
@@ -427,7 +464,7 @@ const Discounts = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Expiry Date</Label>
+                <Label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Expiry Date</Label>
                 <GoogleDateTimePicker
                   value={form.endsAt}
                   onChange={(value) => setForm({ ...form, endsAt: value })}
@@ -437,19 +474,19 @@ const Discounts = () => {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Maximum Redemptions</Label>
+              <Label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Maximum Redemptions</Label>
               <Input
                 type="number"
                 min="0"
                 value={form.maxRedemptions}
                 onChange={(e) => setForm({ ...form, maxRedemptions: e.target.value })}
-                className="h-11 rounded-xl border-gray-200"
+                className="h-11 rounded-xl border-border"
                 placeholder="Leave empty for unlimited"
               />
             </div>
 
             <div className="flex gap-3 pt-4">
-              <Button onClick={() => setDialogOpen(false)} variant="ghost" className="flex-1 h-12 rounded-xl text-gray-500 font-semibold">
+              <Button onClick={() => setDialogOpen(false)} variant="ghost" className="flex-1 h-12 rounded-xl text-muted-foreground font-semibold">
                 Cancel
               </Button>
               <Button onClick={handleSave} className="flex-[2] h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-lg shadow-blue-100 uppercase tracking-wider">

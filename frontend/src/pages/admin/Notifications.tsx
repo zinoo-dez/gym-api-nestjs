@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Check, Trash2, Bell, Search, Filter, CheckCircle2, MessageSquare, AlertTriangle, XCircle, MoreVertical, Send } from "lucide-react";
+import { Plus, Check, Trash2, Bell, Search, Filter, CheckCircle2, MessageSquare, AlertTriangle, XCircle, Send, RefreshCcw, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -112,27 +112,14 @@ const Notifications = () => {
     }
   };
 
-  const typeColor = (t: string) => {
-    switch (t) {
-      case "error":
-        return "bg-destructive";
-      case "warning":
-        return "bg-yellow-500";
-      case "success":
-        return "bg-primary";
-      default:
-        return "bg-blue-500";
-    }
-  };
-
   return (
     <div className="space-y-4">
       {/* Header section */}
-      <section className="rounded-2xl border border-gray-200 bg-white p-4">
+      <section className="rounded-2xl border border-border bg-card p-4">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-sm font-semibold text-gray-900">Notification Command Center</p>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm font-semibold text-foreground">Notification Command Center</p>
+            <p className="text-sm text-muted-foreground">
               Broadcast system-wide alerts, manage staff messages, and monitor audit signals.
             </p>
           </div>
@@ -140,7 +127,7 @@ const Notifications = () => {
             <Button 
               variant="outline" 
               onClick={markAllRead}
-              className="h-10 rounded-xl border-gray-200 font-bold font-mono text-xs hover:bg-gray-50"
+              className="h-10 rounded-xl border-border font-bold font-mono text-xs hover:bg-muted"
             >
               <CheckCircle2 className="h-4 w-4 mr-2" />
               Squelch All Unread
@@ -158,25 +145,25 @@ const Notifications = () => {
 
       {/* Metrics & Search Bar */}
       <div className="flex flex-col md:flex-row gap-4">
-        <section className="flex-1 rounded-2xl border border-gray-200 bg-white p-3 flex items-center gap-3">
+        <section className="flex-1 rounded-2xl border border-border bg-card p-3 flex items-center gap-3">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              className="h-11 pl-10 rounded-xl border-none bg-gray-50/50 focus:ring-blue-600 font-medium placeholder:text-gray-400"
+              className="h-11 pl-10 rounded-xl border-none bg-muted/50 focus:ring-blue-600 font-medium placeholder:text-muted-foreground"
               placeholder="Query alerts by title, message, or target role..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          <Button variant="outline" className="h-11 rounded-xl border-gray-100 text-gray-500">
+          <Button variant="outline" className="h-11 rounded-xl border-border text-muted-foreground">
             <Filter className="h-4 w-4 mr-2" />
             Filter
           </Button>
         </section>
         
         <div className="flex gap-4">
-          <div className="px-5 py-3 rounded-2xl border border-gray-200 bg-white flex flex-col justify-center min-w-[140px]">
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Pending</p>
+          <div className="px-5 py-3 rounded-2xl border border-border bg-card flex flex-col justify-center min-w-[140px]">
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Pending</p>
             <p className="text-xl font-bold text-blue-600 font-mono">{unreadCount}</p>
           </div>
         </div>
@@ -185,14 +172,14 @@ const Notifications = () => {
       {/* Notification Stream */}
       <div className="grid gap-3">
         {isLoading ? (
-          <div className="py-20 text-center rounded-2xl border-2 border-dashed border-gray-100 bg-white/50">
+          <div className="py-20 text-center rounded-2xl border-2 border-dashed border-border bg-card/50">
             <RefreshCcw className="h-12 w-12 mb-3 mx-auto text-blue-100 animate-spin" />
-            <p className="font-medium text-gray-400">Synchronizing alert stream...</p>
+            <p className="font-medium text-muted-foreground">Synchronizing alert stream...</p>
           </div>
         ) : filtered.length === 0 ? (
-          <div className="py-20 text-center rounded-2xl border-2 border-dashed border-gray-100 bg-white/50">
-            <Bell className="h-12 w-12 mb-3 mx-auto text-gray-100" />
-            <p className="font-medium text-gray-400">The transmission log is currently quiet.</p>
+          <div className="py-20 text-center rounded-2xl border-2 border-dashed border-border bg-card/50">
+            <Bell className="h-12 w-12 mb-3 mx-auto text-muted-foreground/70" />
+            <p className="font-medium text-muted-foreground">The transmission log is currently quiet.</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -200,8 +187,8 @@ const Notifications = () => {
               <Card 
                 key={n.id} 
                 className={cn(
-                  "overflow-hidden border-gray-200 transition-all shadow-none rounded-2xl",
-                  !n.read ? "bg-white border-l-4 border-l-blue-600" : "bg-gray-50/50 opacity-70"
+                  "overflow-hidden border-border transition-all shadow-none rounded-2xl",
+                  !n.read ? "bg-card border-l-4 border-l-blue-600" : "bg-muted/50 opacity-70"
                 )}
               >
                 <CardContent className="p-0">
@@ -221,20 +208,20 @@ const Notifications = () => {
                     
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <h4 className="font-bold text-gray-900 text-sm truncate">{n.title}</h4>
+                        <h4 className="font-bold text-foreground text-sm truncate">{n.title}</h4>
                         {!n.read && (
                           <span className="h-2 w-2 rounded-full bg-blue-600 animate-pulse" />
                         )}
                         {n.role && (
-                          <Badge variant="outline" className="h-5 rounded-md border-gray-200 bg-gray-50 text-gray-500 font-bold text-[9px] uppercase tracking-tight">
+                          <Badge variant="outline" className="h-5 rounded-md border-border bg-muted text-muted-foreground font-bold text-[9px] uppercase tracking-tight">
                             {n.role}
                           </Badge>
                         )}
                       </div>
-                      <p className="text-sm text-gray-500 leading-relaxed font-medium">
+                      <p className="text-sm text-muted-foreground leading-relaxed font-medium">
                         {n.message}
                       </p>
-                      <div className="flex items-center gap-3 mt-2 text-[10px] font-medium text-gray-400">
+                      <div className="flex items-center gap-3 mt-2 text-[10px] font-medium text-muted-foreground">
                         <div className="flex items-center gap-1">
                           <Clock className="h-3 w-3" />
                           <span>{new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
@@ -250,7 +237,7 @@ const Notifications = () => {
                           variant="ghost" 
                           size="icon" 
                           onClick={() => markRead(n.id)}
-                          className="h-10 w-10 rounded-xl text-gray-400 hover:text-blue-600 hover:bg-blue-50"
+                          className="h-10 w-10 rounded-xl text-muted-foreground hover:text-blue-600 hover:bg-blue-50"
                         >
                           <Check className="h-5 w-5" />
                         </Button>
@@ -259,7 +246,7 @@ const Notifications = () => {
                         variant="ghost" 
                         size="icon" 
                         onClick={() => deleteNotification(n.id)}
-                        className="h-10 w-10 rounded-xl text-gray-400 hover:text-red-600 hover:bg-red-50"
+                        className="h-10 w-10 rounded-xl text-muted-foreground hover:text-red-600 hover:bg-red-50"
                       >
                         <Trash2 className="h-5 w-5" />
                       </Button>
@@ -276,7 +263,7 @@ const Notifications = () => {
         <DialogContent className="max-w-xl rounded-2xl border-none shadow-2xl p-0 overflow-hidden">
           <div className="bg-blue-600 p-6 text-white">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-white/20">
+              <div className="p-2 rounded-xl bg-card/20">
                 <Send className="h-5 w-5 text-white" />
               </div>
               <div>
@@ -291,9 +278,9 @@ const Notifications = () => {
           <ScrollArea className="max-h-[80vh]">
             <div className="p-6 space-y-5">
               <div className="space-y-2">
-                <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Alert Headline</Label>
+                <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Alert Headline</Label>
                 <Input 
-                  className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium"
+                  className="h-12 rounded-xl border-border bg-muted/50 focus:ring-blue-600 font-medium"
                   placeholder="Summarize the core message..."
                   value={form.title} 
                   onChange={(e) => setForm({ ...form, title: e.target.value })} 
@@ -301,9 +288,9 @@ const Notifications = () => {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Detailed Payload</Label>
+                <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Detailed Payload</Label>
                 <Textarea 
-                  className="min-h-[120px] rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium"
+                  className="min-h-[120px] rounded-xl border-border bg-muted/50 focus:ring-blue-600 font-medium"
                   placeholder="What do the recipients need to know?"
                   value={form.message} 
                   onChange={(e) => setForm({ ...form, message: e.target.value })} 
@@ -312,9 +299,9 @@ const Notifications = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Urgency Tier</Label>
+                  <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Urgency Tier</Label>
                   <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v })}>
-                    <SelectTrigger className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-bold text-xs uppercase tracking-tight">
+                    <SelectTrigger className="h-12 rounded-xl border-border bg-muted/50 focus:ring-blue-600 font-bold text-xs uppercase tracking-tight">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl">
@@ -327,9 +314,9 @@ const Notifications = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Recipient Pool</Label>
+                  <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Recipient Pool</Label>
                   <Select value={form.targetRole} onValueChange={(v) => setForm({ ...form, targetRole: v })}>
-                    <SelectTrigger className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-bold text-xs uppercase tracking-tight">
+                    <SelectTrigger className="h-12 rounded-xl border-border bg-muted/50 focus:ring-blue-600 font-bold text-xs uppercase tracking-tight">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl">
@@ -344,9 +331,9 @@ const Notifications = () => {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Action Link Reference (Optional)</Label>
+                <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Action Link Reference (Optional)</Label>
                 <Input 
-                  className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-mono text-xs"
+                  className="h-12 rounded-xl border-border bg-muted/50 focus:ring-blue-600 font-mono text-xs"
                   placeholder="/admin/audit/log-ref-123"
                   value={form.actionUrl} 
                   onChange={(e) => setForm({ ...form, actionUrl: e.target.value })} 
@@ -356,7 +343,7 @@ const Notifications = () => {
               <div className="pt-4 flex gap-3">
                 <Button 
                   variant="outline" 
-                  className="flex-1 h-12 rounded-xl border-gray-200 font-bold text-gray-500"
+                  className="flex-1 h-12 rounded-xl border-border font-bold text-muted-foreground"
                   onClick={() => setDialogOpen(false)}
                 >
                   Cancel

@@ -63,7 +63,7 @@ const Recovery = () => {
   return (
     <div className="space-y-4">
       {/* Header section */}
-      <section className="rounded-2xl border border-gray-200 bg-white p-4">
+      <section className="rounded-2xl border border-border bg-card p-4">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <h1 className="m3-title-md">Recovery Queue</h1>
@@ -88,7 +88,7 @@ const Recovery = () => {
               variant="outline" 
               onClick={loadQueue} 
               disabled={isLoading}
-              className="h-10 rounded-xl border-gray-200 font-bold font-mono text-xs hover:bg-gray-50"
+              className="h-10 rounded-xl border-border font-bold font-mono text-xs hover:bg-muted"
             >
               <RefreshCcw className={cn("h-4 w-4 mr-2", isLoading && "animate-spin")} />
               Sync Queue
@@ -121,7 +121,7 @@ const Recovery = () => {
 
       <div className="grid gap-4 xl:grid-cols-12">
         {/* Expiring Memberships */}
-        <section className="xl:col-span-12 rounded-2xl border border-gray-200 bg-white p-5">
+        <section className="xl:col-span-12 rounded-2xl border border-border bg-card p-5">
           <div className="flex items-center gap-3 mb-6">
             <div className="p-2 rounded-xl bg-orange-50">
               <Calendar className="h-5 w-5 text-orange-600" />
@@ -151,21 +151,21 @@ const Recovery = () => {
                   </tr>
                 ) : (queue?.expiringSoon ?? []).length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="py-20 text-center text-gray-400 italic">No forecast data available for this window.</td>
+                    <td colSpan={4} className="py-20 text-center text-muted-foreground italic">No forecast data available for this window.</td>
                   </tr>
                 ) : (
                   queue?.expiringSoon.map((item) => (
-                    <tr key={item.subscriptionId} className="group hover:bg-gray-50/50 transition-colors">
+                    <tr key={item.subscriptionId} className="group hover:bg-muted/50 transition-colors">
                       <td className="px-5 py-4">
-                        <div className="font-bold text-gray-900">{item.memberName}</div>
-                        <div className="text-[10px] font-mono text-gray-400 mt-0.5">{item.memberEmail}</div>
+                        <div className="font-bold text-foreground">{item.memberName}</div>
+                        <div className="text-[10px] font-mono text-muted-foreground mt-0.5">{item.memberEmail}</div>
                       </td>
                       <td className="px-2 py-4">
                         <Badge variant="outline" className="rounded-lg bg-blue-50/50 border-blue-100 text-blue-600 text-[10px] font-bold uppercase tracking-tight">
                           {item.planName}
                         </Badge>
                       </td>
-                      <td className="px-2 py-4 font-medium text-gray-600">
+                      <td className="px-2 py-4 font-medium text-foreground">
                         {new Date(item.endDate).toLocaleDateString(undefined, { dateStyle: 'medium' })}
                       </td>
                       <td className="px-5 py-4 text-right">
@@ -185,7 +185,7 @@ const Recovery = () => {
         </section>
 
         {/* Failed Payment Recovery */}
-        <section className="xl:col-span-12 rounded-2xl border border-gray-200 bg-white p-6">
+        <section className="xl:col-span-12 rounded-2xl border border-border bg-card p-6">
           <div className="flex items-center gap-3 mb-8">
             <div className="p-2 rounded-xl bg-red-50">
               <History className="h-5 w-5 text-red-600" />
@@ -199,7 +199,7 @@ const Recovery = () => {
           <div className="grid gap-6 md:grid-cols-2">
             {[...(queue?.pendingPayments ?? []), ...(queue?.rejectedPayments ?? [])].map(
               (item) => (
-                <div key={item.paymentId} className="relative overflow-hidden rounded-2xl border border-gray-100 bg-gray-50/30 p-5 hover:bg-white hover:border-blue-200 hover:shadow-xl hover:shadow-blue-50/50 transition-all group">
+                <div key={item.paymentId} className="relative overflow-hidden rounded-2xl border border-border bg-muted/30 p-5 hover:bg-card hover:border-blue-200 hover:shadow-xl hover:shadow-blue-50/50 transition-all group">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
                       <div className={cn(
@@ -209,8 +209,8 @@ const Recovery = () => {
                         <CreditCard className="h-5 w-5" />
                       </div>
                       <div>
-                        <p className="font-bold text-gray-900 leading-none mb-1.5">{item.memberName}</p>
-                        <p className="text-[10px] font-mono text-gray-400">{item.memberEmail}</p>
+                        <p className="font-bold text-foreground leading-none mb-1.5">{item.memberName}</p>
+                        <p className="text-[10px] font-mono text-muted-foreground">{item.memberEmail}</p>
                       </div>
                     </div>
                     <Badge className={cn(
@@ -222,22 +222,22 @@ const Recovery = () => {
                   </div>
 
                   <div className="mb-6">
-                    <div className="flex justify-between items-center mb-4 pb-4 border-b border-gray-100">
-                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Amount Due</span>
-                      <span className="text-lg font-bold font-mono text-gray-900">{item.amount.toLocaleString()} <span className="text-xs font-normal text-gray-400">{item.currency}</span></span>
+                    <div className="flex justify-between items-center mb-4 pb-4 border-b border-border">
+                      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Amount Due</span>
+                      <span className="text-lg font-bold font-mono text-foreground">{item.amount.toLocaleString()} <span className="text-xs font-normal text-muted-foreground">{item.currency}</span></span>
                     </div>
                     
                     <div className="space-y-2">
-                      <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Follow-up Communication</Label>
+                      <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Follow-up Communication</Label>
                       <div className="relative">
-                        <MessageSquareShare className="absolute left-3 top-3 h-4 w-4 text-gray-300 pointer-events-none" />
+                        <MessageSquareShare className="absolute left-3 top-3 h-4 w-4 text-muted-foreground/70 pointer-events-none" />
                         <Textarea
                           placeholder="Draft specialized recovery message or internal narrative..."
                           value={noteMap[item.paymentId] ?? ""}
                           onChange={(e) =>
                             setNoteMap((prev) => ({ ...prev, [item.paymentId]: e.target.value }))
                           }
-                          className="min-h-[100px] pl-10 rounded-xl border-gray-100 bg-white text-xs py-3 focus-visible:ring-blue-600 placeholder:text-gray-300"
+                          className="min-h-[100px] pl-10 rounded-xl border-border bg-card text-xs py-3 focus-visible:ring-blue-600 placeholder:text-muted-foreground/70"
                         />
                       </div>
                     </div>
@@ -254,7 +254,7 @@ const Recovery = () => {
                     {item.status === "REJECTED" && (
                       <Button 
                         variant="outline" 
-                        className="h-10 rounded-xl border-gray-200 text-gray-700 font-bold hover:bg-gray-50 flex items-center gap-2"
+                        className="h-10 rounded-xl border-border text-foreground font-bold hover:bg-muted flex items-center gap-2"
                         onClick={() => sendFollowUp(item, true)}
                       >
                         <RefreshCcw className="h-4 w-4" />
@@ -268,9 +268,9 @@ const Recovery = () => {
           </div>
           
           {(!queue || (queue.pendingPayments.length === 0 && queue.rejectedPayments.length === 0)) && (
-            <div className="py-20 text-center rounded-2xl border-2 border-dashed border-gray-100">
-              <History className="h-12 w-12 mb-3 mx-auto text-gray-100" />
-              <p className="font-medium text-gray-400">Zero recovery items pending intervention.</p>
+            <div className="py-20 text-center rounded-2xl border-2 border-dashed border-border">
+              <History className="h-12 w-12 mb-3 mx-auto text-muted-foreground/70" />
+              <p className="font-medium text-muted-foreground">Zero recovery items pending intervention.</p>
             </div>
           )}
         </section>

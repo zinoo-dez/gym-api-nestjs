@@ -236,16 +236,16 @@ const MembershipPlans = () => {
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
         {isLoading ? (
-          <div className="md:col-span-2 xl:col-span-3 rounded-2xl border border-gray-200 bg-white p-12 text-center text-gray-500">
+          <div className="md:col-span-2 xl:col-span-3 rounded-2xl border border-border bg-card p-12 text-center text-muted-foreground">
             Loading membership plans...
           </div>
         ) : plans.length === 0 ? (
-          <div className="md:col-span-2 xl:col-span-3 rounded-2xl border border-gray-200 bg-white p-12 text-center text-gray-500">
+          <div className="md:col-span-2 xl:col-span-3 rounded-2xl border border-border bg-card p-12 text-center text-muted-foreground">
             No plans found. Start by creating a new membership tier.
           </div>
         ) : (
           plans.map((plan) => (
-            <div key={plan.id} className="group relative rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:shadow-md hover:border-blue-200">
+            <div key={plan.id} className="group relative rounded-2xl border border-border bg-card p-6 shadow-sm transition-all hover:shadow-md hover:border-blue-200">
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <h3 className="m3-title-md !text-lg transition-colors group-hover:text-primary">{plan.name}</h3>
@@ -260,7 +260,7 @@ const MembershipPlans = () => {
               </div>
               
               {plan.description && (
-                <p className="text-sm text-gray-500 mb-6 line-clamp-2 min-h-[40px]">
+                <p className="text-sm text-muted-foreground mb-6 line-clamp-2 min-h-[40px]">
                   {plan.description}
                 </p>
               )}
@@ -269,7 +269,7 @@ const MembershipPlans = () => {
                 <Label className="m3-label">Core Features</Label>
                 <ul className="space-y-2.5">
                   {plan.features.slice(0, 5).map((feature, i) => (
-                    <li key={i} className="flex items-center gap-2.5 text-sm font-medium text-gray-700">
+                    <li key={i} className="flex items-center gap-2.5 text-sm font-medium text-foreground">
                       <div className="rounded-full bg-emerald-50 p-0.5 text-emerald-600">
                         <Check className="h-3 w-3" />
                       </div>
@@ -277,14 +277,14 @@ const MembershipPlans = () => {
                     </li>
                   ))}
                   {plan.features.length > 5 && (
-                    <li className="text-xs text-gray-400 font-medium pl-6">
+                    <li className="text-xs text-muted-foreground font-medium pl-6">
                       + {plan.features.length - 5} more features
                     </li>
                   )}
                 </ul>
               </div>
 
-              <div className="flex gap-2 pt-4 border-t border-gray-50">
+              <div className="flex gap-2 pt-4 border-t border-border">
                 <Button
                   variant="ghost"
                   size="sm"
@@ -296,19 +296,19 @@ const MembershipPlans = () => {
                 </Button>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl text-gray-400 hover:text-red-600 hover:bg-red-50">
+                    <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl text-muted-foreground hover:text-red-600 hover:bg-red-50">
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent className="rounded-2xl border-none shadow-2xl">
                     <AlertDialogHeader>
-                      <AlertDialogTitle className="text-gray-900">Delete Membership Plan</AlertDialogTitle>
-                      <AlertDialogDescription className="text-gray-500">
+                      <AlertDialogTitle className="text-foreground">Delete Membership Plan</AlertDialogTitle>
+                      <AlertDialogDescription className="text-muted-foreground">
                         Are you sure you want to delete the "{plan.name}" plan? This action cannot be undone and may affect active subscriptions.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogCancel className="rounded-xl border-gray-200">Cancel</AlertDialogCancel>
+                      <AlertDialogCancel className="rounded-xl border-border">Cancel</AlertDialogCancel>
                       <AlertDialogAction onClick={() => handleDelete(plan.id)} className="rounded-xl bg-red-600 hover:bg-red-700">
                         Delete Plan
                       </AlertDialogAction>
@@ -324,84 +324,84 @@ const MembershipPlans = () => {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-h-[90vh] overflow-y-auto max-w-3xl rounded-2xl border-none shadow-2xl">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-gray-900">{editing ? "Update Plan Configuration" : "Design New Membership tier"}</DialogTitle>
-            <p className="text-sm text-gray-500">Set pricing, duration, and feature permissions for this membership.</p>
+            <DialogTitle className="text-2xl font-bold text-foreground">{editing ? "Update Plan Configuration" : "Design New Membership tier"}</DialogTitle>
+            <p className="text-sm text-muted-foreground">Set pricing, duration, and feature permissions for this membership.</p>
           </DialogHeader>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Plan Name</Label>
+                <Label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Plan Name</Label>
                 <Input
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className="h-11 rounded-xl border-gray-200"
+                  className="h-11 rounded-xl border-border"
                   placeholder="e.g. Platinum Annual"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Public Description</Label>
+                <Label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Public Description</Label>
                 <Input
                   value={form.description}
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
-                  className="h-11 rounded-xl border-gray-200"
+                  className="h-11 rounded-xl border-border"
                   placeholder="Summary of benefits..."
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Price ($)</Label>
+                  <Label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Price ($)</Label>
                   <Input
                     type="number"
                     min="0"
                     value={form.price}
                     onChange={(e) => setForm({ ...form, price: e.target.value })}
-                    className="h-11 rounded-xl border-gray-200"
+                    className="h-11 rounded-xl border-border"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Duration (Days)</Label>
+                  <Label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Duration (Days)</Label>
                   <Input
                     type="number"
                     min="1"
                     value={form.durationDays}
                     onChange={(e) => setForm({ ...form, durationDays: e.target.value })}
-                    className="h-11 rounded-xl border-gray-200"
+                    className="h-11 rounded-xl border-border"
                   />
                 </div>
               </div>
-              <div className="space-y-4 p-4 rounded-2xl bg-gray-50 border border-gray-100">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Toggle Perks</p>
+              <div className="space-y-4 p-4 rounded-2xl bg-muted border border-border">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2">Toggle Perks</p>
                 <div className="grid grid-cols-1 gap-3">
                   <div className="flex items-center justify-between p-1">
-                    <Label className="text-sm font-medium text-gray-700">Unlimited Classes</Label>
+                    <Label className="text-sm font-medium text-foreground">Unlimited Classes</Label>
                     <Checkbox
                       checked={form.unlimitedClasses}
                       onCheckedChange={(value) => setForm({ ...form, unlimitedClasses: Boolean(value) })}
-                      className="rounded-md border-gray-300"
+                      className="rounded-md border-border"
                     />
                   </div>
                   <div className="flex items-center justify-between p-1">
-                    <Label className="text-sm font-medium text-gray-700">Equipment Access</Label>
+                    <Label className="text-sm font-medium text-foreground">Equipment Access</Label>
                     <Checkbox
                       checked={form.accessToEquipment}
                       onCheckedChange={(value) => setForm({ ...form, accessToEquipment: Boolean(value) })}
-                      className="rounded-md border-gray-300"
+                      className="rounded-md border-border"
                     />
                   </div>
                   <div className="flex items-center justify-between p-1">
-                    <Label className="text-sm font-medium text-gray-700">Locker Access</Label>
+                    <Label className="text-sm font-medium text-foreground">Locker Access</Label>
                     <Checkbox
                       checked={form.accessToLocker}
                       onCheckedChange={(value) => setForm({ ...form, accessToLocker: Boolean(value) })}
-                      className="rounded-md border-gray-300"
+                      className="rounded-md border-border"
                     />
                   </div>
                   <div className="flex items-center justify-between p-1">
-                    <Label className="text-sm font-medium text-gray-700">Nutrition Consultation</Label>
+                    <Label className="text-sm font-medium text-foreground">Nutrition Consultation</Label>
                     <Checkbox
                       checked={form.nutritionConsultation}
                       onCheckedChange={(value) => setForm({ ...form, nutritionConsultation: Boolean(value) })}
-                      className="rounded-md border-gray-300"
+                      className="rounded-md border-border"
                     />
                   </div>
                 </div>
@@ -409,10 +409,10 @@ const MembershipPlans = () => {
             </div>
 
             <div className="space-y-4">
-              <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Enhanced Features & Access levels</Label>
+              <Label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Enhanced Features & Access levels</Label>
               {featureRows.length === 0 ? (
-                <div className="rounded-2xl border-2 border-dashed border-gray-100 p-8 text-center">
-                  <p className="text-sm text-gray-400">No system features defined.</p>
+                <div className="rounded-2xl border-2 border-dashed border-border p-8 text-center">
+                  <p className="text-sm text-muted-foreground">No system features defined.</p>
                 </div>
               ) : (
                 <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
@@ -421,26 +421,26 @@ const MembershipPlans = () => {
                       key={feature.id}
                       className={cn(
                         "rounded-2xl border p-4 transition-all",
-                        feature.selected ? "border-blue-200 bg-blue-50/30 ring-1 ring-blue-100" : "border-gray-100 bg-white"
+                        feature.selected ? "border-blue-200 bg-blue-50/30 ring-1 ring-blue-100" : "border-border bg-card"
                       )}
                     >
                       <div className="flex items-start gap-3">
                         <Checkbox
                           checked={feature.selected}
                           onCheckedChange={() => toggleFeature(feature.id)}
-                          className="mt-1 rounded-md border-gray-300"
+                          className="mt-1 rounded-md border-border"
                         />
                         <div className="flex-1 space-y-2">
                           <div className="flex items-center gap-2">
-                            <span className="text-sm font-bold text-gray-900">{feature.name}</span>
-                            {feature.isSystem && <span className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded font-bold uppercase tracking-tighter">System</span>}
+                            <span className="text-sm font-bold text-foreground">{feature.name}</span>
+                            {feature.isSystem && <span className="text-[10px] bg-muted/80 text-muted-foreground px-1.5 py-0.5 rounded font-bold uppercase tracking-tighter">System</span>}
                           </div>
                           {feature.selected && (
                             <Select
                               value={feature.level}
                               onValueChange={(value) => updateFeatureLevel(feature.id, value as FeatureLevel)}
                             >
-                              <SelectTrigger className="h-8 w-full rounded-lg bg-white border-blue-200 text-xs font-semibold text-blue-700">
+                              <SelectTrigger className="h-8 w-full rounded-lg bg-card border-blue-200 text-xs font-semibold text-blue-700">
                                 <SelectValue placeholder="Access Level" />
                               </SelectTrigger>
                               <SelectContent className="rounded-xl border-none shadow-xl">
@@ -459,7 +459,7 @@ const MembershipPlans = () => {
             </div>
           </div>
           <div className="flex gap-3 mt-8">
-            <Button onClick={() => setDialogOpen(false)} variant="ghost" className="flex-1 h-12 rounded-xl text-gray-500 font-semibold">
+            <Button onClick={() => setDialogOpen(false)} variant="ghost" className="flex-1 h-12 rounded-xl text-muted-foreground font-semibold">
               Cancel
             </Button>
             <Button onClick={handleSave} className="flex-[2] h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-lg shadow-blue-100">

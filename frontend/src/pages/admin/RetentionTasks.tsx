@@ -106,7 +106,7 @@ const RetentionTasks = () => {
     }
     if (status === "DISMISSED") {
       return (
-        <Badge className="rounded-lg bg-gray-100 text-gray-500 border-none px-2 py-0.5 text-[10px] font-bold uppercase tracking-tight w-fit">
+        <Badge className="rounded-lg bg-muted/80 text-muted-foreground border-none px-2 py-0.5 text-[10px] font-bold uppercase tracking-tight w-fit">
           Dismissed
         </Badge>
       );
@@ -135,7 +135,7 @@ const RetentionTasks = () => {
   return (
     <div className="space-y-4">
       {/* Header section */}
-      <section className="rounded-2xl border border-gray-200 bg-white p-4">
+      <section className="rounded-2xl border border-border bg-card p-4">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <h1 className="m3-title-md">Retention Follow-up Queue</h1>
@@ -156,7 +156,7 @@ const RetentionTasks = () => {
       </section>
 
       {/* Filters & Table Section */}
-      <section className="rounded-2xl border border-gray-200 bg-white p-5">
+      <section className="rounded-2xl border border-border bg-card p-5">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-xl bg-orange-50">
@@ -176,7 +176,7 @@ const RetentionTasks = () => {
               <SelectTrigger className="h-10 w-full sm:w-44 rounded-xl border-border focus:ring-primary m3-label !text-[11px]">
                 <SelectValue placeholder="All Statuses" />
               </SelectTrigger>
-              <SelectContent className="rounded-xl border-gray-200">
+              <SelectContent className="rounded-xl border-border">
                 <SelectItem value="all" className="rounded-lg">All Statuses</SelectItem>
                 <SelectItem value="OPEN" className="rounded-lg">Open Only</SelectItem>
                 <SelectItem value="IN_PROGRESS" className="rounded-lg">In Progress</SelectItem>
@@ -188,10 +188,10 @@ const RetentionTasks = () => {
               value={priorityFilter}
               onValueChange={(value) => setPriorityFilter(value as "all" | "1" | "2" | "3")}
             >
-              <SelectTrigger className="h-10 w-full sm:w-40 rounded-xl border-gray-200 focus:ring-blue-600 text-xs font-bold uppercase tracking-tight">
+              <SelectTrigger className="h-10 w-full sm:w-40 rounded-xl border-border focus:ring-blue-600 text-xs font-bold uppercase tracking-tight">
                 <SelectValue placeholder="Priority All" />
               </SelectTrigger>
-              <SelectContent className="rounded-xl border-gray-200">
+              <SelectContent className="rounded-xl border-border">
                 <SelectItem value="all" className="rounded-lg">Priority All</SelectItem>
                 <SelectItem value="1" className="rounded-lg">P1 - Critical</SelectItem>
                 <SelectItem value="2" className="rounded-lg">P2 - High</SelectItem>
@@ -220,25 +220,25 @@ const RetentionTasks = () => {
                   <td colSpan={7} className="py-20 text-center">
                     <div className="flex flex-col items-center">
                       <RefreshCcw className="h-8 w-8 text-orange-200 animate-spin mb-4" />
-                      <p className="text-gray-400 text-xs font-medium italic">Assembling task queue...</p>
+                      <p className="text-muted-foreground text-xs font-medium italic">Assembling task queue...</p>
                     </div>
                   </td>
                 </tr>
               ) : tasks.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-20 text-center text-gray-400">
+                  <td colSpan={7} className="py-20 text-center text-muted-foreground">
                     <p className="font-medium italic">No retention tasks currently pending your intervention.</p>
                   </td>
                 </tr>
               ) : (
                 tasks.map((task) => (
-                  <tr key={task.id} className="group hover:bg-gray-50/50 transition-colors">
+                  <tr key={task.id} className="group hover:bg-muted/50 transition-colors">
                     <td className="px-5 py-4">
-                      <div className="font-bold text-gray-900">{task.memberName}</div>
-                      <div className="text-[10px] font-mono text-gray-400 mt-0.5">{task.memberEmail}</div>
+                      <div className="font-bold text-foreground">{task.memberName}</div>
+                      <div className="text-[10px] font-mono text-muted-foreground mt-0.5">{task.memberEmail}</div>
                     </td>
                     <td className="px-2 py-4">
-                      <div className="font-medium text-gray-700 max-w-[180px] break-words line-clamp-2 leading-relaxed">
+                      <div className="font-medium text-foreground max-w-[180px] break-words line-clamp-2 leading-relaxed">
                         {task.title}
                       </div>
                     </td>
@@ -254,10 +254,10 @@ const RetentionTasks = () => {
                             }))
                           }
                         >
-                          <SelectTrigger className="h-8 w-28 rounded-lg border-gray-100 bg-white text-[10px] font-bold uppercase tracking-tighter focus:ring-blue-600">
+                          <SelectTrigger className="h-8 w-28 rounded-lg border-border bg-card text-[10px] font-bold uppercase tracking-tighter focus:ring-blue-600">
                             <SelectValue />
                           </SelectTrigger>
-                          <SelectContent className="rounded-xl border-gray-200">
+                          <SelectContent className="rounded-xl border-border">
                             <SelectItem value="OPEN" className="text-[10px] font-bold uppercase">OPEN</SelectItem>
                             <SelectItem value="IN_PROGRESS" className="text-[10px] font-bold uppercase">IN_PROGRESS</SelectItem>
                             <SelectItem value="DONE" className="text-[10px] font-bold uppercase">DONE</SelectItem>
@@ -270,8 +270,8 @@ const RetentionTasks = () => {
                       {priorityBadge(task.priority)}
                     </td>
                     <td className="px-2 py-4 hidden lg:table-cell">
-                      <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-500 uppercase tracking-tight">
-                        <Calendar className="h-3 w-3 text-gray-300" />
+                      <div className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-tight">
+                        <Calendar className="h-3 w-3 text-muted-foreground/70" />
                         {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : "No Deadline"}
                       </div>
                     </td>
@@ -282,7 +282,7 @@ const RetentionTasks = () => {
                           setDraftNotes((prev) => ({ ...prev, [task.id]: e.target.value }))
                         }
                         placeholder="Resolution narrative..."
-                        className="h-9 w-48 rounded-lg border-gray-100 text-xs focus-visible:ring-blue-600 bg-white placeholder:text-gray-300"
+                        className="h-9 w-48 rounded-lg border-border text-xs focus-visible:ring-blue-600 bg-card placeholder:text-muted-foreground/70"
                       />
                     </td>
                     <td className="px-5 py-4 text-right">

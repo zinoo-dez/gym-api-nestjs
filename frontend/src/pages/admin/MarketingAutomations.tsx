@@ -152,7 +152,7 @@ const MarketingAutomations = () => {
   return (
     <div className="space-y-4">
       {/* Header section */}
-      <section className="rounded-2xl border border-gray-200 bg-white p-4">
+      <section className="rounded-2xl border border-border bg-card p-4">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <h1 className="m3-title-md">Automation Engine</h1>
@@ -165,7 +165,7 @@ const MarketingAutomations = () => {
               variant="outline" 
               onClick={loadData} 
               disabled={loading}
-              className="h-10 rounded-xl border-gray-200 font-bold font-mono text-xs hover:bg-gray-50"
+              className="h-10 rounded-xl border-border font-bold font-mono text-xs hover:bg-muted"
             >
               <RefreshCcw className={cn("h-4 w-4 mr-2", loading && "animate-spin")} />
               Sync Engine
@@ -173,7 +173,7 @@ const MarketingAutomations = () => {
             <Button 
               variant="outline" 
               onClick={runAutomations}
-              className="h-10 rounded-xl border-gray-200 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 font-bold font-mono text-xs"
+              className="h-10 rounded-xl border-border text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 font-bold font-mono text-xs"
             >
               <PlayCircle className="h-4 w-4 mr-2" />
               Pulse Run
@@ -192,19 +192,19 @@ const MarketingAutomations = () => {
       {/* Rules Grid */}
       <div className="grid gap-4">
         {loading ? (
-          <div className="py-20 text-center rounded-2xl border-2 border-dashed border-gray-100 bg-white/50">
+          <div className="py-20 text-center rounded-2xl border-2 border-dashed border-border bg-card/50">
             <RefreshCcw className="h-12 w-12 mb-3 mx-auto text-blue-100 animate-spin" />
-            <p className="font-medium text-gray-400">Loading automation registers...</p>
+            <p className="font-medium text-muted-foreground">Loading automation registers...</p>
           </div>
         ) : automations.length === 0 ? (
-          <div className="py-20 text-center rounded-2xl border-2 border-dashed border-gray-100 bg-white/50">
-            <Zap className="h-12 w-12 mb-3 mx-auto text-gray-100" />
-            <p className="font-medium text-gray-400">No automation flows are currently active.</p>
+          <div className="py-20 text-center rounded-2xl border-2 border-dashed border-border bg-card/50">
+            <Zap className="h-12 w-12 mb-3 mx-auto text-muted-foreground/70" />
+            <p className="font-medium text-muted-foreground">No automation flows are currently active.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
             {automations.map((automation) => (
-              <Card key={automation.id} className="overflow-hidden border-gray-200 hover:border-blue-300 transition-colors shadow-none rounded-2xl bg-white">
+              <Card key={automation.id} className="overflow-hidden border-border hover:border-blue-300 transition-colors shadow-none rounded-2xl bg-card">
                 <CardContent className="p-0">
                   <div className="p-5 space-y-4">
                     <div className="flex items-start justify-between">
@@ -214,11 +214,11 @@ const MarketingAutomations = () => {
                           <Badge variant="outline" className="rounded-lg bg-blue-50 border-blue-100 text-blue-600 font-bold text-[10px] uppercase">
                             {automation.type}
                           </Badge>
-                          <Badge variant="outline" className="rounded-lg bg-gray-50 border-gray-100 text-gray-500 font-bold text-[10px] uppercase">
+                          <Badge variant="outline" className="rounded-lg bg-muted border-border text-muted-foreground font-bold text-[10px] uppercase">
                             {automation.channel}
                           </Badge>
                         </div>
-                        <p className="text-xs text-gray-500 line-clamp-1 italic">
+                        <p className="text-xs text-muted-foreground line-clamp-1 italic">
                           "{automation.content}"
                         </p>
                       </div>
@@ -230,7 +230,7 @@ const MarketingAutomations = () => {
                         />
                         <span className={cn(
                           "text-[9px] font-bold uppercase tracking-wider",
-                          automation.isActive ? "text-emerald-600" : "text-gray-400"
+                          automation.isActive ? "text-emerald-600" : "text-muted-foreground"
                         )}>
                           {automation.isActive ? "Online" : "Paused"}
                         </span>
@@ -238,16 +238,16 @@ const MarketingAutomations = () => {
                     </div>
 
                     <div className="grid grid-cols-2 gap-3 mt-2">
-                      <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
-                        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">Execution Metrics</p>
+                      <div className="bg-muted p-3 rounded-xl border border-border">
+                        <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Execution Metrics</p>
                         <div className="flex items-baseline gap-1">
-                          <span className="text-lg font-bold text-gray-900">324</span>
-                          <span className="text-[10px] text-gray-400">triggers</span>
+                          <span className="text-lg font-bold text-foreground">324</span>
+                          <span className="text-[10px] text-muted-foreground">triggers</span>
                         </div>
                       </div>
-                      <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
-                        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">Last Transmission</p>
-                        <div className="flex items-center gap-1.5 text-gray-600">
+                      <div className="bg-muted p-3 rounded-xl border border-border">
+                        <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Last Transmission</p>
+                        <div className="flex items-center gap-1.5 text-foreground">
                           <Clock className="h-3 w-3" />
                           <span className="text-[10px] font-bold">
                             {automation.lastRunAt ? new Date(automation.lastRunAt).toLocaleDateString() : "Pending"}
@@ -257,13 +257,13 @@ const MarketingAutomations = () => {
                     </div>
                   </div>
 
-                  <div className="bg-gray-50 px-5 py-3 flex items-center justify-between border-t border-gray-100">
+                  <div className="bg-muted px-5 py-3 flex items-center justify-between border-t border-border">
                     <div className="flex gap-2">
                       <Button 
                         size="sm" 
                         variant="ghost" 
                         onClick={() => openEditAutomation(automation)}
-                        className="h-8 rounded-lg text-gray-500 hover:text-blue-600 hover:bg-blue-50 text-xs font-bold"
+                        className="h-8 rounded-lg text-muted-foreground hover:text-blue-600 hover:bg-blue-50 text-xs font-bold"
                       >
                         <Settings className="h-3.5 w-3.5 mr-1.5" />
                         Configure
@@ -276,7 +276,7 @@ const MarketingAutomations = () => {
                           <span className="text-[10px] font-bold font-mono">FLOW ACTIVE</span>
                         </div>
                       ) : (
-                        <div className="flex items-center gap-1.5 text-gray-400">
+                        <div className="flex items-center gap-1.5 text-muted-foreground">
                           <Power className="h-3 w-3" />
                           <span className="text-[10px] font-bold font-mono">HIBERNATED</span>
                         </div>
@@ -316,7 +316,7 @@ const MarketingAutomations = () => {
                       }))
                     }
                   >
-                    <SelectTrigger className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium font-mono text-xs uppercase tracking-tight">
+                    <SelectTrigger className="h-12 rounded-xl border-border bg-muted/50 focus:ring-blue-600 font-medium font-mono text-xs uppercase tracking-tight">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl">
@@ -330,7 +330,7 @@ const MarketingAutomations = () => {
                 <div className="space-y-2">
                   <Label className="m3-label">Flow Label</Label>
                   <Input
-                    className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium placeholder:text-gray-300"
+                    className="h-12 rounded-xl border-border bg-muted/50 focus:ring-blue-600 font-medium placeholder:text-muted-foreground/70"
                     placeholder="e.g., Anniversary Celebration"
                     value={automationForm.name}
                     onChange={(event) =>
@@ -347,7 +347,7 @@ const MarketingAutomations = () => {
                       setAutomationForm((prev) => ({ ...prev, channel: value as NotificationType }))
                     }
                   >
-                    <SelectTrigger className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium font-mono text-xs uppercase tracking-tight">
+                    <SelectTrigger className="h-12 rounded-xl border-border bg-muted/50 focus:ring-blue-600 font-medium font-mono text-xs uppercase tracking-tight">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl">
@@ -369,7 +369,7 @@ const MarketingAutomations = () => {
                       }))
                     }
                   >
-                    <SelectTrigger className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium font-mono text-xs uppercase tracking-tight">
+                    <SelectTrigger className="h-12 rounded-xl border-border bg-muted/50 focus:ring-blue-600 font-medium font-mono text-xs uppercase tracking-tight">
                       <SelectValue placeholder="Select template" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl">
@@ -384,7 +384,7 @@ const MarketingAutomations = () => {
                 <div className="space-y-2 md:col-span-2">
                   <Label className="m3-label">Transmission Subject</Label>
                   <Input
-                    className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium placeholder:text-gray-300"
+                    className="h-12 rounded-xl border-border bg-muted/50 focus:ring-blue-600 font-medium placeholder:text-muted-foreground/70"
                     placeholder="Subject line for automation..."
                     value={automationForm.subject}
                     onChange={(event) =>
@@ -396,7 +396,7 @@ const MarketingAutomations = () => {
                 <div className="space-y-2 md:col-span-2">
                   <Label className="m3-label">Workflow Payload</Label>
                   <Textarea
-                    className="min-h-[120px] rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium leading-relaxed"
+                    className="min-h-[120px] rounded-xl border-border bg-muted/50 focus:ring-blue-600 font-medium leading-relaxed"
                     placeholder="The primary message for this automation flow..."
                     value={automationForm.content}
                     onChange={(event) =>
@@ -408,7 +408,7 @@ const MarketingAutomations = () => {
                 <div className="space-y-2">
                   <Label className="m3-label">Dormancy Threshold (Days)</Label>
                   <Input
-                    className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium font-mono"
+                    className="h-12 rounded-xl border-border bg-muted/50 focus:ring-blue-600 font-medium font-mono"
                     type="number"
                     min={1}
                     value={automationForm.inactiveDays}
@@ -421,7 +421,7 @@ const MarketingAutomations = () => {
                 <div className="space-y-2">
                   <Label className="m3-label">Linked Session ID</Label>
                   <Input
-                    className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium"
+                    className="h-12 rounded-xl border-border bg-muted/50 focus:ring-blue-600 font-medium"
                     placeholder="Optional UUID for class triggers"
                     value={automationForm.classId}
                     onChange={(event) =>
@@ -433,7 +433,7 @@ const MarketingAutomations = () => {
                 <div className="space-y-2 md:col-span-2">
                   <Label className="m3-label">Exclusive Value Proposition</Label>
                   <Input
-                    className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium placeholder:text-gray-300"
+                    className="h-12 rounded-xl border-border bg-muted/50 focus:ring-blue-600 font-medium placeholder:text-muted-foreground/70"
                     placeholder="e.g., RECOVER20 code"
                     value={automationForm.specialOffer}
                     onChange={(event) =>
@@ -446,7 +446,7 @@ const MarketingAutomations = () => {
               <div className="pt-4 flex gap-3">
                 <Button 
                   variant="outline" 
-                  className="flex-1 h-12 rounded-xl border-gray-200 font-bold text-gray-500"
+                  className="flex-1 h-12 rounded-xl border-border font-bold text-muted-foreground"
                   onClick={() => setAutomationOpen(false)}
                 >
                   Discard Flow

@@ -110,7 +110,7 @@ const Marketing = () => {
   return (
     <div className="space-y-4">
       {/* Header section */}
-      <section className="rounded-2xl border border-gray-200 bg-white p-4">
+      <section className="rounded-2xl border border-border bg-card p-4">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <h1 className="m3-title-md">Marketing Ecosystem</h1>
@@ -138,13 +138,13 @@ const Marketing = () => {
             <div 
               key={card.title}
               onClick={card.action}
-              className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-6 hover:border-blue-200 hover:shadow-xl hover:shadow-blue-50/50 transition-all cursor-pointer active:scale-95"
+              className="group relative overflow-hidden rounded-2xl border border-border bg-card p-6 hover:border-blue-200 hover:shadow-xl hover:shadow-blue-50/50 transition-all cursor-pointer active:scale-95"
             >
               <div className="flex items-start justify-between mb-4">
-                <div className="p-2.5 rounded-xl bg-gray-50 group-hover:bg-blue-50 text-gray-400 group-hover:text-blue-600 transition-colors">
+                <div className="p-2.5 rounded-xl bg-muted group-hover:bg-blue-50 text-muted-foreground group-hover:text-blue-600 transition-colors">
                   <Icon className="h-6 w-6" />
                 </div>
-                <ArrowRight className="h-4 w-4 text-gray-300 group-hover:text-blue-400 transform group-hover:translate-x-1 transition-all" />
+                <ArrowRight className="h-4 w-4 text-muted-foreground/70 group-hover:text-blue-400 transform group-hover:translate-x-1 transition-all" />
               </div>
               
               <div className="space-y-1">
@@ -170,7 +170,7 @@ const Marketing = () => {
       </div>
 
       {/* Campaign Statistics Group */}
-      <section className="rounded-2xl border border-gray-200 bg-white p-6">
+      <section className="rounded-2xl border border-border bg-card p-6">
         <div className="flex items-center gap-3 mb-8">
           <div className="p-2 rounded-xl bg-purple-50">
             <Sparkles className="h-5 w-5 text-purple-600" />
@@ -182,9 +182,9 @@ const Marketing = () => {
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <div className="p-4 rounded-xl bg-gray-50/50 border border-gray-100 flex items-center gap-4">
-            <div className="p-2 rounded-lg bg-white shadow-sm">
-              <Layers className="h-5 w-5 text-gray-400" />
+          <div className="p-4 rounded-xl bg-muted/50 border border-border flex items-center gap-4">
+            <div className="p-2 rounded-lg bg-card shadow-sm">
+              <Layers className="h-5 w-5 text-muted-foreground" />
             </div>
             <div>
               <p className="m3-label !text-[9px]">Drafts</p>
@@ -193,7 +193,7 @@ const Marketing = () => {
           </div>
 
           <div className="p-4 rounded-xl bg-orange-50/50 border border-orange-100 flex items-center gap-4">
-            <div className="p-2 rounded-lg bg-white shadow-sm">
+            <div className="p-2 rounded-lg bg-card shadow-sm">
               <Calendar className="h-5 w-5 text-orange-500" />
             </div>
             <div>
@@ -203,7 +203,7 @@ const Marketing = () => {
           </div>
 
           <div className="p-4 rounded-xl bg-emerald-50/50 border border-emerald-100 flex items-center gap-4">
-            <div className="p-2 rounded-lg bg-white shadow-sm">
+            <div className="p-2 rounded-lg bg-card shadow-sm">
               <Send className="h-5 w-5 text-emerald-500" />
             </div>
             <div>
@@ -213,7 +213,7 @@ const Marketing = () => {
           </div>
 
           <div className="p-4 rounded-xl bg-red-50/50 border border-red-100 flex items-center gap-4">
-            <div className="p-2 rounded-lg bg-white shadow-sm">
+            <div className="p-2 rounded-lg bg-card shadow-sm">
               <AlertCircle className="h-5 w-5 text-red-500" />
             </div>
             <div>
@@ -224,12 +224,12 @@ const Marketing = () => {
         </div>
 
         {/* Informational footer inside the section */}
-        <div className="mt-8 pt-6 border-t border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="mt-8 pt-6 border-t border-border flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="h-6 rounded-lg bg-blue-50 border-blue-100 text-blue-600 text-[10px] font-bold uppercase tracking-tight">
               Dynamic Auto-Sync
             </Badge>
-            <span className="text-[10px] text-gray-400 font-medium">Pipeline updates automatically every session reload.</span>
+            <span className="text-[10px] text-muted-foreground font-medium">Pipeline updates automatically every session reload.</span>
           </div>
           <Button 
             variant="ghost" 

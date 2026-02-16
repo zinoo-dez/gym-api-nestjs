@@ -208,13 +208,13 @@ export function GoogleDateTimePicker({
 
   return (
     <div className={cn("w-full", className)}>
-      {label && <p className="mb-1 text-xs font-medium text-gray-500">{label}</p>}
+      {label && <p className="mb-1 text-xs font-medium text-muted-foreground">{label}</p>}
 
       <Popover open={isOpen} onOpenChange={handleOpenChange}>
         <PopoverTrigger asChild>
           <button
             type="button"
-            className="flex h-11 w-full items-center justify-between rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-700 shadow-sm transition hover:border-blue-300 hover:bg-blue-50/40"
+            className="flex h-11 w-full items-center justify-between rounded-xl border border-border bg-card px-3 text-sm text-foreground shadow-sm transition hover:border-blue-300 hover:bg-blue-50/40"
           >
             <span className="truncate">{formatTriggerLabel(parsedValue, mode, placeholder)}</span>
             <CalendarDays className="h-4 w-4 text-blue-600" />
@@ -240,22 +240,22 @@ export function GoogleDateTimePicker({
                           (current) => new Date(current.getFullYear(), current.getMonth() - 1, 1),
                         )
                   }
-                  className="rounded-full p-1.5 text-gray-500 transition hover:bg-gray-100"
+                  className="rounded-full p-1.5 text-muted-foreground transition hover:bg-muted/80"
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </button>
-                <div className="flex items-center gap-1 text-sm font-semibold text-gray-800">
+                <div className="flex items-center gap-1 text-sm font-semibold text-foreground">
                   <button
                     type="button"
                     onClick={() => setCalendarView("months")}
-                    className="rounded-md px-1.5 py-0.5 transition hover:bg-gray-100"
+                    className="rounded-md px-1.5 py-0.5 transition hover:bg-muted/80"
                   >
                     {formatMonthLabel(viewDate)}
                   </button>
                   <button
                     type="button"
                     onClick={() => setCalendarView("years")}
-                    className="rounded-md px-1.5 py-0.5 transition hover:bg-gray-100"
+                    className="rounded-md px-1.5 py-0.5 transition hover:bg-muted/80"
                   >
                     {formatYearLabel(viewDate)}
                   </button>
@@ -269,7 +269,7 @@ export function GoogleDateTimePicker({
                           (current) => new Date(current.getFullYear(), current.getMonth() + 1, 1),
                         )
                   }
-                  className="rounded-full p-1.5 text-gray-500 transition hover:bg-gray-100"
+                  className="rounded-full p-1.5 text-muted-foreground transition hover:bg-muted/80"
                 >
                   <ChevronRight className="h-4 w-4" />
                 </button>
@@ -277,7 +277,7 @@ export function GoogleDateTimePicker({
 
               {calendarView === "days" && (
                 <>
-                  <div className="mb-2 grid grid-cols-7 text-center text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+                  <div className="mb-2 grid grid-cols-7 text-center text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
                     {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
                       <span key={day}>{day}</span>
                     ))}
@@ -299,8 +299,8 @@ export function GoogleDateTimePicker({
                           className={cn(
                             "h-9 w-9 rounded-full text-sm transition",
                             isSelected && "bg-blue-600 text-white",
-                            !isSelected && isCurrentMonth && "text-gray-700 hover:bg-blue-50",
-                            !isCurrentMonth && "text-gray-300 hover:bg-gray-100",
+                            !isSelected && isCurrentMonth && "text-foreground hover:bg-blue-50",
+                            !isCurrentMonth && "text-muted-foreground/70 hover:bg-muted/80",
                           )}
                         >
                           {day.getDate()}
@@ -327,7 +327,7 @@ export function GoogleDateTimePicker({
                           "h-9 rounded-lg px-2 text-sm transition",
                           isSelected
                             ? "bg-blue-600 text-white"
-                            : "text-gray-700 hover:bg-blue-50",
+                            : "text-foreground hover:bg-blue-50",
                         )}
                       >
                         {monthLabel}
@@ -351,7 +351,7 @@ export function GoogleDateTimePicker({
                           "h-9 rounded-lg px-2 text-sm transition",
                           isSelected
                             ? "bg-blue-600 text-white"
-                            : "text-gray-700 hover:bg-blue-50",
+                            : "text-foreground hover:bg-blue-50",
                         )}
                       >
                         {year}
@@ -365,10 +365,10 @@ export function GoogleDateTimePicker({
 
           {(mode === "time" || mode === "datetime") && (
             <div className="mt-3 grid grid-cols-2 gap-2">
-              <label className="text-xs font-medium text-gray-500">
+              <label className="text-xs font-medium text-muted-foreground">
                 Hour
                 <select
-                  className="mt-1 h-9 w-full rounded-lg border border-gray-200 bg-white px-2 text-sm text-gray-700 focus:border-blue-400 focus:outline-none"
+                  className="mt-1 h-9 w-full rounded-lg border border-border bg-card px-2 text-sm text-foreground focus:border-blue-400 focus:outline-none"
                   value={selectedDate.getHours()}
                   onChange={(event) => setHours(event.target.value)}
                 >
@@ -380,10 +380,10 @@ export function GoogleDateTimePicker({
                 </select>
               </label>
 
-              <label className="text-xs font-medium text-gray-500">
+              <label className="text-xs font-medium text-muted-foreground">
                 Minute
                 <select
-                  className="mt-1 h-9 w-full rounded-lg border border-gray-200 bg-white px-2 text-sm text-gray-700 focus:border-blue-400 focus:outline-none"
+                  className="mt-1 h-9 w-full rounded-lg border border-border bg-card px-2 text-sm text-foreground focus:border-blue-400 focus:outline-none"
                   value={selectedDate.getMinutes()}
                   onChange={(event) => setMinutes(event.target.value)}
                 >
@@ -397,7 +397,7 @@ export function GoogleDateTimePicker({
             </div>
           )}
 
-          <div className="mt-4 flex items-center justify-between border-t border-gray-100 pt-3">
+          <div className="mt-4 flex items-center justify-between border-t border-border pt-3">
             <button
               type="button"
               onClick={setToday}
@@ -410,7 +410,7 @@ export function GoogleDateTimePicker({
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
-                className="rounded-lg px-2.5 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100"
+                className="rounded-lg px-2.5 py-1.5 text-sm font-medium text-foreground hover:bg-muted/80"
               >
                 Cancel
               </button>

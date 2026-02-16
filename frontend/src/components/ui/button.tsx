@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "relative inline-flex items-center justify-center gap-2 whitespace-nowrap overflow-hidden rounded-full text-sm font-bold tracking-tight ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 active:scale-[0.98]",
+  "relative inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap overflow-hidden rounded-full text-sm font-bold tracking-tight ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 active:scale-[0.98]",
   {
     variants: {
       variant: {
@@ -48,10 +48,30 @@ interface Ripple {
   size: number;
 }
 
+const extractNodeText = (node: React.ReactNode): string => {
+  if (node === null || node === undefined || typeof node === "boolean") {
+    return "";
+  }
+  if (typeof node === "string" || typeof node === "number") {
+    return String(node);
+  }
+  if (Array.isArray(node)) {
+    return node.map(extractNodeText).join(" ");
+  }
+  if (React.isValidElement<{ children?: React.ReactNode }>(node)) {
+    return extractNodeText(node.props.children);
+  }
+  return "";
+};
+
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, onClick, disabled, ...props }, ref) => {
+  ({ className, variant, size, asChild = false, onClick, disabled, children, title, ...props }, ref) => {
     const [ripples, setRipples] = React.useState<Ripple[]>([]);
     const buttonRef = React.useRef<HTMLButtonElement | null>(null);
+    const autoTitle = title
+      ?? (typeof props["aria-label"] === "string" && props["aria-label"].trim()
+        ? props["aria-label"]
+        : extractNodeText(children).trim() || undefined);
 
     const setButtonRef = (node: HTMLButtonElement | null) => {
       buttonRef.current = node;
@@ -95,6 +115,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           className={cn(buttonVariants({ variant, size }), className)}
           ref={ref}
           aria-disabled={disabled}
+          title={autoTitle}
           {...props}
         />
       );
@@ -108,6 +129,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         className={cn(buttonVariants({ variant, size }), className)}
         ref={setButtonRef}
         disabled={disabled}
+        title={autoTitle}
         onClick={(event) => {
           spawnRipple(event);
           onClick?.(event);
@@ -127,7 +149,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             aria-hidden="true"
           />
         ))}
-        <span className="relative z-[1] inline-flex items-center justify-center gap-2">{props.children}</span>
+        <span className="relative z-[1] inline-flex items-center justify-center gap-2">{children}</span>
       </motion.button>
     );
   },
