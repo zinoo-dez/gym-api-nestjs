@@ -9,6 +9,7 @@ import {
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 import {
   Table,
   TableBody,
@@ -228,178 +229,263 @@ const Trainers = () => {
     }
   };
 
-  const statusColor = (isActive: boolean) =>
-    isActive ? "default" : "secondary";
+  const statusVariant = (isActive: boolean) => (isActive ? "emerald" : "amber");
 
   return (
-    <div className="m3-admin-page">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">Trainers</h1>
-          <p className="text-muted-foreground">{list.length} trainers</p>
+    <div className="space-y-4">
+      <section className="rounded-2xl border border-gray-200 bg-white p-4">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p className="text-sm font-semibold text-gray-900">Expert Trainers</p>
+            <p className="text-sm text-gray-500">
+              {list.length} certified professionals managing your gym's training programs.
+            </p>
+          </div>
+          <Button onClick={openAdd} className="bg-blue-600 hover:bg-blue-700">
+            <Plus className="h-4 w-4 mr-2" />
+            Add Trainer
+          </Button>
         </div>
-        <Button onClick={openAdd}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Trainer
-        </Button>
-      </div>
-      <Card>
-        <CardHeader>
-          <div className="relative max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+      </section>
+
+      <section className="rounded-2xl border border-gray-200 bg-white p-5">
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-5">
+          <div className="flex flex-col gap-2">
+            <p className="text-sm font-semibold text-gray-900">Trainer Directory</p>
+            <p className="text-xs text-gray-500">Search by name or specialization</p>
+          </div>
+          <div className="relative w-full lg:w-80">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
-              placeholder="Search trainers..."
+              placeholder="Search trainers, strength, yoga..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9"
+              className="pl-9 h-10 rounded-xl border-gray-200"
             />
           </div>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead className="hidden md:table-cell">
-                  Specialization
-                </TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="hidden lg:table-cell">Created</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+        </div>
+
+        <div className="overflow-x-auto -mx-5">
+          <table className="min-w-full text-sm">
+            <thead className="bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500">
+              <tr>
+                <th className="px-5 py-3 font-medium">Name</th>
+                <th className="px-5 py-3 font-medium hidden md:table-cell">Specialization</th>
+                <th className="px-5 py-3 font-medium text-center">Status</th>
+                <th className="px-5 py-3 font-medium hidden lg:table-cell">Member Since</th>
+                <th className="px-5 py-3 font-medium text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
               {isLoading ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={5}
-                    className="text-center text-muted-foreground"
-                  >
+                <tr>
+                  <td colSpan={5} className="px-5 py-10 text-center text-gray-500">
                     Loading trainers...
-                  </TableCell>
-                </TableRow>
+                  </td>
+                </tr>
               ) : filtered.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={5}
-                    className="text-center text-muted-foreground"
-                  >
+                <tr>
+                  <td colSpan={5} className="px-5 py-10 text-center text-gray-500">
                     No trainers found.
-                  </TableCell>
-                </TableRow>
+                  </td>
+                </tr>
               ) : (
-                filtered.map((t) => (
-                  <TableRow key={t.id}>
-                    <TableCell className="font-medium">
-                      <Link
-                        to={`/trainer/${t.id}`}
-                        className="text-primary hover:underline"
-                      >
-                        {t.firstName} {t.lastName}
-                      </Link>
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      {t.specializations.join(", ") || "—"}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={statusColor(t.isActive)}>
-                        {t.isActive ? "Active" : "Inactive"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="hidden lg:table-cell">
-                      {t.createdAt
-                        ? new Date(t.createdAt).toLocaleDateString()
-                        : "—"}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => openEdit(t)}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>
-                                Delete Trainer
-                              </AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Delete {t.firstName} {t.lastName}?
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => handleDelete(t.id)}
-                              >
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
+                filtered.map((t) => {
+                  const variant = statusVariant(t.isActive);
+                  const statusClass = variant === "emerald" 
+                    ? "bg-emerald-100 text-emerald-700" 
+                    : "bg-amber-100 text-amber-700";
+
+                  return (
+                    <tr key={t.id} className="border-t border-gray-100 hover:bg-gray-50/50 transition-colors">
+                      <td className="px-5 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-cyan-400 text-[10px] font-semibold text-white">
+                            {t.avatarUrl ? (
+                              <img src={t.avatarUrl} alt="" className="h-full w-full rounded-full object-cover" />
+                            ) : (
+                              `${t.firstName[0]}${t.lastName[0]}`.toUpperCase()
+                            )}
+                          </div>
+                          <Link to={`/trainer/${t.id}`} className="font-medium text-gray-900 hover:text-blue-600 hover:underline">
+                            {t.firstName} {t.lastName}
+                          </Link>
+                        </div>
+                      </td>
+                      <td className="px-5 py-4 hidden md:table-cell">
+                        <div className="flex flex-wrap gap-1">
+                          {t.specializations.slice(0, 2).map((s) => (
+                            <span key={s} className="rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-medium text-blue-700">
+                              {s}
+                            </span>
+                          ))}
+                          {t.specializations.length > 2 && (
+                            <span className="text-[10px] text-gray-400">+{t.specializations.length - 2}</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-5 py-4 text-center">
+                        <span className={cn("inline-flex rounded-full px-2.5 py-1 text-[11px] font-medium", statusClass)}>
+                          {t.isActive ? "Active" : "Inactive"}
+                        </span>
+                      </td>
+                      <td className="px-5 py-4 hidden lg:table-cell text-gray-600">
+                        {t.createdAt ? new Date(t.createdAt).toLocaleDateString() : "—"}
+                      </td>
+                      <td className="px-5 py-4 text-right">
+                        <div className="flex justify-end gap-1">
+                          <Button variant="ghost" size="icon" onClick={() => openEdit(t)} className="h-8 w-8 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg">
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg">
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent className="rounded-2xl border-none shadow-2xl">
+                              <AlertDialogHeader>
+                                <AlertDialogTitle className="text-gray-900">Deactivate Trainer</AlertDialogTitle>
+                                <AlertDialogDescription className="text-gray-500">
+                                  Are you sure you want to deactivate {t.firstName} {t.lastName}? They will no longer be assigned to classes.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel className="rounded-xl border-gray-200">Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDelete(t.id)} className="rounded-xl bg-red-600 hover:bg-red-700">
+                                  Deactivate
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+            </tbody>
+          </table>
+        </div>
+      </section>
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
+        <DialogContent className="rounded-2xl border-none shadow-2xl max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editing ? "Edit" : "Add"} Trainer</DialogTitle>
+            <DialogTitle className="text-xl font-bold text-gray-900">{editing ? "Edit Trainer Profile" : "Register New Trainer"}</DialogTitle>
+            <p className="text-sm text-gray-500">Professional profile details, specializations, and rates.</p>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-6 mt-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>First name</Label>
+                <Label className="text-xs font-medium text-gray-500">First name</Label>
                 <Input
-                type="text"
+                  type="text"
                   value={form.firstName}
-                  onChange={(e) =>
-                    setForm({ ...form, firstName: e.target.value })
-                  }
+                  onChange={(e) => setForm({ ...form, firstName: e.target.value })}
+                  className="h-10 rounded-xl border-gray-200"
                 />
               </div>
               <div className="space-y-2">
-                <Label>Last name</Label>
+                <Label className="text-xs font-medium text-gray-500">Last name</Label>
                 <Input
-                type="text"
+                  type="text"
                   value={form.lastName}
-                  onChange={(e) =>
-                    setForm({ ...form, lastName: e.target.value })
-                  }
+                  onChange={(e) => setForm({ ...form, lastName: e.target.value })}
+                  className="h-10 rounded-xl border-gray-200"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-xs font-medium text-gray-500">Email Address</Label>
+                <Input
+                  type="email"
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  className="h-10 rounded-xl border-gray-200"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-medium text-gray-500">Address</Label>
+                <Input
+                  type="text"
+                  value={form.address}
+                  onChange={(e) => setForm({ ...form, address: e.target.value })}
+                  className="h-10 rounded-xl border-gray-200"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-xs font-medium text-gray-500">
+                  {editing ? "New password (optional)" : "Account Password"}
+                </Label>
+                <Input
+                  type="password"
+                  value={form.password}
+                  onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  className="h-10 rounded-xl border-gray-200"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-medium text-gray-500">
+                  {editing ? "Confirm new password" : "Confirm Password"}
+                </Label>
+                <Input
+                  type="password"
+                  value={form.confirmPassword}
+                  onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
+                  className="h-10 rounded-xl border-gray-200"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-xs font-medium text-gray-500">Specializations</Label>
+                <Input
+                  type="text"
+                  placeholder="e.g. Strength, Yoga, Cardio"
+                  value={form.specializations}
+                  onChange={(e) => setForm({ ...form, specializations: e.target.value })}
+                  className="h-10 rounded-xl border-gray-200"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-medium text-gray-500">Certifications</Label>
+                <Input
+                  type="text"
+                  placeholder="e.g. NASM, ACE"
+                  value={form.certifications}
+                  onChange={(e) => setForm({ ...form, certifications: e.target.value })}
+                  className="h-10 rounded-xl border-gray-200"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-xs font-medium text-gray-500">Experience (years)</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  value={form.experience}
+                  onChange={(e) => setForm({ ...form, experience: e.target.value })}
+                  className="h-10 rounded-xl border-gray-200"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-medium text-gray-500">Hourly Rate ($)</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={form.hourlyRate}
+                  onChange={(e) => setForm({ ...form, hourlyRate: e.target.value })}
+                  className="h-10 rounded-xl border-gray-200"
                 />
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Email</Label>
-              <Input
-              type="email"
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Address</Label>
-              <Input
-                type="text"
-                value={form.address}
-                onChange={(e) => setForm({ ...form, address: e.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Profile image URL</Label>
+              <Label className="text-xs font-medium text-gray-500">Profile Image</Label>
               <Input
                 type="file"
                 accept="image/*"
@@ -410,84 +496,11 @@ const Trainers = () => {
                     handleAvatarUpload(file);
                   }
                 }}
-              />
-              {form.avatarUrl && (
-                <p className="text-xs text-muted-foreground">Uploaded: {form.avatarUrl}</p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label>
-                {editing ? "New password (optional)" : "Password"}
-              </Label>
-              <Input
-                type="password"
-                value={form.password}
-                onChange={(e) =>
-                  setForm({ ...form, password: e.target.value })
-                }
+                className="h-10 rounded-xl border-gray-200"
               />
             </div>
-            <div className="space-y-2">
-              <Label>
-                {editing ? "Confirm new password" : "Confirm password"}
-              </Label>
-              <Input
-                type="password"
-                value={form.confirmPassword}
-                onChange={(e) =>
-                  setForm({ ...form, confirmPassword: e.target.value })
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Specializations</Label>
-              <Input
-                type="text"
-                placeholder="e.g. Strength, Yoga"
-                value={form.specializations}
-                onChange={(e) =>
-                  setForm({ ...form, specializations: e.target.value })
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Certifications</Label>
-              <Input
-                type="text"
-                placeholder="Optional"
-                value={form.certifications}
-                onChange={(e) =>
-                  setForm({ ...form, certifications: e.target.value })
-                }
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Experience (years)</Label>
-                <Input
-                  type="number"
-                  min="0"
-                  value={form.experience}
-                  onChange={(e) =>
-                    setForm({ ...form, experience: e.target.value })
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Hourly rate</Label>
-                <Input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={form.hourlyRate}
-                  onChange={(e) =>
-                    setForm({ ...form, hourlyRate: e.target.value })
-                  }
-                />
-              </div>
-            </div>
-            <Button onClick={handleSave} className="w-full">
-              {editing ? "Update" : "Add"} Trainer
+            <Button onClick={handleSave} className="w-full h-11 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-lg shadow-blue-100">
+              {editing ? "Save Profile Changes" : "Complete Registration"}
             </Button>
           </div>
         </DialogContent>

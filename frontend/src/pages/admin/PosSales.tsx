@@ -25,8 +25,11 @@ import {
   type Sale,
 } from "@/services/inventory-sales.service";
 import { posPaymentMethodOptions } from "./inventory-sales.constants";
-import { RefreshCcw } from "lucide-react";
+import { RefreshCcw, ShoppingBag, Trash2, Plus, ArrowRight, CreditCard, Receipt } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
 
 const PosSales = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -147,162 +150,259 @@ const PosSales = () => {
   };
 
   return (
-    <div className="m3-admin-page">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">POS Interface</h1>
-          <p className="text-muted-foreground">
-            Process product sales at checkout with payment and discounts.
-          </p>
+    <div className="space-y-4">
+      {/* Header section */}
+      <section className="rounded-2xl border border-gray-200 bg-white p-4">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p className="text-sm font-semibold text-gray-900">Point of Sale (POS)</p>
+            <p className="text-sm text-gray-500">
+              Process new transactions, manage cart items, and issue receipts.
+            </p>
+          </div>
+          <Button 
+            variant="outline" 
+            onClick={loadData} 
+            disabled={isLoading}
+            className="h-10 rounded-xl border-gray-200 font-bold font-mono text-xs hover:bg-gray-50"
+          >
+            <RefreshCcw className={cn("h-4 w-4 mr-2", isLoading && "animate-spin")} />
+            Sync Catalog
+          </Button>
         </div>
-        <Button variant="outline" onClick={loadData} disabled={isLoading}>
-          <RefreshCcw className="h-4 w-4 mr-2" />
-          Refresh
-        </Button>
-      </div>
+      </section>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Checkout</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <div className="grid gap-4 lg:grid-cols-12">
+        {/* Left Column: Cart Items */}
+        <section className="lg:col-span-8 rounded-2xl border border-gray-200 bg-white p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-blue-50">
+                <ShoppingBag className="h-5 w-5 text-blue-600" />
+              </div>
+              <h2 className="text-lg font-bold text-gray-900">Active Basket</h2>
+            </div>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={addSaleItemRow}
+              className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-xl font-bold"
+            >
+              <Plus className="h-4 w-4 mr-1.5" />
+              Add Product
+            </Button>
+          </div>
+
           <div className="space-y-3">
             {saleItems.map((row, index) => (
-              <div className="grid gap-2 sm:grid-cols-[1fr_140px_90px]" key={index}>
-                <Select
-                  value={row.productId}
-                  onValueChange={(value) => updateSaleItem(index, "productId", value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select product" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {products.map((product) => (
-                      <SelectItem key={product.id} value={product.id}>
-                        {product.name} ({product.stockQuantity} in stock)
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Input
-                  type="number"
-                  min={1}
-                  placeholder="Qty"
-                  value={row.quantity}
-                  onChange={(event) => updateSaleItem(index, "quantity", event.target.value)}
-                />
+              <div className="group grid gap-3 md:grid-cols-[1fr_120px_auto] items-end p-4 rounded-2xl border border-gray-100 bg-gray-50/30 hover:bg-white hover:border-blue-200 hover:shadow-lg hover:shadow-blue-50/50 transition-all" key={index}>
+                <div className="space-y-1.5">
+                  <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Select Product</Label>
+                  <Select
+                    value={row.productId}
+                    onValueChange={(value) => updateSaleItem(index, "productId", value)}
+                  >
+                    <SelectTrigger className="h-11 rounded-xl border-gray-200 bg-white focus:ring-blue-600">
+                      <SelectValue placeholder="Search product catalog..." />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl border-gray-200">
+                      {products.map((product) => (
+                        <SelectItem key={product.id} value={product.id} className="rounded-lg">
+                          <div className="flex justify-between items-center w-full min-w-[300px]">
+                            <span className="font-medium">{product.name}</span>
+                            <Badge variant="outline" className={cn(
+                              "text-[10px] font-mono border-none h-5",
+                              product.stockQuantity < 5 ? "bg-red-50 text-red-600" : "bg-emerald-50 text-emerald-600"
+                            )}>
+                              STK: {product.stockQuantity}
+                            </Badge>
+                          </div>
+                          <p className="text-[10px] text-gray-500 font-mono mt-0.5">{product.sku} • {product.salePrice.toLocaleString()} MMK</p>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1 text-center block">Quantity</Label>
+                  <Input
+                    type="number"
+                    min={1}
+                    value={row.quantity}
+                    onChange={(event) => updateSaleItem(index, "quantity", event.target.value)}
+                    className="h-11 rounded-xl border-gray-200 bg-white text-center font-mono font-bold focus-visible:ring-blue-600"
+                  />
+                </div>
                 <Button
-                  type="button"
-                  variant="outline"
+                  variant="ghost" 
+                  size="icon" 
                   onClick={() => removeSaleItemRow(index)}
                   disabled={saleItems.length === 1}
+                  className="h-11 w-11 rounded-xl text-gray-300 hover:text-red-500 hover:bg-red-50"
                 >
-                  Remove
+                  <Trash2 className="h-5 w-5" />
                 </Button>
               </div>
             ))}
           </div>
 
-          <Button type="button" variant="outline" onClick={addSaleItemRow}>
-            Add Item
-          </Button>
+          {saleItems.length === 0 && (
+            <div className="py-20 text-center text-gray-400">
+              <ShoppingBag className="h-12 w-12 mb-3 mx-auto opacity-10" />
+              <p className="font-medium">The basket is empty.</p>
+            </div>
+          )}
+        </section>
 
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Select
-              value={saleForm.paymentMethod}
-              onValueChange={(value) =>
-                setSaleForm((prev) => ({
-                  ...prev,
-                  paymentMethod: value as PosPaymentMethod,
-                }))
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Payment method" />
-              </SelectTrigger>
-              <SelectContent>
-                {posPaymentMethodOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Input
-              type="number"
-              min={0}
-              placeholder="Discount"
-              value={saleForm.discount}
-              onChange={(event) =>
-                setSaleForm((prev) => ({ ...prev, discount: event.target.value }))
-              }
-            />
-            <Input
-              type="number"
-              min={0}
-              placeholder="Tax"
-              value={saleForm.tax}
-              onChange={(event) =>
-                setSaleForm((prev) => ({ ...prev, tax: event.target.value }))
-              }
-            />
-            <Input value={`${saleSubtotal.toLocaleString()} MMK`} readOnly />
+        {/* Right Column: Checkout Summary */}
+        <section className="lg:col-span-4 space-y-4">
+          <div className="rounded-2xl border border-gray-200 bg-white p-6">
+            <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
+              <CreditCard className="h-5 w-5 text-gray-400" />
+              Order Summary
+            </h3>
+            
+            <div className="space-y-6">
+              <div className="space-y-4 pt-4 border-t border-gray-100">
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-500">Retail Subtotal</span>
+                  <span className="font-mono font-bold text-gray-900">{saleSubtotal.toLocaleString()} MMK</span>
+                </div>
+                <div className="space-y-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Discount Amount</Label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400">MMK</span>
+                      <Input
+                        type="number"
+                        min={0}
+                        value={saleForm.discount}
+                        onChange={(event) => setSaleForm((prev) => ({ ...prev, discount: event.target.value }))}
+                        className="h-10 pl-11 rounded-xl border-gray-200 font-mono text-xs focus-visible:ring-blue-600"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Tax / Service Fees</Label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400">MMK</span>
+                      <Input
+                        type="number"
+                        min={0}
+                        value={saleForm.tax}
+                        onChange={(event) => setSaleForm((prev) => ({ ...prev, tax: event.target.value }))}
+                        className="h-10 pl-11 rounded-xl border-gray-200 font-mono text-xs focus-visible:ring-blue-600"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-6 border-t border-gray-100 space-y-4">
+                <div className="space-y-1.5">
+                  <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Payment Channel</Label>
+                  <Select
+                    value={saleForm.paymentMethod}
+                    onValueChange={(value) => setSaleForm((prev) => ({ ...prev, paymentMethod: value as PosPaymentMethod }))}
+                  >
+                    <SelectTrigger className="h-11 rounded-xl border-gray-200 focus:ring-blue-600">
+                      <SelectValue placeholder="Method" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl border-gray-200">
+                      {posPaymentMethodOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value} className="rounded-lg">
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Add Note</Label>
+                  <Textarea
+                    placeholder="Capture specialized requests or internal notes..."
+                    value={saleForm.notes}
+                    onChange={(event) => setSaleForm((prev) => ({ ...prev, notes: event.target.value }))}
+                    className="min-h-[80px] rounded-xl border-gray-200 focus-visible:ring-blue-600 text-xs py-3"
+                  />
+                </div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-gray-900 text-white space-y-4 shadow-xl shadow-gray-200">
+                <div className="flex justify-between items-end">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Grand Total</span>
+                  <span className="text-2xl font-bold font-mono tracking-tight">{saleTotal.toLocaleString()} <span className="text-xs font-normal">MMK</span></span>
+                </div>
+                <Button 
+                  onClick={handleCreateSale} 
+                  disabled={isLoading || saleTotal === 0}
+                  className="w-full h-12 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold transition-all active:scale-95 flex items-center justify-center gap-2"
+                >
+                  Confirm Transaction
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
           </div>
+        </section>
 
-          <Textarea
-            placeholder="Sale note (optional)"
-            value={saleForm.notes}
-            onChange={(event) =>
-              setSaleForm((prev) => ({ ...prev, notes: event.target.value }))
-            }
-          />
-
-          <div className="flex items-center justify-between">
-            <p className="text-sm font-medium">Total: {saleTotal.toLocaleString()} MMK</p>
-            <Button type="button" onClick={handleCreateSale} disabled={isLoading}>
-              Complete Sale
-            </Button>
+        {/* Audit Trail Section */}
+        <section className="lg:col-span-12 rounded-2xl border border-gray-200 bg-white p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 rounded-xl bg-emerald-50">
+              <Receipt className="h-5 w-5 text-emerald-600" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-gray-900">Checkout History</h2>
+              <p className="text-xs text-gray-500">Reviewing the latest 20 retail transactions processed.</p>
+            </div>
           </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Latest POS Transactions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Sale #</TableHead>
-                <TableHead>Items</TableHead>
-                <TableHead>Payment</TableHead>
-                <TableHead>Total</TableHead>
-                <TableHead>Date</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sales.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center text-muted-foreground">
-                    No sales records.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                sales.map((sale) => (
-                  <TableRow key={sale.id}>
-                    <TableCell className="font-medium">{sale.saleNumber}</TableCell>
-                    <TableCell>{sale.items.length}</TableCell>
-                    <TableCell>{sale.paymentMethod.replaceAll("_", " ")}</TableCell>
-                    <TableCell>{sale.total.toLocaleString()} MMK</TableCell>
-                    <TableCell>{new Date(sale.soldAt).toLocaleString()}</TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+          
+          <div className="overflow-x-auto -mx-6 px-6">
+            <table className="min-w-full text-sm">
+              <thead className="bg-gray-50/80 text-left text-[10px] uppercase tracking-widest text-gray-400 font-bold border-y border-gray-100">
+                <tr>
+                  <th className="px-5 py-4">Sale Ref</th>
+                  <th className="px-2 py-4">Items Count</th>
+                  <th className="px-2 py-4">Method</th>
+                  <th className="px-2 py-4">Total Amount</th>
+                  <th className="px-5 py-4 text-right">Processed At</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {sales.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="py-20 text-center text-gray-400 italic">No records found.</td>
+                  </tr>
+                ) : (
+                  sales.map((sale) => (
+                    <tr key={sale.id} className="group hover:bg-gray-50/50 transition-colors">
+                      <td className="px-5 py-4">
+                        <span className="font-mono font-bold text-blue-600">{sale.saleNumber}</span>
+                      </td>
+                      <td className="px-2 py-4 text-gray-600 font-medium">
+                        {sale.items.length} Units
+                      </td>
+                      <td className="px-2 py-4">
+                        <Badge variant="outline" className="rounded-lg bg-gray-50 border-gray-200 text-gray-600 text-[10px] font-bold uppercase">
+                          {sale.paymentMethod.replaceAll("_", " ")}
+                        </Badge>
+                      </td>
+                      <td className="px-2 py-4 font-bold text-gray-900">
+                        {sale.total.toLocaleString()} <span className="text-[10px] text-gray-400 font-normal">MMK</span>
+                      </td>
+                      <td className="px-5 py-4 text-right text-xs text-gray-400 font-medium">
+                        {new Date(sale.soldAt).toLocaleString()}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
     </div>
   );
 };

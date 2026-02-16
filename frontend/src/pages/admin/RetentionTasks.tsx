@@ -24,6 +24,17 @@ import {
   type RetentionTaskStatus,
 } from "@/services/retention.service";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import { 
+  RefreshCcw, 
+  CheckCircle2, 
+  Clock, 
+  PlayCircle, 
+  AlertCircle, 
+  Save, 
+  Calendar, 
+  ClipboardList 
+} from "lucide-react";
 
 const RetentionTasks = () => {
   const [tasks, setTasks] = useState<RetentionTask[]>([]);
@@ -77,135 +88,221 @@ const RetentionTasks = () => {
   };
 
   const badgeByStatus = (status: RetentionTaskStatus) => {
-    if (status === "DONE") return <Badge>DONE</Badge>;
-    if (status === "IN_PROGRESS") return <Badge variant="secondary">IN_PROGRESS</Badge>;
-    if (status === "DISMISSED") return <Badge variant="outline">DISMISSED</Badge>;
-    return <Badge variant="destructive">OPEN</Badge>;
+    if (status === "DONE") {
+      return (
+        <Badge className="rounded-lg bg-emerald-100 text-emerald-700 border-none px-2 py-0.5 text-[10px] font-bold uppercase tracking-tight flex items-center gap-1 w-fit">
+          <CheckCircle2 className="h-3 w-3" />
+          Completed
+        </Badge>
+      );
+    }
+    if (status === "IN_PROGRESS") {
+      return (
+        <Badge className="rounded-lg bg-blue-100 text-blue-700 border-none px-2 py-0.5 text-[10px] font-bold uppercase tracking-tight flex items-center gap-1 w-fit">
+          <PlayCircle className="h-3 w-3" />
+          In Progress
+        </Badge>
+      );
+    }
+    if (status === "DISMISSED") {
+      return (
+        <Badge className="rounded-lg bg-gray-100 text-gray-500 border-none px-2 py-0.5 text-[10px] font-bold uppercase tracking-tight w-fit">
+          Dismissed
+        </Badge>
+      );
+    }
+    return (
+      <Badge className="rounded-lg bg-red-100 text-red-700 border-none px-2 py-0.5 text-[10px] font-bold uppercase tracking-tight flex items-center gap-1 w-fit">
+        <AlertCircle className="h-3 w-3" />
+        Open Task
+      </Badge>
+    );
+  };
+
+  const priorityBadge = (priority: number) => {
+    const tones = [
+      "bg-red-50 text-red-600 border-red-100",
+      "bg-orange-50 text-orange-600 border-orange-100",
+      "bg-blue-50 text-blue-600 border-blue-100"
+    ];
+    return (
+      <Badge variant="outline" className={cn("rounded-lg text-[10px] font-bold px-1.5 h-5", tones[priority-1] || tones[2])}>
+        P{priority}
+      </Badge>
+    );
   };
 
   return (
-    <div className="m3-admin-page">
-      <div>
-        <h1 className="text-2xl font-bold">Retention Tasks</h1>
-        <p className="text-muted-foreground">Track and resolve high-risk member follow-ups</p>
-      </div>
+    <div className="space-y-4">
+      {/* Header section */}
+      <section className="rounded-2xl border border-gray-200 bg-white p-4">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p className="text-sm font-semibold text-gray-900">Retention Follow-up Queue</p>
+            <p className="text-sm text-gray-500">
+              Manage proactive intervention tasks for at-risk gym members.
+            </p>
+          </div>
+          <Button 
+            variant="outline" 
+            onClick={loadTasks} 
+            disabled={isLoading}
+            className="h-10 rounded-xl border-gray-200 font-bold font-mono text-xs hover:bg-gray-50"
+          >
+            <RefreshCcw className={cn("h-4 w-4 mr-2", isLoading && "animate-spin")} />
+            Sync Task Queue
+          </Button>
+        </div>
+      </section>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Task Queue</CardTitle>
-          <div className="flex flex-col sm:flex-row gap-3">
+      {/* Filters & Table Section */}
+      <section className="rounded-2xl border border-gray-200 bg-white p-5">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-orange-50">
+              <ClipboardList className="h-5 w-5 text-orange-600" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-gray-900">Active Task List</h2>
+              <div className="flex items-center gap-2 mt-0.5">
+                <Badge variant="outline" className="rounded-lg bg-gray-50 border-gray-200 text-gray-600 text-[10px] font-bold uppercase tracking-tight">
+                  {tasks.length} Task{tasks.length !== 1 && "s"} Found
+                </Badge>
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2">
             <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as any)}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Status" />
+              <SelectTrigger className="h-10 w-full sm:w-44 rounded-xl border-gray-200 focus:ring-blue-600 text-xs font-bold uppercase tracking-tight">
+                <SelectValue placeholder="All Statuses" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All statuses</SelectItem>
-                <SelectItem value="OPEN">Open</SelectItem>
-                <SelectItem value="IN_PROGRESS">In progress</SelectItem>
-                <SelectItem value="DONE">Done</SelectItem>
-                <SelectItem value="DISMISSED">Dismissed</SelectItem>
+              <SelectContent className="rounded-xl border-gray-200">
+                <SelectItem value="all" className="rounded-lg">All Statuses</SelectItem>
+                <SelectItem value="OPEN" className="rounded-lg">Open Only</SelectItem>
+                <SelectItem value="IN_PROGRESS" className="rounded-lg">In Progress</SelectItem>
+                <SelectItem value="DONE" className="rounded-lg">Completed</SelectItem>
+                <SelectItem value="DISMISSED" className="rounded-lg">Dismissed</SelectItem>
               </SelectContent>
             </Select>
             <Select
               value={priorityFilter}
               onValueChange={(value) => setPriorityFilter(value as "all" | "1" | "2" | "3")}
             >
-              <SelectTrigger className="w-[160px]">
-                <SelectValue placeholder="Priority" />
+              <SelectTrigger className="h-10 w-full sm:w-40 rounded-xl border-gray-200 focus:ring-blue-600 text-xs font-bold uppercase tracking-tight">
+                <SelectValue placeholder="Priority All" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All priorities</SelectItem>
-                <SelectItem value="1">P1</SelectItem>
-                <SelectItem value="2">P2</SelectItem>
-                <SelectItem value="3">P3</SelectItem>
+              <SelectContent className="rounded-xl border-gray-200">
+                <SelectItem value="all" className="rounded-lg">Priority All</SelectItem>
+                <SelectItem value="1" className="rounded-lg">P1 - Critical</SelectItem>
+                <SelectItem value="2" className="rounded-lg">P2 - High</SelectItem>
+                <SelectItem value="3" className="rounded-lg">P3 - Regular</SelectItem>
               </SelectContent>
             </Select>
-            <Button variant="outline" onClick={loadTasks} disabled={isLoading}>
-              Refresh
-            </Button>
           </div>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Member</TableHead>
-                <TableHead>Title</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Priority</TableHead>
-                <TableHead className="hidden lg:table-cell">Due Date</TableHead>
-                <TableHead>Note</TableHead>
-                <TableHead className="text-right">Action</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {!isLoading && tasks.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center text-muted-foreground">
-                    No retention tasks found.
-                  </TableCell>
-                </TableRow>
+        </div>
+
+        <div className="overflow-x-auto -mx-5 px-5">
+          <table className="min-w-full text-sm">
+            <thead className="bg-gray-50/80 text-left text-[10px] uppercase tracking-widest text-gray-400 font-bold border-y border-gray-100">
+              <tr>
+                <th className="px-5 py-4">Assignee Identity</th>
+                <th className="px-2 py-4">Follow-up Objective</th>
+                <th className="px-2 py-4">Current Status</th>
+                <th className="px-2 py-4 text-center">Priority</th>
+                <th className="px-2 py-4 hidden lg:table-cell">Timeline</th>
+                <th className="px-2 py-4">Resolution Note</th>
+                <th className="px-5 py-4 text-right">Commit</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {isLoading ? (
+                <tr>
+                  <td colSpan={7} className="py-20 text-center">
+                    <div className="flex flex-col items-center">
+                      <RefreshCcw className="h-8 w-8 text-orange-200 animate-spin mb-4" />
+                      <p className="text-gray-400 text-xs font-medium italic">Assembling task queue...</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : tasks.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="py-20 text-center text-gray-400">
+                    <p className="font-medium italic">No retention tasks currently pending your intervention.</p>
+                  </td>
+                </tr>
               ) : (
                 tasks.map((task) => (
-                  <TableRow key={task.id}>
-                    <TableCell>
-                      <div className="font-medium">{task.memberName}</div>
-                      <div className="text-xs text-muted-foreground">{task.memberEmail}</div>
-                    </TableCell>
-                    <TableCell className="max-w-[220px]">
-                      <div className="font-medium truncate">{task.title}</div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="mb-2">{badgeByStatus(draftStatus[task.id] ?? task.status)}</div>
-                      <Select
-                        value={draftStatus[task.id] ?? task.status}
-                        onValueChange={(value) =>
-                          setDraftStatus((prev) => ({
-                            ...prev,
-                            [task.id]: value as RetentionTaskStatus,
-                          }))
-                        }
-                      >
-                        <SelectTrigger className="w-[170px] h-8">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="OPEN">OPEN</SelectItem>
-                          <SelectItem value="IN_PROGRESS">IN_PROGRESS</SelectItem>
-                          <SelectItem value="DONE">DONE</SelectItem>
-                          <SelectItem value="DISMISSED">DISMISSED</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                    <TableCell>P{task.priority}</TableCell>
-                    <TableCell className="hidden lg:table-cell">
-                      {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : "-"}
-                    </TableCell>
-                    <TableCell>
+                  <tr key={task.id} className="group hover:bg-gray-50/50 transition-colors">
+                    <td className="px-5 py-4">
+                      <div className="font-bold text-gray-900">{task.memberName}</div>
+                      <div className="text-[10px] font-mono text-gray-400 mt-0.5">{task.memberEmail}</div>
+                    </td>
+                    <td className="px-2 py-4">
+                      <div className="font-medium text-gray-700 max-w-[180px] break-words line-clamp-2 leading-relaxed">
+                        {task.title}
+                      </div>
+                    </td>
+                    <td className="px-2 py-4">
+                      <div className="space-y-2">
+                        {badgeByStatus(draftStatus[task.id] ?? task.status)}
+                        <Select
+                          value={draftStatus[task.id] ?? task.status}
+                          onValueChange={(value) =>
+                            setDraftStatus((prev) => ({
+                              ...prev,
+                              [task.id]: value as RetentionTaskStatus,
+                            }))
+                          }
+                        >
+                          <SelectTrigger className="h-8 w-28 rounded-lg border-gray-100 bg-white text-[10px] font-bold uppercase tracking-tighter focus:ring-blue-600">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="rounded-xl border-gray-200">
+                            <SelectItem value="OPEN" className="text-[10px] font-bold uppercase">OPEN</SelectItem>
+                            <SelectItem value="IN_PROGRESS" className="text-[10px] font-bold uppercase">IN_PROGRESS</SelectItem>
+                            <SelectItem value="DONE" className="text-[10px] font-bold uppercase">DONE</SelectItem>
+                            <SelectItem value="DISMISSED" className="text-[10px] font-bold uppercase">DISMISSED</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </td>
+                    <td className="px-2 py-4 text-center">
+                      {priorityBadge(task.priority)}
+                    </td>
+                    <td className="px-2 py-4 hidden lg:table-cell">
+                      <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-500 uppercase tracking-tight">
+                        <Calendar className="h-3 w-3 text-gray-300" />
+                        {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : "No Deadline"}
+                      </div>
+                    </td>
+                    <td className="px-2 py-4">
                       <Input
                         value={draftNotes[task.id] ?? ""}
                         onChange={(e) =>
                           setDraftNotes((prev) => ({ ...prev, [task.id]: e.target.value }))
                         }
-                        placeholder="Add note..."
-                        className="min-w-[200px]"
+                        placeholder="Resolution narrative..."
+                        className="h-9 w-48 rounded-lg border-gray-100 text-xs focus-visible:ring-blue-600 bg-white placeholder:text-gray-300"
                       />
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button size="sm" onClick={() => saveTask(task)}>
-                        Save
+                    </td>
+                    <td className="px-5 py-4 text-right">
+                      <Button 
+                        size="icon" 
+                        onClick={() => saveTask(task)}
+                        className="h-9 w-9 rounded-xl bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-100 transition-all active:scale-90"
+                      >
+                        <Save className="h-4 w-4" />
                       </Button>
-                    </TableCell>
-                  </TableRow>
+                    </td>
+                  </tr>
                 ))
               )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+            </tbody>
+          </table>
+        </div>
+      </section>
     </div>
   );
 };
 
 export default RetentionTasks;
-

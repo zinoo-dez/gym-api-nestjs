@@ -9,8 +9,9 @@ import {
 import { membershipsService, type MembershipPlan } from "@/services/memberships.service";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { DateTimePicker } from "@/components/ui/date-time-picker";
+import { GoogleDateTimePicker } from "@/components/ui/google-date-time-picker";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -269,7 +270,7 @@ const Members = () => {
         setPlanFilter("all");
     };
 
-    const statusVariant = (isActive: boolean) => (isActive ? "default" : "secondary");
+    const statusVariant = (isActive: boolean) => (isActive ? "emerald" : "amber");
 
     const getPlanLabel = (member: Member) => {
         const active = member.subscriptions?.find((sub) => sub.status === "ACTIVE");
@@ -277,242 +278,335 @@ const Members = () => {
     };
 
     return (
-        <div className="m3-admin-page">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold">Members</h1>
-                    <p className="text-muted-foreground">{members.length} total members</p>
+        <div className="space-y-4">
+            <section className="rounded-2xl border border-gray-200 bg-white p-4">
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                    <div>
+                        <p className="text-sm font-semibold text-gray-900">Members Management</p>
+                        <p className="text-sm text-gray-500">
+                            {members.length} total members enrolled in your gym.
+                        </p>
+                    </div>
+                    <Button onClick={openAdd} className="bg-blue-600 hover:bg-blue-700">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Member
+                    </Button>
                 </div>
-                <Button onClick={openAdd}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Member
-                </Button>
-            </div>
+            </section>
 
-            <Card>
-                <CardHeader className="space-y-4">
-                    <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                        <div className="relative max-w-sm w-full">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <section className="rounded-2xl border border-gray-200 bg-white p-5">
+                <div className="flex flex-wrap items-center justify-between gap-4 mb-5">
+                    <div className="flex flex-col gap-2">
+                        <p className="text-sm font-semibold text-gray-900">Member Directory</p>
+                        <p className="text-xs text-gray-500">Filter and search your member base</p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                        <div className="relative w-full lg:w-64">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                             <Input
                                 placeholder="Search members..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                className="pl-9"
+                                className="pl-9 h-10 rounded-xl border-gray-200"
                             />
                         </div>
-                        <div className="flex flex-wrap gap-2">
-                            <Select value={statusFilter} onValueChange={setStatusFilter}>
-                                <SelectTrigger className="w-40">
-                                    <SelectValue placeholder="Status" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">All statuses</SelectItem>
-                                    <SelectItem value="active">Active</SelectItem>
-                                    <SelectItem value="inactive">Inactive</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <Select value={planFilter} onValueChange={setPlanFilter}>
-                                <SelectTrigger className="w-44">
-                                    <SelectValue placeholder="Plan" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">All plans</SelectItem>
-                                    {plans.map((plan) => (
-                                        <SelectItem key={plan.id} value={plan.id}>
-                                            {plan.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <Button variant="ghost" onClick={handleResetFilters}>
-                                <RotateCcw className="h-4 w-4 mr-2" />
-                                Reset
-                            </Button>
-                        </div>
+                        <Select value={statusFilter} onValueChange={setStatusFilter}>
+                            <SelectTrigger className="w-40 h-10 rounded-xl border-gray-200">
+                                <SelectValue placeholder="Status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All statuses</SelectItem>
+                                <SelectItem value="active">Active</SelectItem>
+                                <SelectItem value="inactive">Inactive</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <Select value={planFilter} onValueChange={setPlanFilter}>
+                            <SelectTrigger className="w-44 h-10 rounded-xl border-gray-200">
+                                <SelectValue placeholder="Plan" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All plans</SelectItem>
+                                {plans.map((plan) => (
+                                    <SelectItem key={plan.id} value={plan.id}>
+                                        {plan.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        <Button variant="ghost" onClick={handleResetFilters} className="h-10 rounded-xl">
+                            <RotateCcw className="h-4 w-4 mr-2" />
+                            Reset
+                        </Button>
                     </div>
-                </CardHeader>
-                <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Name</TableHead>
-                                <TableHead className="hidden md:table-cell">Email</TableHead>
-                                <TableHead className="hidden lg:table-cell">Phone</TableHead>
-                                <TableHead className="hidden lg:table-cell">Gender</TableHead>
-                                <TableHead className="hidden xl:table-cell">Height</TableHead>
-                                <TableHead className="hidden xl:table-cell">Current</TableHead>
-                                <TableHead className="hidden xl:table-cell">Target</TableHead>
-                                <TableHead className="hidden xl:table-cell">Emergency</TableHead>
-                                <TableHead className="hidden sm:table-cell">Plan</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead className="hidden lg:table-cell">Join Date</TableHead>
-                                <TableHead className="text-right">Actions</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
+                </div>
+
+                <div className="overflow-x-auto -mx-5">
+                    <table className="min-w-full text-sm">
+                        <thead className="bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500">
+                            <tr>
+                                <th className="px-5 py-3 font-medium">Name</th>
+                                <th className="px-5 py-3 font-medium hidden md:table-cell">Email</th>
+                                <th className="px-5 py-3 font-medium hidden lg:table-cell">Phone</th>
+                                <th className="px-5 py-3 font-medium hidden lg:table-cell">Gender</th>
+                                <th className="px-5 py-3 font-medium hidden xl:table-cell text-center">Plan</th>
+                                <th className="px-5 py-3 font-medium text-center">Status</th>
+                                <th className="px-5 py-3 font-medium hidden lg:table-cell">Join Date</th>
+                                <th className="px-5 py-3 font-medium text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
                             {isLoading ? (
-                                <TableRow>
-                                    <TableCell colSpan={13} className="text-center text-muted-foreground">
+                                <tr>
+                                    <td colSpan={8} className="px-5 py-10 text-center text-gray-500">
                                         Loading members...
-                                    </TableCell>
-                                </TableRow>
+                                    </td>
+                                </tr>
                             ) : filtered.length === 0 ? (
-                                <TableRow>
-                                    <TableCell colSpan={13} className="text-center text-muted-foreground">
+                                <tr>
+                                    <td colSpan={8} className="px-5 py-10 text-center text-gray-500">
                                         No members found.
-                                    </TableCell>
-                                </TableRow>
+                                    </td>
+                                </tr>
                             ) : (
-                                filtered.map((member) => (
-                                    <TableRow key={member.id}>
-                                        <TableCell className="font-medium">
-                                            <Link
-                                                to={`/member/${member.id}`}
-                                                className="text-primary hover:underline"
-                                            >
-                                                {member.firstName} {member.lastName}
-                                            </Link>
-                                        </TableCell>
-                                        <TableCell className="hidden md:table-cell">{member.email}</TableCell>
-                                        <TableCell className="hidden lg:table-cell">{member.phone || "—"}</TableCell>
-                                        <TableCell className="hidden lg:table-cell">{member.gender || "—"}</TableCell>
-                                        <TableCell className="hidden xl:table-cell">
-                                            {member.height !== undefined ? `${member.height} cm` : "—"}
-                                        </TableCell>
-                                        <TableCell className="hidden xl:table-cell">
-                                            {member.currentWeight !== undefined ? `${member.currentWeight} kg` : "—"}
-                                        </TableCell>
-                                        <TableCell className="hidden xl:table-cell">
-                                            {member.targetWeight !== undefined ? `${member.targetWeight} kg` : "—"}
-                                        </TableCell>
-                                        <TableCell className="hidden xl:table-cell">
-                                            {member.emergencyContact || "—"}
-                                        </TableCell>
-                                        <TableCell className="hidden sm:table-cell">{getPlanLabel(member)}</TableCell>
-                                        <TableCell>
-                                            <Badge variant={statusVariant(member.isActive)}>
-                                                {member.isActive ? "Active" : "Inactive"}
-                                            </Badge>
-                                        </TableCell>
-                                        <TableCell className="hidden lg:table-cell">
-                                            {member.createdAt ? new Date(member.createdAt).toLocaleDateString() : "—"}
-                                        </TableCell>
-                                        <TableCell className="text-right">
-                                            <div className="flex justify-end gap-1">
-                                                {member.isActive ? (
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        onClick={() => handleDeactivate(member.id)}
-                                                        title="Deactivate"
-                                                    >
-                                                        <span className="text-xs font-semibold">Off</span>
-                                                    </Button>
-                                                ) : (
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        onClick={() => handleActivate(member.id)}
-                                                        title="Activate"
-                                                    >
-                                                        <span className="text-xs font-semibold">On</span>
-                                                    </Button>
-                                                )}
-                                                <Button variant="ghost" size="icon" onClick={() => openEdit(member)}>
-                                                    <Pencil className="h-4 w-4" />
-                                                </Button>
-                                                <AlertDialog>
-                                                    <AlertDialogTrigger asChild>
-                                                        <Button variant="ghost" size="icon">
-                                                            <Trash2 className="h-4 w-4 text-destructive" />
+                                filtered.map((member) => {
+                                    const variant = statusVariant(member.isActive);
+                                    const statusClass = variant === "emerald" 
+                                        ? "bg-emerald-100 text-emerald-700" 
+                                        : "bg-amber-100 text-amber-700";
+
+                                    return (
+                                        <tr key={member.id} className="border-t border-gray-100 hover:bg-gray-50/50 transition-colors">
+                                            <td className="px-5 py-4">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-cyan-400 text-[10px] font-semibold text-white">
+                                                        {member.avatarUrl ? (
+                                                            <img src={member.avatarUrl} alt="" className="h-full w-full rounded-full object-cover" />
+                                                        ) : (
+                                                            `${member.firstName[0]}${member.lastName[0]}`.toUpperCase()
+                                                        )}
+                                                    </div>
+                                                    <div>
+                                                        <Link
+                                                            to={`/member/${member.id}`}
+                                                            className="font-medium text-gray-900 hover:text-blue-600 hover:underline"
+                                                        >
+                                                            {member.firstName} {member.lastName}
+                                                        </Link>
+                                                        <p className="text-[11px] text-gray-500 md:hidden">{member.email}</p>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-5 py-4 hidden md:table-cell text-gray-600">{member.email}</td>
+                                            <td className="px-5 py-4 hidden lg:table-cell text-gray-600">{member.phone || "—"}</td>
+                                            <td className="px-5 py-4 hidden lg:table-cell text-gray-600 capitalize">{member.gender?.toLowerCase() || "—"}</td>
+                                            <td className="px-5 py-4 hidden xl:table-cell text-center">
+                                                <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-medium text-blue-700">
+                                                    {getPlanLabel(member)}
+                                                </span>
+                                            </td>
+                                            <td className="px-5 py-4 text-center">
+                                                <span className={cn("inline-flex rounded-full px-2.5 py-1 text-[11px] font-medium", statusClass)}>
+                                                    {member.isActive ? "Active" : "Inactive"}
+                                                </span>
+                                            </td>
+                                            <td className="px-5 py-4 hidden lg:table-cell text-gray-600">
+                                                {member.createdAt ? new Date(member.createdAt).toLocaleDateString() : "—"}
+                                            </td>
+                                            <td className="px-5 py-4 text-right">
+                                                <div className="flex justify-end gap-1">
+                                                    {member.isActive ? (
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            onClick={() => handleDeactivate(member.id)}
+                                                            className="h-8 w-8 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg"
+                                                            title="Deactivate"
+                                                        >
+                                                            <span className="text-[10px] font-bold">OFF</span>
                                                         </Button>
-                                                    </AlertDialogTrigger>
-                                                    <AlertDialogContent>
-                                                        <AlertDialogHeader>
-                                                            <AlertDialogTitle>Delete Member</AlertDialogTitle>
-                                                            <AlertDialogDescription>
-                                                                Are you sure you want to delete {member.firstName} {member.lastName}?
-                                                            </AlertDialogDescription>
-                                                        </AlertDialogHeader>
-                                                        <AlertDialogFooter>
-                                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                            <AlertDialogAction onClick={() => handleDelete(member.id)}>
-                                                                Delete
-                                                            </AlertDialogAction>
-                                                        </AlertDialogFooter>
-                                                    </AlertDialogContent>
-                                                </AlertDialog>
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
-                                ))
+                                                    ) : (
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            onClick={() => handleActivate(member.id)}
+                                                            className="h-8 w-8 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg"
+                                                            title="Activate"
+                                                        >
+                                                            <span className="text-[10px] font-bold">ON</span>
+                                                        </Button>
+                                                    )}
+                                                    <Button variant="ghost" size="icon" onClick={() => openEdit(member)} className="h-8 w-8 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg">
+                                                        <Pencil className="h-3.5 w-3.5" />
+                                                    </Button>
+                                                    <AlertDialog>
+                                                        <AlertDialogTrigger asChild>
+                                                            <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg">
+                                                                <Trash2 className="h-3.5 w-3.5" />
+                                                            </Button>
+                                                        </AlertDialogTrigger>
+                                                        <AlertDialogContent className="rounded-2xl border-none shadow-2xl">
+                                                            <AlertDialogHeader>
+                                                                <AlertDialogTitle className="text-gray-900">Delete Member</AlertDialogTitle>
+                                                                <AlertDialogDescription className="text-gray-500">
+                                                                    Are you sure you want to delete {member.firstName} {member.lastName}? This action cannot be undone.
+                                                                </AlertDialogDescription>
+                                                            </AlertDialogHeader>
+                                                            <AlertDialogFooter className="gap-2 sm:gap-0">
+                                                                <AlertDialogCancel className="rounded-xl border-gray-200">Cancel</AlertDialogCancel>
+                                                                <AlertDialogAction onClick={() => handleDelete(member.id)} className="rounded-xl bg-red-600 hover:bg-red-700">
+                                                                    Delete Member
+                                                                </AlertDialogAction>
+                                                            </AlertDialogFooter>
+                                                        </AlertDialogContent>
+                                                    </AlertDialog>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })
                             )}
-                        </TableBody>
-                    </Table>
-                </CardContent>
-            </Card>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
 
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                <DialogContent>
+                <DialogContent className="rounded-2xl border-none shadow-2xl max-w-2xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
-                        <DialogTitle>{editing ? "Edit Member" : "Add Member"}</DialogTitle>
+                        <DialogTitle className="text-xl font-bold text-gray-900">{editing ? "Edit Member" : "Add New Member"}</DialogTitle>
+                        <p className="text-sm text-gray-500">Enter member details to manage their profile.</p>
                     </DialogHeader>
-                    <div className="space-y-4">
+                    <div className="space-y-6 mt-4">
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label>First name</Label>
+                                <Label className="text-xs font-medium text-gray-500">First name</Label>
                                 <Input
                                     type="text"
                                     value={form.firstName}
                                     onChange={(e) => setForm({ ...form, firstName: e.target.value })}
+                                    className="h-10 rounded-xl border-gray-200"
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label>Last name</Label>
+                                <Label className="text-xs font-medium text-gray-500">Last name</Label>
                                 <Input
                                     type="text"
                                     value={form.lastName}
                                     onChange={(e) => setForm({ ...form, lastName: e.target.value })}
+                                    className="h-10 rounded-xl border-gray-200"
                                 />
                             </div>
                         </div>
-                        <div className="space-y-2">
-                            <Label>Email</Label>
-                            <Input
-                                type="email"
-                                value={form.email}
-                                onChange={(e) => setForm({ ...form, email: e.target.value })}
-                            />
-                        </div>
-                        {!editing && (
+                        <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label>Password</Label>
+                                <Label className="text-xs font-medium text-gray-500">Email</Label>
                                 <Input
-                                    type="password"
-                                    value={form.password}
-                                    onChange={(e) => setForm({ ...form, password: e.target.value })}
+                                    type="email"
+                                    value={form.email}
+                                    onChange={(e) => setForm({ ...form, email: e.target.value })}
+                                    className="h-10 rounded-xl border-gray-200"
                                 />
                             </div>
-                        )}
-                        <div className="space-y-2">
-                            <Label>Phone</Label>
-                            <Input
-                                type="tel"
-                                value={form.phone}
-                                onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                            />
+                            {!editing && (
+                                <div className="space-y-2">
+                                    <Label className="text-xs font-medium text-gray-500">Password</Label>
+                                    <Input
+                                        type="password"
+                                        value={form.password}
+                                        onChange={(e) => setForm({ ...form, password: e.target.value })}
+                                        className="h-10 rounded-xl border-gray-200"
+                                    />
+                                </div>
+                            )}
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label className="text-xs font-medium text-gray-500">Phone</Label>
+                                <Input
+                                    type="tel"
+                                    value={form.phone}
+                                    onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                                    className="h-10 rounded-xl border-gray-200"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="text-xs font-medium text-gray-500">Gender</Label>
+                                <Select value={form.gender} onValueChange={(v) => setForm({ ...form, gender: v })}>
+                                    <SelectTrigger className="h-10 rounded-xl border-gray-200">
+                                        <SelectValue placeholder="Select gender" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="MALE">Male</SelectItem>
+                                        <SelectItem value="FEMALE">Female</SelectItem>
+                                        <SelectItem value="OTHER">Other</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
                         </div>
                         <div className="space-y-2">
-                            <Label>Address</Label>
+                            <Label className="text-xs font-medium text-gray-500">Address</Label>
                             <Input
                                 type="text"
                                 value={form.address}
                                 onChange={(e) => setForm({ ...form, address: e.target.value })}
+                                className="h-10 rounded-xl border-gray-200"
                             />
                         </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label className="text-xs font-medium text-gray-500">Date of Birth</Label>
+                                <GoogleDateTimePicker
+                                    mode="date"
+                                    value={form.dateOfBirth}
+                                    onChange={(value) => setForm({ ...form, dateOfBirth: value })}
+                                    placeholder="Select birthday"
+                                    className="h-10"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="text-xs font-medium text-gray-500">Emergency Contact</Label>
+                                <Input
+                                    type="text"
+                                    value={form.emergencyContact}
+                                    onChange={(e) => setForm({ ...form, emergencyContact: e.target.value })}
+                                    className="h-10 rounded-xl border-gray-200"
+                                />
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-3 gap-4">
+                            <div className="space-y-2">
+                                <Label className="text-xs font-medium text-gray-500">Height (cm)</Label>
+                                <Input
+                                    type="number"
+                                    min="0"
+                                    value={form.height}
+                                    onChange={(e) => setForm({ ...form, height: e.target.value })}
+                                    className="h-10 rounded-xl border-gray-200"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="text-xs font-medium text-gray-500">Current (kg)</Label>
+                                <Input
+                                    type="number"
+                                    min="0"
+                                    value={form.currentWeight}
+                                    onChange={(e) => setForm({ ...form, currentWeight: e.target.value })}
+                                    className="h-10 rounded-xl border-gray-200"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="text-xs font-medium text-gray-500">Target (kg)</Label>
+                                <Input
+                                    type="number"
+                                    min="0"
+                                    value={form.targetWeight}
+                                    onChange={(e) => setForm({ ...form, targetWeight: e.target.value })}
+                                    className="h-10 rounded-xl border-gray-200"
+                                />
+                            </div>
+                        </div>
                         <div className="space-y-2">
-                            <Label>Profile image URL</Label>
+                            <Label className="text-xs font-medium text-gray-500">Profile Image</Label>
                             <Input
                                 type="file"
                                 accept="image/*"
@@ -523,70 +617,11 @@ const Members = () => {
                                         handleAvatarUpload(file);
                                     }
                                 }}
-                            />
-                            {form.avatarUrl && (
-                                <p className="text-xs text-muted-foreground">
-                                    Uploaded: {form.avatarUrl}
-                                </p>
-                            )}
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Date of Birth</Label>
-                            <DateTimePicker
-                                mode="date"
-                                value={form.dateOfBirth}
-                                onChange={(value) => setForm({ ...form, dateOfBirth: value })}
+                                className="h-10 rounded-xl border-gray-200"
                             />
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label>Gender</Label>
-                                <Input
-                                    type="text"
-                                    value={form.gender}
-                                    onChange={(e) => setForm({ ...form, gender: e.target.value })}
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Emergency Contact</Label>
-                                <Input
-                                    type="text"
-                                    value={form.emergencyContact}
-                                    onChange={(e) => setForm({ ...form, emergencyContact: e.target.value })}
-                                />
-                            </div>
-                        </div>
-                        <div className="grid grid-cols-3 gap-4">
-                            <div className="space-y-2">
-                                <Label>Height (cm)</Label>
-                                <Input
-                                    type="number"
-                                    min="0"
-                                    value={form.height}
-                                    onChange={(e) => setForm({ ...form, height: e.target.value })}
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Current Weight (kg)</Label>
-                                <Input
-                                    type="number"
-                                    min="0"
-                                    value={form.currentWeight}
-                                    onChange={(e) => setForm({ ...form, currentWeight: e.target.value })}
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Target Weight (kg)</Label>
-                                <Input
-                                    type="number"
-                                    min="0"
-                                    value={form.targetWeight}
-                                    onChange={(e) => setForm({ ...form, targetWeight: e.target.value })}
-                                />
-                            </div>
-                        </div>
-                        <Button onClick={handleSave} className="w-full">
-                            {editing ? "Update Member" : "Add Member"}
+                        <Button onClick={handleSave} className="w-full h-11 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-lg shadow-blue-100">
+                            {editing ? "Update Member Profile" : "Create Member Account"}
                         </Button>
                     </div>
                 </DialogContent>

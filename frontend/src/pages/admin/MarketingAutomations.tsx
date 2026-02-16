@@ -30,8 +30,11 @@ import {
   marketingAutomationTypeOptions,
   marketingChannelOptions,
 } from "./marketing-shared";
-import { PlayCircle, Plus, RefreshCcw } from "lucide-react";
+import { PlayCircle, Plus, RefreshCcw, Zap, Search, Filter, Settings, Power, Clock, CheckCircle2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Switch } from "@/components/ui/switch";
 
 const MarketingAutomations = () => {
   const [loading, setLoading] = useState(true);
@@ -147,193 +150,317 @@ const MarketingAutomations = () => {
   };
 
   return (
-    <div className="m3-admin-page">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">Marketing Automations</h1>
-          <p className="text-muted-foreground">
-            Configure recurring outreach flows and trigger runs manually.
-          </p>
+    <div className="space-y-4">
+      {/* Header section */}
+      <section className="rounded-2xl border border-gray-200 bg-white p-4">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p className="text-sm font-semibold text-gray-900">Automation Engine</p>
+            <p className="text-sm text-gray-500">
+              Trigger event-based outreach flows and manage recurring engagement logic.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={loadData} 
+              disabled={loading}
+              className="h-10 rounded-xl border-gray-200 font-bold font-mono text-xs hover:bg-gray-50"
+            >
+              <RefreshCcw className={cn("h-4 w-4 mr-2", loading && "animate-spin")} />
+              Sync Engine
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={runAutomations}
+              className="h-10 rounded-xl border-gray-200 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 font-bold font-mono text-xs"
+            >
+              <PlayCircle className="h-4 w-4 mr-2" />
+              Pulse Run
+            </Button>
+            <Button 
+              onClick={openNewAutomation}
+              className="h-10 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold font-mono text-xs shadow-lg shadow-blue-100 transition-all active:scale-95"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Create Logic Flow
+            </Button>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={loadData} disabled={loading}>
-            <RefreshCcw className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
-          <Button variant="outline" onClick={runAutomations}>
-            <PlayCircle className="h-4 w-4 mr-2" />
-            Run Now
-          </Button>
-          <Button onClick={openNewAutomation}>
-            <Plus className="h-4 w-4 mr-2" />
-            New Automation
-          </Button>
-        </div>
-      </div>
+      </section>
 
-      <Card>
-        <CardHeader>
-          <h2 className="text-lg font-semibold">Automation Rules</h2>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {loading ? (
-            <p className="text-muted-foreground">Loading automations...</p>
-          ) : automations.length === 0 ? (
-            <p className="text-muted-foreground">No automations configured.</p>
-          ) : (
-            automations.map((automation) => (
-              <Card key={automation.id}>
-                <CardContent className="p-4 space-y-2">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <p className="font-medium">{automation.name}</p>
-                    <Badge variant="outline">{automation.type}</Badge>
-                    <Badge>{automation.channel}</Badge>
-                    <Badge variant={automation.isActive ? "default" : "secondary"}>
-                      {automation.isActive ? "ACTIVE" : "PAUSED"}
-                    </Badge>
+      {/* Rules Grid */}
+      <div className="grid gap-4">
+        {loading ? (
+          <div className="py-20 text-center rounded-2xl border-2 border-dashed border-gray-100 bg-white/50">
+            <RefreshCcw className="h-12 w-12 mb-3 mx-auto text-blue-100 animate-spin" />
+            <p className="font-medium text-gray-400">Loading automation registers...</p>
+          </div>
+        ) : automations.length === 0 ? (
+          <div className="py-20 text-center rounded-2xl border-2 border-dashed border-gray-100 bg-white/50">
+            <Zap className="h-12 w-12 mb-3 mx-auto text-gray-100" />
+            <p className="font-medium text-gray-400">No automation flows are currently active.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+            {automations.map((automation) => (
+              <Card key={automation.id} className="overflow-hidden border-gray-200 hover:border-blue-300 transition-colors shadow-none rounded-2xl bg-white">
+                <CardContent className="p-0">
+                  <div className="p-5 space-y-4">
+                    <div className="flex items-start justify-between">
+                      <div className="space-y-1.5 flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="font-bold text-gray-900 truncate max-w-[200px]">{automation.name}</h3>
+                          <Badge variant="outline" className="rounded-lg bg-blue-50 border-blue-100 text-blue-600 font-bold text-[10px] uppercase">
+                            {automation.type}
+                          </Badge>
+                          <Badge variant="outline" className="rounded-lg bg-gray-50 border-gray-100 text-gray-500 font-bold text-[10px] uppercase">
+                            {automation.channel}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-gray-500 line-clamp-1 italic">
+                          "{automation.content}"
+                        </p>
+                      </div>
+                      <div className="flex flex-col items-end gap-2">
+                        <Switch 
+                          checked={automation.isActive} 
+                          onCheckedChange={() => toggleAutomation(automation)}
+                          className="data-[state=checked]:bg-emerald-500"
+                        />
+                        <span className={cn(
+                          "text-[9px] font-bold uppercase tracking-wider",
+                          automation.isActive ? "text-emerald-600" : "text-gray-400"
+                        )}>
+                          {automation.isActive ? "Online" : "Paused"}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3 mt-2">
+                      <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
+                        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">Execution Metrics</p>
+                        <div className="flex items-baseline gap-1">
+                          <span className="text-lg font-bold text-gray-900">324</span>
+                          <span className="text-[10px] text-gray-400">triggers</span>
+                        </div>
+                      </div>
+                      <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
+                        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">Last Transmission</p>
+                        <div className="flex items-center gap-1.5 text-gray-600">
+                          <Clock className="h-3 w-3" />
+                          <span className="text-[10px] font-bold">
+                            {automation.lastRunAt ? new Date(automation.lastRunAt).toLocaleDateString() : "Pending"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <p className="text-sm text-muted-foreground line-clamp-2">{automation.content}</p>
-                  <p className="text-xs text-muted-foreground">
-                    Last run: {automation.lastRunAt ? new Date(automation.lastRunAt).toLocaleString() : "Never"}
-                  </p>
-                  <div className="flex gap-2">
-                    <Button size="sm" variant="outline" onClick={() => openEditAutomation(automation)}>
-                      Edit
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={() => toggleAutomation(automation)}>
-                      {automation.isActive ? "Pause" : "Activate"}
-                    </Button>
+
+                  <div className="bg-gray-50 px-5 py-3 flex items-center justify-between border-t border-gray-100">
+                    <div className="flex gap-2">
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        onClick={() => openEditAutomation(automation)}
+                        className="h-8 rounded-lg text-gray-500 hover:text-blue-600 hover:bg-blue-50 text-xs font-bold"
+                      >
+                        <Settings className="h-3.5 w-3.5 mr-1.5" />
+                        Configure
+                      </Button>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {automation.isActive ? (
+                        <div className="flex items-center gap-1.5 text-emerald-600">
+                          <Zap className="h-3 w-3 animate-pulse" />
+                          <span className="text-[10px] font-bold font-mono">FLOW ACTIVE</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1.5 text-gray-400">
+                          <Power className="h-3 w-3" />
+                          <span className="text-[10px] font-bold font-mono">HIBERNATED</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
-            ))
-          )}
-        </CardContent>
-      </Card>
+            ))}
+          </div>
+        )}
+      </div>
 
       <Dialog open={automationOpen} onOpenChange={setAutomationOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>{editingAutomationId ? "Edit Automation" : "Create Automation"}</DialogTitle>
-          </DialogHeader>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label>Type</Label>
-              <Select
-                value={automationForm.type}
-                onValueChange={(value) =>
-                  setAutomationForm((prev) => ({
-                    ...prev,
-                    type: value as MarketingAutomationType,
-                  }))
-                }
-              >
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {marketingAutomationTypeOptions.map((option) => (
-                    <SelectItem key={option} value={option}>{option}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Name</Label>
-              <Input
-                value={automationForm.name}
-                onChange={(event) =>
-                  setAutomationForm((prev) => ({ ...prev, name: event.target.value }))
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Channel</Label>
-              <Select
-                value={automationForm.channel}
-                onValueChange={(value) =>
-                  setAutomationForm((prev) => ({ ...prev, channel: value as NotificationType }))
-                }
-              >
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {marketingChannelOptions.map((option) => (
-                    <SelectItem key={option} value={option}>{option}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Template (optional)</Label>
-              <Select
-                value={automationForm.templateId || "NONE"}
-                onValueChange={(value) =>
-                  setAutomationForm((prev) => ({
-                    ...prev,
-                    templateId: value === "NONE" ? "" : value,
-                  }))
-                }
-              >
-                <SelectTrigger><SelectValue placeholder="Select template" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="NONE">None</SelectItem>
-                  {templates.map((template) => (
-                    <SelectItem key={template.id} value={template.id}>{template.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2 md:col-span-2">
-              <Label>Subject (optional)</Label>
-              <Input
-                value={automationForm.subject}
-                onChange={(event) =>
-                  setAutomationForm((prev) => ({ ...prev, subject: event.target.value }))
-                }
-              />
-            </div>
-            <div className="space-y-2 md:col-span-2">
-              <Label>Content</Label>
-              <Textarea
-                value={automationForm.content}
-                onChange={(event) =>
-                  setAutomationForm((prev) => ({ ...prev, content: event.target.value }))
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Inactive Days</Label>
-              <Input
-                type="number"
-                min={1}
-                value={automationForm.inactiveDays}
-                onChange={(event) =>
-                  setAutomationForm((prev) => ({ ...prev, inactiveDays: event.target.value }))
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Class ID (optional)</Label>
-              <Input
-                value={automationForm.classId}
-                onChange={(event) =>
-                  setAutomationForm((prev) => ({ ...prev, classId: event.target.value }))
-                }
-              />
-            </div>
-            <div className="space-y-2 md:col-span-2">
-              <Label>Special Offer (optional)</Label>
-              <Input
-                value={automationForm.specialOffer}
-                onChange={(event) =>
-                  setAutomationForm((prev) => ({ ...prev, specialOffer: event.target.value }))
-                }
-              />
-            </div>
-            <div className="md:col-span-2">
-              <Button className="w-full" onClick={handleSubmitAutomation}>
-                {editingAutomationId ? "Update Automation" : "Create Automation"}
-              </Button>
-            </div>
+        <DialogContent className="max-w-3xl rounded-2xl border-none shadow-2xl p-0 overflow-hidden">
+          <div className="bg-blue-600 p-6 text-white">
+            <h2 className="text-xl font-bold flex items-center gap-2">
+              <Zap className="h-6 w-6" />
+              {editingAutomationId ? "Update Workflow Logic" : "Design New Automation Flow"}
+            </h2>
+            <p className="text-blue-100 text-xs mt-1 font-medium opacity-80">
+              Establish rules for automated member outreach based on lifecycle events.
+            </p>
           </div>
+          
+          <ScrollArea className="max-h-[80vh]">
+            <div className="p-6 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Event Trigger Type</Label>
+                  <Select
+                    value={automationForm.type}
+                    onValueChange={(value) =>
+                      setAutomationForm((prev) => ({
+                        ...prev,
+                        type: value as MarketingAutomationType,
+                      }))
+                    }
+                  >
+                    <SelectTrigger className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium font-mono text-xs uppercase tracking-tight">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      {marketingAutomationTypeOptions.map((option) => (
+                        <SelectItem key={option} value={option} className="rounded-lg">{option}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Flow Label</Label>
+                  <Input
+                    className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium placeholder:text-gray-300"
+                    placeholder="e.g., Anniversary Celebration"
+                    value={automationForm.name}
+                    onChange={(event) =>
+                      setAutomationForm((prev) => ({ ...prev, name: event.target.value }))
+                    }
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Communication Channel</Label>
+                  <Select
+                    value={automationForm.channel}
+                    onValueChange={(value) =>
+                      setAutomationForm((prev) => ({ ...prev, channel: value as NotificationType }))
+                    }
+                  >
+                    <SelectTrigger className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium font-mono text-xs uppercase tracking-tight">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      {marketingChannelOptions.map((option) => (
+                        <SelectItem key={option} value={option} className="rounded-lg">{option}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Content Blueprint</Label>
+                  <Select
+                    value={automationForm.templateId || "NONE"}
+                    onValueChange={(value) =>
+                      setAutomationForm((prev) => ({
+                        ...prev,
+                        templateId: value === "NONE" ? "" : value,
+                      }))
+                    }
+                  >
+                    <SelectTrigger className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium font-mono text-xs uppercase tracking-tight">
+                      <SelectValue placeholder="Select template" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      <SelectItem value="NONE" className="rounded-lg">Generic (Manual Content)</SelectItem>
+                      {templates.map((template) => (
+                        <SelectItem key={template.id} value={template.id} className="rounded-lg">{template.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2 md:col-span-2">
+                  <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Transmission Subject</Label>
+                  <Input
+                    className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium placeholder:text-gray-300"
+                    placeholder="Subject line for automation..."
+                    value={automationForm.subject}
+                    onChange={(event) =>
+                      setAutomationForm((prev) => ({ ...prev, subject: event.target.value }))
+                    }
+                  />
+                </div>
+
+                <div className="space-y-2 md:col-span-2">
+                  <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Workflow Payload</Label>
+                  <Textarea
+                    className="min-h-[120px] rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium leading-relaxed"
+                    placeholder="The primary message for this automation flow..."
+                    value={automationForm.content}
+                    onChange={(event) =>
+                      setAutomationForm((prev) => ({ ...prev, content: event.target.value }))
+                    }
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Dormancy Threshold (Days)</Label>
+                  <Input
+                    className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium font-mono"
+                    type="number"
+                    min={1}
+                    value={automationForm.inactiveDays}
+                    onChange={(event) =>
+                      setAutomationForm((prev) => ({ ...prev, inactiveDays: event.target.value }))
+                    }
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Linked Session ID</Label>
+                  <Input
+                    className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium"
+                    placeholder="Optional UUID for class triggers"
+                    value={automationForm.classId}
+                    onChange={(event) =>
+                      setAutomationForm((prev) => ({ ...prev, classId: event.target.value }))
+                    }
+                  />
+                </div>
+
+                <div className="space-y-2 md:col-span-2">
+                  <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Exclusive Value Proposition</Label>
+                  <Input
+                    className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium placeholder:text-gray-300"
+                    placeholder="e.g., RECOVER20 code"
+                    value={automationForm.specialOffer}
+                    onChange={(event) =>
+                      setAutomationForm((prev) => ({ ...prev, specialOffer: event.target.value }))
+                    }
+                  />
+                </div>
+              </div>
+              
+              <div className="pt-4 flex gap-3">
+                <Button 
+                  variant="outline" 
+                  className="flex-1 h-12 rounded-xl border-gray-200 font-bold text-gray-500"
+                  onClick={() => setAutomationOpen(false)}
+                >
+                  Discard Flow
+                </Button>
+                <Button 
+                  className="flex-[2] h-12 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold shadow-lg shadow-blue-100 transition-all active:scale-95"
+                  onClick={handleSubmitAutomation}
+                >
+                  <CheckCircle2 className="h-4 w-4 mr-2" />
+                  Commit Workflow Logic
+                </Button>
+              </div>
+            </div>
+          </ScrollArea>
         </DialogContent>
       </Dialog>
     </div>

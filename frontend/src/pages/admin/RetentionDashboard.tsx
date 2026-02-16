@@ -27,6 +27,8 @@ import {
   type RetentionRiskLevel,
 } from "@/services/retention.service";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import { Search, Filter, ShieldAlert, ShieldQuestion, ShieldCheck, UserCheck } from "lucide-react";
 
 const RetentionDashboard = () => {
   const [overview, setOverview] = useState<RetentionOverview | null>(null);
@@ -83,27 +85,27 @@ const RetentionDashboard = () => {
   const stats = useMemo(
     () => [
       {
-        title: "High Risk",
+        title: "High Risk Members",
         value: overview?.highRisk ?? 0,
-        icon: AlertTriangle,
+        icon: ShieldAlert,
         tone: "danger" as const,
       },
       {
-        title: "Medium Risk",
+        title: "Dormant / Medium",
         value: overview?.mediumRisk ?? 0,
-        icon: UserX,
+        icon: ShieldQuestion,
         tone: "warning" as const,
       },
       {
-        title: "Open Tasks",
+        title: "Active Follow-ups",
         value: overview?.openTasks ?? 0,
-        icon: Users,
+        icon: UserCheck,
         tone: "primary" as const,
       },
       {
-        title: "Evaluated Members",
-        value: overview?.evaluatedMembers ?? 0,
-        icon: Users,
+        title: "Healthy Retention",
+        value: (overview?.evaluatedMembers ?? 0) - (overview?.highRisk ?? 0) - (overview?.mediumRisk ?? 0),
+        icon: ShieldCheck,
         tone: "success" as const,
       },
     ],
@@ -111,24 +113,51 @@ const RetentionDashboard = () => {
   );
 
   const riskBadge = (level: RetentionRiskLevel) => {
-    if (level === "HIGH") return <Badge variant="destructive">HIGH</Badge>;
-    if (level === "MEDIUM") return <Badge variant="secondary">MEDIUM</Badge>;
-    return <Badge variant="outline">LOW</Badge>;
+    if (level === "HIGH") {
+      return (
+        <Badge className="rounded-lg bg-red-100 text-red-700 border-none px-2 py-0.5 text-[10px] font-bold uppercase">
+          Critical Risk
+        </Badge>
+      );
+    }
+    if (level === "MEDIUM") {
+      return (
+        <Badge className="rounded-lg bg-orange-100 text-orange-700 border-none px-2 py-0.5 text-[10px] font-bold uppercase">
+          At Risk
+        </Badge>
+      );
+    }
+    return (
+      <Badge className="rounded-lg bg-emerald-100 text-emerald-700 border-none px-2 py-0.5 text-[10px] font-bold uppercase">
+        Stable
+      </Badge>
+    );
   };
 
   return (
-    <div className="m3-admin-page">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">Retention Dashboard</h1>
-          <p className="text-muted-foreground">Monitor churn risk and follow-up workload</p>
+    <div className="space-y-4">
+      {/* Header section */}
+      <section className="rounded-2xl border border-gray-200 bg-white p-4">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p className="text-sm font-semibold text-gray-900">Retention Dashboard</p>
+            <p className="text-sm text-gray-500">
+              Anticipate churn by monitoring inactivity, payment delays, and membership usage.
+            </p>
+          </div>
+          <Button 
+            variant="outline" 
+            onClick={handleRecalculate} 
+            disabled={isRecalculating}
+            className="h-10 rounded-xl border-gray-200 font-bold font-mono text-xs hover:bg-gray-50"
+          >
+            <RefreshCcw className={cn("h-4 w-4 mr-2", isRecalculating && "animate-spin")} />
+            {isRecalculating ? "Processing Risks..." : "Sync Risk Profiles"}
+          </Button>
         </div>
-        <Button onClick={handleRecalculate} disabled={isRecalculating}>
-          <RefreshCcw className="h-4 w-4 mr-2" />
-          {isRecalculating ? "Recalculating..." : "Recalculate"}
-        </Button>
-      </div>
+      </section>
 
+      {/* KPI Section */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((item) => (
           <M3KpiCard
@@ -141,81 +170,140 @@ const RetentionDashboard = () => {
         ))}
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Risk Members</CardTitle>
-          <div className="flex flex-col lg:flex-row gap-3">
-            <Input
-              placeholder="Search member..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="max-w-xs"
-            />
+      {/* Main Content: Risk List */}
+      <section className="rounded-2xl border border-gray-200 bg-white p-5">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+          <div>
+            <h2 className="text-lg font-bold text-gray-900">Member Risk Profile</h2>
+            <div className="flex items-center gap-2 mt-1">
+              <Badge variant="outline" className="rounded-lg bg-gray-50 border-gray-200 text-gray-600 text-[10px] font-bold uppercase tracking-tight">
+                {members.length} Profile{members.length !== 1 && "s"} Tracked
+              </Badge>
+              {overview?.highRisk && overview.highRisk > 0 && (
+                <Badge className="rounded-lg bg-red-50 border-red-100 text-red-600 text-[10px] font-bold uppercase tracking-tight">
+                  {overview.highRisk} High Risk Actions
+                </Badge>
+              )}
+            </div>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <div className="relative group">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-blue-600 transition-colors" />
+              <Input
+                placeholder="Search name or email..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-10 h-10 w-full sm:w-64 rounded-xl border-gray-200 focus-visible:ring-blue-600"
+              />
+            </div>
             <Select value={riskLevel} onValueChange={(v) => setRiskLevel(v as any)}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Risk level" />
+              <SelectTrigger className="h-10 w-full sm:w-40 rounded-xl border-gray-200 focus:ring-blue-600 text-xs font-bold uppercase tracking-tight">
+                <SelectValue placeholder="All Risks" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All levels</SelectItem>
-                <SelectItem value="HIGH">High</SelectItem>
-                <SelectItem value="MEDIUM">Medium</SelectItem>
-                <SelectItem value="LOW">Low</SelectItem>
+              <SelectContent className="rounded-xl border-gray-200">
+                <SelectItem value="all" className="rounded-lg">All Risks</SelectItem>
+                <SelectItem value="HIGH" className="rounded-lg">Critical Risk</SelectItem>
+                <SelectItem value="MEDIUM" className="rounded-lg">At Risk</SelectItem>
+                <SelectItem value="LOW" className="rounded-lg">Stable</SelectItem>
               </SelectContent>
             </Select>
-            <Input
-              type="number"
-              min={0}
-              max={100}
-              placeholder="Min score"
-              value={minScore}
-              onChange={(e) => setMinScore(e.target.value)}
-              className="w-[140px]"
-            />
-            <Button variant="outline" onClick={loadData} disabled={isLoading}>
-              Refresh
-            </Button>
+            <div className="relative">
+              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-3 w-3 text-gray-400" />
+              <Input
+                type="number"
+                min={0}
+                max={100}
+                placeholder="Score"
+                value={minScore}
+                onChange={(e) => setMinScore(e.target.value)}
+                className="pl-8 h-10 w-full sm:w-28 rounded-xl border-gray-200 text-xs font-mono focus-visible:ring-blue-600"
+              />
+            </div>
           </div>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Member</TableHead>
-                <TableHead>Risk</TableHead>
-                <TableHead>Score</TableHead>
-                <TableHead>Days Since Check-in</TableHead>
-                <TableHead>Pending Payments</TableHead>
-                <TableHead className="hidden lg:table-cell">Reasons</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {!isLoading && members.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center text-muted-foreground">
-                    No retention members found.
-                  </TableCell>
-                </TableRow>
+        </div>
+
+        <div className="overflow-x-auto -mx-5 px-5">
+          <table className="min-w-full text-sm">
+            <thead className="bg-gray-50/80 text-left text-[10px] uppercase tracking-widest text-gray-400 font-bold border-y border-gray-100">
+              <tr>
+                <th className="px-5 py-4">Identity & Contact</th>
+                <th className="px-2 py-4">Threat Level</th>
+                <th className="px-2 py-4 text-center">Score</th>
+                <th className="px-2 py-4 text-center">Inactivity</th>
+                <th className="px-2 py-4 text-center">Arrears</th>
+                <th className="px-5 py-4 text-right hidden lg:table-cell">Heuristic Reasons</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {isLoading ? (
+                <tr>
+                  <td colSpan={6} className="py-20 text-center">
+                    <div className="flex flex-col items-center">
+                      <RefreshCcw className="h-8 w-8 text-blue-200 animate-spin mb-4" />
+                      <p className="text-gray-400 text-xs font-medium italic">Analyzing member behavior...</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : members.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-20 text-center text-gray-400">
+                    <p className="font-medium italic">No member risk profiles match these filters.</p>
+                  </td>
+                </tr>
               ) : (
                 members.map((member) => (
-                  <TableRow key={member.memberId}>
-                    <TableCell>
-                      <div className="font-medium">{member.fullName}</div>
-                      <div className="text-xs text-muted-foreground">{member.email}</div>
-                    </TableCell>
-                    <TableCell>{riskBadge(member.riskLevel)}</TableCell>
-                    <TableCell>{member.score}</TableCell>
-                    <TableCell>{member.daysSinceCheckIn ?? "-"}</TableCell>
-                    <TableCell>{member.unpaidPendingCount}</TableCell>
-                    <TableCell className="hidden lg:table-cell text-xs text-muted-foreground">
-                      {member.reasons.join(", ") || "-"}
-                    </TableCell>
-                  </TableRow>
+                  <tr key={member.memberId} className="group hover:bg-gray-50/50 transition-colors">
+                    <td className="px-5 py-4">
+                      <div className="font-bold text-gray-900">{member.fullName}</div>
+                      <div className="text-[10px] font-mono text-gray-400 mt-0.5">{member.email}</div>
+                    </td>
+                    <td className="px-2 py-4">
+                      {riskBadge(member.riskLevel)}
+                    </td>
+                    <td className="px-2 py-4 text-center">
+                      <div className={cn(
+                        "inline-flex items-center justify-center w-9 h-9 rounded-xl border text-xs font-bold font-mono",
+                        member.score > 70 ? "bg-red-50 border-red-100 text-red-700" :
+                        member.score > 40 ? "bg-orange-50 border-orange-100 text-orange-700" :
+                        "bg-emerald-50 border-emerald-100 text-emerald-700"
+                      )}>
+                        {member.score}
+                      </div>
+                    </td>
+                    <td className="px-2 py-4 text-center">
+                      <span className="text-xs font-medium text-gray-600">
+                        {member.daysSinceCheckIn ?? "-"} <span className="text-[10px] text-gray-400 uppercase tracking-tighter">days</span>
+                      </span>
+                    </td>
+                    <td className="px-2 py-4 text-center">
+                      {member.unpaidPendingCount > 0 ? (
+                        <div className="inline-flex items-center px-2 py-1 rounded-lg bg-red-50 text-red-700 text-xs font-bold font-mono">
+                          {member.unpaidPendingCount}
+                        </div>
+                      ) : (
+                        <span className="text-gray-300">—</span>
+                      )}
+                    </td>
+                    <td className="px-5 py-4 text-right hidden lg:table-cell">
+                      <div className="flex flex-wrap justify-end gap-1">
+                        {member.reasons.length > 0 ? (
+                          member.reasons.map((reason, idx) => (
+                            <Badge key={idx} variant="outline" className="h-5 rounded-md text-[9px] font-medium border-gray-100 bg-gray-50 text-gray-500 max-w-[120px] truncate">
+                              {reason}
+                            </Badge>
+                          ))
+                        ) : (
+                          <span className="text-gray-300 italic text-[10px]">No anomalies</span>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
                 ))
               )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+            </tbody>
+          </table>
+        </div>
+      </section>
     </div>
   );
 };

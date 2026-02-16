@@ -42,6 +42,7 @@ import RecoveryPage from "../pages/admin/Recovery";
 import SalesDashboardPage from "../pages/admin/SalesDashboard";
 import PosSalesPage from "../pages/admin/PosSales";
 import InventoryManagementPage from "../pages/admin/InventoryManagement";
+// Admin Pages (Converted to TSX)
 import GymManagementM3DashboardPage from "../pages/admin/GymManagementM3Dashboard";
 
 // Member/Trainer/Staff Pages

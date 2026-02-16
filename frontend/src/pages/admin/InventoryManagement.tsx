@@ -19,7 +19,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { M3KpiCard } from "@/components/ui/m3-kpi-card";
+import { cn } from "@/lib/utils";
 import {
   inventorySalesService,
   type LowStockAlert,
@@ -30,7 +32,7 @@ import {
   productCategoryLabel,
   productCategoryOptions,
 } from "./inventory-sales.constants";
-import { RefreshCcw } from "lucide-react";
+import { Package2, RefreshCcw, Search } from "lucide-react";
 import { toast } from "sonner";
 
 const InventoryManagement = () => {
@@ -169,267 +171,286 @@ const InventoryManagement = () => {
   };
 
   return (
-    <div className="m3-admin-page">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">Inventory Management</h1>
-          <p className="text-muted-foreground">
-            Product catalog setup, stock control, and low-stock monitoring.
-          </p>
+    <div className="space-y-4">
+      {/* Header section */}
+      <section className="rounded-2xl border border-gray-200 bg-white p-4">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p className="text-sm font-semibold text-gray-900">Inventory Management</p>
+            <p className="text-sm text-gray-500">
+              Product catalog setup, stock control, and low-stock monitoring.
+            </p>
+          </div>
+          <Button 
+            variant="outline" 
+            onClick={loadData} 
+            disabled={isLoading}
+            className="h-10 rounded-xl border-gray-200 font-bold font-mono text-xs hover:bg-gray-50"
+          >
+            <RefreshCcw className={cn("h-4 w-4 mr-2", isLoading && "animate-spin")} />
+            Refresh Data
+          </Button>
         </div>
-        <Button variant="outline" onClick={loadData} disabled={isLoading}>
-          <RefreshCcw className="h-4 w-4 mr-2" />
-          Refresh
-        </Button>
-      </div>
+      </section>
 
+      {/* KPI Section */}
       <div className="grid gap-4 sm:grid-cols-3">
-        <M3KpiCard title="Products" value={products.length} tone="primary" />
-        <M3KpiCard title="Low Stock Alerts" value={lowStock.length} tone="warning" />
+        <M3KpiCard title="Total SKU Count" value={products.length} tone="primary" />
+        <M3KpiCard title="Critical Alerts" value={lowStock.length} tone="warning" />
         <M3KpiCard
-          title="Active Products"
+          title="Active in Catalog"
           value={products.filter((product) => product.isActive).length}
           tone="success"
         />
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Add Product</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form className="space-y-4" onSubmit={handleCreateProduct}>
-              <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-4 xl:grid-cols-12">
+        {/* Add Product Form */}
+        <section className="xl:col-span-12 rounded-2xl border border-gray-200 bg-white p-6">
+          <div className="mb-6">
+            <h2 className="text-lg font-bold text-gray-900">Add New Product</h2>
+            <p className="text-xs text-gray-500">Register a new item in the gym's retail or supply inventory.</p>
+          </div>
+          <form className="space-y-6" onSubmit={handleCreateProduct}>
+            <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
+              <div className="space-y-1.5 md:col-span-2">
+                <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Product Name</Label>
                 <Input
-                  placeholder="Product name"
+                  placeholder="e.g. Whey Protein Isolate"
                   value={productForm.name}
-                  onChange={(event) =>
-                    setProductForm((prev) => ({ ...prev, name: event.target.value }))
-                  }
+                  onChange={(event) => setProductForm((prev) => ({ ...prev, name: event.target.value }))}
                   required
+                  className="h-11 rounded-xl border-gray-200 focus-visible:ring-blue-600"
                 />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">SKU / ID</Label>
                 <Input
-                  placeholder="SKU"
+                  placeholder="e.g. SUP-WPI-001"
                   value={productForm.sku}
-                  onChange={(event) =>
-                    setProductForm((prev) => ({ ...prev, sku: event.target.value }))
-                  }
+                  onChange={(event) => setProductForm((prev) => ({ ...prev, sku: event.target.value }))}
                   required
+                  className="h-11 rounded-xl border-gray-200 focus-visible:ring-blue-600"
                 />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Category</Label>
                 <Select
                   value={productForm.category}
-                  onValueChange={(value) =>
-                    setProductForm((prev) => ({
-                      ...prev,
-                      category: value as ProductCategory,
-                    }))
-                  }
+                  onValueChange={(value) => setProductForm((prev) => ({ ...prev, category: value as ProductCategory }))}
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Category" />
+                  <SelectTrigger className="h-11 rounded-xl border-gray-200 focus:ring-blue-600">
+                    <SelectValue placeholder="Select Category" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="rounded-xl border-gray-200">
                     {productCategoryOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
+                      <SelectItem key={option.value} value={option.value} className="rounded-lg">
                         {option.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Retail Price (MMK)</Label>
                 <Input
                   type="number"
-                  placeholder="Sale price"
+                  placeholder="0.00"
                   min={0}
                   value={productForm.salePrice}
-                  onChange={(event) =>
-                    setProductForm((prev) => ({ ...prev, salePrice: event.target.value }))
-                  }
+                  onChange={(event) => setProductForm((prev) => ({ ...prev, salePrice: event.target.value }))}
                   required
-                />
-                <Input
-                  type="number"
-                  placeholder="Cost price (optional)"
-                  min={0}
-                  value={productForm.costPrice}
-                  onChange={(event) =>
-                    setProductForm((prev) => ({ ...prev, costPrice: event.target.value }))
-                  }
-                />
-                <Input
-                  type="number"
-                  placeholder="Initial stock"
-                  min={0}
-                  value={productForm.stockQuantity}
-                  onChange={(event) =>
-                    setProductForm((prev) => ({ ...prev, stockQuantity: event.target.value }))
-                  }
-                />
-                <Input
-                  type="number"
-                  placeholder="Low stock threshold"
-                  min={0}
-                  value={productForm.lowStockThreshold}
-                  onChange={(event) =>
-                    setProductForm((prev) => ({
-                      ...prev,
-                      lowStockThreshold: event.target.value,
-                    }))
-                  }
+                  className="h-11 rounded-xl border-gray-200 focus-visible:ring-blue-600 font-mono"
                 />
               </div>
+              <div className="space-y-1.5">
+                <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Supply Cost (Optional)</Label>
+                <Input
+                  type="number"
+                  placeholder="0.00"
+                  min={0}
+                  value={productForm.costPrice}
+                  onChange={(event) => setProductForm((prev) => ({ ...prev, costPrice: event.target.value }))}
+                  className="h-11 rounded-xl border-gray-200 focus-visible:ring-blue-600 font-mono"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Initial Stock</Label>
+                <Input
+                  type="number"
+                  placeholder="Units"
+                  min={0}
+                  value={productForm.stockQuantity}
+                  onChange={(event) => setProductForm((prev) => ({ ...prev, stockQuantity: event.target.value }))}
+                  className="h-11 rounded-xl border-gray-200 focus-visible:ring-blue-600"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Alert Threshold</Label>
+                <Input
+                  type="number"
+                  placeholder="Min Units"
+                  min={0}
+                  value={productForm.lowStockThreshold}
+                  onChange={(event) => setProductForm((prev) => ({ ...prev, lowStockThreshold: event.target.value }))}
+                  className="h-11 rounded-xl border-gray-200 focus-visible:ring-blue-600"
+                />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Item Description</Label>
               <Textarea
-                placeholder="Description"
+                placeholder="Details about product specifications, flavor, size, etc."
                 value={productForm.description}
-                onChange={(event) =>
-                  setProductForm((prev) => ({ ...prev, description: event.target.value }))
-                }
+                onChange={(event) => setProductForm((prev) => ({ ...prev, description: event.target.value }))}
+                className="min-h-[100px] rounded-xl border-gray-200 focus-visible:ring-blue-600 py-3"
               />
-              <Button type="submit" disabled={isLoading}>
-                Create Product
+            </div>
+            <div className="flex justify-end">
+              <Button type="submit" disabled={isLoading} className="bg-blue-600 hover:bg-blue-700 h-11 px-8 rounded-xl font-bold shadow-lg shadow-blue-100 transition-all active:scale-95">
+                Register Product
               </Button>
-            </form>
-          </CardContent>
-        </Card>
+            </div>
+          </form>
+        </section>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Low Stock Alerts</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Product</TableHead>
-                  <TableHead>Remaining</TableHead>
-                  <TableHead>Threshold</TableHead>
-                  <TableHead>Deficit</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {lowStock.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={4} className="text-center text-muted-foreground">
-                      No low-stock alerts.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  lowStock.map((alert) => (
-                    <TableRow key={alert.productId}>
-                      <TableCell>
-                        <div className="font-medium">{alert.name}</div>
-                        <div className="text-xs text-muted-foreground">{alert.sku}</div>
-                      </TableCell>
-                      <TableCell>{alert.stockQuantity}</TableCell>
-                      <TableCell>{alert.lowStockThreshold}</TableCell>
-                      <TableCell>{alert.deficit}</TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+        {/* Low Stock Alerts & Inventory List */}
+        <div className="xl:col-span-12 space-y-4">
+          <section className="rounded-2xl border border-gray-200 bg-white p-5">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+              <div>
+                <h2 className="text-lg font-bold text-gray-900">Product Inventory</h2>
+                <div className="flex items-center gap-2 mt-1">
+                  <Badge variant="outline" className="rounded-lg bg-gray-50 border-gray-200 text-gray-600 text-[10px] font-bold uppercase tracking-tight">
+                    {filteredProducts.length} Results
+                  </Badge>
+                  {lowStock.length > 0 && (
+                    <Badge className="rounded-lg bg-red-50 border-red-100 text-red-600 text-[10px] font-bold uppercase tracking-tight">
+                      {lowStock.length} Low Stock Alerts
+                    </Badge>
+                  )}
+                </div>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <div className="relative group">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-blue-600 transition-colors" />
+                  <Input
+                    placeholder="Search name or SKU..."
+                    value={productSearch}
+                    onChange={(event) => setProductSearch(event.target.value)}
+                    className="pl-10 h-10 w-full sm:w-64 rounded-xl border-gray-200 focus-visible:ring-blue-600"
+                  />
+                </div>
+                <Select
+                  value={productCategoryFilter}
+                  onValueChange={(value) => setProductCategoryFilter(value as ProductCategory | "ALL")}
+                >
+                  <SelectTrigger className="h-10 w-full sm:w-48 rounded-xl border-gray-200 focus:ring-blue-600">
+                    <SelectValue placeholder="All Categories" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl border-gray-200">
+                    <SelectItem value="ALL" className="rounded-lg">All Categories</SelectItem>
+                    {productCategoryOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value} className="rounded-lg">
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto -mx-5 px-5">
+              <table className="min-w-full text-sm">
+                <thead className="bg-gray-50/80 text-left text-[10px] uppercase tracking-widest text-gray-400 font-bold border-y border-gray-100">
+                  <tr>
+                    <th className="px-5 py-4">Product Details</th>
+                    <th className="px-2 py-4">Category</th>
+                    <th className="px-2 py-4">Price</th>
+                    <th className="px-2 py-4 text-center">Stock</th>
+                    <th className="px-2 py-4">Restock Action</th>
+                    <th className="px-5 py-4 text-right">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {filteredProducts.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="py-20 text-center text-gray-400">
+                        <div className="flex flex-col items-center">
+                          <Package2 className="h-10 w-10 mb-2 opacity-20" />
+                          <p className="font-medium">No products found in the catalog.</p>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredProducts.map((product) => (
+                      <tr key={product.id} className="group hover:bg-gray-50/50 transition-colors">
+                        <td className="px-5 py-4">
+                          <div className="font-bold text-gray-900">{product.name}</div>
+                          <div className="text-[10px] font-mono font-medium text-gray-400 mt-0.5">{product.sku}</div>
+                        </td>
+                        <td className="px-2 py-4">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 text-[10px] font-bold uppercase">
+                            {productCategoryLabel(product.category)}
+                          </span>
+                        </td>
+                        <td className="px-2 py-4 font-mono font-bold text-gray-700">
+                          {product.salePrice.toLocaleString()} <span className="text-[10px] text-gray-400">MMK</span>
+                        </td>
+                        <td className="px-2 py-4 text-center">
+                          <div className={cn(
+                            "inline-flex items-center justify-center w-10 h-10 rounded-xl border text-sm font-bold",
+                            product.isLowStock 
+                              ? "bg-red-50 border-red-100 text-red-700" 
+                              : "bg-gray-50 border-gray-100 text-gray-700"
+                          )}>
+                            {product.stockQuantity}
+                          </div>
+                        </td>
+                        <td className="px-2 py-4">
+                          <div className="flex gap-2 items-center">
+                            <Input
+                              className="h-9 w-20 rounded-lg border-gray-200 text-center font-mono text-xs focus-visible:ring-blue-600"
+                              type="number"
+                              min={1}
+                              placeholder="Qty"
+                              value={restockMap[product.id] ?? ""}
+                              onChange={(event) =>
+                                setRestockMap((prev) => ({
+                                  ...prev,
+                                  [product.id]: event.target.value,
+                                }))
+                              }
+                            />
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleRestock(product)}
+                              className="h-9 px-3 rounded-lg border-gray-200 text-[10px] font-bold uppercase transition-all hover:bg-blue-600 hover:text-white hover:border-blue-600"
+                            >
+                              Add
+                            </Button>
+                          </div>
+                        </td>
+                        <td className="px-5 py-4 text-right">
+                          {product.isLowStock ? (
+                            <div className="inline-flex flex-col items-end">
+                              <Badge className="rounded-lg bg-red-100 text-red-700 border-none px-2 py-0.5 text-[10px] font-bold uppercase">Critical</Badge>
+                              <span className="text-[9px] text-red-400 mt-1 font-medium italic">Below {product.lowStockThreshold} units</span>
+                            </div>
+                          ) : (
+                            <Badge className="rounded-lg bg-emerald-100 text-emerald-700 border-none px-2 py-0.5 text-[10px] font-bold uppercase tracking-tight">Healthy</Badge>
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
       </div>
-
-      <Card>
-        <CardHeader className="space-y-3">
-          <CardTitle>Inventory Table</CardTitle>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Input
-              placeholder="Search by name or SKU"
-              value={productSearch}
-              onChange={(event) => setProductSearch(event.target.value)}
-            />
-            <Select
-              value={productCategoryFilter}
-              onValueChange={(value) =>
-                setProductCategoryFilter(value as ProductCategory | "ALL")
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="All categories" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">All categories</SelectItem>
-                {productCategoryOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Product</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Price</TableHead>
-                <TableHead>Stock</TableHead>
-                <TableHead>Threshold</TableHead>
-                <TableHead>Restock</TableHead>
-                <TableHead>Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredProducts.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center text-muted-foreground">
-                    No products found.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredProducts.map((product) => (
-                  <TableRow key={product.id}>
-                    <TableCell>
-                      <div className="font-medium">{product.name}</div>
-                      <div className="text-xs text-muted-foreground">{product.sku}</div>
-                    </TableCell>
-                    <TableCell>{productCategoryLabel(product.category)}</TableCell>
-                    <TableCell>{product.salePrice.toLocaleString()} MMK</TableCell>
-                    <TableCell>{product.stockQuantity}</TableCell>
-                    <TableCell>{product.lowStockThreshold}</TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        <Input
-                          className="w-24"
-                          type="number"
-                          min={1}
-                          placeholder="Qty"
-                          value={restockMap[product.id] ?? ""}
-                          onChange={(event) =>
-                            setRestockMap((prev) => ({
-                              ...prev,
-                              [product.id]: event.target.value,
-                            }))
-                          }
-                        />
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleRestock(product)}
-                        >
-                          Add
-                        </Button>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {product.isLowStock ? (
-                        <Badge variant="destructive">Low stock</Badge>
-                      ) : (
-                        <Badge variant="secondary">Healthy</Badge>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
     </div>
   );
 };

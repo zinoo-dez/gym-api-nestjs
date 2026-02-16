@@ -33,8 +33,10 @@ import {
   marketingAudienceOptions,
   marketingChannelOptions,
 } from "./marketing-shared";
-import { BarChart3, Plus, RefreshCcw, Send } from "lucide-react";
+import { BarChart3, Plus, RefreshCcw, Send, Megaphone, Search, Filter, Edit3, Calendar, Users, Target, Rocket } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const toDateTimeLocalValue = (value?: string | null) => {
   if (!value) return "";
@@ -181,246 +183,381 @@ const MarketingCampaigns = () => {
   };
 
   return (
-    <div className="m3-admin-page">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">Marketing Campaigns</h1>
-          <p className="text-muted-foreground">
-            Create, schedule, send, and manage campaign lifecycle.
-          </p>
+    <div className="space-y-4">
+      {/* Header section */}
+      <section className="rounded-2xl border border-gray-200 bg-white p-4">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p className="text-sm font-semibold text-gray-900">Campaign Orchestration</p>
+            <p className="text-sm text-gray-500">
+              Manage Outreach Batches, promotional lifecycle, and audience targeting.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={loadData} 
+              disabled={loading}
+              className="h-10 rounded-xl border-gray-200 font-bold font-mono text-xs hover:bg-gray-50"
+            >
+              <RefreshCcw className={cn("h-4 w-4 mr-2", loading && "animate-spin")} />
+              Sync Archive
+            </Button>
+            <Button 
+              onClick={openNewCampaign}
+              className="h-10 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold font-mono text-xs shadow-lg shadow-blue-100 transition-all active:scale-95"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Launch New Outreach
+            </Button>
+          </div>
         </div>
-        <div className="flex gap-2 flex-wrap">
-          <Button variant="outline" onClick={loadData} disabled={loading}>
-            <RefreshCcw className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
-          <Button onClick={openNewCampaign}>
-            <Plus className="h-4 w-4 mr-2" />
-            New Campaign
-          </Button>
-        </div>
-      </div>
+      </section>
 
-      <Card>
-        <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="text-lg font-semibold">Campaign List</h2>
-          <Input
-            className="sm:max-w-sm"
-            placeholder="Search campaigns..."
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-          />
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {loading ? (
-            <p className="text-muted-foreground">Loading campaigns...</p>
-          ) : filteredCampaigns.length === 0 ? (
-            <p className="text-muted-foreground">No campaigns found.</p>
-          ) : (
-            filteredCampaigns.map((campaign) => (
-              <Card key={campaign.id}>
-                <CardContent className="p-4 flex flex-col lg:flex-row lg:items-center gap-3 lg:justify-between">
-                  <div className="space-y-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <p className="font-medium">{campaign.name}</p>
-                      <Badge variant="outline">{campaign.type}</Badge>
-                      <Badge>{campaign.status}</Badge>
-                      <Badge variant="secondary">{campaign.audienceType}</Badge>
+      {/* Search & Filter Toolbar */}
+      <section className="rounded-2xl border border-gray-200 bg-white p-3">
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <Input
+              className="h-11 pl-10 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium placeholder:text-gray-400"
+              placeholder="Query campaigns by name, subject, or content..."
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+            />
+          </div>
+          <Button variant="outline" className="h-11 rounded-xl border-gray-100 text-gray-500">
+            <Filter className="h-4 w-4 mr-2" />
+            Filters
+          </Button>
+        </div>
+      </section>
+
+      {/* Campaign Grid/List */}
+      <div className="grid gap-4">
+        {loading ? (
+          <div className="py-20 text-center rounded-2xl border-2 border-dashed border-gray-100 bg-white/50">
+            <RefreshCcw className="h-12 w-12 mb-3 mx-auto text-blue-100 animate-spin" />
+            <p className="font-medium text-gray-400">Loading campaign archives...</p>
+          </div>
+        ) : filteredCampaigns.length === 0 ? (
+          <div className="py-20 text-center rounded-2xl border-2 border-dashed border-gray-100 bg-white/50">
+            <Megaphone className="h-12 w-12 mb-3 mx-auto text-gray-100" />
+            <p className="font-medium text-gray-400">No campaigns match your current query.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+            {filteredCampaigns.map((campaign) => (
+              <Card key={campaign.id} className="overflow-hidden border-gray-200 hover:border-blue-300 transition-colors shadow-none rounded-2xl">
+                <CardContent className="p-0">
+                  <div className="p-5 space-y-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="space-y-1.5 flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="font-bold text-gray-900 truncate max-w-[200px]">{campaign.name}</h3>
+                          <Badge variant="outline" className="rounded-lg bg-blue-50 border-blue-100 text-blue-600 font-bold text-[10px] uppercase">
+                            {campaign.type}
+                          </Badge>
+                          <Badge className={cn(
+                            "rounded-lg font-bold text-[10px] uppercase",
+                            campaign.status === "SENT" ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-100" :
+                            campaign.status === "SCHEDULED" ? "bg-blue-100 text-blue-700 hover:bg-blue-100" :
+                            "bg-gray-100 text-gray-700 hover:bg-gray-100"
+                          )}>
+                            {campaign.status}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-gray-500 line-clamp-2">
+                          {campaign.description || campaign.content}
+                        </p>
+                      </div>
+                      <div className="p-2 rounded-xl bg-gray-50">
+                        <Megaphone className="h-5 w-5 text-gray-400" />
+                      </div>
                     </div>
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {campaign.description || campaign.content}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Recipients: {campaign.recipientsCount ?? 0} • Created {new Date(campaign.createdAt).toLocaleString()}
-                    </p>
+
+                    <div className="flex items-center gap-4 text-[11px] text-gray-400 font-medium">
+                      <div className="flex items-center gap-1.5 text-blue-600">
+                        <Users className="h-3.5 w-3.5" />
+                        <span>{campaign.recipientsCount ?? 0} targeted</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <Target className="h-3.5 w-3.5" />
+                        <span>{campaign.audienceType}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 ml-auto">
+                        <Calendar className="h-3.5 w-3.5" />
+                        <span>{new Date(campaign.createdAt).toLocaleDateString()}</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex gap-2 flex-wrap">
-                    <Button size="sm" variant="outline" onClick={() => openEditCampaign(campaign)}>
-                      Edit
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() =>
-                        navigate(`/admin/marketing/analytics?campaignId=${campaign.id}`)
-                      }
-                    >
-                      <BarChart3 className="h-4 w-4 mr-1" />
-                      Analytics
-                    </Button>
-                    <Button
-                      size="sm"
+
+                  <div className="bg-gray-50 px-5 py-3 flex items-center justify-between border-t border-gray-100">
+                    <div className="flex gap-2">
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        onClick={() => openEditCampaign(campaign)}
+                        className="h-8 rounded-lg text-gray-500 hover:text-blue-600 hover:bg-blue-50 text-xs font-bold"
+                      >
+                        <Edit3 className="h-3.5 w-3.5 mr-1.5" />
+                        Modify
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        onClick={() => navigate(`/admin/marketing/analytics?campaignId=${campaign.id}`)}
+                        className="h-8 rounded-lg text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 text-xs font-bold"
+                      >
+                        <BarChart3 className="h-3.5 w-3.5 mr-1.5" />
+                        Performance
+                      </Button>
+                    </div>
+                    <Button 
+                      size="sm" 
                       onClick={() => handleSendCampaign(campaign.id)}
-                      disabled={campaign.status === "SENDING"}
+                      disabled={campaign.status === "SENDING" || campaign.status === "SENT"}
+                      className={cn(
+                        "h-8 rounded-lg text-xs font-bold font-mono transition-all",
+                        campaign.status === "SENT" ? "bg-emerald-50 text-emerald-600 border border-emerald-100 shadow-none disabled:opacity-100" : "bg-blue-600 hover:bg-blue-500 text-white shadow-sm shadow-blue-200"
+                      )}
                     >
-                      <Send className="h-4 w-4 mr-1" />
-                      Send
+                      {campaign.status === "SENT" ? (
+                        <>
+                          <Rocket className="h-3.5 w-3.5 mr-1.5" />
+                          Transmitted
+                        </>
+                      ) : (
+                        <>
+                          <Send className="h-3.5 w-3.5 mr-1.5" />
+                          Fire Campaign
+                        </>
+                      )}
                     </Button>
                   </div>
                 </CardContent>
               </Card>
-            ))
-          )}
-        </CardContent>
-      </Card>
+            ))}
+          </div>
+        )}
+      </div>
 
       <Dialog open={campaignOpen} onOpenChange={setCampaignOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>{editingCampaignId ? "Edit Campaign" : "Create Campaign"}</DialogTitle>
-          </DialogHeader>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="space-y-2 md:col-span-2">
-              <Label>Name</Label>
-              <Input
-                value={campaignForm.name}
-                onChange={(event) =>
-                  setCampaignForm((prev) => ({ ...prev, name: event.target.value }))
-                }
-              />
-            </div>
-            <div className="space-y-2 md:col-span-2">
-              <Label>Description</Label>
-              <Input
-                value={campaignForm.description}
-                onChange={(event) =>
-                  setCampaignForm((prev) => ({ ...prev, description: event.target.value }))
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Channel</Label>
-              <Select
-                value={campaignForm.type}
-                onValueChange={(value) =>
-                  setCampaignForm((prev) => ({ ...prev, type: value as NotificationType }))
-                }
-              >
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {marketingChannelOptions.map((option) => (
-                    <SelectItem key={option} value={option}>{option}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Status</Label>
-              <Select
-                value={campaignForm.status}
-                onValueChange={(value) =>
-                  setCampaignForm((prev) => ({
-                    ...prev,
-                    status: value as MarketingCampaignStatus,
-                  }))
-                }
-              >
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="DRAFT">DRAFT</SelectItem>
-                  <SelectItem value="SCHEDULED">SCHEDULED</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Audience</Label>
-              <Select
-                value={campaignForm.audienceType}
-                onValueChange={(value) =>
-                  setCampaignForm((prev) => ({
-                    ...prev,
-                    audienceType: value as CampaignAudienceType,
-                  }))
-                }
-              >
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {marketingAudienceOptions.map((option) => (
-                    <SelectItem key={option} value={option}>{option}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Template (optional)</Label>
-              <Select
-                value={campaignForm.templateId || "NONE"}
-                onValueChange={(value) =>
-                  setCampaignForm((prev) => ({
-                    ...prev,
-                    templateId: value === "NONE" ? "" : value,
-                  }))
-                }
-              >
-                <SelectTrigger><SelectValue placeholder="Select template" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="NONE">None</SelectItem>
-                  {templates.map((template) => (
-                    <SelectItem key={template.id} value={template.id}>{template.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2 md:col-span-2">
-              <Label>Subject (optional)</Label>
-              <Input
-                value={campaignForm.subject}
-                onChange={(event) =>
-                  setCampaignForm((prev) => ({ ...prev, subject: event.target.value }))
-                }
-              />
-            </div>
-            <div className="space-y-2 md:col-span-2">
-              <Label>Content</Label>
-              <Textarea
-                value={campaignForm.content}
-                onChange={(event) =>
-                  setCampaignForm((prev) => ({ ...prev, content: event.target.value }))
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Special Offer (optional)</Label>
-              <Input
-                value={campaignForm.specialOffer}
-                onChange={(event) =>
-                  setCampaignForm((prev) => ({ ...prev, specialOffer: event.target.value }))
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Class ID</Label>
-              <Input
-                value={campaignForm.classId}
-                onChange={(event) =>
-                  setCampaignForm((prev) => ({ ...prev, classId: event.target.value }))
-                }
-              />
-            </div>
-            <div className="space-y-2 md:col-span-2">
-              <Label>Custom User IDs (comma separated)</Label>
-              <Input
-                value={campaignForm.customUserIds}
-                onChange={(event) =>
-                  setCampaignForm((prev) => ({ ...prev, customUserIds: event.target.value }))
-                }
-              />
-            </div>
-            <div className="space-y-2 md:col-span-2">
-              <Label>Scheduled At (for SCHEDULED)</Label>
-              <DateTimePicker
-                value={campaignForm.scheduledAt}
-                onChange={(value) =>
-                  setCampaignForm((prev) => ({ ...prev, scheduledAt: value }))
-                }
-              />
-            </div>
-            <div className="md:col-span-2">
-              <Button className="w-full" onClick={handleSubmitCampaign}>
-                {editingCampaignId ? "Update Campaign" : "Create Campaign"}
-              </Button>
-            </div>
+        <DialogContent className="max-w-3xl rounded-2xl border-none shadow-2xl p-0 overflow-hidden">
+          <div className="bg-blue-600 p-6 text-white">
+            <h2 className="text-xl font-bold flex items-center gap-2">
+              <Plus className="h-6 w-6" />
+              {editingCampaignId ? "Refine Outreach Details" : "Compose New Campaign"}
+            </h2>
+            <p className="text-blue-100 text-xs mt-1 font-medium opacity-80">
+              Configure parameters for your gym outreach and promotion batches.
+            </p>
           </div>
+          
+          <ScrollArea className="max-h-[80vh]">
+            <div className="p-6 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2 md:col-span-2">
+                  <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Engagement Name</Label>
+                  <Input
+                    className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium"
+                    placeholder="e.g., Summer Fitness Blitz 2024"
+                    value={campaignForm.name}
+                    onChange={(event) =>
+                      setCampaignForm((prev) => ({ ...prev, name: event.target.value }))
+                    }
+                  />
+                </div>
+                
+                <div className="space-y-2 md:col-span-2">
+                  <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Internal Description</Label>
+                  <Input
+                    className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium"
+                    placeholder="Brief objective for staff reference..."
+                    value={campaignForm.description}
+                    onChange={(event) =>
+                      setCampaignForm((prev) => ({ ...prev, description: event.target.value }))
+                    }
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Outreach Channel</Label>
+                  <Select
+                    value={campaignForm.type}
+                    onValueChange={(value) =>
+                      setCampaignForm((prev) => ({ ...prev, type: value as NotificationType }))
+                    }
+                  >
+                    <SelectTrigger className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium font-mono text-xs uppercase tracking-tight">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      {marketingChannelOptions.map((option) => (
+                        <SelectItem key={option} value={option} className="rounded-lg">{option}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Execution Status</Label>
+                  <Select
+                    value={campaignForm.status}
+                    onValueChange={(value) =>
+                      setCampaignForm((prev) => ({
+                        ...prev,
+                        status: value as MarketingCampaignStatus,
+                      }))
+                    }
+                  >
+                    <SelectTrigger className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium font-mono text-xs uppercase tracking-tight">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      <SelectItem value="DRAFT" className="rounded-lg">DRAFT (Manual Fire)</SelectItem>
+                      <SelectItem value="SCHEDULED" className="rounded-lg">SCHEDULED (Automated)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Target Audience</Label>
+                  <Select
+                    value={campaignForm.audienceType}
+                    onValueChange={(value) =>
+                      setCampaignForm((prev) => ({
+                        ...prev,
+                        audienceType: value as CampaignAudienceType,
+                      }))
+                    }
+                  >
+                    <SelectTrigger className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium font-mono text-xs uppercase tracking-tight">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      {marketingAudienceOptions.map((option) => (
+                        <SelectItem key={option} value={option} className="rounded-lg">{option}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Layout Template</Label>
+                  <Select
+                    value={campaignForm.templateId || "NONE"}
+                    onValueChange={(value) =>
+                      setCampaignForm((prev) => ({
+                        ...prev,
+                        templateId: value === "NONE" ? "" : value,
+                      }))
+                    }
+                  >
+                    <SelectTrigger className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium font-mono text-xs uppercase tracking-tight">
+                      <SelectValue placeholder="Select template" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      <SelectItem value="NONE" className="rounded-lg">Generic (Manual Content)</SelectItem>
+                      {templates.map((template) => (
+                        <SelectItem key={template.id} value={template.id} className="rounded-lg">{template.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2 md:col-span-2">
+                  <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Message Subject line</Label>
+                  <Input
+                    className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium"
+                    placeholder="Subject for Email/Push notifications..."
+                    value={campaignForm.subject}
+                    onChange={(event) =>
+                      setCampaignForm((prev) => ({ ...prev, subject: event.target.value }))
+                    }
+                  />
+                </div>
+
+                <div className="space-y-2 md:col-span-2">
+                  <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Payload Content</Label>
+                  <Textarea
+                    className="min-h-[120px] rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium"
+                    placeholder="Enter the primary message content for the outreach..."
+                    value={campaignForm.content}
+                    onChange={(event) =>
+                      setCampaignForm((prev) => ({ ...prev, content: event.target.value }))
+                    }
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Promotional Offer</Label>
+                  <Input
+                    className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium"
+                    placeholder="e.g., Use code SUMMER50"
+                    value={campaignForm.specialOffer}
+                    onChange={(event) =>
+                      setCampaignForm((prev) => ({ ...prev, specialOffer: event.target.value }))
+                    }
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Restricted Class ID</Label>
+                  <Input
+                    className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium"
+                    placeholder="Optional UUID for class-specific targeting"
+                    value={campaignForm.classId}
+                    onChange={(event) =>
+                      setCampaignForm((prev) => ({ ...prev, classId: event.target.value }))
+                    }
+                  />
+                </div>
+
+                {campaignForm.audienceType === "CUSTOM" && (
+                  <div className="space-y-2 md:col-span-2">
+                    <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Custom Recipient List (ID pool)</Label>
+                    <Input
+                      className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium"
+                      placeholder="comma-separated user UUIDs..."
+                      value={campaignForm.customUserIds}
+                      onChange={(event) =>
+                        setCampaignForm((prev) => ({ ...prev, customUserIds: event.target.value }))
+                      }
+                    />
+                  </div>
+                )}
+
+                <div className="space-y-2 md:col-span-2">
+                  <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Scheduled Transmission Time</Label>
+                  <DateTimePicker
+                    className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600"
+                    value={campaignForm.scheduledAt}
+                    onChange={(value) =>
+                      setCampaignForm((prev) => ({ ...prev, scheduledAt: value }))
+                    }
+                  />
+                  <p className="text-[10px] text-gray-400 italic ml-1 mt-1">Leave empty for instant draft initialization.</p>
+                </div>
+              </div>
+              
+              <div className="pt-4 flex gap-3">
+                <Button 
+                  variant="outline" 
+                  className="flex-1 h-12 rounded-xl border-gray-200 font-bold text-gray-500"
+                  onClick={() => setCampaignOpen(false)}
+                >
+                  Discard Changes
+                </Button>
+                <Button 
+                  className="flex-[2] h-12 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold shadow-lg shadow-blue-100 transition-all active:scale-95"
+                  onClick={handleSubmitCampaign}
+                >
+                  {editingCampaignId ? "Verify & Persist" : "Launch Campaign Batch"}
+                </Button>
+              </div>
+            </div>
+          </ScrollArea>
         </DialogContent>
       </Dialog>
     </div>

@@ -8,7 +8,8 @@ import {
 } from "@/services/discount-codes.service";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { DateTimePicker } from "@/components/ui/date-time-picker";
+import { GoogleDateTimePicker } from "@/components/ui/google-date-time-picker";
+import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -187,221 +188,274 @@ const Discounts = () => {
   };
 
   return (
-    <div className="m3-admin-page">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">Discounts</h1>
-          <p className="text-muted-foreground">{list.length} discount codes</p>
+    <div className="space-y-4">
+      <section className="rounded-2xl border border-gray-200 bg-white p-4">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p className="text-sm font-semibold text-gray-900">Promotions & Discounts</p>
+            <p className="text-sm text-gray-500">
+              Manage promotional codes, seasonal discounts, and membership referral incentives.
+            </p>
+          </div>
+          <Button onClick={openAdd} className="bg-blue-600 hover:bg-blue-700">
+            <Plus className="h-4 w-4 mr-2" />
+            Create Discount Code
+          </Button>
         </div>
-        <Button onClick={openAdd}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Discount
-        </Button>
-      </div>
+      </section>
 
-      <Card>
-        <CardHeader>
-          <div className="relative max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+      <section className="rounded-2xl border border-gray-200 bg-white p-5">
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-5">
+          <div className="flex flex-col gap-2">
+            <p className="text-sm font-semibold text-gray-900">Active Campaign Codes</p>
+            <p className="text-xs text-gray-500">Track redemptions and campaign effectiveness</p>
+          </div>
+          <div className="relative w-full lg:w-80">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
-              placeholder="Search codes..."
+              placeholder="Search by code (e.g. SUMMER24)..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9"
+              className="pl-9 h-10 rounded-xl border-gray-200"
             />
           </div>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Code</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead className="hidden md:table-cell">Valid Period</TableHead>
-                <TableHead className="hidden md:table-cell">Max Redemptions</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="hidden lg:table-cell">Used</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+        </div>
+
+        <div className="overflow-x-auto -mx-5">
+          <table className="min-w-full text-sm">
+            <thead className="bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500">
+              <tr>
+                <th className="px-5 py-3 font-medium text-center">Code</th>
+                <th className="px-5 py-3 font-medium">Type</th>
+                <th className="px-5 py-3 font-medium">Benefit</th>
+                <th className="px-5 py-3 font-medium hidden md:table-cell">Validity Period</th>
+                <th className="px-5 py-3 font-medium hidden md:table-cell text-center">Limit</th>
+                <th className="px-5 py-3 font-medium text-center">Status</th>
+                <th className="px-5 py-3 font-medium hidden lg:table-cell text-center">Used</th>
+                <th className="px-5 py-3 font-medium text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
               {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center text-muted-foreground">
-                    Loading discount codes...
-                  </TableCell>
-                </TableRow>
+                <tr>
+                  <td colSpan={8} className="px-5 py-10 text-center text-gray-500 font-medium">
+                    Loading promotional campaigns...
+                  </td>
+                </tr>
               ) : filtered.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center text-muted-foreground">
+                <tr>
+                  <td colSpan={8} className="px-5 py-10 text-center text-gray-500 font-medium">
                     No discount codes found.
-                  </TableCell>
-                </TableRow>
+                  </td>
+                </tr>
               ) : (
-                filtered.map((d) => (
-                  <TableRow key={d.id}>
-                    <TableCell className="font-mono font-medium">{d.code}</TableCell>
-                    <TableCell>{d.type === "PERCENTAGE" ? "Percentage" : "Fixed"}</TableCell>
-                    <TableCell>
-                      {d.type === "PERCENTAGE" ? `${d.amount}%` : `$${d.amount}`}
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      {d.startsAt ? new Date(d.startsAt).toLocaleString() : "—"} →{" "}
-                      {d.endsAt ? new Date(d.endsAt).toLocaleString() : "—"}
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      {d.maxRedemptions ?? "—"}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={d.isActive ? "default" : "secondary"}>
-                        {d.isActive ? "Active" : "Inactive"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="hidden lg:table-cell">{d.usedCount}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => toggleActive(d)}
-                          title={d.isActive ? "Deactivate" : "Activate"}
-                        >
-                          <span className="text-xs font-semibold">
-                            {d.isActive ? "Off" : "On"}
+                filtered.map((d) => {
+                  const isExpired = d.endsAt && new Date(d.endsAt) < new Date();
+                  const isExhausted = d.maxRedemptions && d.usedCount >= d.maxRedemptions;
+                  const statusLabel = !d.isActive ? "Inactive" : isExpired ? "Expired" : isExhausted ? "Sold Out" : "Active";
+                  
+                  let statusClass = "bg-emerald-100 text-emerald-700";
+                  if (!d.isActive) statusClass = "bg-gray-100 text-gray-700";
+                  else if (isExpired) statusClass = "bg-red-100 text-red-700";
+                  else if (isExhausted) statusClass = "bg-amber-100 text-amber-700";
+
+                  return (
+                    <tr key={d.id} className="border-t border-gray-100 hover:bg-gray-50/50 transition-colors">
+                      <td className="px-5 py-4 text-center">
+                        <code className="bg-blue-50 px-2.5 py-1 rounded-lg text-xs font-bold text-blue-700 border border-blue-100">
+                          {d.code}
+                        </code>
+                      </td>
+                      <td className="px-5 py-4 text-gray-600 font-medium">
+                        {d.type === "PERCENTAGE" ? "Percentage" : "Fixed Amount"}
+                      </td>
+                      <td className="px-5 py-4">
+                        <div className="flex flex-col leading-tight">
+                          <span className="font-bold text-gray-900">
+                            {d.type === "PERCENTAGE" ? `${d.amount}% OFF` : `$${d.amount} OFF`}
                           </span>
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => openEdit(d)}>
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Delete Discount</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Delete {d.code}?
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => handleDelete(d.id)}>
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
+                          <span className="text-[10px] text-gray-400 capitalize">{d.type.toLowerCase()} discount</span>
+                        </div>
+                      </td>
+                      <td className="px-5 py-4 hidden md:table-cell">
+                        <div className="flex flex-col text-[11px] text-gray-500">
+                          <span>FS: {d.startsAt ? new Date(d.startsAt).toLocaleDateString() : "Immediate"}</span>
+                          <span className={cn(isExpired && "text-red-500 font-medium")}>
+                            TO: {d.endsAt ? new Date(d.endsAt).toLocaleDateString() : "Indefinite"}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-5 py-4 hidden md:table-cell text-center font-medium text-gray-600">
+                        {d.maxRedemptions ?? "∞"}
+                      </td>
+                      <td className="px-5 py-4 text-center">
+                        <span className={cn("inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider", statusClass)}>
+                          {statusLabel}
+                        </span>
+                      </td>
+                      <td className="px-5 py-4 hidden lg:table-cell text-center">
+                        <div className="flex flex-col">
+                          <span className="font-bold text-gray-900">{d.usedCount}</span>
+                          <span className="text-[10px] text-gray-400">Claims</span>
+                        </div>
+                      </td>
+                      <td className="px-5 py-4 text-right">
+                        <div className="flex justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => toggleActive(d)}
+                            className={cn("h-8 w-8 rounded-lg", d.isActive ? "text-amber-600 hover:bg-amber-50" : "text-emerald-600 hover:bg-emerald-50")}
+                            title={d.isActive ? "Deactivate" : "Activate"}
+                          >
+                            <span className="text-[10px] font-bold uppercase">{d.isActive ? "Off" : "On"}</span>
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => openEdit(d)} className="h-8 w-8 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg">
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg">
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent className="rounded-2xl border-none shadow-2xl">
+                              <AlertDialogHeader>
+                                <AlertDialogTitle className="text-gray-900">Delete Promotion</AlertDialogTitle>
+                                <AlertDialogDescription className="text-gray-500">
+                                  Are you sure you want to delete the code <strong>{d.code}</strong>? Past redemptions will still be visible in reports.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel className="rounded-xl border-gray-200">Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDelete(d.id)} className="rounded-xl bg-red-600 hover:bg-red-700">
+                                  Confirm Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+            </tbody>
+          </table>
+        </div>
+      </section>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
+        <DialogContent className="rounded-2xl border-none shadow-2xl max-w-lg">
           <DialogHeader>
-            <DialogTitle>{editing ? "Edit" : "Add"} Discount</DialogTitle>
+            <DialogTitle className="text-2xl font-bold text-gray-900">{editing ? "Modify Campaign Code" : "Design Promotional Offer"}</DialogTitle>
+            <p className="text-sm text-gray-500">Define the discount structure, lifecycle, and redemption limits.</p>
           </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>Code</Label>
-              <Input
-                value={form.code}
-                onChange={(e) =>
-                  setForm({ ...form, code: e.target.value.toUpperCase() })
-                }
-              />
+          <div className="space-y-6 mt-6">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Unique Code</Label>
+                <Input
+                  value={form.code}
+                  onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })}
+                  className="h-11 rounded-xl border-gray-200 font-mono font-bold text-blue-600"
+                  placeholder="e.g. SAVE50"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Internal Status</Label>
+                <Select
+                  value={form.isActive ? "active" : "inactive"}
+                  onValueChange={(value) => setForm({ ...form, isActive: value === "active" })}
+                >
+                  <SelectTrigger className="h-11 rounded-xl border-gray-200">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl border-none shadow-xl">
+                    <SelectItem value="active">Active (Published)</SelectItem>
+                    <SelectItem value="inactive">Paused (Draft)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
+
             <div className="space-y-2">
-              <Label>Description</Label>
+              <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Description</Label>
               <Input
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
+                className="h-11 rounded-xl border-gray-200"
+                placeholder="e.g. 10% off for new member annual signups"
               />
             </div>
-            <div className="space-y-2">
-              <Label>Type</Label>
-              <Select
-                value={form.type}
-                onValueChange={(value) =>
-                  setForm({ ...form, type: value as DiscountType })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                  <SelectContent>
-                  <SelectItem value="PERCENTAGE">Percentage</SelectItem>
-                  <SelectItem value="FIXED">Fixed Amount</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Amount</Label>
-              <Input
-                type="number"
-                min="0"
-                value={form.amount}
-                onChange={(e) => setForm({ ...form, amount: e.target.value })}
-              />
-            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Valid From</Label>
-                <DateTimePicker
-                  value={form.startsAt}
-                  onChange={(value) => setForm({ ...form, startsAt: value })}
-                />
+                <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Calculation Type</Label>
+                <Select
+                  value={form.type}
+                  onValueChange={(value) => setForm({ ...form, type: value as DiscountType })}
+                >
+                  <SelectTrigger className="h-11 rounded-xl border-gray-200">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl border-none shadow-xl">
+                    <SelectItem value="PERCENTAGE">Percentage (%)</SelectItem>
+                    <SelectItem value="FIXED">Flat Amount ($)</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
-                <Label>Valid To</Label>
-                <DateTimePicker
-                  value={form.endsAt}
-                  durationFromValue={form.startsAt}
-                  showDurationLabels
-                  onChange={(value) => setForm({ ...form, endsAt: value })}
+                <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Benefit Amount</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  value={form.amount}
+                  onChange={(e) => setForm({ ...form, amount: e.target.value })}
+                  className="h-11 rounded-xl border-gray-200 font-bold"
                 />
               </div>
             </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Rollout Date</Label>
+                <GoogleDateTimePicker
+                  value={form.startsAt}
+                  onChange={(value) => setForm({ ...form, startsAt: value })}
+                  label="Start Date"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Expiry Date</Label>
+                <GoogleDateTimePicker
+                  value={form.endsAt}
+                  onChange={(value) => setForm({ ...form, endsAt: value })}
+                  label="End Date"
+                />
+              </div>
+            </div>
+
             <div className="space-y-2">
-              <Label>Max redemptions</Label>
+              <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Maximum Redemptions</Label>
               <Input
                 type="number"
                 min="0"
                 value={form.maxRedemptions}
-                onChange={(e) =>
-                  setForm({ ...form, maxRedemptions: e.target.value })
-                }
+                onChange={(e) => setForm({ ...form, maxRedemptions: e.target.value })}
+                className="h-11 rounded-xl border-gray-200"
+                placeholder="Leave empty for unlimited"
               />
             </div>
-            <div className="space-y-2">
-              <Label>Status</Label>
-              <Select
-                value={form.isActive ? "active" : "inactive"}
-                onValueChange={(value) =>
-                  setForm({ ...form, isActive: value === "active" })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                </SelectContent>
-              </Select>
+
+            <div className="flex gap-3 pt-4">
+              <Button onClick={() => setDialogOpen(false)} variant="ghost" className="flex-1 h-12 rounded-xl text-gray-500 font-semibold">
+                Cancel
+              </Button>
+              <Button onClick={handleSave} className="flex-[2] h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-lg shadow-blue-100 uppercase tracking-wider">
+                {editing ? "Update Campaign" : "Launch Campaign"}
+              </Button>
             </div>
-            <Button onClick={handleSave} className="w-full">
-              {editing ? "Update" : "Add"} Discount
-            </Button>
           </div>
         </DialogContent>
       </Dialog>

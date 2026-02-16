@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -217,286 +218,252 @@ const MembershipPlans = () => {
   }, [features, featureSelection]);
 
   return (
-    <div className="m3-admin-page">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">Membership Plans</h1>
-          <p className="text-muted-foreground">{plans.length} plans</p>
+    <div className="space-y-4">
+      <section className="rounded-2xl border border-gray-200 bg-white p-4">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p className="text-sm font-semibold text-gray-900">Tiered Memberships</p>
+            <p className="text-sm text-gray-500">
+              Configure and manage your gym's membership tiers, features, and pricing structures.
+            </p>
+          </div>
+          <Button onClick={openAdd} className="bg-blue-600 hover:bg-blue-700">
+            <Plus className="h-4 w-4 mr-2" />
+            Create New Plan
+          </Button>
         </div>
-        <Button onClick={openAdd}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Plan
-        </Button>
-      </div>
+      </section>
 
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
         {isLoading ? (
-          <Card>
-            <CardContent className="py-10 text-center text-muted-foreground">
-              Loading plans...
-            </CardContent>
-          </Card>
+          <div className="md:col-span-2 xl:col-span-3 rounded-2xl border border-gray-200 bg-white p-12 text-center text-gray-500">
+            Loading membership plans...
+          </div>
         ) : plans.length === 0 ? (
-          <Card>
-            <CardContent className="py-10 text-center text-muted-foreground">
-              No plans found.
-            </CardContent>
-          </Card>
+          <div className="md:col-span-2 xl:col-span-3 rounded-2xl border border-gray-200 bg-white p-12 text-center text-gray-500">
+            No plans found. Start by creating a new membership tier.
+          </div>
         ) : (
           plans.map((plan) => (
-            <Card key={plan.id}>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">{plan.name}</CardTitle>
+            <div key={plan.id} className="group relative rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:shadow-md hover:border-blue-200">
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors uppercase tracking-tight">{plan.name}</h3>
+                  <div className="mt-1 flex items-baseline gap-1">
+                    <span className="text-3xl font-extrabold text-gray-900">${plan.price}</span>
+                    <span className="text-xs text-gray-400 font-medium">/ {plan.durationDays} DAYS</span>
+                  </div>
                 </div>
-                <div className="mt-2">
-                  <span className="text-3xl font-bold">${plan.price}</span>
-                  <span className="text-muted-foreground">/{plan.durationDays} days</span>
+                <div className="rounded-xl bg-blue-50 p-2 text-blue-600">
+                  <Check className="h-5 w-5" />
                 </div>
-                {plan.description && (
-                  <p className="text-sm text-muted-foreground mt-2">
-                    {plan.description}
-                  </p>
-                )}
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2 mb-4">
-                  {plan.features.map((feature, i) => (
-                    <li key={i} className="flex items-center gap-2 text-sm">
-                      <Check className="h-4 w-4 text-primary" />
+              </div>
+              
+              {plan.description && (
+                <p className="text-sm text-gray-500 mb-6 line-clamp-2 min-h-[40px]">
+                  {plan.description}
+                </p>
+              )}
+
+              <div className="space-y-3 mb-8">
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Core Features</p>
+                <ul className="space-y-2.5">
+                  {plan.features.slice(0, 5).map((feature, i) => (
+                    <li key={i} className="flex items-center gap-2.5 text-sm font-medium text-gray-700">
+                      <div className="rounded-full bg-emerald-50 p-0.5 text-emerald-600">
+                        <Check className="h-3 w-3" />
+                      </div>
                       {feature}
                     </li>
                   ))}
+                  {plan.features.length > 5 && (
+                    <li className="text-xs text-gray-400 font-medium pl-6">
+                      + {plan.features.length - 5} more features
+                    </li>
+                  )}
                 </ul>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => openEdit(plan)}
-                    className="flex-1"
-                  >
-                    <Pencil className="h-3 w-3 mr-1" />
-                    Edit
-                  </Button>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="outline" size="sm">
-                        <Trash2 className="h-3 w-3 text-destructive" />
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Plan</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Delete {plan.name}?
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => handleDelete(plan.id)}>
-                          Delete
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </div>
-              </CardContent>
-            </Card>
+              </div>
+
+              <div className="flex gap-2 pt-4 border-t border-gray-50">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => openEdit(plan)}
+                  className="flex-1 h-9 rounded-xl text-blue-600 hover:bg-blue-50 font-semibold"
+                >
+                  <Pencil className="h-3.5 w-3.5 mr-1.5" />
+                  Edit Tier
+                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl text-gray-400 hover:text-red-600 hover:bg-red-50">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent className="rounded-2xl border-none shadow-2xl">
+                    <AlertDialogHeader>
+                      <AlertDialogTitle className="text-gray-900">Delete Membership Plan</AlertDialogTitle>
+                      <AlertDialogDescription className="text-gray-500">
+                        Are you sure you want to delete the "{plan.name}" plan? This action cannot be undone and may affect active subscriptions.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel className="rounded-xl border-gray-200">Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => handleDelete(plan.id)} className="rounded-xl bg-red-600 hover:bg-red-700">
+                        Delete Plan
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            </div>
           ))
         )}
       </div>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-h-[90vh] overflow-y-auto max-w-3xl rounded-2xl border-none shadow-2xl">
           <DialogHeader>
-            <DialogTitle>{editing ? "Edit" : "Add"} Plan</DialogTitle>
+            <DialogTitle className="text-2xl font-bold text-gray-900">{editing ? "Update Plan Configuration" : "Design New Membership tier"}</DialogTitle>
+            <p className="text-sm text-gray-500">Set pricing, duration, and feature permissions for this membership.</p>
           </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>Name</Label>
-              <Input
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Description</Label>
-              <Input
-                value={form.description}
-                onChange={(e) =>
-                  setForm({ ...form, description: e.target.value })
-                }
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+            <div className="space-y-4">
               <div className="space-y-2">
-                <Label>Price ($)</Label>
+                <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Plan Name</Label>
                 <Input
-                  type="number"
-                  min="0"
-                  value={form.price}
-                  onChange={(e) =>
-                    setForm({ ...form, price: e.target.value })
-                  }
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  className="h-11 rounded-xl border-gray-200"
+                  placeholder="e.g. Platinum Annual"
                 />
               </div>
               <div className="space-y-2">
-                <Label>Duration (days)</Label>
+                <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Public Description</Label>
                 <Input
-                  type="number"
-                  min="1"
-                  value={form.durationDays}
-                  onChange={(e) =>
-                    setForm({ ...form, durationDays: e.target.value })
-                  }
+                  value={form.description}
+                  onChange={(e) => setForm({ ...form, description: e.target.value })}
+                  className="h-11 rounded-xl border-gray-200"
+                  placeholder="Summary of benefits..."
                 />
               </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Personal training hours</Label>
-                <Input
-                  type="number"
-                  min="0"
-                  value={form.personalTrainingHours}
-                  onChange={(e) =>
-                    setForm({
-                      ...form,
-                      personalTrainingHours: e.target.value,
-                    })
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Unlimited classes</Label>
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    checked={form.unlimitedClasses}
-                    onCheckedChange={(value) =>
-                      setForm({
-                        ...form,
-                        unlimitedClasses: Boolean(value),
-                      })
-                    }
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Price ($)</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    value={form.price}
+                    onChange={(e) => setForm({ ...form, price: e.target.value })}
+                    className="h-11 rounded-xl border-gray-200"
                   />
-                  <span className="text-sm text-muted-foreground">
-                    Include unlimited classes
-                  </span>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Duration (Days)</Label>
+                  <Input
+                    type="number"
+                    min="1"
+                    value={form.durationDays}
+                    onChange={(e) => setForm({ ...form, durationDays: e.target.value })}
+                    className="h-11 rounded-xl border-gray-200"
+                  />
                 </div>
               </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Equipment access</Label>
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    checked={form.accessToEquipment}
-                    onCheckedChange={(value) =>
-                      setForm({
-                        ...form,
-                        accessToEquipment: Boolean(value),
-                      })
-                    }
-                  />
-                  <span className="text-sm text-muted-foreground">
-                    Full equipment access
-                  </span>
+              <div className="space-y-4 p-4 rounded-2xl bg-gray-50 border border-gray-100">
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Toggle Perks</p>
+                <div className="grid grid-cols-1 gap-3">
+                  <div className="flex items-center justify-between p-1">
+                    <Label className="text-sm font-medium text-gray-700">Unlimited Classes</Label>
+                    <Checkbox
+                      checked={form.unlimitedClasses}
+                      onCheckedChange={(value) => setForm({ ...form, unlimitedClasses: Boolean(value) })}
+                      className="rounded-md border-gray-300"
+                    />
+                  </div>
+                  <div className="flex items-center justify-between p-1">
+                    <Label className="text-sm font-medium text-gray-700">Equipment Access</Label>
+                    <Checkbox
+                      checked={form.accessToEquipment}
+                      onCheckedChange={(value) => setForm({ ...form, accessToEquipment: Boolean(value) })}
+                      className="rounded-md border-gray-300"
+                    />
+                  </div>
+                  <div className="flex items-center justify-between p-1">
+                    <Label className="text-sm font-medium text-gray-700">Locker Access</Label>
+                    <Checkbox
+                      checked={form.accessToLocker}
+                      onCheckedChange={(value) => setForm({ ...form, accessToLocker: Boolean(value) })}
+                      className="rounded-md border-gray-300"
+                    />
+                  </div>
+                  <div className="flex items-center justify-between p-1">
+                    <Label className="text-sm font-medium text-gray-700">Nutrition Consultation</Label>
+                    <Checkbox
+                      checked={form.nutritionConsultation}
+                      onCheckedChange={(value) => setForm({ ...form, nutritionConsultation: Boolean(value) })}
+                      className="rounded-md border-gray-300"
+                    />
+                  </div>
                 </div>
-              </div>
-              <div className="space-y-2">
-                <Label>Locker access</Label>
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    checked={form.accessToLocker}
-                    onCheckedChange={(value) =>
-                      setForm({
-                        ...form,
-                        accessToLocker: Boolean(value),
-                      })
-                    }
-                  />
-                  <span className="text-sm text-muted-foreground">
-                    Include locker access
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label>Nutrition consultation</Label>
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  checked={form.nutritionConsultation}
-                  onCheckedChange={(value) =>
-                    setForm({
-                      ...form,
-                      nutritionConsultation: Boolean(value),
-                    })
-                  }
-                />
-                <span className="text-sm text-muted-foreground">
-                  Include nutrition consultation
-                </span>
               </div>
             </div>
 
-            <div className="space-y-3">
-              <Label>Plan Features</Label>
+            <div className="space-y-4">
+              <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Enhanced Features & Access levels</Label>
               {featureRows.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  No features available. Create features first.
-                </p>
+                <div className="rounded-2xl border-2 border-dashed border-gray-100 p-8 text-center">
+                  <p className="text-sm text-gray-400">No system features defined.</p>
+                </div>
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                   {featureRows.map((feature) => (
                     <div
                       key={feature.id}
-                      className="m3-inline-surface flex flex-col gap-2 p-3"
+                      className={cn(
+                        "rounded-2xl border p-4 transition-all",
+                        feature.selected ? "border-blue-200 bg-blue-50/30 ring-1 ring-blue-100" : "border-gray-100 bg-white"
+                      )}
                     >
-                      <div className="flex items-center gap-2 justify-between">
-                        <div className="flex items-center gap-2">
-                          <Checkbox
-                            checked={feature.selected}
-                            onCheckedChange={() => toggleFeature(feature.id)}
-                          />
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm font-medium">
-                                {feature.name}
-                              </span>
-                              {feature.isSystem && <Badge>System</Badge>}
-                            </div>
-                            {feature.description && (
-                              <p className="text-xs text-muted-foreground">
-                                {feature.description}
-                              </p>
-                            )}
+                      <div className="flex items-start gap-3">
+                        <Checkbox
+                          checked={feature.selected}
+                          onCheckedChange={() => toggleFeature(feature.id)}
+                          className="mt-1 rounded-md border-gray-300"
+                        />
+                        <div className="flex-1 space-y-2">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-bold text-gray-900">{feature.name}</span>
+                            {feature.isSystem && <span className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded font-bold uppercase tracking-tighter">System</span>}
                           </div>
+                          {feature.selected && (
+                            <Select
+                              value={feature.level}
+                              onValueChange={(value) => updateFeatureLevel(feature.id, value as FeatureLevel)}
+                            >
+                              <SelectTrigger className="h-8 w-full rounded-lg bg-white border-blue-200 text-xs font-semibold text-blue-700">
+                                <SelectValue placeholder="Access Level" />
+                              </SelectTrigger>
+                              <SelectContent className="rounded-xl border-none shadow-xl">
+                                <SelectItem value="BASIC">Basic Access</SelectItem>
+                                <SelectItem value="STANDARD">Standard Access</SelectItem>
+                                <SelectItem value="PREMIUM">Premium Access</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          )}
                         </div>
-                        {feature.selected && (
-                          <Select
-                            value={feature.level}
-                            onValueChange={(value) =>
-                              updateFeatureLevel(feature.id, value as FeatureLevel)
-                            }
-                          >
-                            <SelectTrigger className="w-32">
-                              <SelectValue placeholder="Level" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="BASIC">Basic</SelectItem>
-                              <SelectItem value="STANDARD">Standard</SelectItem>
-                              <SelectItem value="PREMIUM">Premium</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        )}
                       </div>
                     </div>
                   ))}
                 </div>
               )}
             </div>
-            <Button onClick={handleSave} className="w-full">
-              {editing ? "Update" : "Add"} Plan
+          </div>
+          <div className="flex gap-3 mt-8">
+            <Button onClick={() => setDialogOpen(false)} variant="ghost" className="flex-1 h-12 rounded-xl text-gray-500 font-semibold">
+              Cancel
+            </Button>
+            <Button onClick={handleSave} className="flex-[2] h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-lg shadow-blue-100">
+              {editing ? "Save Transformations" : "Launch Membership Plan"}
             </Button>
           </div>
         </DialogContent>
