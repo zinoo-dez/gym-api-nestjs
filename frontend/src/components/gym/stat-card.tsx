@@ -16,8 +16,8 @@ export function StatCard({ title, value, change, icon, className }: StatCardProp
   return (
     <div
       className={cn(
-        "bg-card border border-border rounded-xl p-6",
-        "transition-all duration-300 card-hover",
+        "google-surface google-surface-hover",
+        "transition-all duration-300",
         className
       )}
     >

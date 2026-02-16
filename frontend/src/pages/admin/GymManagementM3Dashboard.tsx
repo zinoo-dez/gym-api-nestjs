@@ -97,7 +97,7 @@ function Sparkline({ values }: SparklineProps) {
         fill="none"
         stroke="currentColor"
         strokeWidth="2.5"
-        className="text-blue-500"
+        className="text-primary"
         points={points}
       />
     </svg>
@@ -112,13 +112,13 @@ function GymFootfallChart() {
     <div className="mt-5 grid grid-cols-4 gap-3 sm:grid-cols-8">
       {FOOTFALL_DATA.map((item) => (
         <div key={item.hour} className="flex flex-col items-center gap-2">
-          <div className="relative flex h-40 w-full items-end overflow-hidden rounded-xl bg-gray-100">
+          <div className="relative flex h-40 w-full items-end overflow-hidden rounded-xl bg-secondary">
             <div
-              className="w-full rounded-xl bg-blue-500 transition hover:bg-blue-600"
+              className="w-full rounded-xl bg-primary transition hover:bg-primary/90"
               style={{ height: `${Math.max(8, (item.value / max) * 100)}%` }}
             />
           </div>
-          <span className="text-[11px] font-medium text-gray-500">{item.hour}</span>
+          <span className="text-[11px] font-medium text-muted-foreground">{item.hour}</span>
         </div>
       ))}
     </div>
@@ -133,11 +133,11 @@ export default function GymManagementM3Dashboard() {
 
   return (
     <div className="space-y-4">
-      <section className="rounded-2xl border border-gray-200 bg-white p-4">
+      <section className="google-surface">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-sm font-semibold text-gray-900">Operations Snapshot</p>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm font-semibold text-foreground">Operations Snapshot</p>
+            <p className="text-sm text-muted-foreground">
               Live metrics and scheduling controls for your floor team.
             </p>
           </div>
@@ -152,40 +152,40 @@ export default function GymManagementM3Dashboard() {
       </section>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
-        <section className="rounded-2xl border border-gray-200 bg-white p-5 md:col-span-3">
+        <section className="google-surface md:col-span-3">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-sm text-gray-500">Total Members</p>
-              <p className="mt-1 text-2xl font-semibold text-gray-900">1,842</p>
+              <p className="text-sm text-muted-foreground">Total Members</p>
+              <p className="mt-1 text-2xl font-semibold text-foreground">1,842</p>
             </div>
-            <Users className="h-5 w-5 text-blue-600" />
+            <Users className="h-5 w-5 text-primary" />
           </div>
           <div className="mt-4">
-            <p className="text-xs font-medium text-gray-500">Last 7 days</p>
+            <p className="text-xs font-medium text-muted-foreground">Last 7 days</p>
             <Sparkline values={MEMBER_SPARKLINE} />
           </div>
         </section>
 
-        <section className="rounded-2xl border border-gray-200 bg-white p-5 md:col-span-3">
+        <section className="google-surface md:col-span-3">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-sm text-gray-500">Active Check-ins</p>
-              <p className="mt-1 text-2xl font-semibold text-gray-900">128</p>
+              <p className="text-sm text-muted-foreground">Active Check-ins</p>
+              <p className="mt-1 text-2xl font-semibold text-foreground">128</p>
             </div>
             <CheckCircle2 className="h-5 w-5 text-emerald-600" />
           </div>
-          <p className="mt-4 text-xs text-gray-500">+14 members compared to this time yesterday</p>
+          <p className="mt-4 text-xs text-muted-foreground">+14 members compared to this time yesterday</p>
         </section>
 
-        <section className="rounded-2xl border border-gray-200 bg-white p-5 md:col-span-3">
+        <section className="google-surface md:col-span-3">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-sm text-gray-500">Revenue This Month</p>
-              <p className="mt-1 text-2xl font-semibold text-gray-900">{currency.format(68240)}</p>
+              <p className="text-sm text-muted-foreground">Revenue This Month</p>
+              <p className="mt-1 text-2xl font-semibold text-foreground">{currency.format(68240)}</p>
             </div>
-            <CreditCard className="h-5 w-5 text-blue-600" />
+            <CreditCard className="h-5 w-5 text-primary" />
           </div>
-          <p className="mt-4 text-xs text-gray-500">11.2% growth from previous month</p>
+          <p className="mt-4 text-xs text-muted-foreground">11.2% growth from previous month</p>
         </section>
 
         <section className="rounded-2xl border border-amber-200 bg-amber-50 p-5 md:col-span-3">
@@ -199,22 +199,22 @@ export default function GymManagementM3Dashboard() {
           <p className="mt-4 text-xs text-amber-700">12 memberships expire within 48 hours</p>
         </section>
 
-        <section className="rounded-2xl border border-gray-200 bg-white p-5 md:col-span-8">
+        <section className="google-surface md:col-span-8">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
-              <p className="text-sm font-semibold text-gray-900">Gym Footfall</p>
-              <p className="text-xs text-gray-500">Peak hours analysis</p>
+              <p className="text-sm font-semibold text-foreground">Gym Footfall</p>
+              <p className="text-xs text-muted-foreground">Peak hours analysis</p>
             </div>
-            <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700">
+            <span className="rounded-full bg-accent text-accent-foreground px-3 py-1 text-xs font-medium">
               Today
             </span>
           </div>
           <GymFootfallChart />
         </section>
 
-        <section className="rounded-2xl border border-gray-200 bg-white p-5 md:col-span-4">
-          <p className="text-sm font-semibold text-gray-900">Quick Actions</p>
-          <p className="text-xs text-gray-500">Daily tasks for front desk operations</p>
+        <section className="google-surface md:col-span-4">
+          <p className="text-sm font-semibold text-foreground">Quick Actions</p>
+          <p className="text-xs text-muted-foreground">Daily tasks for front desk operations</p>
 
           <div className="mt-4 flex flex-wrap gap-2">
             {QUICK_ACTIONS.map((action) => {
@@ -228,8 +228,8 @@ export default function GymManagementM3Dashboard() {
                   className={cn(
                     "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium transition",
                     isActive
-                      ? "border-blue-200 bg-blue-100 text-blue-700"
-                      : "border-gray-200 bg-white text-gray-600 hover:bg-gray-100",
+                      ? "border-primary/20 bg-accent text-accent-foreground"
+                      : "border-border bg-background text-foreground hover:bg-secondary",
                   )}
                 >
                   <Icon className="h-4 w-4" />
@@ -239,8 +239,8 @@ export default function GymManagementM3Dashboard() {
             })}
           </div>
 
-          <div className="mt-4 rounded-xl border border-gray-200 bg-gray-50 p-3">
-            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <div className="mt-4 rounded-xl border border-border bg-muted p-3">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Scheduling
             </p>
             <GoogleDateTimePicker
@@ -253,15 +253,15 @@ export default function GymManagementM3Dashboard() {
           </div>
         </section>
 
-        <section className="overflow-hidden rounded-2xl border border-gray-200 bg-white md:col-span-8">
-          <div className="border-b border-gray-200 px-5 py-4">
-            <p className="text-sm font-semibold text-gray-900">Recent Check-ins</p>
-            <p className="text-xs text-gray-500">Live entrance activity</p>
+        <section className="overflow-hidden google-surface md:col-span-8">
+          <div className="border-b border-border px-5 py-4">
+            <p className="text-sm font-semibold text-foreground">Recent Check-ins</p>
+            <p className="text-xs text-muted-foreground">Live entrance activity</p>
           </div>
 
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
-              <thead className="bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500">
+              <thead className="bg-muted text-left text-xs uppercase tracking-wide text-muted-foreground">
                 <tr>
                   <th className="px-5 py-3 font-medium">Member</th>
                   <th className="px-5 py-3 font-medium">Photo</th>
@@ -277,14 +277,14 @@ export default function GymManagementM3Dashboard() {
                       : "bg-amber-100 text-amber-700";
 
                   return (
-                    <tr key={`${entry.name}-${entry.time}`} className="border-t border-gray-200">
-                      <td className="px-5 py-3 font-medium text-gray-900">{entry.name}</td>
+                    <tr key={`${entry.name}-${entry.time}`} className="border-t border-border">
+                      <td className="px-5 py-3 font-medium text-foreground">{entry.name}</td>
                       <td className="px-5 py-3">
-                        <div className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-cyan-400 text-xs font-semibold text-white">
+                        <div className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary to-cyan-400 text-xs font-semibold text-white">
                           {getInitials(entry.name)}
                         </div>
                       </td>
-                      <td className="px-5 py-3 text-gray-600">{entry.time}</td>
+                      <td className="px-5 py-3 text-foreground/80">{entry.time}</td>
                       <td className="px-5 py-3">
                         <span className={cn("rounded-full px-2.5 py-1 text-xs font-medium", statusClass)}>
                           {entry.status}
@@ -298,9 +298,9 @@ export default function GymManagementM3Dashboard() {
           </div>
         </section>
 
-        <section className="rounded-2xl border border-gray-200 bg-white p-5 md:col-span-4">
-          <p className="text-sm font-semibold text-gray-900">Mini-Calendar</p>
-          <p className="text-xs text-gray-500">Jump to a date and plan staff priorities</p>
+        <section className="google-surface md:col-span-4">
+          <p className="text-sm font-semibold text-foreground">Mini-Calendar</p>
+          <p className="text-xs text-muted-foreground">Jump to a date and plan staff priorities</p>
           <GoogleDateTimePicker
             className="mt-3"
             mode="date"
@@ -309,24 +309,24 @@ export default function GymManagementM3Dashboard() {
             placeholder="Pick schedule date"
           />
 
-          <div className="mt-4 space-y-3 rounded-xl border border-gray-200 bg-gray-50 p-3 text-sm text-gray-600">
+          <div className="mt-4 space-y-3 rounded-xl border border-border bg-muted p-3 text-sm text-foreground/80">
             <div className="flex items-center justify-between">
               <span className="inline-flex items-center gap-2">
-                <Clock3 className="h-4 w-4 text-blue-600" />
+                <Clock3 className="h-4 w-4 text-primary" />
                 Morning shift
               </span>
               <span>6:00 AM</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="inline-flex items-center gap-2">
-                <Clock3 className="h-4 w-4 text-blue-600" />
+                <Clock3 className="h-4 w-4 text-primary" />
                 Group class block
               </span>
               <span>12:30 PM</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="inline-flex items-center gap-2">
-                <Clock3 className="h-4 w-4 text-blue-600" />
+                <Clock3 className="h-4 w-4 text-primary" />
                 Evening peak watch
               </span>
               <span>6:00 PM</span>

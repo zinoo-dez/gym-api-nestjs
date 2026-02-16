@@ -6,20 +6,20 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "relative inline-flex items-center justify-center gap-2 whitespace-nowrap overflow-hidden rounded-full text-sm font-bold tracking-tight ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600/50 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 active:scale-[0.98]",
+  "relative inline-flex items-center justify-center gap-2 whitespace-nowrap overflow-hidden rounded-full text-sm font-bold tracking-tight ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 active:scale-[0.98]",
   {
     variants: {
       variant: {
         default:
-          "bg-blue-600 text-white shadow-lg shadow-blue-100/50 hover:bg-blue-700",
+          "bg-primary text-primary-foreground shadow-lg shadow-primary/10 hover:bg-primary/90",
         destructive:
           "bg-red-600 text-white shadow-lg shadow-red-100/50 hover:bg-red-700",
         outline:
-          "border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-900",
+          "border border-border bg-background text-foreground hover:bg-secondary hover:border-border hover:text-foreground",
         secondary:
-          "bg-blue-50 text-blue-700 hover:bg-blue-100",
-        ghost: "bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-900",
-        link: "text-blue-600 underline-offset-4 hover:underline",
+          "bg-accent text-accent-foreground hover:bg-accent/80",
+        ghost: "bg-transparent text-muted-foreground hover:bg-secondary hover:text-foreground",
+        link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
         default: "h-11 px-6",
