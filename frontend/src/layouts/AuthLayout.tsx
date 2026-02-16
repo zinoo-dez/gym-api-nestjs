@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { useGymSettings } from "@/hooks/use-gym-settings";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
 
 interface AuthLayoutProps {
   children: React.ReactNode;
@@ -12,7 +13,10 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
   const { gymName } = useGymSettings();
 
   return (
-    <div className="min-h-screen bg-background flex relative overflow-hidden">
+    <div className="min-h-screen bg-background flex relative overflow-hidden transition-colors duration-300">
+      <div className="absolute top-4 right-4 z-50">
+        <ThemeToggle />
+      </div>
       <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_top_left,hsl(var(--primary)/0.12),transparent_42%),radial-gradient(circle_at_bottom_right,hsl(var(--secondary)/0.08),transparent_38%)]" />
 
       {/* Left Side - Form */}

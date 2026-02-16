@@ -155,8 +155,8 @@ const MarketingAutomations = () => {
       <section className="rounded-2xl border border-gray-200 bg-white p-4">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-sm font-semibold text-gray-900">Automation Engine</p>
-            <p className="text-sm text-gray-500">
+            <h1 className="m3-title-md">Automation Engine</h1>
+            <p className="text-sm text-muted-foreground">
               Trigger event-based outreach flows and manage recurring engagement logic.
             </p>
           </div>
@@ -210,7 +210,7 @@ const MarketingAutomations = () => {
                     <div className="flex items-start justify-between">
                       <div className="space-y-1.5 flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <h3 className="font-bold text-gray-900 truncate max-w-[200px]">{automation.name}</h3>
+                          <h3 className="m3-title-sm !text-sm !font-bold truncate max-w-[200px]">{automation.name}</h3>
                           <Badge variant="outline" className="rounded-lg bg-blue-50 border-blue-100 text-blue-600 font-bold text-[10px] uppercase">
                             {automation.type}
                           </Badge>
@@ -292,12 +292,12 @@ const MarketingAutomations = () => {
 
       <Dialog open={automationOpen} onOpenChange={setAutomationOpen}>
         <DialogContent className="max-w-3xl rounded-2xl border-none shadow-2xl p-0 overflow-hidden">
-          <div className="bg-blue-600 p-6 text-white">
-            <h2 className="text-xl font-bold flex items-center gap-2">
+          <div className="bg-primary p-6 text-primary-foreground">
+            <h2 className="m3-title-lg flex items-center gap-2">
               <Zap className="h-6 w-6" />
               {editingAutomationId ? "Update Workflow Logic" : "Design New Automation Flow"}
             </h2>
-            <p className="text-blue-100 text-xs mt-1 font-medium opacity-80">
+            <p className="text-primary-foreground/80 text-xs mt-1 font-medium italic">
               Establish rules for automated member outreach based on lifecycle events.
             </p>
           </div>
@@ -306,7 +306,7 @@ const MarketingAutomations = () => {
             <div className="p-6 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Event Trigger Type</Label>
+                  <Label className="m3-label">Event Trigger Type</Label>
                   <Select
                     value={automationForm.type}
                     onValueChange={(value) =>
@@ -328,7 +328,7 @@ const MarketingAutomations = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Flow Label</Label>
+                  <Label className="m3-label">Flow Label</Label>
                   <Input
                     className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium placeholder:text-gray-300"
                     placeholder="e.g., Anniversary Celebration"
@@ -340,7 +340,7 @@ const MarketingAutomations = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Communication Channel</Label>
+                  <Label className="m3-label">Communication Channel</Label>
                   <Select
                     value={automationForm.channel}
                     onValueChange={(value) =>
@@ -359,7 +359,7 @@ const MarketingAutomations = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Content Blueprint</Label>
+                  <Label className="m3-label">Content Blueprint</Label>
                   <Select
                     value={automationForm.templateId || "NONE"}
                     onValueChange={(value) =>
@@ -382,7 +382,7 @@ const MarketingAutomations = () => {
                 </div>
 
                 <div className="space-y-2 md:col-span-2">
-                  <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Transmission Subject</Label>
+                  <Label className="m3-label">Transmission Subject</Label>
                   <Input
                     className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium placeholder:text-gray-300"
                     placeholder="Subject line for automation..."
@@ -394,7 +394,7 @@ const MarketingAutomations = () => {
                 </div>
 
                 <div className="space-y-2 md:col-span-2">
-                  <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Workflow Payload</Label>
+                  <Label className="m3-label">Workflow Payload</Label>
                   <Textarea
                     className="min-h-[120px] rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium leading-relaxed"
                     placeholder="The primary message for this automation flow..."
@@ -406,7 +406,7 @@ const MarketingAutomations = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Dormancy Threshold (Days)</Label>
+                  <Label className="m3-label">Dormancy Threshold (Days)</Label>
                   <Input
                     className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium font-mono"
                     type="number"
@@ -419,7 +419,7 @@ const MarketingAutomations = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Linked Session ID</Label>
+                  <Label className="m3-label">Linked Session ID</Label>
                   <Input
                     className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium"
                     placeholder="Optional UUID for class triggers"
@@ -431,7 +431,7 @@ const MarketingAutomations = () => {
                 </div>
 
                 <div className="space-y-2 md:col-span-2">
-                  <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Exclusive Value Proposition</Label>
+                  <Label className="m3-label">Exclusive Value Proposition</Label>
                   <Input
                     className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium placeholder:text-gray-300"
                     placeholder="e.g., RECOVER20 code"

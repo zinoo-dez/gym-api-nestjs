@@ -113,8 +113,8 @@ const Marketing = () => {
       <section className="rounded-2xl border border-gray-200 bg-white p-4">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-sm font-semibold text-gray-900">Marketing Ecosystem</p>
-            <p className="text-sm text-gray-500">
+            <h1 className="m3-title-md">Marketing Ecosystem</h1>
+            <p className="text-sm text-muted-foreground">
               Manage multi-channel outreach, content templates, and automated workflows.
             </p>
           </div>
@@ -122,7 +122,7 @@ const Marketing = () => {
             variant="outline" 
             onClick={loadSummary} 
             disabled={loading}
-            className="h-10 rounded-xl border-gray-200 font-bold font-mono text-xs hover:bg-gray-50"
+            className="h-10 rounded-xl border-border px-4 font-semibold text-xs transition-all"
           >
             <RefreshCcw className={cn("h-4 w-4 mr-2", loading && "animate-spin")} />
             Sync Dashboard
@@ -148,16 +148,16 @@ const Marketing = () => {
               </div>
               
               <div className="space-y-1">
-                <h3 className="text-lg font-bold text-gray-900">{card.title}</h3>
+                <h3 className="m3-title-md">{card.title}</h3>
                 <div className="flex items-end justify-between">
-                  <span className="text-3xl font-bold font-mono tracking-tighter text-gray-900">
+                  <span className="text-3xl font-bold tracking-tighter text-foreground">
                     {card.value}
                   </span>
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest pb-1">
+                  <span className="m3-label !text-[9px]">
                     Tracked Units
                   </span>
                 </div>
-                <p className="text-xs text-gray-500 font-medium pt-1">
+                <p className="text-xs text-muted-foreground font-medium pt-1">
                   {card.subtitle}
                 </p>
               </div>
@@ -176,8 +176,8 @@ const Marketing = () => {
             <Sparkles className="h-5 w-5 text-purple-600" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-gray-900">Campaign Execution Pipeline</h2>
-            <p className="text-xs text-gray-500">Real-time status breakdown of communication batches.</p>
+            <h2 className="m3-title-md">Campaign Execution Pipeline</h2>
+            <p className="text-xs text-muted-foreground">Real-time status breakdown of communication batches.</p>
           </div>
         </div>
 
@@ -187,8 +187,8 @@ const Marketing = () => {
               <Layers className="h-5 w-5 text-gray-400" />
             </div>
             <div>
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Drafts</p>
-              <p className="text-xl font-bold font-mono text-gray-900">{statusCounts.DRAFT}</p>
+              <p className="m3-label !text-[9px]">Drafts</p>
+              <p className="text-xl font-bold text-foreground">{statusCounts.DRAFT}</p>
             </div>
           </div>
 
@@ -197,7 +197,7 @@ const Marketing = () => {
               <Calendar className="h-5 w-5 text-orange-500" />
             </div>
             <div>
-              <p className="text-[10px] font-bold text-orange-400 uppercase tracking-widest">Scheduled</p>
+              <p className="m3-label !text-[9px] !text-orange-400">Scheduled</p>
               <p className="text-xl font-bold font-mono text-orange-900">{statusCounts.SCHEDULED}</p>
             </div>
           </div>
@@ -207,8 +207,8 @@ const Marketing = () => {
               <Send className="h-5 w-5 text-emerald-500" />
             </div>
             <div>
-              <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">Successful</p>
-              <p className="text-xl font-bold font-mono text-emerald-900">{statusCounts.SENT}</p>
+              <p className="m3-label !text-[9px] !text-emerald-400">Successful</p>
+              <p className="text-xl font-bold text-foreground">{statusCounts.SENT}</p>
             </div>
           </div>
 
@@ -217,8 +217,8 @@ const Marketing = () => {
               <AlertCircle className="h-5 w-5 text-red-500" />
             </div>
             <div>
-              <p className="text-[10px] font-bold text-red-400 uppercase tracking-widest">Failed</p>
-              <p className="text-xl font-bold font-mono text-gray-900">{statusCounts.FAILED}</p>
+              <p className="m3-label !text-[9px] !text-red-400">Failed</p>
+              <p className="text-xl font-bold text-foreground">{statusCounts.FAILED}</p>
             </div>
           </div>
         </div>

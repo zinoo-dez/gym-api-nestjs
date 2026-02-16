@@ -176,8 +176,8 @@ const InventoryManagement = () => {
       <section className="rounded-2xl border border-gray-200 bg-white p-4">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-sm font-semibold text-gray-900">Inventory Management</p>
-            <p className="text-sm text-gray-500">
+            <h1 className="m3-title-md">Inventory Management</h1>
+            <p className="text-sm text-muted-foreground">
               Product catalog setup, stock control, and low-stock monitoring.
             </p>
           </div>
@@ -185,7 +185,7 @@ const InventoryManagement = () => {
             variant="outline" 
             onClick={loadData} 
             disabled={isLoading}
-            className="h-10 rounded-xl border-gray-200 font-bold font-mono text-xs hover:bg-gray-50"
+            className="h-10 rounded-xl border-border font-semibold text-xs transition-all"
           >
             <RefreshCcw className={cn("h-4 w-4 mr-2", isLoading && "animate-spin")} />
             Refresh Data
@@ -208,13 +208,13 @@ const InventoryManagement = () => {
         {/* Add Product Form */}
         <section className="xl:col-span-12 rounded-2xl border border-gray-200 bg-white p-6">
           <div className="mb-6">
-            <h2 className="text-lg font-bold text-gray-900">Add New Product</h2>
-            <p className="text-xs text-gray-500">Register a new item in the gym's retail or supply inventory.</p>
+            <h2 className="m3-title-md">Add New Product</h2>
+            <p className="text-xs text-muted-foreground">Register a new item in the gym's retail or supply inventory.</p>
           </div>
           <form className="space-y-6" onSubmit={handleCreateProduct}>
             <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
               <div className="space-y-1.5 md:col-span-2">
-                <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Product Name</Label>
+                <Label className="m3-label">Product Name</Label>
                 <Input
                   placeholder="e.g. Whey Protein Isolate"
                   value={productForm.name}
@@ -224,7 +224,7 @@ const InventoryManagement = () => {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">SKU / ID</Label>
+                <Label className="m3-label">SKU / ID</Label>
                 <Input
                   placeholder="e.g. SUP-WPI-001"
                   value={productForm.sku}
@@ -234,7 +234,7 @@ const InventoryManagement = () => {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Category</Label>
+                <Label className="m3-label">Category</Label>
                 <Select
                   value={productForm.category}
                   onValueChange={(value) => setProductForm((prev) => ({ ...prev, category: value as ProductCategory }))}
@@ -252,7 +252,7 @@ const InventoryManagement = () => {
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Retail Price (MMK)</Label>
+                <Label className="m3-label">Retail Price (MMK)</Label>
                 <Input
                   type="number"
                   placeholder="0.00"
@@ -264,7 +264,7 @@ const InventoryManagement = () => {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Supply Cost (Optional)</Label>
+                <Label className="m3-label">Supply Cost (Optional)</Label>
                 <Input
                   type="number"
                   placeholder="0.00"
@@ -275,7 +275,7 @@ const InventoryManagement = () => {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Initial Stock</Label>
+                <Label className="m3-label">Initial Stock</Label>
                 <Input
                   type="number"
                   placeholder="Units"
@@ -286,7 +286,7 @@ const InventoryManagement = () => {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Alert Threshold</Label>
+                <Label className="m3-label">Alert Threshold</Label>
                 <Input
                   type="number"
                   placeholder="Min Units"
@@ -298,7 +298,7 @@ const InventoryManagement = () => {
               </div>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Item Description</Label>
+              <Label className="m3-label">Item Description</Label>
               <Textarea
                 placeholder="Details about product specifications, flavor, size, etc."
                 value={productForm.description}
@@ -319,13 +319,13 @@ const InventoryManagement = () => {
           <section className="rounded-2xl border border-gray-200 bg-white p-5">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
               <div>
-                <h2 className="text-lg font-bold text-gray-900">Product Inventory</h2>
+                <h2 className="m3-title-md">Product Inventory</h2>
                 <div className="flex items-center gap-2 mt-1">
-                  <Badge variant="outline" className="rounded-lg bg-gray-50 border-gray-200 text-gray-600 text-[10px] font-bold uppercase tracking-tight">
+                  <Badge variant="outline" className="m3-label !normal-case !tracking-normal bg-muted/50 border-border">
                     {filteredProducts.length} Results
                   </Badge>
                   {lowStock.length > 0 && (
-                    <Badge className="rounded-lg bg-red-50 border-red-100 text-red-600 text-[10px] font-bold uppercase tracking-tight">
+                    <Badge className="m3-label !normal-case !tracking-normal bg-red-50 border-red-100 text-red-600">
                       {lowStock.length} Low Stock Alerts
                     </Badge>
                   )}

@@ -66,23 +66,23 @@ const Recovery = () => {
       <section className="rounded-2xl border border-gray-200 bg-white p-4">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-sm font-semibold text-gray-900">Recovery Queue</p>
-            <p className="text-sm text-gray-500">
+            <h1 className="m3-title-md">Recovery Queue</h1>
+            <p className="text-sm text-muted-foreground">
               Manage expiring memberships and resolve failed transaction attempts.
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 p-1 bg-gray-50 rounded-xl border border-gray-100">
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest pl-2">Lookahead</span>
+            <div className="flex items-center gap-2 p-1 bg-muted/50 rounded-xl border border-border">
+              <span className="m3-label !text-[9px] pl-2">Lookahead</span>
               <Input
                 type="number"
                 min={1}
                 max={30}
                 value={days}
                 onChange={(e) => setDays(Number(e.target.value) || 7)}
-                className="w-16 h-8 rounded-lg border-none bg-white font-mono font-bold text-xs focus-visible:ring-blue-600"
+                className="w-16 h-8 rounded-lg border-none bg-background font-mono font-semibold text-xs focus-visible:ring-primary"
               />
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest pr-2">Days</span>
+              <span className="m3-label !text-[9px] pr-2">Days</span>
             </div>
             <Button 
               variant="outline" 
@@ -127,19 +127,19 @@ const Recovery = () => {
               <Calendar className="h-5 w-5 text-orange-600" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-gray-900">Renewal Forecasting</h2>
-              <p className="text-xs text-gray-500">Memberships reaching base term end within the selected {days}-day window.</p>
+              <h2 className="m3-title-md">Renewal Forecasting</h2>
+              <p className="text-xs text-muted-foreground">Memberships reaching base term end within the selected {days}-day window.</p>
             </div>
           </div>
 
           <div className="overflow-x-auto -mx-5 px-5">
             <table className="min-w-full text-sm">
-              <thead className="bg-gray-50/80 text-left text-[10px] uppercase tracking-widest text-gray-400 font-bold border-y border-gray-100">
+              <thead className="bg-muted/30 text-left border-y border-border">
                 <tr>
-                  <th className="px-5 py-4">Cardholder Identity</th>
-                  <th className="px-2 py-4">Assigned Tier</th>
-                  <th className="px-2 py-4">Contract End Date</th>
-                  <th className="px-5 py-4 text-right">Maturity Countdown</th>
+                  <th className="px-5 py-4 m3-label !text-[10px]">Cardholder Identity</th>
+                  <th className="px-2 py-4 m3-label !text-[10px]">Assigned Tier</th>
+                  <th className="px-2 py-4 m3-label !text-[10px]">Contract End Date</th>
+                  <th className="px-5 py-4 m3-label !text-[10px] text-right">Maturity Countdown</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -191,8 +191,8 @@ const Recovery = () => {
               <History className="h-5 w-5 text-red-600" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-gray-900">Transaction Recovery Actions</h2>
-              <p className="text-xs text-gray-500">Immediate manual intervention for failed or disputed membership dues.</p>
+              <h2 className="m3-title-md">Transaction Recovery Actions</h2>
+              <p className="text-xs text-muted-foreground">Immediate manual intervention for failed or disputed membership dues.</p>
             </div>
           </div>
 

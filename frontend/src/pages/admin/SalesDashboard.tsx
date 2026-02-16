@@ -55,8 +55,8 @@ const SalesDashboard = () => {
       <section className="rounded-2xl border border-gray-200 bg-white p-4">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-sm font-semibold text-gray-900">Sales Analytics Hub</p>
-            <p className="text-sm text-gray-500">
+            <h1 className="m3-title-md">Sales Analytics Hub</h1>
+            <p className="text-sm text-muted-foreground">
               Real-time revenue tracking, product performance, and transaction auditing.
             </p>
           </div>
@@ -92,17 +92,17 @@ const SalesDashboard = () => {
               <CreditCard className="h-5 w-5 text-blue-600" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-gray-900">Revenue Channels</h2>
-              <p className="text-xs text-gray-500">Total revenue filtered by selected payment providers.</p>
+              <h2 className="m3-title-md">Revenue Channels</h2>
+              <p className="text-xs text-muted-foreground">Total revenue filtered by selected payment providers.</p>
             </div>
           </div>
           <div className="overflow-x-auto -mx-6 px-6">
             <table className="min-w-full text-sm">
-              <thead className="bg-gray-50/80 text-left text-[10px] uppercase tracking-widest text-gray-400 font-bold border-y border-gray-100">
+              <thead className="bg-muted/30 text-left border-y border-border">
                 <tr>
-                  <th className="px-5 py-4">Method Name</th>
-                  <th className="px-2 py-4">Total Orders</th>
-                  <th className="px-5 py-4 text-right">Channel Revenue</th>
+                  <th className="px-5 py-4 m3-label !text-[10px]">Method Name</th>
+                  <th className="px-2 py-4 m3-label !text-[10px]">Total Orders</th>
+                  <th className="px-5 py-4 m3-label !text-[10px] text-right">Channel Revenue</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -146,8 +146,8 @@ const SalesDashboard = () => {
               <Package className="h-5 w-5 text-orange-600" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-gray-900">High Performer Ranking</h2>
-              <p className="text-xs text-gray-500">Items generating the most volume and revenue in the retail catalog.</p>
+              <h2 className="m3-title-md">High Performer Ranking</h2>
+              <p className="text-xs text-muted-foreground">Items generating the most volume and revenue in the retail catalog.</p>
             </div>
           </div>
           <div className="overflow-x-auto -mx-6 px-6">
@@ -202,8 +202,8 @@ const SalesDashboard = () => {
                 <Clock className="h-5 w-5 text-emerald-600" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-gray-900">POS Audit Trail</h2>
-                <p className="text-xs text-gray-500">Live feed of point-of-sale transactions across all terminals.</p>
+                <h2 className="m3-title-md">POS Audit Trail</h2>
+                <p className="text-xs text-muted-foreground">Live feed of point-of-sale transactions across all terminals.</p>
               </div>
             </div>
             <Badge variant="outline" className="h-7 px-3 rounded-lg border-emerald-100 bg-emerald-50 text-emerald-700 text-[10px] font-bold uppercase tracking-tight">

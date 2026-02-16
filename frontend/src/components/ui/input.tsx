@@ -11,8 +11,8 @@ export interface InputProps extends React.ComponentProps<"input"> {
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, containerClassName, type, floatingLabel, placeholder, error, ...props }, ref) => {
     const inputBaseClass = cn(
-      "w-full rounded-xl border bg-card text-foreground shadow-[var(--surface-shadow-1)] transition-[border-color,box-shadow,background-color] placeholder:text-muted-foreground/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50",
-      error ? "border-destructive focus-visible:ring-destructive/60" : "border-input hover:border-primary/35",
+      "w-full rounded-xl border border-gray-200 bg-white text-gray-900 shadow-none transition-all placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600/50 disabled:cursor-not-allowed disabled:opacity-50",
+      error ? "border-red-300 focus-visible:ring-red-600/50" : "hover:border-gray-300",
       floatingLabel ? "peer h-12 px-4 pb-1.5 pt-5 text-sm placeholder:text-transparent" : "h-11 px-4 py-2 text-sm",
       className,
     );

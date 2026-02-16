@@ -6,26 +6,26 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "relative inline-flex items-center justify-center gap-2 whitespace-nowrap overflow-hidden rounded-full text-sm font-medium tracking-[0.01em] ring-offset-background transition-[background-color,color,border-color,box-shadow,transform] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "relative inline-flex items-center justify-center gap-2 whitespace-nowrap overflow-hidden rounded-full text-sm font-bold tracking-tight ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600/50 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 active:scale-[0.98]",
   {
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground shadow-[var(--surface-shadow-1)] hover:bg-primary/92 hover:shadow-[var(--surface-shadow-2)] active:bg-primary/88",
+          "bg-blue-600 text-white shadow-lg shadow-blue-100/50 hover:bg-blue-700",
         destructive:
-          "bg-destructive text-destructive-foreground shadow-[var(--surface-shadow-1)] hover:bg-destructive/92 hover:shadow-[var(--surface-shadow-2)] active:bg-destructive/88",
+          "bg-red-600 text-white shadow-lg shadow-red-100/50 hover:bg-red-700",
         outline:
-          "border border-input bg-card text-foreground shadow-[var(--surface-shadow-1)] hover:bg-accent hover:text-accent-foreground",
+          "border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-900",
         secondary:
-          "border border-primary/20 bg-primary/10 text-primary hover:bg-primary/14 hover:border-primary/30",
-        ghost: "bg-transparent text-foreground/80 hover:bg-accent hover:text-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
+          "bg-blue-50 text-blue-700 hover:bg-blue-100",
+        ghost: "bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-900",
+        link: "text-blue-600 underline-offset-4 hover:underline",
       },
       size: {
-        default: "h-10 px-5 py-2",
-        sm: "h-9 px-4",
-        lg: "h-11 px-8",
-        icon: "h-10 w-10 rounded-full",
+        default: "h-11 px-6",
+        sm: "h-9 px-4 text-xs",
+        lg: "h-12 px-10 text-base",
+        icon: "h-11 w-11 rounded-xl",
       },
     },
     defaultVariants: {
@@ -102,9 +102,9 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
     return (
       <motion.button
-        whileHover={disabled ? undefined : { y: -1 }}
-        whileTap={disabled ? undefined : { scale: 0.98 }}
-        transition={{ type: "spring", stiffness: 320, damping: 26 }}
+        whileHover={disabled ? undefined : { y: -0.5 }}
+        whileTap={disabled ? undefined : { scale: 0.97 }}
+        transition={{ type: "spring", stiffness: 400, damping: 30 }}
         className={cn(buttonVariants({ variant, size }), className)}
         ref={setButtonRef}
         disabled={disabled}
@@ -117,7 +117,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {ripples.map((ripple) => (
           <span
             key={ripple.id}
-            className="pointer-events-none absolute rounded-full bg-current/20 animate-[ripple-wave_480ms_ease-out_forwards]"
+            className="pointer-events-none absolute rounded-full bg-current/10 animate-[ripple-wave_500ms_ease-out_forwards]"
             style={{
               width: ripple.size,
               height: ripple.size,

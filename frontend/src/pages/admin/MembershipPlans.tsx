@@ -219,15 +219,15 @@ const MembershipPlans = () => {
 
   return (
     <div className="space-y-4">
-      <section className="rounded-2xl border border-gray-200 bg-white p-4">
+      <section className="rounded-2xl border border-border bg-card p-4">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-sm font-semibold text-gray-900">Tiered Memberships</p>
-            <p className="text-sm text-gray-500">
+            <h1 className="m3-title-md">Tiered Memberships</h1>
+            <p className="text-sm text-muted-foreground">
               Configure and manage your gym's membership tiers, features, and pricing structures.
             </p>
           </div>
-          <Button onClick={openAdd} className="bg-blue-600 hover:bg-blue-700">
+          <Button onClick={openAdd} className="bg-primary hover:bg-primary/90 font-semibold h-10 px-6 rounded-xl shadow-lg shadow-primary/10">
             <Plus className="h-4 w-4 mr-2" />
             Create New Plan
           </Button>
@@ -248,10 +248,10 @@ const MembershipPlans = () => {
             <div key={plan.id} className="group relative rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:shadow-md hover:border-blue-200">
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors uppercase tracking-tight">{plan.name}</h3>
+                  <h3 className="m3-title-md !text-lg transition-colors group-hover:text-primary">{plan.name}</h3>
                   <div className="mt-1 flex items-baseline gap-1">
-                    <span className="text-3xl font-extrabold text-gray-900">${plan.price}</span>
-                    <span className="text-xs text-gray-400 font-medium">/ {plan.durationDays} DAYS</span>
+                    <span className="text-3xl font-extrabold text-foreground">${plan.price}</span>
+                    <span className="m3-label !lowercase !text-[11px]">/ {plan.durationDays} days</span>
                   </div>
                 </div>
                 <div className="rounded-xl bg-blue-50 p-2 text-blue-600">
@@ -266,7 +266,7 @@ const MembershipPlans = () => {
               )}
 
               <div className="space-y-3 mb-8">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Core Features</p>
+                <Label className="m3-label">Core Features</Label>
                 <ul className="space-y-2.5">
                   {plan.features.slice(0, 5).map((feature, i) => (
                     <li key={i} className="flex items-center gap-2.5 text-sm font-medium text-gray-700">

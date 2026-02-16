@@ -22,6 +22,7 @@ import {
   ShieldAlert,
   ShoppingBag,
   ShoppingCart,
+  Sun,
   Users,
   UserCog,
   Workflow,
@@ -30,6 +31,7 @@ import {
 
 import { useAuthStore } from "@/store/auth.store";
 import { useGymSettingsStore } from "@/store/gym-settings.store";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
 
 interface NavItem {
   id: string;
@@ -145,7 +147,7 @@ export const AdminLayout = ({ children }: { children: ReactNode }) => {
   const initials = (user?.email?.slice(0, 2) || "GU").toUpperCase();
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900">
+    <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
       <div
         className={cn(
           "fixed inset-0 z-40 bg-slate-900/35 transition md:hidden",
@@ -156,7 +158,7 @@ export const AdminLayout = ({ children }: { children: ReactNode }) => {
 
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-72 border-r border-gray-200 bg-white p-4 shadow-xl transition-transform duration-300 md:hidden",
+          "fixed inset-y-0 left-0 z-50 w-72 border-r border-border bg-card p-4 shadow-xl transition-transform duration-300 md:hidden",
           mobileDrawerOpen ? "translate-x-0" : "-translate-x-full",
         )}
       >
@@ -198,7 +200,7 @@ export const AdminLayout = ({ children }: { children: ReactNode }) => {
           })}
         </nav>
 
-        <div className="mt-6 rounded-2xl border border-gray-200 bg-gray-50 p-3">
+        <div className="mt-6 rounded-2xl border border-border bg-muted/50 p-3">
           <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Today</p>
           <p className="mt-1 text-sm font-medium text-gray-700">
             {new Intl.DateTimeFormat("en-US", {
@@ -213,11 +215,11 @@ export const AdminLayout = ({ children }: { children: ReactNode }) => {
       <div className="flex min-h-screen">
         <aside
           className={cn(
-            "sticky top-0 hidden h-screen flex-col border-r border-gray-200 bg-white transition-all duration-300 md:flex",
+            "sticky top-0 hidden h-screen flex-col border-r border-border bg-card transition-all duration-300 md:flex",
             collapsedRail ? "w-20" : "w-72",
           )}
         >
-          <div className="flex h-16 items-center justify-between border-b border-gray-200 px-4">
+          <div className="flex h-16 items-center justify-between border-b border-border px-4">
             {!collapsedRail && (
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold text-gray-900">{settings?.name || "Gym Management"}</p>
@@ -261,8 +263,8 @@ export const AdminLayout = ({ children }: { children: ReactNode }) => {
           </nav>
 
           {!collapsedRail && (
-            <div className="border-t border-gray-200 p-4">
-              <div className="rounded-2xl border border-gray-200 bg-gray-50 p-3">
+            <div className="border-t border-border p-4">
+              <div className="rounded-2xl border border-border bg-muted/50 p-3">
                 <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Today</p>
                 <p className="mt-1 text-sm font-medium text-gray-700">
                   {new Intl.DateTimeFormat("en-US", {
@@ -277,7 +279,7 @@ export const AdminLayout = ({ children }: { children: ReactNode }) => {
         </aside>
 
         <div className="flex min-h-screen min-w-0 flex-1 flex-col">
-          <header className="sticky top-0 z-30 border-b border-gray-200 bg-white/95 backdrop-blur">
+          <header className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur">
             <div className="flex h-16 items-center gap-3 px-4 md:px-8">
               <button
                 type="button"
@@ -298,7 +300,7 @@ export const AdminLayout = ({ children }: { children: ReactNode }) => {
                   <input
                     type="text"
                     placeholder="Search members, classes, invoices..."
-                    className="h-10 w-full rounded-full border border-gray-200 bg-gray-50 pl-9 pr-4 text-sm text-gray-700 outline-none transition focus:border-blue-300 focus:bg-white"
+                    className="h-10 w-full rounded-full border border-border bg-muted/50 pl-9 pr-4 text-sm text-foreground outline-none transition focus:border-blue-300 focus:bg-background"
                     onFocus={() => setSearchFocused(true)}
                     onBlur={() => setSearchFocused(false)}
                   />
@@ -307,11 +309,13 @@ export const AdminLayout = ({ children }: { children: ReactNode }) => {
 
               <button
                 type="button"
-                className="rounded-full p-2 text-gray-600 transition hover:bg-gray-100 hover:text-gray-900"
+                className="rounded-full p-2 text-muted-foreground transition hover:bg-muted hover:text-foreground"
                 aria-label="Notifications"
               >
                 <Bell className="h-5 w-5" />
               </button>
+
+              <ThemeToggle />
 
               <button
                 type="button"
@@ -324,7 +328,7 @@ export const AdminLayout = ({ children }: { children: ReactNode }) => {
               <button
                 type="button"
                 onClick={clearAuth}
-                className="rounded-full p-2 text-gray-600 transition hover:bg-gray-100 hover:text-gray-900"
+                className="rounded-full p-2 text-muted-foreground transition hover:bg-muted hover:text-foreground"
                 aria-label="Log out"
               >
                 <LogOut className="h-5 w-5" />
@@ -336,7 +340,7 @@ export const AdminLayout = ({ children }: { children: ReactNode }) => {
         </div>
       </div>
 
-      <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-gray-200 bg-white md:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-card md:hidden">
         <div className={cn("grid", bottomNavItems.length <= 3 ? "grid-cols-3" : bottomNavItems.length === 4 ? "grid-cols-4" : "grid-cols-5")}>
           {bottomNavItems.slice(0, 5).map((item) => {
             const Icon = item.icon;

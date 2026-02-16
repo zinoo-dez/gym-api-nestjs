@@ -181,15 +181,15 @@ export default function Settings() {
       <section className="rounded-2xl border border-gray-200 bg-white p-4">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-sm font-semibold text-gray-900">Gym Configuration</p>
-            <p className="text-sm text-gray-500">
+            <h1 className="m3-title-md">Gym Configuration</h1>
+            <p className="text-sm text-muted-foreground">
               Manage your gym's public profile, operating schedule, and global notification preferences.
             </p>
           </div>
           <Button 
             onClick={handleSave} 
             disabled={saving || isLoading}
-            className="bg-blue-600 hover:bg-blue-700 h-10 px-6 font-bold shadow-lg shadow-blue-100"
+            className="bg-primary hover:bg-primary/90 h-10 px-6 font-semibold shadow-lg shadow-primary/10"
           >
             {saving ? "Saving Changes..." : "Save All Settings"}
           </Button>
@@ -200,13 +200,13 @@ export default function Settings() {
         {/* Profile Card */}
         <section className="lg:col-span-8 rounded-2xl border border-gray-200 bg-white p-6">
           <div className="mb-6">
-            <h2 className="text-lg font-bold text-gray-900">Public Profile</h2>
-            <p className="text-xs text-gray-500">This information will be visible to members on the mobile app and public portal.</p>
+            <h2 className="m3-title-md">Public Profile</h2>
+            <p className="text-xs text-muted-foreground">This information will be visible to members on the mobile app and public portal.</p>
           </div>
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Gym Name</Label>
+                <Label className="m3-label">Gym Name</Label>
                 <Input
                   value={form.name || ""}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
@@ -215,7 +215,7 @@ export default function Settings() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Brand Tagline</Label>
+                <Label className="m3-label">Brand Tagline</Label>
                 <Input
                   value={form.tagLine || ""}
                   onChange={(e) => setForm({ ...form, tagLine: e.target.value })}
@@ -226,7 +226,7 @@ export default function Settings() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Support Email</Label>
+                <Label className="m3-label">Support Email</Label>
                 <Input
                   value={form.email || ""}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
@@ -235,7 +235,7 @@ export default function Settings() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Contact Phone</Label>
+                <Label className="m3-label">Contact Phone</Label>
                 <Input
                   value={form.phone || ""}
                   onChange={(e) => setForm({ ...form, phone: e.target.value })}
@@ -245,7 +245,7 @@ export default function Settings() {
               </div>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Physical Address</Label>
+              <Label className="m3-label">Physical Address</Label>
               <Input
                 value={form.address || ""}
                 onChange={(e) => setForm({ ...form, address: e.target.value })}
@@ -254,7 +254,7 @@ export default function Settings() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Brand Assets (URLs)</Label>
+              <Label className="m3-label">Brand Assets (URLs)</Label>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Input
                   value={form.logo || ""}
@@ -271,7 +271,7 @@ export default function Settings() {
               </div>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">About the Gym</Label>
+              <Label className="m3-label">About the Gym</Label>
               <Textarea
                 value={form.description || ""}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
@@ -286,14 +286,14 @@ export default function Settings() {
         <section className="lg:col-span-4 space-y-4">
           <div className="rounded-2xl border border-gray-200 bg-white p-6">
             <div className="mb-6">
-              <h2 className="text-lg font-bold text-gray-900">System Alerts</h2>
-              <p className="text-xs text-gray-500">Configure global triggers for admin staff.</p>
+              <h2 className="m3-title-md">System Alerts</h2>
+              <p className="text-xs text-muted-foreground">Configure global triggers for admin staff.</p>
             </div>
             <div className="space-y-5">
               <div className="flex items-center justify-between p-3 rounded-xl bg-blue-50/50 border border-blue-100">
                 <div className="flex flex-col">
-                  <span className="text-sm font-bold text-blue-900">Email Hub</span>
-                  <span className="text-[10px] text-blue-600 uppercase font-bold tracking-tighter">Global Master Switch</span>
+                  <span className="text-sm font-semibold text-primary">Email Hub</span>
+                  <span className="m3-label !text-primary/70 !text-[9px]">Global Master Switch</span>
                 </div>
                 <Checkbox
                   checked={form.emailNotification ?? false}
@@ -303,8 +303,8 @@ export default function Settings() {
               </div>
               <div className="flex items-center justify-between p-3 rounded-xl bg-emerald-50/50 border border-emerald-100">
                 <div className="flex flex-col">
-                  <span className="text-sm font-bold text-emerald-900">SMS Gateway</span>
-                  <span className="text-[10px] text-emerald-600 uppercase font-bold tracking-tighter">Mobile Alerts</span>
+                  <span className="text-sm font-semibold text-emerald-700">SMS Gateway</span>
+                  <span className="m3-label !text-emerald-600/70 !text-[9px]">Mobile Alerts</span>
                 </div>
                 <Checkbox
                   checked={form.smsNotification ?? false}
@@ -343,10 +343,10 @@ export default function Settings() {
         <section className="lg:col-span-8 rounded-2xl border border-gray-200 bg-white p-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
             <div>
-              <h2 className="text-lg font-bold text-gray-900">Standard Schedule</h2>
-              <p className="text-xs text-gray-500">Define weekly check-in availability and staff hours.</p>
+              <h2 className="m3-title-md">Standard Schedule</h2>
+              <p className="text-xs text-muted-foreground">Define weekly check-in availability and staff hours.</p>
             </div>
-            <Button variant="outline" onClick={saveOperatingHours} className="h-9 rounded-xl border-gray-200 text-xs font-bold font-mono">
+            <Button variant="outline" onClick={saveOperatingHours} className="h-9 rounded-xl border-border px-4 font-semibold text-xs">
               Update Schedule
             </Button>
           </div>
@@ -406,8 +406,8 @@ export default function Settings() {
         {/* Seasonal Closures */}
         <section className="lg:col-span-4 rounded-2xl border border-gray-200 bg-white p-6">
           <div className="mb-6">
-            <h2 className="text-lg font-bold text-gray-900">Staff Holidays</h2>
-            <p className="text-xs text-gray-500">Plan facility closures and temporary schedule changes.</p>
+            <h2 className="m3-title-md">Staff Holidays</h2>
+            <p className="text-xs text-muted-foreground">Plan facility closures and temporary schedule changes.</p>
           </div>
           <div className="space-y-4">
             <div className="space-y-1.5">

@@ -140,8 +140,8 @@ const RetentionDashboard = () => {
       <section className="rounded-2xl border border-gray-200 bg-white p-4">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-sm font-semibold text-gray-900">Retention Dashboard</p>
-            <p className="text-sm text-gray-500">
+            <h1 className="m3-title-md">Retention Dashboard</h1>
+            <p className="text-sm text-muted-foreground">
               Anticipate churn by monitoring inactivity, payment delays, and membership usage.
             </p>
           </div>
@@ -149,10 +149,10 @@ const RetentionDashboard = () => {
             variant="outline" 
             onClick={handleRecalculate} 
             disabled={isRecalculating}
-            className="h-10 rounded-xl border-gray-200 font-bold font-mono text-xs hover:bg-gray-50"
+            className="h-10 rounded-xl border-border font-semibold text-xs transition-all"
           >
             <RefreshCcw className={cn("h-4 w-4 mr-2", isRecalculating && "animate-spin")} />
-            {isRecalculating ? "Processing Risks..." : "Sync Risk Profiles"}
+            {isRecalculating ? "Syncing Risks..." : "Sync Risk Profiles"}
           </Button>
         </div>
       </section>
@@ -174,13 +174,13 @@ const RetentionDashboard = () => {
       <section className="rounded-2xl border border-gray-200 bg-white p-5">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div>
-            <h2 className="text-lg font-bold text-gray-900">Member Risk Profile</h2>
+            <h2 className="m3-title-md">Member Risk Profile</h2>
             <div className="flex items-center gap-2 mt-1">
-              <Badge variant="outline" className="rounded-lg bg-gray-50 border-gray-200 text-gray-600 text-[10px] font-bold uppercase tracking-tight">
+              <Badge variant="outline" className="m3-label !normal-case !tracking-normal bg-muted/50 border-border">
                 {members.length} Profile{members.length !== 1 && "s"} Tracked
               </Badge>
               {overview?.highRisk && overview.highRisk > 0 && (
-                <Badge className="rounded-lg bg-red-50 border-red-100 text-red-600 text-[10px] font-bold uppercase tracking-tight">
+                <Badge className="m3-label !normal-case !tracking-normal bg-red-50 border-red-100 text-red-600">
                   {overview.highRisk} High Risk Actions
                 </Badge>
               )}
@@ -197,7 +197,7 @@ const RetentionDashboard = () => {
               />
             </div>
             <Select value={riskLevel} onValueChange={(v) => setRiskLevel(v as any)}>
-              <SelectTrigger className="h-10 w-full sm:w-40 rounded-xl border-gray-200 focus:ring-blue-600 text-xs font-bold uppercase tracking-tight">
+              <SelectTrigger className="h-10 w-full sm:w-40 rounded-xl border-border focus:ring-primary m3-label !text-[11px]">
                 <SelectValue placeholder="All Risks" />
               </SelectTrigger>
               <SelectContent className="rounded-xl border-gray-200">
@@ -224,14 +224,14 @@ const RetentionDashboard = () => {
 
         <div className="overflow-x-auto -mx-5 px-5">
           <table className="min-w-full text-sm">
-            <thead className="bg-gray-50/80 text-left text-[10px] uppercase tracking-widest text-gray-400 font-bold border-y border-gray-100">
+            <thead className="bg-muted/30 text-left border-y border-border">
               <tr>
-                <th className="px-5 py-4">Identity & Contact</th>
-                <th className="px-2 py-4">Threat Level</th>
-                <th className="px-2 py-4 text-center">Score</th>
-                <th className="px-2 py-4 text-center">Inactivity</th>
-                <th className="px-2 py-4 text-center">Arrears</th>
-                <th className="px-5 py-4 text-right hidden lg:table-cell">Heuristic Reasons</th>
+                <th className="px-5 py-4 m3-label !text-[10px]">Identity & Contact</th>
+                <th className="px-2 py-4 m3-label !text-[10px]">Threat Level</th>
+                <th className="px-2 py-4 m3-label !text-[10px] text-center">Score</th>
+                <th className="px-2 py-4 m3-label !text-[10px] text-center">Inactivity</th>
+                <th className="px-2 py-4 m3-label !text-[10px] text-center">Arrears</th>
+                <th className="px-5 py-4 m3-label !text-[10px] text-right hidden lg:table-cell">Heuristic Reasons</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">

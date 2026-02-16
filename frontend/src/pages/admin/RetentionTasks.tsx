@@ -138,8 +138,8 @@ const RetentionTasks = () => {
       <section className="rounded-2xl border border-gray-200 bg-white p-4">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-sm font-semibold text-gray-900">Retention Follow-up Queue</p>
-            <p className="text-sm text-gray-500">
+            <h1 className="m3-title-md">Retention Follow-up Queue</h1>
+            <p className="text-sm text-muted-foreground">
               Manage proactive intervention tasks for at-risk gym members.
             </p>
           </div>
@@ -147,7 +147,7 @@ const RetentionTasks = () => {
             variant="outline" 
             onClick={loadTasks} 
             disabled={isLoading}
-            className="h-10 rounded-xl border-gray-200 font-bold font-mono text-xs hover:bg-gray-50"
+            className="h-10 rounded-xl border-border font-semibold text-xs transition-all"
           >
             <RefreshCcw className={cn("h-4 w-4 mr-2", isLoading && "animate-spin")} />
             Sync Task Queue
@@ -163,9 +163,9 @@ const RetentionTasks = () => {
               <ClipboardList className="h-5 w-5 text-orange-600" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-gray-900">Active Task List</h2>
+              <h2 className="m3-title-md">Active Task List</h2>
               <div className="flex items-center gap-2 mt-0.5">
-                <Badge variant="outline" className="rounded-lg bg-gray-50 border-gray-200 text-gray-600 text-[10px] font-bold uppercase tracking-tight">
+                <Badge variant="outline" className="m3-label !normal-case !tracking-normal bg-muted/50 border-border">
                   {tasks.length} Task{tasks.length !== 1 && "s"} Found
                 </Badge>
               </div>
@@ -173,7 +173,7 @@ const RetentionTasks = () => {
           </div>
           <div className="flex flex-col sm:flex-row gap-2">
             <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as any)}>
-              <SelectTrigger className="h-10 w-full sm:w-44 rounded-xl border-gray-200 focus:ring-blue-600 text-xs font-bold uppercase tracking-tight">
+              <SelectTrigger className="h-10 w-full sm:w-44 rounded-xl border-border focus:ring-primary m3-label !text-[11px]">
                 <SelectValue placeholder="All Statuses" />
               </SelectTrigger>
               <SelectContent className="rounded-xl border-gray-200">
@@ -203,15 +203,15 @@ const RetentionTasks = () => {
 
         <div className="overflow-x-auto -mx-5 px-5">
           <table className="min-w-full text-sm">
-            <thead className="bg-gray-50/80 text-left text-[10px] uppercase tracking-widest text-gray-400 font-bold border-y border-gray-100">
+            <thead className="bg-muted/30 text-left border-y border-border">
               <tr>
-                <th className="px-5 py-4">Assignee Identity</th>
-                <th className="px-2 py-4">Follow-up Objective</th>
-                <th className="px-2 py-4">Current Status</th>
-                <th className="px-2 py-4 text-center">Priority</th>
-                <th className="px-2 py-4 hidden lg:table-cell">Timeline</th>
-                <th className="px-2 py-4">Resolution Note</th>
-                <th className="px-5 py-4 text-right">Commit</th>
+                <th className="px-5 py-4 m3-label !text-[10px]">Assignee Identity</th>
+                <th className="px-2 py-4 m3-label !text-[10px]">Follow-up Objective</th>
+                <th className="px-2 py-4 m3-label !text-[10px]">Current Status</th>
+                <th className="px-2 py-4 m3-label !text-[10px] text-center">Priority</th>
+                <th className="px-2 py-4 m3-label !text-[10px] hidden lg:table-cell">Timeline</th>
+                <th className="px-2 py-4 m3-label !text-[10px]">Resolution Note</th>
+                <th className="px-5 py-4 m3-label !text-[10px] text-right">Commit</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">

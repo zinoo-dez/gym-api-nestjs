@@ -155,8 +155,8 @@ const PosSales = () => {
       <section className="rounded-2xl border border-gray-200 bg-white p-4">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-sm font-semibold text-gray-900">Point of Sale (POS)</p>
-            <p className="text-sm text-gray-500">
+            <h1 className="m3-title-md">Point of Sale (POS)</h1>
+            <p className="text-sm text-muted-foreground">
               Process new transactions, manage cart items, and issue receipts.
             </p>
           </div>
@@ -177,10 +177,10 @@ const PosSales = () => {
         <section className="lg:col-span-8 rounded-2xl border border-gray-200 bg-white p-6">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-blue-50">
-                <ShoppingBag className="h-5 w-5 text-blue-600" />
+              <div className="p-2 rounded-xl bg-primary/10">
+                <ShoppingBag className="h-5 w-5 text-primary" />
               </div>
-              <h2 className="text-lg font-bold text-gray-900">Active Basket</h2>
+              <h2 className="m3-title-md">Active Basket</h2>
             </div>
             <Button 
               variant="ghost" 
@@ -197,7 +197,7 @@ const PosSales = () => {
             {saleItems.map((row, index) => (
               <div className="group grid gap-3 md:grid-cols-[1fr_120px_auto] items-end p-4 rounded-2xl border border-gray-100 bg-gray-50/30 hover:bg-white hover:border-blue-200 hover:shadow-lg hover:shadow-blue-50/50 transition-all" key={index}>
                 <div className="space-y-1.5">
-                  <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Select Product</Label>
+                  <Label className="m3-label">Select Product</Label>
                   <Select
                     value={row.productId}
                     onValueChange={(value) => updateSaleItem(index, "productId", value)}
@@ -224,7 +224,7 @@ const PosSales = () => {
                   </Select>
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1 text-center block">Quantity</Label>
+                  <Label className="m3-label !text-center !block">Quantity</Label>
                   <Input
                     type="number"
                     min={1}
@@ -257,8 +257,8 @@ const PosSales = () => {
         {/* Right Column: Checkout Summary */}
         <section className="lg:col-span-4 space-y-4">
           <div className="rounded-2xl border border-gray-200 bg-white p-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-              <CreditCard className="h-5 w-5 text-gray-400" />
+            <h3 className="m3-title-md !text-base mb-6 flex items-center gap-2">
+              <CreditCard className="h-5 w-5 text-muted-foreground" />
               Order Summary
             </h3>
             
@@ -270,7 +270,7 @@ const PosSales = () => {
                 </div>
                 <div className="space-y-3">
                   <div className="space-y-1.5">
-                    <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Discount Amount</Label>
+                    <Label className="m3-label">Discount Amount</Label>
                     <div className="relative">
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400">MMK</span>
                       <Input
@@ -283,7 +283,7 @@ const PosSales = () => {
                     </div>
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Tax / Service Fees</Label>
+                    <Label className="m3-label">Tax / Service Fees</Label>
                     <div className="relative">
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400">MMK</span>
                       <Input
@@ -300,7 +300,7 @@ const PosSales = () => {
 
               <div className="pt-6 border-t border-gray-100 space-y-4">
                 <div className="space-y-1.5">
-                  <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Payment Channel</Label>
+                  <Label className="m3-label">Payment Channel</Label>
                   <Select
                     value={saleForm.paymentMethod}
                     onValueChange={(value) => setSaleForm((prev) => ({ ...prev, paymentMethod: value as PosPaymentMethod }))}
@@ -319,7 +319,7 @@ const PosSales = () => {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Add Note</Label>
+                  <Label className="m3-label">Add Note</Label>
                   <Textarea
                     placeholder="Capture specialized requests or internal notes..."
                     value={saleForm.notes}
@@ -331,7 +331,7 @@ const PosSales = () => {
 
               <div className="p-4 rounded-2xl bg-gray-900 text-white space-y-4 shadow-xl shadow-gray-200">
                 <div className="flex justify-between items-end">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Grand Total</span>
+                  <span className="m3-label !text-primary-foreground/70">Grand Total</span>
                   <span className="text-2xl font-bold font-mono tracking-tight">{saleTotal.toLocaleString()} <span className="text-xs font-normal">MMK</span></span>
                 </div>
                 <Button 
@@ -354,20 +354,20 @@ const PosSales = () => {
               <Receipt className="h-5 w-5 text-emerald-600" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-gray-900">Checkout History</h2>
-              <p className="text-xs text-gray-500">Reviewing the latest 20 retail transactions processed.</p>
+              <h2 className="m3-title-md">Checkout History</h2>
+              <p className="text-xs text-muted-foreground">Reviewing the latest 20 retail transactions processed.</p>
             </div>
           </div>
           
           <div className="overflow-x-auto -mx-6 px-6">
             <table className="min-w-full text-sm">
-              <thead className="bg-gray-50/80 text-left text-[10px] uppercase tracking-widest text-gray-400 font-bold border-y border-gray-100">
+              <thead className="bg-muted/30 text-left border-y border-border">
                 <tr>
-                  <th className="px-5 py-4">Sale Ref</th>
-                  <th className="px-2 py-4">Items Count</th>
-                  <th className="px-2 py-4">Method</th>
-                  <th className="px-2 py-4">Total Amount</th>
-                  <th className="px-5 py-4 text-right">Processed At</th>
+                  <th className="px-5 py-4 m3-label !text-[10px]">Sale Ref</th>
+                  <th className="px-2 py-4 m3-label !text-[10px]">Items Count</th>
+                  <th className="px-2 py-4 m3-label !text-[10px]">Method</th>
+                  <th className="px-2 py-4 m3-label !text-[10px]">Total Amount</th>
+                  <th className="px-5 py-4 m3-label !text-[10px] text-right">Processed At</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">

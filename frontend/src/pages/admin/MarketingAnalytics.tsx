@@ -87,8 +87,8 @@ const MarketingAnalytics = () => {
       <section className="rounded-2xl border border-gray-200 bg-white p-4">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-sm font-semibold text-gray-900">Campaign Performance Metrics</p>
-            <p className="text-sm text-gray-500">
+            <h1 className="m3-title-md">Campaign Performance Metrics</h1>
+            <p className="text-sm text-muted-foreground">
               Analyze outreach efficiency, engagement rates, and delivery success for specific batches.
             </p>
           </div>
@@ -120,13 +120,13 @@ const MarketingAnalytics = () => {
             <BarChart3 className="h-5 w-5 text-blue-600" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-gray-900">Analysis Subject</h2>
-            <p className="text-xs text-gray-500">Select an execution batch from your campaign archives.</p>
+            <h2 className="m3-title-md">Analysis Subject</h2>
+            <p className="text-xs text-muted-foreground">Select an execution batch from your campaign archives.</p>
           </div>
         </div>
         
         <div className="space-y-2">
-          <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Campaign Archive</Label>
+          <Label className="m3-label">Campaign Archive</Label>
           <Select value={selectedCampaignId} onValueChange={setSelectedCampaignId}>
             <SelectTrigger className="h-12 max-w-xl rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium">
               <SelectValue placeholder="Begin analysis by choosing a campaign..." />
@@ -181,9 +181,9 @@ const MarketingAnalytics = () => {
                 <PieChart className="h-5 w-5 text-purple-600" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-gray-900">Campaign Health Summary</h2>
+                <h2 className="m3-title-md">Campaign Health Summary</h2>
                 <div className="flex items-center gap-2 mt-0.5">
-                  <Badge variant="outline" className="rounded-lg bg-gray-50 border-gray-200 text-gray-600 text-[10px] font-bold uppercase tracking-tight">
+                  <Badge variant="outline" className="m3-label !normal-case tracking-normal bg-muted/50 border-border">
                     {selectedCampaignName}
                   </Badge>
                 </div>

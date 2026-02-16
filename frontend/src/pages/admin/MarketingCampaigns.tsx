@@ -188,8 +188,8 @@ const MarketingCampaigns = () => {
       <section className="rounded-2xl border border-gray-200 bg-white p-4">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-sm font-semibold text-gray-900">Campaign Orchestration</p>
-            <p className="text-sm text-gray-500">
+            <h1 className="m3-title-md">Campaign Orchestration</h1>
+            <p className="text-sm text-muted-foreground">
               Manage Outreach Batches, promotional lifecycle, and audience targeting.
             </p>
           </div>
@@ -254,7 +254,7 @@ const MarketingCampaigns = () => {
                     <div className="flex items-start justify-between gap-4">
                       <div className="space-y-1.5 flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <h3 className="font-bold text-gray-900 truncate max-w-[200px]">{campaign.name}</h3>
+                          <h3 className="m3-title-sm !text-sm truncate max-w-[200px]">{campaign.name}</h3>
                           <Badge variant="outline" className="rounded-lg bg-blue-50 border-blue-100 text-blue-600 font-bold text-[10px] uppercase">
                             {campaign.type}
                           </Badge>
@@ -344,12 +344,12 @@ const MarketingCampaigns = () => {
 
       <Dialog open={campaignOpen} onOpenChange={setCampaignOpen}>
         <DialogContent className="max-w-3xl rounded-2xl border-none shadow-2xl p-0 overflow-hidden">
-          <div className="bg-blue-600 p-6 text-white">
-            <h2 className="text-xl font-bold flex items-center gap-2">
+          <div className="bg-primary p-6 text-primary-foreground">
+            <h2 className="m3-title-lg flex items-center gap-2">
               <Plus className="h-6 w-6" />
               {editingCampaignId ? "Refine Outreach Details" : "Compose New Campaign"}
             </h2>
-            <p className="text-blue-100 text-xs mt-1 font-medium opacity-80">
+            <p className="text-primary-foreground/80 text-xs mt-1 font-medium italic">
               Configure parameters for your gym outreach and promotion batches.
             </p>
           </div>
@@ -358,7 +358,7 @@ const MarketingCampaigns = () => {
             <div className="p-6 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2 md:col-span-2">
-                  <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Engagement Name</Label>
+                  <Label className="m3-label">Engagement Name</Label>
                   <Input
                     className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium"
                     placeholder="e.g., Summer Fitness Blitz 2024"
@@ -370,7 +370,7 @@ const MarketingCampaigns = () => {
                 </div>
                 
                 <div className="space-y-2 md:col-span-2">
-                  <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Internal Description</Label>
+                  <Label className="m3-label">Internal Description</Label>
                   <Input
                     className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium"
                     placeholder="Brief objective for staff reference..."
@@ -382,7 +382,7 @@ const MarketingCampaigns = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Outreach Channel</Label>
+                  <Label className="m3-label">Outreach Channel</Label>
                   <Select
                     value={campaignForm.type}
                     onValueChange={(value) =>
@@ -401,7 +401,7 @@ const MarketingCampaigns = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Execution Status</Label>
+                  <Label className="m3-label">Execution Status</Label>
                   <Select
                     value={campaignForm.status}
                     onValueChange={(value) =>
@@ -422,7 +422,7 @@ const MarketingCampaigns = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Target Audience</Label>
+                  <Label className="m3-label">Target Audience</Label>
                   <Select
                     value={campaignForm.audienceType}
                     onValueChange={(value) =>
@@ -444,7 +444,7 @@ const MarketingCampaigns = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Layout Template</Label>
+                  <Label className="m3-label">Layout Template</Label>
                   <Select
                     value={campaignForm.templateId || "NONE"}
                     onValueChange={(value) =>
@@ -467,7 +467,7 @@ const MarketingCampaigns = () => {
                 </div>
 
                 <div className="space-y-2 md:col-span-2">
-                  <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Message Subject line</Label>
+                  <Label className="m3-label">Message Subject line</Label>
                   <Input
                     className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium"
                     placeholder="Subject for Email/Push notifications..."
@@ -479,7 +479,7 @@ const MarketingCampaigns = () => {
                 </div>
 
                 <div className="space-y-2 md:col-span-2">
-                  <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Payload Content</Label>
+                  <Label className="m3-label">Payload Content</Label>
                   <Textarea
                     className="min-h-[120px] rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium"
                     placeholder="Enter the primary message content for the outreach..."
@@ -491,7 +491,7 @@ const MarketingCampaigns = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Promotional Offer</Label>
+                  <Label className="m3-label">Promotional Offer</Label>
                   <Input
                     className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium"
                     placeholder="e.g., Use code SUMMER50"
@@ -503,7 +503,7 @@ const MarketingCampaigns = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Restricted Class ID</Label>
+                  <Label className="m3-label">Restricted Class ID</Label>
                   <Input
                     className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium"
                     placeholder="Optional UUID for class-specific targeting"
@@ -516,7 +516,7 @@ const MarketingCampaigns = () => {
 
                 {campaignForm.audienceType === "CUSTOM" && (
                   <div className="space-y-2 md:col-span-2">
-                    <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Custom Recipient List (ID pool)</Label>
+                    <Label className="m3-label">Custom Recipient List (ID pool)</Label>
                     <Input
                       className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium"
                       placeholder="comma-separated user UUIDs..."
@@ -529,7 +529,7 @@ const MarketingCampaigns = () => {
                 )}
 
                 <div className="space-y-2 md:col-span-2">
-                  <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Scheduled Transmission Time</Label>
+                  <Label className="m3-label">Scheduled Transmission Time</Label>
                   <DateTimePicker
                     className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600"
                     value={campaignForm.scheduledAt}

@@ -112,8 +112,8 @@ const MarketingTemplates = () => {
       <section className="rounded-2xl border border-gray-200 bg-white p-4">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-sm font-semibold text-gray-900">Communication Blueprints</p>
-            <p className="text-sm text-gray-500">
+            <h1 className="m3-title-md">Communication Blueprints</h1>
+            <p className="text-sm text-muted-foreground">
               Manage reusable content blocks and layout definitions for outreach campaigns.
             </p>
           </div>
@@ -169,7 +169,7 @@ const MarketingTemplates = () => {
                     </div>
 
                     <div className="space-y-1">
-                      <h3 className="font-bold text-gray-900 line-clamp-1">{template.name}</h3>
+                      <h3 className="m3-title-sm !text-sm !font-bold line-clamp-1">{template.name}</h3>
                       <div className="flex items-center gap-2">
                         <Badge variant="outline" className="rounded-lg bg-gray-50 border-gray-100 text-gray-500 font-bold text-[9px] uppercase">
                           {template.type}
@@ -209,12 +209,12 @@ const MarketingTemplates = () => {
 
       <Dialog open={templateOpen} onOpenChange={setTemplateOpen}>
         <DialogContent className="max-w-2xl rounded-2xl border-none shadow-2xl p-0 overflow-hidden">
-          <div className="bg-blue-600 p-6 text-white">
-            <h2 className="text-xl font-bold flex items-center gap-2">
+          <div className="bg-primary p-6 text-primary-foreground">
+            <h2 className="m3-title-lg flex items-center gap-2">
               <FileText className="h-6 w-6" />
               {editingTemplateId ? "Refine Blueprint" : "Architect New Template"}
             </h2>
-            <p className="text-blue-100 text-xs mt-1 font-medium opacity-80">
+            <p className="text-primary-foreground/80 text-xs mt-1 font-medium italic">
               Define reusable content structures for automated and manual outreach.
             </p>
           </div>
@@ -222,7 +222,7 @@ const MarketingTemplates = () => {
           <ScrollArea className="max-h-[80vh]">
             <div className="p-6 space-y-5">
               <div className="space-y-2">
-                <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Blueprint Identifier</Label>
+                <Label className="m3-label">Blueprint Identifier</Label>
                 <Input
                   className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium placeholder:text-gray-300"
                   placeholder="e.g., Welcome Email - Casual Tone"
@@ -234,7 +234,7 @@ const MarketingTemplates = () => {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Transmission Channel</Label>
+                <Label className="m3-label">Transmission Channel</Label>
                 <Select
                   value={templateForm.type}
                   onValueChange={(value) =>
@@ -253,7 +253,7 @@ const MarketingTemplates = () => {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Subject / Headline</Label>
+                <Label className="m3-label">Subject / Headline</Label>
                 <Input
                   className="h-12 rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium placeholder:text-gray-300"
                   placeholder="The first thing your members will see..."
@@ -265,7 +265,7 @@ const MarketingTemplates = () => {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Message Body Content</Label>
+                <Label className="m3-label">Message Body Content</Label>
                 <Textarea
                   className="min-h-[160px] rounded-xl border-gray-100 bg-gray-50/50 focus:ring-blue-600 font-medium leading-relaxed"
                   placeholder="Compose your outreach payload. Use {{name}} for dynamic insertion."
