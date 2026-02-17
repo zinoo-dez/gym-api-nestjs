@@ -18,6 +18,8 @@ import {
   CreateProductDto,
   CreateSaleDto,
   LowStockAlertResponseDto,
+  MemberProductResponseDto,
+  MemberPurchaseDto,
   ProductFiltersDto,
   ProductResponseDto,
   RestockProductDto,
@@ -862,5 +864,342 @@ export class InventorySalesService {
       seen.add(value);
     }
     return null;
+  }
+
+  // Member-facing methods
+  async findProductsForMembers(
+    filters: ProductFiltersDto,
+  ): Promise<PaginatedResponseDto<MemberProductResponseDto>> {
+    const page = filters.page ?? 1;
+    const limit = filters.limit ?? 20;
+    const skip = (page - 1) * limit;
+
+    const where: Prisma.ProductWhereInput = {
+      isActive: true,
+      stockQuantity: { gt: 0 },
+    };
+
+    if (filters.category) {
+      where.category = filters.category;
+    }
+
+    if (filters.search) {
+      where.OR = [
+        {
+          name: {
+            contains: filters.search,
+            mode: 'insensitive',
+          },
+        },
+        {
+          sku: {
+            contains: filters.search,
+            mode: 'insensitive',
+          },
+        },
+      ];
+    }
+
+    const [total, rows] = await Promise.all([
+      this.prisma.product.count({ where }),
+      this.prisma.product.findMany({
+        where,
+        orderBy: { name: 'asc' },
+        skip,
+        take: limit,
+      }),
+    ]);
+
+    return new PaginatedResponseDto(
+      rows.map((product) => this.toMemberProductDto(product)),
+      page,
+      limit,
+      total,
+    );
+  }
+
+  async memberPurchase(
+    memberId: string,
+    dto: MemberPurchaseDto,
+  ): Promise<SaleResponseDto> {
+    const member = await this.prisma.member.findUnique({
+      where: { id: memberId },
+      select: { id: true, userId: true },
+    });
+
+    if (!member) {
+      throw new NotFoundException(`Member ${memberId} not found`);
+    }
+
+    const productIds = dto.items.map((item) => item.productId);
+    const duplicateProductId = this.findFirstDuplicate(productIds);
+
+    if (duplicateProductId) {
+      throw new BadRequestException(
+        `Duplicate product ${duplicateProductId} in purchase items`,
+      );
+    }
+
+    const products = await this.prisma.product.findMany({
+      where: {
+        id: { in: productIds },
+        isActive: true,
+      },
+    });
+
+    if (products.length !== productIds.length) {
+      const foundIds = new Set(products.map((product) => product.id));
+      const missingId = productIds.find((id) => !foundIds.has(id));
+      throw new NotFoundException(
+        missingId
+          ? `Product ${missingId} not found or inactive`
+          : 'One or more products not found',
+      );
+    }
+
+    const productById = new Map(
+      products.map((product) => [product.id, product]),
+    );
+
+    const lineItems = dto.items.map((item) => {
+      const product = productById.get(item.productId);
+      if (!product) {
+        throw new NotFoundException(`Product ${item.productId} not found`);
+      }
+
+      const unitPrice = product.salePrice;
+      const lineTotal = unitPrice * item.quantity;
+
+      return {
+        productId: item.productId,
+        quantity: item.quantity,
+        unitPrice,
+        lineTotal,
+      };
+    });
+
+    const subtotal = lineItems.reduce((sum, item) => sum + item.lineTotal, 0);
+    const discount = 0;
+    const tax = 0;
+    const total = subtotal;
+
+    const lowStockProductsAfterSale: Product[] = [];
+
+    const sale = await this.prisma.$transaction(async (tx) => {
+      const createdSale = await tx.productSale.create({
+        data: {
+          saleNumber: this.generateSaleNumber(),
+          memberId,
+          processedByUserId: member.userId,
+          paymentMethod: dto.paymentMethod,
+          status: ProductSaleStatus.COMPLETED,
+          subtotal,
+          discount,
+          tax,
+          total,
+          notes: dto.notes,
+          soldAt: new Date(),
+        },
+      });
+
+      for (const item of lineItems) {
+        const stockUpdate = await tx.product.updateMany({
+          where: {
+            id: item.productId,
+            stockQuantity: {
+              gte: item.quantity,
+            },
+          },
+          data: {
+            stockQuantity: {
+              decrement: item.quantity,
+            },
+          },
+        });
+
+        if (stockUpdate.count === 0) {
+          const product = productById.get(item.productId);
+          throw new BadRequestException(
+            `Insufficient stock for ${product?.name ?? item.productId}`,
+          );
+        }
+
+        const updatedProduct = await tx.product.findUnique({
+          where: { id: item.productId },
+        });
+
+        if (!updatedProduct) {
+          throw new NotFoundException(`Product ${item.productId} not found`);
+        }
+
+        await tx.productSaleItem.create({
+          data: {
+            saleId: createdSale.id,
+            productId: item.productId,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+            lineTotal: item.lineTotal,
+          },
+        });
+
+        await tx.inventoryStockMovement.create({
+          data: {
+            productId: item.productId,
+            movementType: StockMovementType.SALE,
+            quantityDelta: -item.quantity,
+            previousQuantity: updatedProduct.stockQuantity + item.quantity,
+            newQuantity: updatedProduct.stockQuantity,
+            referenceType: 'MEMBER_PURCHASE',
+            referenceId: createdSale.id,
+            note: `Member purchase ${createdSale.saleNumber}`,
+            createdByUserId: member.userId,
+          },
+        });
+
+        if (updatedProduct.stockQuantity <= updatedProduct.lowStockThreshold) {
+          lowStockProductsAfterSale.push(updatedProduct);
+        }
+      }
+
+      const saleWithRelations = await tx.productSale.findUnique({
+        where: { id: createdSale.id },
+        include: {
+          items: {
+            include: {
+              product: true,
+            },
+          },
+          member: {
+            include: {
+              user: {
+                select: {
+                  firstName: true,
+                  lastName: true,
+                  email: true,
+                },
+              },
+            },
+          },
+          processedBy: {
+            select: {
+              id: true,
+              email: true,
+              firstName: true,
+              lastName: true,
+            },
+          },
+        },
+      });
+
+      if (!saleWithRelations) {
+        throw new NotFoundException(`Sale ${createdSale.id} not found`);
+      }
+
+      return saleWithRelations;
+    });
+
+    if (lowStockProductsAfterSale.length > 0) {
+      await this.notifyLowStock(lowStockProductsAfterSale);
+    }
+
+    return this.toSaleDto(sale);
+  }
+
+  async getMemberPurchaseHistory(
+    memberId: string,
+    filters: SaleFiltersDto,
+  ): Promise<PaginatedResponseDto<SaleResponseDto>> {
+    const member = await this.prisma.member.findUnique({
+      where: { id: memberId },
+      select: { id: true },
+    });
+
+    if (!member) {
+      throw new NotFoundException(`Member ${memberId} not found`);
+    }
+
+    const page = filters.page ?? 1;
+    const limit = filters.limit ?? 20;
+    const skip = (page - 1) * limit;
+
+    const where: Prisma.ProductSaleWhereInput = {
+      memberId,
+    };
+
+    if (filters.paymentMethod) {
+      where.paymentMethod = filters.paymentMethod;
+    }
+
+    if (filters.status) {
+      where.status = filters.status;
+    }
+
+    if (filters.startDate || filters.endDate) {
+      where.soldAt = {};
+      if (filters.startDate) {
+        where.soldAt.gte = new Date(filters.startDate);
+      }
+      if (filters.endDate) {
+        where.soldAt.lte = new Date(filters.endDate);
+      }
+    }
+
+    const [total, rows] = await Promise.all([
+      this.prisma.productSale.count({ where }),
+      this.prisma.productSale.findMany({
+        where,
+        include: {
+          items: {
+            include: {
+              product: true,
+            },
+          },
+          member: {
+            include: {
+              user: {
+                select: {
+                  firstName: true,
+                  lastName: true,
+                  email: true,
+                },
+              },
+            },
+          },
+          processedBy: {
+            select: {
+              id: true,
+              email: true,
+              firstName: true,
+              lastName: true,
+            },
+          },
+        },
+        orderBy: { soldAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+    ]);
+
+    return new PaginatedResponseDto(
+      rows.map((sale) => this.toSaleDto(sale)),
+      page,
+      limit,
+      total,
+    );
+  }
+
+  private toMemberProductDto(product: Product): MemberProductResponseDto {
+    return {
+      id: product.id,
+      name: product.name,
+      sku: product.sku,
+      category: product.category,
+      description: product.description ?? undefined,
+      salePrice: product.salePrice,
+      stockQuantity: product.stockQuantity,
+      isAvailable: product.isActive && product.stockQuantity > 0,
+      createdAt: product.createdAt,
+      updatedAt: product.updatedAt,
+    };
   }
 }

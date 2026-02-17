@@ -19,6 +19,8 @@ import {
   CreateProductDto,
   CreateSaleDto,
   LowStockAlertResponseDto,
+  MemberProductResponseDto,
+  MemberPurchaseDto,
   ProductFiltersDto,
   ProductResponseDto,
   RestockProductDto,
@@ -110,5 +112,41 @@ export class InventorySalesController {
     @Query() query: SalesReportQueryDto,
   ): Promise<SalesReportResponseDto> {
     return this.inventorySalesService.getSalesReport(query);
+  }
+
+  // Member-facing endpoints
+  @Get('member/products')
+  @Roles(UserRole.MEMBER)
+  @ApiOperation({ summary: 'Browse products available for purchase (Members)' })
+  @ApiResponse({ status: 200, type: [MemberProductResponseDto] })
+  async findProductsForMembers(
+    @Query() filters: ProductFiltersDto,
+  ): Promise<PaginatedResponseDto<MemberProductResponseDto>> {
+    return this.inventorySalesService.findProductsForMembers(filters);
+  }
+
+  @Post('member/purchase')
+  @Roles(UserRole.MEMBER)
+  @ApiOperation({ summary: 'Purchase products (Members)' })
+  @ApiResponse({ status: 201, type: SaleResponseDto })
+  async memberPurchase(
+    @Body() dto: MemberPurchaseDto,
+    @CurrentUser() user: any,
+  ): Promise<SaleResponseDto> {
+    return this.inventorySalesService.memberPurchase(user.memberId, dto);
+  }
+
+  @Get('member/purchase-history')
+  @Roles(UserRole.MEMBER)
+  @ApiOperation({ summary: 'Get purchase history (Members)' })
+  @ApiResponse({ status: 200, type: [SaleResponseDto] })
+  async getMemberPurchaseHistory(
+    @Query() filters: SaleFiltersDto,
+    @CurrentUser() user: any,
+  ): Promise<PaginatedResponseDto<SaleResponseDto>> {
+    return this.inventorySalesService.getMemberPurchaseHistory(
+      user.memberId,
+      filters,
+    );
   }
 }

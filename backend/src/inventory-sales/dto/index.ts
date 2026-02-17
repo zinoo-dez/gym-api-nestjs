@@ -9,3 +9,5 @@ export * from './product-response.dto';
 export * from './sale-response.dto';
 export * from './low-stock-alert-response.dto';
 export * from './sales-report-response.dto';
+export * from './member-product-response.dto';
+export * from './member-purchase.dto';

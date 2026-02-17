@@ -1,6 +1,5 @@
 import React from "react";
-import { Routes, Route, Navigate, useLocation } from "react-router-dom";
-import { AnimatePresence } from "framer-motion";
+import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { AdminRoute } from "./AdminRoute";
 import { MemberRoute } from "./MemberRoute";
 import { TrainerRoute } from "./TrainerRoute";
@@ -49,271 +48,191 @@ import GymManagementM3DashboardPage from "../pages/admin/GymManagementM3Dashboar
 import MemberDashboardPage from "../pages/member/MemberDashboard";
 import MemberRenewalPage from "../pages/member/MemberRenewal";
 import MemberProgressPage from "../pages/member/MemberProgress";
+import MemberShopPage from "../pages/member/MemberShop";
+import MemberPurchaseHistoryPage from "../pages/member/MemberPurchaseHistory";
 import TrainerDashboardPage from "../pages/trainer/TrainerDashboard";
 import TrainerSessionsPage from "../pages/trainer/TrainerSessions";
 import StaffDashboardPage from "../pages/staff/StaffDashboard";
 
 const AppRoutes = () => {
-  const location = useLocation();
   const withTransition = (element: React.ReactElement) => (
     <RouteTransition>{element}</RouteTransition>
   );
 
   return (
-    <AnimatePresence mode="wait" initial={false}>
-      <Routes location={location} key={location.pathname}>
-        {/* Public Routes */}
-        <Route path="/" element={withTransition(<PublicLayout><IndexPage /></PublicLayout>)} />
-        <Route path="/login" element={withTransition(<PublicLayout><PublicLogin /></PublicLayout>)} />
-        <Route path="/register" element={withTransition(<Navigate to="/auth/register" replace />)} />
-        <Route path="/auth/login" element={withTransition(<LoginPage />)} />
-        <Route path="/auth/register" element={withTransition(<RegisterPage />)} />
-        <Route path="/auth/forgot-password" element={withTransition(<ForgotPasswordPage />)} />
+    <Routes>
+      {/* Public Routes */}
+      <Route
+        path="/"
+        element={withTransition(
+          <PublicLayout>
+            <IndexPage />
+          </PublicLayout>,
+        )}
+      />
+      <Route
+        path="/login"
+        element={withTransition(
+          <PublicLayout>
+            <PublicLogin />
+          </PublicLayout>,
+        )}
+      />
+      <Route
+        path="/register"
+        element={withTransition(<Navigate to="/auth/register" replace />)}
+      />
+      <Route path="/auth/login" element={withTransition(<LoginPage />)} />
+      <Route path="/auth/register" element={withTransition(<RegisterPage />)} />
+      <Route
+        path="/auth/forgot-password"
+        element={withTransition(<ForgotPasswordPage />)}
+      />
 
-        {/* Admin Routes - Protected */}
+      {/* Admin Routes - Protected (persistent layout) */}
+      <Route
+        path="/admin"
+        element={
+          <AdminRoute>
+            <AdminLayout>
+              <Outlet />
+            </AdminLayout>
+          </AdminRoute>
+        }
+      >
         <Route
-          path="/admin"
-          element={withTransition(
-            <AdminRoute>
-              <AdminLayout><GymManagementM3DashboardPage /></AdminLayout>
-            </AdminRoute>,
-          )}
+          index
+          element={withTransition(<GymManagementM3DashboardPage />)}
+        />
+        <Route path="members" element={withTransition(<MembersPage />)} />
+        <Route
+          path="trainers"
+          element={withTransition(<AdminTrainersPage />)}
+        />
+        <Route path="plans" element={withTransition(<PlansPage />)} />
+        <Route path="discounts" element={withTransition(<DiscountsPage />)} />
+        <Route path="payments" element={withTransition(<PaymentsPage />)} />
+        <Route path="recovery" element={withTransition(<RecoveryPage />)} />
+        <Route
+          path="inventory-sales"
+          element={withTransition(<SalesDashboardPage />)}
+        />
+        <Route path="pos-sales" element={withTransition(<PosSalesPage />)} />
+        <Route
+          path="inventory-management"
+          element={withTransition(<InventoryManagementPage />)}
         />
         <Route
-          path="/admin/members"
-          element={withTransition(
-            <AdminRoute>
-              <AdminLayout><MembersPage /></AdminLayout>
-            </AdminRoute>,
-          )}
+          path="notifications"
+          element={withTransition(<NotificationsPage />)}
+        />
+        <Route path="marketing" element={withTransition(<MarketingPage />)} />
+        <Route
+          path="marketing/campaigns"
+          element={withTransition(<MarketingCampaignsPage />)}
         />
         <Route
-          path="/admin/trainers"
-          element={withTransition(
-            <AdminRoute>
-              <AdminLayout><AdminTrainersPage /></AdminLayout>
-            </AdminRoute>,
-          )}
+          path="marketing/templates"
+          element={withTransition(<MarketingTemplatesPage />)}
         />
         <Route
-          path="/admin/plans"
-          element={withTransition(
-            <AdminRoute>
-              <AdminLayout><PlansPage /></AdminLayout>
-            </AdminRoute>,
-          )}
+          path="marketing/automations"
+          element={withTransition(<MarketingAutomationsPage />)}
         />
         <Route
-          path="/admin/discounts"
-          element={withTransition(
-            <AdminRoute>
-              <AdminLayout><DiscountsPage /></AdminLayout>
-            </AdminRoute>,
-          )}
+          path="marketing/analytics"
+          element={withTransition(<MarketingAnalyticsPage />)}
+        />
+        <Route path="settings" element={withTransition(<SettingsPage />)} />
+        <Route path="staff" element={withTransition(<StaffPage />)} />
+        <Route
+          path="retention"
+          element={withTransition(<RetentionDashboardPage />)}
         />
         <Route
-          path="/admin/payments"
-          element={withTransition(
-            <AdminRoute>
-              <AdminLayout><PaymentsPage /></AdminLayout>
-            </AdminRoute>,
-          )}
+          path="retention/tasks"
+          element={withTransition(<RetentionTasksPage />)}
         />
-        <Route
-          path="/admin/recovery"
-          element={withTransition(
-            <AdminRoute>
-              <AdminLayout><RecoveryPage /></AdminLayout>
-            </AdminRoute>,
-          )}
-        />
-        <Route
-          path="/admin/inventory-sales"
-          element={withTransition(
-            <AdminRoute>
-              <AdminLayout><SalesDashboardPage /></AdminLayout>
-            </AdminRoute>,
-          )}
-        />
-        <Route
-          path="/admin/pos-sales"
-          element={withTransition(
-            <AdminRoute>
-              <AdminLayout><PosSalesPage /></AdminLayout>
-            </AdminRoute>,
-          )}
-        />
-        <Route
-          path="/admin/inventory-management"
-          element={withTransition(
-            <AdminRoute>
-              <AdminLayout><InventoryManagementPage /></AdminLayout>
-            </AdminRoute>,
-          )}
-        />
-        <Route
-          path="/admin/notifications"
-          element={withTransition(
-            <AdminRoute>
-              <AdminLayout><NotificationsPage /></AdminLayout>
-            </AdminRoute>,
-          )}
-        />
-        <Route
-          path="/admin/marketing"
-          element={withTransition(
-            <AdminRoute>
-              <AdminLayout><MarketingPage /></AdminLayout>
-            </AdminRoute>,
-          )}
-        />
-        <Route
-          path="/admin/marketing/campaigns"
-          element={withTransition(
-            <AdminRoute>
-              <AdminLayout><MarketingCampaignsPage /></AdminLayout>
-            </AdminRoute>,
-          )}
-        />
-        <Route
-          path="/admin/marketing/templates"
-          element={withTransition(
-            <AdminRoute>
-              <AdminLayout><MarketingTemplatesPage /></AdminLayout>
-            </AdminRoute>,
-          )}
-        />
-        <Route
-          path="/admin/marketing/automations"
-          element={withTransition(
-            <AdminRoute>
-              <AdminLayout><MarketingAutomationsPage /></AdminLayout>
-            </AdminRoute>,
-          )}
-        />
-        <Route
-          path="/admin/marketing/analytics"
-          element={withTransition(
-            <AdminRoute>
-              <AdminLayout><MarketingAnalyticsPage /></AdminLayout>
-            </AdminRoute>,
-          )}
-        />
-        <Route
-          path="/admin/settings"
-          element={withTransition(
-            <AdminRoute>
-              <AdminLayout><SettingsPage /></AdminLayout>
-            </AdminRoute>,
-          )}
-        />
-        <Route
-          path="/admin/staff"
-          element={withTransition(
-            <AdminRoute>
-              <AdminLayout><StaffPage /></AdminLayout>
-            </AdminRoute>,
-          )}
-        />
-        <Route
-          path="/admin/retention"
-          element={withTransition(
-            <AdminRoute>
-              <AdminLayout><RetentionDashboardPage /></AdminLayout>
-            </AdminRoute>,
-          )}
-        />
-        <Route
-          path="/admin/retention/tasks"
-          element={withTransition(
-            <AdminRoute>
-              <AdminLayout><RetentionTasksPage /></AdminLayout>
-            </AdminRoute>,
-          )}
-        />
+      </Route>
 
-        {/* Member Routes - Protected */}
+      {/* Member Routes - Protected (persistent layout) */}
+      <Route
+        path="/member"
+        element={
+          <MemberRoute>
+            <MemberLayout>
+              <Outlet />
+            </MemberLayout>
+          </MemberRoute>
+        }
+      >
+        <Route index element={withTransition(<MemberDashboardPage />)} />
         <Route
-          path="/member"
-          element={withTransition(
-            <MemberRoute>
-              <MemberLayout><MemberDashboardPage /></MemberLayout>
-            </MemberRoute>,
-          )}
+          path="renew/:subscriptionId"
+          element={withTransition(<MemberRenewalPage />)}
         />
         <Route
-          path="/member/renew/:subscriptionId"
-          element={withTransition(
-            <MemberRoute>
-              <MemberLayout><MemberRenewalPage /></MemberLayout>
-            </MemberRoute>,
-          )}
+          path="progress"
+          element={withTransition(<MemberProgressPage />)}
         />
+        <Route path="shop" element={withTransition(<MemberShopPage />)} />
         <Route
-          path="/member/progress"
-          element={withTransition(
-            <MemberRoute>
-              <MemberLayout><MemberProgressPage /></MemberLayout>
-            </MemberRoute>,
-          )}
+          path="purchase-history"
+          element={withTransition(<MemberPurchaseHistoryPage />)}
         />
+      </Route>
 
-        {/* Trainer Routes - Protected */}
+      {/* Trainer Routes - Protected (persistent layout) */}
+      <Route
+        path="/trainer"
+        element={
+          <TrainerRoute>
+            <TrainerLayout>
+              <Outlet />
+            </TrainerLayout>
+          </TrainerRoute>
+        }
+      >
+        <Route index element={withTransition(<TrainerDashboardPage />)} />
         <Route
-          path="/trainer"
-          element={withTransition(
-            <TrainerRoute>
-              <TrainerLayout><TrainerDashboardPage /></TrainerLayout>
-            </TrainerRoute>,
-          )}
+          path="sessions"
+          element={withTransition(<TrainerSessionsPage />)}
         />
-        <Route
-          path="/trainer/sessions"
-          element={withTransition(
-            <TrainerRoute>
-              <TrainerLayout><TrainerSessionsPage /></TrainerLayout>
-            </TrainerRoute>,
-          )}
-        />
+      </Route>
 
-        {/* Staff Routes - Protected */}
+      {/* Staff Routes - Protected (persistent layout) */}
+      <Route
+        path="/staff"
+        element={
+          <StaffRoute>
+            <StaffLayout>
+              <Outlet />
+            </StaffLayout>
+          </StaffRoute>
+        }
+      >
+        <Route index element={withTransition(<StaffDashboardPage />)} />
         <Route
-          path="/staff"
-          element={withTransition(
-            <StaffRoute>
-              <StaffLayout><StaffDashboardPage /></StaffLayout>
-            </StaffRoute>,
-          )}
+          path="inventory-sales"
+          element={withTransition(<SalesDashboardPage />)}
         />
+        <Route path="pos-sales" element={withTransition(<PosSalesPage />)} />
         <Route
-          path="/staff/inventory-sales"
-          element={withTransition(
-            <StaffRoute>
-              <StaffLayout><SalesDashboardPage /></StaffLayout>
-            </StaffRoute>,
-          )}
+          path="inventory-management"
+          element={withTransition(<InventoryManagementPage />)}
         />
-        <Route
-          path="/staff/pos-sales"
-          element={withTransition(
-            <StaffRoute>
-              <StaffLayout><PosSalesPage /></StaffLayout>
-            </StaffRoute>,
-          )}
-        />
-        <Route
-          path="/staff/inventory-management"
-          element={withTransition(
-            <StaffRoute>
-              <StaffLayout><InventoryManagementPage /></StaffLayout>
-            </StaffRoute>,
-          )}
-        />
+      </Route>
 
-        {/* Fallback */}
-        <Route path="*" element={withTransition(<PublicLayout><NotFound /></PublicLayout>)} />
-      </Routes>
-    </AnimatePresence>
+      {/* Fallback */}
+      <Route
+        path="*"
+        element={withTransition(
+          <PublicLayout>
+            <NotFound />
+          </PublicLayout>,
+        )}
+      />
+    </Routes>
   );
 };
 

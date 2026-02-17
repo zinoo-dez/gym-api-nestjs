@@ -112,6 +112,19 @@ interface ApiResponse<T> {
   path: string;
 }
 
+export interface MemberProduct {
+  id: string;
+  name: string;
+  sku: string;
+  category: ProductCategory;
+  description?: string;
+  salePrice: number;
+  stockQuantity: number;
+  isAvailable: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export const inventorySalesService = {
   async getProducts(params?: {
     page?: number;
@@ -121,8 +134,50 @@ export const inventorySalesService = {
     isActive?: boolean;
     lowStockOnly?: boolean;
   }) {
-    const response = await apiClient.get<ApiResponse<PaginatedResponse<Product>>>(
-      "/inventory-sales/products",
+    const response = await apiClient.get<
+      ApiResponse<PaginatedResponse<Product>>
+    >("/inventory-sales/products", { params });
+    return response.data.data ?? response.data;
+  },
+
+  // Member-facing methods
+  async getMemberProducts(params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    category?: ProductCategory;
+  }) {
+    const response = await apiClient.get<
+      ApiResponse<PaginatedResponse<MemberProduct>>
+    >("/inventory-sales/member/products", { params });
+    return response.data.data ?? response.data;
+  },
+
+  async memberPurchase(data: {
+    paymentMethod: PosPaymentMethod;
+    notes?: string;
+    items: Array<{
+      productId: string;
+      quantity: number;
+    }>;
+  }) {
+    const response = await apiClient.post<ApiResponse<Sale>>(
+      "/inventory-sales/member/purchase",
+      data,
+    );
+    return response.data.data ?? response.data;
+  },
+
+  async getMemberPurchaseHistory(params?: {
+    page?: number;
+    limit?: number;
+    startDate?: string;
+    endDate?: string;
+    paymentMethod?: PosPaymentMethod;
+    status?: ProductSaleStatus;
+  }) {
+    const response = await apiClient.get<ApiResponse<PaginatedResponse<Sale>>>(
+      "/inventory-sales/member/purchase-history",
       { params },
     );
     return response.data.data ?? response.data;

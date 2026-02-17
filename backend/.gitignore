@@ -13,6 +13,9 @@
 logs/
 *.log
 
+# Build output
+/dist
+
 *.md
 
 uploads
