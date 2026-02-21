@@ -1,7 +1,6 @@
 import {
   IsString,
   IsOptional,
-  IsUUID,
   IsEnum,
   IsArray,
   ValidateNested,
@@ -21,7 +20,7 @@ export class CreateWorkoutPlanDto {
   @IsString({ message: 'Description must be a string' })
   description?: string;
 
-  @IsUUID('4', { message: 'Member ID must be a valid UUID' })
+  @IsString({ message: 'Member ID must be a valid string' })
   memberId!: string;
 
   @IsEnum(WorkoutGoal, {

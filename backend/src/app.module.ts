@@ -8,6 +8,7 @@ import { APP_GUARD, APP_FILTER } from '@nestjs/core';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { CacheModule } from '@nestjs/cache-manager';
 import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
@@ -37,11 +38,13 @@ import { RetentionModule } from './retention/retention.module';
 import { TrainerSessionsModule } from './trainer-sessions/trainer-sessions.module';
 import { MarketingModule } from './marketing/marketing.module';
 import { InventorySalesModule } from './inventory-sales/inventory-sales.module';
+import { BodyCompositionModule } from './body-composition/body-composition.module';
 
 @Module({
   imports: [
     // Configure ConfigModule globally
     ConfigModule.forRoot({ isGlobal: true }),
+    ScheduleModule.forRoot(),
     // Configure rate limiting: 100 requests per 15 minutes (900 seconds)
     ThrottlerModule.forRoot([
       {
@@ -78,6 +81,7 @@ import { InventorySalesModule } from './inventory-sales/inventory-sales.module';
     TrainerSessionsModule,
     MarketingModule,
     InventorySalesModule,
+    BodyCompositionModule,
   ],
   controllers: [AppController],
   providers: [

@@ -59,6 +59,40 @@ export interface RetentionTasksResponse {
   totalPages: number;
 }
 
+export interface RetentionTaskDetail {
+  id: string;
+  title: string;
+  note?: string;
+  status: RetentionTaskStatus;
+  priority: number;
+  dueDate?: string;
+  createdAt: string;
+  assignedToEmail?: string;
+}
+
+export interface RetentionSubscriptionSummary {
+  id: string;
+  status: string;
+  startDate: string;
+  endDate: string;
+  planName?: string;
+}
+
+export interface RetentionMemberDetail {
+  risk: RetentionMember;
+  tasks: RetentionTaskDetail[];
+  recentSubscriptions: RetentionSubscriptionSummary[];
+}
+
+export interface BulkUpdateRetentionTasksRequest {
+  taskIds: string[];
+  status?: RetentionTaskStatus;
+  priority?: number;
+  assignedToId?: string;
+  note?: string;
+  dueDate?: string;
+}
+
 interface ApiResponse<T> {
   data: T;
   statusCode: number;
@@ -89,7 +123,7 @@ export const retentionService = {
   },
 
   async getMemberDetail(memberId: string) {
-    const response = await apiClient.get<ApiResponse<any>>(
+    const response = await apiClient.get<ApiResponse<RetentionMemberDetail>>(
       `/retention/members/${memberId}`,
     );
     return response.data.data ?? response.data;
@@ -135,5 +169,12 @@ export const retentionService = {
     );
     return response.data.data ?? response.data;
   },
-};
 
+  async bulkUpdateTasks(data: BulkUpdateRetentionTasksRequest) {
+    const response = await apiClient.patch<ApiResponse<{ updatedCount: number }>>(
+      `/retention/tasks/bulk`,
+      data,
+    );
+    return response.data.data ?? response.data;
+  },
+};

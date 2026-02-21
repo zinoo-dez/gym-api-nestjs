@@ -1,4 +1,9 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Query,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { AppService } from './app.service';
 
@@ -57,8 +62,37 @@ export class AppController {
     timestamp: string;
     database: string;
     responseTime: number;
+    details?: string;
   }> {
-    return this.appService.checkHealth();
+    const health = await this.appService.checkHealth();
+    if (health.status !== 'ok') {
+      throw new ServiceUnavailableException(health);
+    }
+    return health;
+  }
+
+  @Get('health/db')
+  @ApiOperation({ summary: 'Database connectivity health check endpoint' })
+  @ApiResponse({
+    status: 200,
+    description: 'Database is reachable',
+  })
+  @ApiResponse({
+    status: 503,
+    description: 'Database is unavailable',
+  })
+  async checkDatabaseHealth(): Promise<{
+    status: string;
+    timestamp: string;
+    database: string;
+    responseTime: number;
+    details?: string;
+  }> {
+    const health = await this.appService.checkDatabaseHealth();
+    if (health.status !== 'ok') {
+      throw new ServiceUnavailableException(health);
+    }
+    return health;
   }
 
   @Get('dashboard/stats')
@@ -110,5 +144,15 @@ export class AppController {
   })
   async getRecentActivity() {
     return this.appService.getRecentActivity();
+  }
+
+  @Get('dashboard/analytics')
+  @ApiOperation({ summary: 'Get reporting and analytics dashboard data' })
+  @ApiResponse({
+    status: 200,
+    description: 'Reporting and analytics data retrieved successfully',
+  })
+  async getReportingAnalytics() {
+    return this.appService.getReportingAnalytics();
   }
 }

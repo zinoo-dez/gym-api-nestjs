@@ -4,11 +4,13 @@
     "private": true,
     "workspaces": [
         "backend",
-        "frontend"
+        "frontend",
+        "mobile"
     ],
     "scripts": {
         "dev:backend": "pnpm --filter backend run dev",
         "dev:frontend": "pnpm --filter frontend run dev",
+        "dev:mobile": "pnpm --filter mobile run start",
         "dev": "npx concurrently \"pnpm run dev:backend\" \"pnpm run dev:frontend\"",
         "build:backend": "pnpm --filter backend run build",
         "build:frontend": "pnpm --filter frontend run build",
@@ -21,6 +23,13 @@
         "concurrently": "^8.2.2",
         "dotenv": "^17.2.4",
         "pnpm": "^10.29.3",
-        "prisma": "^7.4.0"
+        "prisma": "^6.19.2"
+    },
+    "dependencies": {
+        "@eslint/eslintrc": "0.1.0",
+        "@nestjs/cli": "7.6.0",
+        "@nestjs/schematics": "7.3.1",
+        "eslint": "10.0.1",
+        "typescript-eslint": "8.36.0"
     }
 }

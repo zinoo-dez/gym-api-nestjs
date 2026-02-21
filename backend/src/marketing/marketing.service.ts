@@ -13,6 +13,7 @@ import {
   MarketingAutomationType,
   MarketingCampaignStatus,
   NotificationCategory,
+  NotificationLogStatus,
   NotificationType,
   Prisma,
   UserRole,
@@ -385,7 +386,7 @@ export class MarketingService {
           category: campaign.category,
           subject: renderedSubject,
           content: renderedContent,
-          status: 'sent',
+          status: NotificationLogStatus.SENT,
           sentAt: new Date(),
           metadata: JSON.stringify({
             campaignId: campaign.id,
@@ -406,7 +407,7 @@ export class MarketingService {
           userId: user.id,
           title: renderedSubject ?? campaign.name,
           message: renderedContent,
-          type: 'info',
+          type: NotificationType.IN_APP,
           actionUrl: '/member/dashboard',
         });
       }

@@ -25,6 +25,22 @@ export interface AttendanceRecord {
   };
 }
 
+export interface AttendanceReportSummary {
+  memberId: string;
+  period: {
+    startDate: string;
+    endDate: string;
+  };
+  totalCheckIns: number;
+  totalGymVisits: number;
+  totalClassAttendances: number;
+  avgVisitDurationMinutes: number;
+  currentStreakDays: number;
+  longestStreakDays: number;
+  attendanceRatePercent: number;
+  recentRecords: AttendanceRecord[];
+}
+
 export interface AttendanceResponse {
   data: AttendanceRecord[];
   page: number;
@@ -74,6 +90,14 @@ export const attendanceService = {
   async checkOut(attendanceId: string) {
     const response = await apiClient.post<ApiResponse<AttendanceRecord>>(
       `/attendance/${attendanceId}/check-out`,
+    );
+    return response.data.data ?? response.data;
+  },
+
+  async getMemberReport(memberId: string, params?: { startDate?: string; endDate?: string }) {
+    const response = await apiClient.get<ApiResponse<AttendanceReportSummary>>(
+      `/attendance/report/${memberId}`,
+      { params },
     );
     return response.data.data ?? response.data;
   },

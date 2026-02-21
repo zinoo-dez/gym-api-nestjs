@@ -16,3 +16,5 @@ export * from "./retention.service";
 export * from "./trainer-sessions.service";
 export * from "./marketing.service";
 export * from "./inventory-sales.service";
+export * from "./pricing.service";
+export * from "./body-composition.service";

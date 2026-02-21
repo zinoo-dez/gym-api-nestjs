@@ -393,6 +393,69 @@ export class AttendanceService {
     return !!activeMembership;
   }
 
+  async qrCheckIn(qrCodeToken: string): Promise<AttendanceResponseDto> {
+    // Find member by QR code token
+    const member = await this.prisma.member.findUnique({
+      where: { qrCodeToken },
+      select: {
+        id: true,
+        user: {
+          select: {
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    if (!member) {
+      throw new NotFoundException('Invalid QR code');
+    }
+
+    // Check if member has active membership
+    const hasActiveMembership = await this.hasActiveMembership(member.id);
+
+    if (!hasActiveMembership) {
+      throw new ForbiddenException('Member does not have an active membership');
+    }
+
+    // Create attendance record
+    const attendance = await this.prisma.attendance.create({
+      data: {
+        memberId: member.id,
+        type: AttendanceType.GYM_VISIT,
+        checkInTime: new Date(),
+      },
+      include: {
+        member: {
+          include: {
+            user: true,
+          },
+        },
+      },
+    });
+
+    // Send notification
+    const settings = await this.prisma.gymSetting.findFirst({
+      select: { newAttendanceNotification: true },
+    });
+    if (settings?.newAttendanceNotification !== false) {
+      const fullName = member.user
+        ? `${member.user.firstName} ${member.user.lastName}`.trim()
+        : 'Member';
+      await this.notificationsService.createForRole({
+        role: UserRole.ADMIN,
+        title: 'QR Check-in',
+        message: `${fullName} checked in via QR code.`,
+        type: 'info',
+        actionUrl: '/admin/attendance',
+      });
+    }
+
+    return this.toResponseDto(attendance);
+  }
+
   private toResponseDto(
     attendance: any,
     classSchedule?: {

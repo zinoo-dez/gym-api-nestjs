@@ -144,6 +144,7 @@ async function bootstrap() {
     .addTag('classes', 'Class scheduling and booking endpoints')
     .addTag('attendance', 'Attendance tracking endpoints')
     .addTag('workout-plans', 'Workout plan management endpoints')
+    .addTag('body-composition', 'Body composition and progress tracking endpoints')
     .addBearerAuth(
       {
         type: 'http',
@@ -161,6 +162,33 @@ async function bootstrap() {
   // Enable shutdown hooks for Prisma
   const prismaService = app.get(PrismaService);
   prismaService.enableShutdownHooks(app);
+
+  // Fail fast if database is unavailable before accepting HTTP traffic.
+  const maxAttempts = 5;
+  let databaseReady = false;
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      await prismaService.$queryRaw`SELECT 1`;
+      databaseReady = true;
+      break;
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error);
+      console.error(
+        `[Startup] Database health check failed (${attempt}/${maxAttempts}): ${reason}`,
+      );
+      if (attempt < maxAttempts) {
+        await new Promise((resolve) => setTimeout(resolve, attempt * 1000));
+      }
+    }
+  }
+
+  if (!databaseReady) {
+    console.error(
+      '[Startup] Database is unavailable. Exiting without starting HTTP server.',
+    );
+    await app.close();
+    process.exit(1);
+  }
 
   void app.listen(process.env.PORT ?? 3000, () => {
     console.log(

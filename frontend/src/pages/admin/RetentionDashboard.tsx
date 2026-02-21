@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/table";
 import {
   retentionService,
+  type RetentionMemberDetail,
   type RetentionMember,
   type RetentionOverview,
   type RetentionRiskLevel,
@@ -29,12 +30,16 @@ import {
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Search, Filter, ShieldAlert, ShieldQuestion, ShieldCheck, UserCheck } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const RetentionDashboard = () => {
   const [overview, setOverview] = useState<RetentionOverview | null>(null);
   const [members, setMembers] = useState<RetentionMember[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRecalculating, setIsRecalculating] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<RetentionMemberDetail | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [detailLoading, setDetailLoading] = useState(false);
 
   const [search, setSearch] = useState("");
   const [riskLevel, setRiskLevel] = useState<RetentionRiskLevel | "all">("all");
@@ -79,6 +84,20 @@ const RetentionDashboard = () => {
       toast.error("Failed to recalculate retention");
     } finally {
       setIsRecalculating(false);
+    }
+  };
+
+  const openMemberDetail = async (memberId: string) => {
+    setDetailLoading(true);
+    setDetailOpen(true);
+    try {
+      const detail = await retentionService.getMemberDetail(memberId);
+      setSelectedMember(detail);
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Failed to load member detail");
+      setSelectedMember(null);
+    } finally {
+      setDetailLoading(false);
     }
   };
 
@@ -232,12 +251,13 @@ const RetentionDashboard = () => {
                 <th className="px-2 py-4 m3-label !text-[10px] text-center">Inactivity</th>
                 <th className="px-2 py-4 m3-label !text-[10px] text-center">Arrears</th>
                 <th className="px-5 py-4 m3-label !text-[10px] text-right hidden lg:table-cell">Heuristic Reasons</th>
+                <th className="px-5 py-4 m3-label !text-[10px] text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {isLoading ? (
                 <tr>
-                  <td colSpan={6} className="py-20 text-center">
+                  <td colSpan={7} className="py-20 text-center">
                     <div className="flex flex-col items-center">
                       <RefreshCcw className="h-8 w-8 text-blue-200 animate-spin mb-4" />
                       <p className="text-muted-foreground text-xs font-medium italic">Analyzing member behavior...</p>
@@ -246,7 +266,7 @@ const RetentionDashboard = () => {
                 </tr>
               ) : members.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-20 text-center text-muted-foreground">
+                  <td colSpan={7} className="py-20 text-center text-muted-foreground">
                     <p className="font-medium italic">No member risk profiles match these filters.</p>
                   </td>
                 </tr>
@@ -297,6 +317,16 @@ const RetentionDashboard = () => {
                         )}
                       </div>
                     </td>
+                    <td className="px-5 py-4 text-right">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="rounded-lg"
+                        onClick={() => openMemberDetail(member.memberId)}
+                      >
+                        Details
+                      </Button>
+                    </td>
                   </tr>
                 ))
               )}
@@ -304,6 +334,90 @@ const RetentionDashboard = () => {
           </table>
         </div>
       </section>
+
+      <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
+        <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Retention Member Detail</DialogTitle>
+          </DialogHeader>
+
+          {detailLoading ? (
+            <p className="text-sm text-muted-foreground">Loading member detail...</p>
+          ) : !selectedMember ? (
+            <p className="text-sm text-muted-foreground">No member detail available.</p>
+          ) : (
+            <div className="space-y-4">
+              <div className="rounded-lg border p-3">
+                <p className="font-semibold">{selectedMember.risk.fullName}</p>
+                <p className="text-xs text-muted-foreground">{selectedMember.risk.email}</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {riskBadge(selectedMember.risk.riskLevel)}
+                  <Badge variant="outline">Score: {selectedMember.risk.score}</Badge>
+                  <Badge variant="outline">
+                    Pending Payments: {selectedMember.risk.unpaidPendingCount}
+                  </Badge>
+                </div>
+                <div className="mt-2 flex flex-wrap gap-1">
+                  {selectedMember.risk.reasons.map((reason, idx) => (
+                    <Badge key={`${reason}-${idx}`} variant="outline">
+                      {reason}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+
+              <div className="rounded-lg border p-3">
+                <p className="mb-2 font-semibold">Recent Retention Tasks</p>
+                {selectedMember.tasks.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No tasks found.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {selectedMember.tasks.map((task) => (
+                      <div key={task.id} className="rounded border p-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-sm font-medium">{task.title}</p>
+                          <Badge variant="outline">
+                            {task.status} | P{task.priority}
+                          </Badge>
+                        </div>
+                        {task.note && (
+                          <p className="mt-1 text-xs text-muted-foreground">{task.note}</p>
+                        )}
+                        <p className="mt-1 text-[11px] text-muted-foreground">
+                          Due: {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : "-"} | Assigned:{" "}
+                          {task.assignedToEmail || "-"}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="rounded-lg border p-3">
+                <p className="mb-2 font-semibold">Recent Subscriptions</p>
+                {selectedMember.recentSubscriptions.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No recent subscriptions.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {selectedMember.recentSubscriptions.map((subscription) => (
+                      <div key={subscription.id} className="rounded border p-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-sm font-medium">{subscription.planName || "Unknown Plan"}</p>
+                          <Badge variant="outline">{subscription.status}</Badge>
+                        </div>
+                        <p className="mt-1 text-[11px] text-muted-foreground">
+                          {new Date(subscription.startDate).toLocaleDateString()} -{" "}
+                          {new Date(subscription.endDate).toLocaleDateString()}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -68,6 +68,70 @@ export interface UpcomingClasses {
   }>;
 }
 
+export interface ReportingAnalytics {
+  generatedAt: string;
+  revenueReports: {
+    dailyRevenue: Array<{ label: string; value: number }>;
+    weeklyRevenue: Array<{ label: string; value: number }>;
+    monthlyRevenue: Array<{ label: string; value: number }>;
+    revenueBySource: {
+      memberships: number;
+      products: number;
+      sessions: number;
+    };
+    paymentCollection: {
+      invoicedAmount: number;
+      collectedAmount: number;
+      collectionRate: number;
+    };
+    outstandingPayments: {
+      invoiceOutstanding: number;
+      pendingPayments: number;
+      totalOutstanding: number;
+    };
+  };
+  memberAnalytics: {
+    growthTrends: Array<{ label: string; value: number }>;
+    churnRate: number;
+    activeVsInactive: {
+      activeMembers: number;
+      inactiveMembers: number;
+      previousPeriodActiveMembers: number;
+    };
+    demographics: {
+      genderDistribution: Record<string, number>;
+      ageDistribution: {
+        under18: number;
+        age18to25: number;
+        age26to35: number;
+        age36to45: number;
+        age46plus: number;
+        unknown: number;
+      };
+    };
+    membershipPlanDistribution: Array<{ planName: string; count: number }>;
+  };
+  operationalMetrics: {
+    peakHoursAnalysis: Array<{ label: string; value: number }>;
+    classAttendanceTrends: Array<{ className: string; attendanceCount: number }>;
+    trainerUtilization: {
+      totalTrainers: number;
+      engagedTrainers: number;
+      utilizationRate: number;
+      topTrainersBySessions: Array<{
+        trainerId: string;
+        trainerName: string;
+        sessionsCount: number;
+      }>;
+    };
+    equipmentUsagePatterns: {
+      usageByClassCategory: Array<{ category: string; usage: number }>;
+      activeEquipmentByCategory: Record<string, number>;
+    };
+    averageMemberLifetimeValue: number;
+  };
+}
+
 interface ApiResponse<T> {
   data: T;
   statusCode: number;
@@ -106,6 +170,13 @@ export const dashboardService = {
   async getRecentActivity() {
     const response = await apiClient.get<ApiResponse<RecentActivity[]>>(
       "/dashboard/recent-activity",
+    );
+    return response.data.data ?? response.data;
+  },
+
+  async getReportingAnalytics() {
+    const response = await apiClient.get<ApiResponse<ReportingAnalytics>>(
+      "/dashboard/analytics",
     );
     return response.data.data ?? response.data;
   },

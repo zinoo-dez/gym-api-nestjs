@@ -277,4 +277,38 @@ export class MembersController {
   ): Promise<WorkoutPlanResponseDto[]> {
     return this.workoutPlansService.findByMember(id, user);
   }
+
+  @Get('me/qr-code')
+  @Roles(UserRole.MEMBER)
+  @ApiOperation({
+    summary: 'Get member QR code',
+    description: 'Get QR code for gym check-in. Generates one if not exists.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'QR code retrieved successfully',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Member not found' })
+  async getMyQrCode(@CurrentUser() user: any): Promise<any> {
+    const member = await this.membersService.findByUserId(user.userId);
+    return this.membersService.getQrCode(member.id);
+  }
+
+  @Post('me/qr-code/regenerate')
+  @Roles(UserRole.MEMBER)
+  @ApiOperation({
+    summary: 'Regenerate member QR code',
+    description: 'Generate a new QR code token for security purposes.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'QR code regenerated successfully',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Member not found' })
+  async regenerateMyQrCode(@CurrentUser() user: any): Promise<any> {
+    const member = await this.membersService.findByUserId(user.userId);
+    return this.membersService.regenerateQrCode(member.id);
+  }
 }

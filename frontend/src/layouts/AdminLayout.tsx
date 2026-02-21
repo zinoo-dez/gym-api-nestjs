@@ -16,6 +16,7 @@ import {
   Menu,
   PackageSearch,
   Percent,
+  QrCode,
   RefreshCcw,
   Search,
   Settings,
@@ -54,6 +55,7 @@ const adminNavGroups: NavGroup[] = [
     label: "Overview",
     items: [
       { id: "Dashboard", path: "/admin", icon: LayoutDashboard },
+      { id: "QR Scanner", path: "/admin/qr-scanner", icon: QrCode },
       { id: "Notifications", path: "/admin/notifications", icon: Bell },
     ],
   },
@@ -64,6 +66,7 @@ const adminNavGroups: NavGroup[] = [
       { id: "Members", path: "/admin/members", icon: Users },
       { id: "Trainers", path: "/admin/trainers", icon: Dumbbell },
       { id: "Staff", path: "/admin/staff", icon: UserCog },
+      { id: "Users", path: "/admin/users", icon: Users },
     ],
   },
   {
@@ -93,6 +96,7 @@ const adminNavGroups: NavGroup[] = [
     items: [
       { id: "Payments", path: "/admin/payments", icon: DollarSign },
       { id: "Plans", path: "/admin/plans", icon: CreditCard },
+      { id: "Pricing", path: "/admin/pricing", icon: CreditCard },
       { id: "Discounts", path: "/admin/discounts", icon: Percent },
       { id: "Recovery Queue", path: "/admin/recovery", icon: RefreshCcw },
       {
@@ -100,6 +104,9 @@ const adminNavGroups: NavGroup[] = [
         path: "/admin/inventory-sales",
         icon: ShoppingBag,
       },
+      { id: "Workout Plans", path: "/admin/workout-plans", icon: Dumbbell },
+      { id: "Attendance", path: "/admin/attendance", icon: Activity },
+      { id: "Classes", path: "/admin/classes", icon: CalendarClock },
       { id: "POS Interface", path: "/admin/pos-sales", icon: ShoppingCart },
       {
         id: "Inventory Mgmt",
@@ -111,7 +118,10 @@ const adminNavGroups: NavGroup[] = [
   {
     id: "system",
     label: "System",
-    items: [{ id: "Settings", path: "/admin/settings", icon: Settings }],
+    items: [
+      { id: "Features", path: "/admin/features", icon: ListChecks },
+      { id: "Settings", path: "/admin/settings", icon: Settings },
+    ],
   },
 ];
 
@@ -129,7 +139,10 @@ const memberNavGroups: NavGroup[] = [
     label: "Member",
     items: [
       { id: "Dashboard", path: "/member", icon: LayoutDashboard },
+      { id: "Classes", path: "/member/classes", icon: CalendarClock },
       { id: "Progress", path: "/member/progress", icon: Activity },
+      { id: "Body Composition", path: "/member/body-composition", icon: Activity },
+      { id: "My QR Code", path: "/member/qr-code", icon: QrCode },
       { id: "Shop", path: "/member/shop", icon: ShoppingCart },
       {
         id: "Purchase History",
@@ -155,12 +168,16 @@ const staffNavGroups: NavGroup[] = [
   {
     id: "staff-main",
     label: "Staff",
-    items: [{ id: "Dashboard", path: "/staff", icon: LayoutDashboard }],
+    items: [
+      { id: "Dashboard", path: "/staff", icon: LayoutDashboard },
+      { id: "QR Scanner", path: "/staff/qr-scanner", icon: QrCode },
+    ],
   },
   {
     id: "staff-operations",
     label: "Operations",
     items: [
+      { id: "Attendance", path: "/staff/attendance", icon: Activity },
       { id: "Sales", path: "/staff/inventory-sales", icon: ShoppingBag },
       { id: "POS", path: "/staff/pos-sales", icon: ShoppingCart },
       {

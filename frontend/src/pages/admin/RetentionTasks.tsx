@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -41,6 +42,8 @@ const RetentionTasks = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<RetentionTaskStatus | "all">("all");
   const [priorityFilter, setPriorityFilter] = useState<"all" | "1" | "2" | "3">("all");
+  const [bulkStatus, setBulkStatus] = useState<RetentionTaskStatus>("IN_PROGRESS");
+  const [selectedTaskIds, setSelectedTaskIds] = useState<Record<string, boolean>>({});
   const [draftStatus, setDraftStatus] = useState<Record<string, RetentionTaskStatus>>({});
   const [draftNotes, setDraftNotes] = useState<Record<string, string>>({});
 
@@ -60,6 +63,7 @@ const RetentionTasks = () => {
       setDraftNotes(
         Object.fromEntries(items.map((task) => [task.id, task.note ?? ""])),
       );
+      setSelectedTaskIds({});
     } catch (error) {
       console.error("Failed to load retention tasks", error);
       toast.error("Failed to load retention tasks");
@@ -84,6 +88,31 @@ const RetentionTasks = () => {
     } catch (error) {
       console.error("Failed to update retention task", error);
       toast.error("Failed to update task");
+    }
+  };
+
+  const selectedIds = Object.entries(selectedTaskIds)
+    .filter(([, checked]) => checked)
+    .map(([id]) => id);
+
+  const allSelected =
+    tasks.length > 0 && selectedIds.length > 0 && selectedIds.length === tasks.length;
+
+  const bulkUpdate = async () => {
+    if (selectedIds.length === 0) {
+      toast.error("Select at least one task for bulk update");
+      return;
+    }
+    try {
+      await retentionService.bulkUpdateTasks({
+        taskIds: selectedIds,
+        status: bulkStatus,
+      });
+      toast.success(`Updated ${selectedIds.length} task(s)`);
+      await loadTasks();
+    } catch (error) {
+      console.error("Failed to bulk update retention tasks", error);
+      toast.error("Failed to bulk update tasks");
     }
   };
 
@@ -201,10 +230,48 @@ const RetentionTasks = () => {
           </div>
         </div>
 
+        <div className="mb-4 flex flex-col gap-2 rounded-xl border border-border bg-muted/20 p-3 md:flex-row md:items-center md:justify-between">
+          <div className="text-xs text-muted-foreground">
+            Selected tasks: <span className="font-semibold text-foreground">{selectedIds.length}</span>
+          </div>
+          <div className="flex gap-2">
+            <Select value={bulkStatus} onValueChange={(value) => setBulkStatus(value as RetentionTaskStatus)}>
+              <SelectTrigger className="h-9 w-44 rounded-lg border-border text-xs font-semibold">
+                <SelectValue placeholder="Bulk status" />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl border-border">
+                <SelectItem value="OPEN">OPEN</SelectItem>
+                <SelectItem value="IN_PROGRESS">IN_PROGRESS</SelectItem>
+                <SelectItem value="DONE">DONE</SelectItem>
+                <SelectItem value="DISMISSED">DISMISSED</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button
+              variant="outline"
+              className="h-9 rounded-lg"
+              onClick={bulkUpdate}
+              disabled={selectedIds.length === 0}
+            >
+              Apply Bulk Update
+            </Button>
+          </div>
+        </div>
+
         <div className="overflow-x-auto -mx-5 px-5">
           <table className="min-w-full text-sm">
             <thead className="bg-muted/30 text-left border-y border-border">
               <tr>
+                <th className="px-2 py-4">
+                  <Checkbox
+                    checked={allSelected}
+                    onCheckedChange={(checked) => {
+                      const next = checked
+                        ? Object.fromEntries(tasks.map((task) => [task.id, true]))
+                        : {};
+                      setSelectedTaskIds(next);
+                    }}
+                  />
+                </th>
                 <th className="px-5 py-4 m3-label !text-[10px]">Assignee Identity</th>
                 <th className="px-2 py-4 m3-label !text-[10px]">Follow-up Objective</th>
                 <th className="px-2 py-4 m3-label !text-[10px]">Current Status</th>
@@ -217,7 +284,7 @@ const RetentionTasks = () => {
             <tbody className="divide-y divide-gray-100">
               {isLoading ? (
                 <tr>
-                  <td colSpan={7} className="py-20 text-center">
+                  <td colSpan={8} className="py-20 text-center">
                     <div className="flex flex-col items-center">
                       <RefreshCcw className="h-8 w-8 text-orange-200 animate-spin mb-4" />
                       <p className="text-muted-foreground text-xs font-medium italic">Assembling task queue...</p>
@@ -226,13 +293,24 @@ const RetentionTasks = () => {
                 </tr>
               ) : tasks.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-20 text-center text-muted-foreground">
+                  <td colSpan={8} className="py-20 text-center text-muted-foreground">
                     <p className="font-medium italic">No retention tasks currently pending your intervention.</p>
                   </td>
                 </tr>
               ) : (
                 tasks.map((task) => (
                   <tr key={task.id} className="group hover:bg-muted/50 transition-colors">
+                    <td className="px-2 py-4">
+                      <Checkbox
+                        checked={Boolean(selectedTaskIds[task.id])}
+                        onCheckedChange={(checked) =>
+                          setSelectedTaskIds((prev) => ({
+                            ...prev,
+                            [task.id]: Boolean(checked),
+                          }))
+                        }
+                      />
+                    </td>
                     <td className="px-5 py-4">
                       <div className="font-bold text-foreground">{task.memberName}</div>
                       <div className="text-[10px] font-mono text-muted-foreground mt-0.5">{task.memberEmail}</div>

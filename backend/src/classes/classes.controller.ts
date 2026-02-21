@@ -24,6 +24,14 @@ import {
   ClassResponseDto,
   ClassBookingResponseDto,
   ClassFiltersDto,
+  ClassWaitlistResponseDto,
+  ClassFavoriteResponseDto,
+  CreateClassPackageDto,
+  ClassPackageResponseDto,
+  PurchaseClassPackageDto,
+  MemberClassCreditsResponseDto,
+  RateInstructorDto,
+  InstructorProfileResponseDto,
 } from './dto';
 import { PaginatedResponseDto } from '../members/dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -82,7 +90,7 @@ export class ClassesController {
     return this.classesService.findAll(filters);
   }
 
-  @Get(':id')
+  @Get('schedules/:id')
   @Public()
   @ApiOperation({
     summary: 'Get class by ID (Public)',
@@ -104,7 +112,7 @@ export class ClassesController {
     return this.classesService.findOne(id);
   }
 
-  @Patch(':id')
+  @Patch('schedules/:id')
   @Roles(UserRole.ADMIN, UserRole.TRAINER)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
@@ -132,7 +140,7 @@ export class ClassesController {
     return this.classesService.update(id, updateClassDto, user);
   }
 
-  @Delete(':id')
+  @Delete('schedules/:id')
   @Roles(UserRole.ADMIN)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
@@ -160,7 +168,7 @@ export class ClassesController {
     return { message: 'Class deactivated successfully' };
   }
 
-  @Post(':id/book')
+  @Post('schedules/:id/book')
   @Roles(UserRole.ADMIN, UserRole.MEMBER)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
@@ -222,5 +230,166 @@ export class ClassesController {
   ): Promise<{ message: string }> {
     await this.classesService.cancelBooking(bookingId, user);
     return { message: 'Booking cancelled successfully' };
+  }
+
+  @Get('members/:memberId/bookings')
+  @Roles(UserRole.ADMIN, UserRole.MEMBER)
+  @ApiBearerAuth('JWT-auth')
+  async getMemberBookings(
+    @Param('memberId') memberId: string,
+    @CurrentUser() user: any,
+  ) {
+    return this.classesService.getMemberBookings(memberId, user);
+  }
+
+  @Get('bookings')
+  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @ApiBearerAuth('JWT-auth')
+  async getAllBookings(
+    @Query('classScheduleId') classScheduleId?: string,
+  ) {
+    return this.classesService.getAllBookings(classScheduleId);
+  }
+
+  @Post('schedules/:id/waitlist')
+  @Roles(UserRole.ADMIN, UserRole.MEMBER)
+  @ApiBearerAuth('JWT-auth')
+  async joinWaitlist(
+    @Param('id') classScheduleId: string,
+    @Body() dto: Omit<BookClassDto, 'classScheduleId'>,
+    @CurrentUser() user: any,
+  ): Promise<ClassWaitlistResponseDto> {
+    return this.classesService.joinWaitlist(classScheduleId, dto.memberId, user);
+  }
+
+  @Delete('waitlist/:id')
+  @Roles(UserRole.ADMIN, UserRole.MEMBER)
+  @ApiBearerAuth('JWT-auth')
+  async leaveWaitlist(
+    @Param('id') waitlistId: string,
+    @CurrentUser() user: any,
+  ): Promise<{ message: string }> {
+    await this.classesService.leaveWaitlist(waitlistId, user);
+    return { message: 'Waitlist entry cancelled successfully' };
+  }
+
+  @Get('members/:memberId/waitlist')
+  @Roles(UserRole.ADMIN, UserRole.MEMBER)
+  @ApiBearerAuth('JWT-auth')
+  async getMemberWaitlist(
+    @Param('memberId') memberId: string,
+    @CurrentUser() user: any,
+  ) {
+    return this.classesService.getMemberWaitlist(memberId, user);
+  }
+
+  @Get('waitlist')
+  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @ApiBearerAuth('JWT-auth')
+  async getAllWaitlist(@Query('classScheduleId') classScheduleId?: string) {
+    return this.classesService.getAllWaitlist(classScheduleId);
+  }
+
+  @Post('schedules/:id/waitlist/promote')
+  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @ApiBearerAuth('JWT-auth')
+  async promoteWaitlist(
+    @Param('id') classScheduleId: string,
+  ): Promise<{ message: string }> {
+    await this.classesService.promoteNextWaitlistByAdmin(classScheduleId);
+    return { message: 'Waitlist promotion attempted successfully' };
+  }
+
+  @Post('favorites/:classId')
+  @Roles(UserRole.ADMIN, UserRole.MEMBER)
+  @ApiBearerAuth('JWT-auth')
+  async favoriteClass(
+    @Param('classId') classId: string,
+    @Body() dto: Omit<BookClassDto, 'classScheduleId'>,
+    @CurrentUser() user: any,
+  ): Promise<ClassFavoriteResponseDto> {
+    return this.classesService.favoriteClass(classId, dto.memberId, user);
+  }
+
+  @Delete('favorites/:classId/member/:memberId')
+  @Roles(UserRole.ADMIN, UserRole.MEMBER)
+  @ApiBearerAuth('JWT-auth')
+  async unfavoriteClass(
+    @Param('classId') classId: string,
+    @Param('memberId') memberId: string,
+    @CurrentUser() user: any,
+  ): Promise<{ message: string }> {
+    await this.classesService.unfavoriteClass(classId, memberId, user);
+    return { message: 'Favorite removed successfully' };
+  }
+
+  @Get('members/:memberId/favorites')
+  @Roles(UserRole.ADMIN, UserRole.MEMBER)
+  @ApiBearerAuth('JWT-auth')
+  async getMemberFavorites(
+    @Param('memberId') memberId: string,
+    @CurrentUser() user: any,
+  ): Promise<ClassFavoriteResponseDto[]> {
+    return this.classesService.getMemberFavorites(memberId, user);
+  }
+
+  @Post('packages')
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  async createClassPackage(
+    @Body() dto: CreateClassPackageDto,
+  ): Promise<ClassPackageResponseDto> {
+    return this.classesService.createClassPackage(dto);
+  }
+
+  @Get('packages')
+  @Public()
+  async getClassPackages(): Promise<ClassPackageResponseDto[]> {
+    return this.classesService.getClassPackages();
+  }
+
+  @Post('packages/:id/purchase')
+  @Roles(UserRole.ADMIN, UserRole.MEMBER)
+  @ApiBearerAuth('JWT-auth')
+  async purchaseClassPackage(
+    @Param('id') classPackageId: string,
+    @Body() dto: PurchaseClassPackageDto,
+    @CurrentUser() user: any,
+  ) {
+    return this.classesService.purchaseClassPackage(classPackageId, dto, user);
+  }
+
+  @Get('members/:memberId/credits')
+  @Roles(UserRole.ADMIN, UserRole.MEMBER)
+  @ApiBearerAuth('JWT-auth')
+  async getMemberCredits(
+    @Param('memberId') memberId: string,
+    @CurrentUser() user: any,
+  ): Promise<MemberClassCreditsResponseDto> {
+    return this.classesService.getMemberCredits(memberId, user);
+  }
+
+  @Post('schedules/:id/rate')
+  @Roles(UserRole.ADMIN, UserRole.MEMBER)
+  @ApiBearerAuth('JWT-auth')
+  async rateInstructor(
+    @Param('id') classScheduleId: string,
+    @Body() dto: RateInstructorDto & { memberId: string },
+    @CurrentUser() user: any,
+  ) {
+    return this.classesService.rateInstructor(
+      classScheduleId,
+      dto.memberId,
+      dto,
+      user,
+    );
+  }
+
+  @Get('instructors/:trainerId/profile')
+  @Public()
+  async getInstructorProfile(
+    @Param('trainerId') trainerId: string,
+  ): Promise<InstructorProfileResponseDto> {
+    return this.classesService.getInstructorProfile(trainerId);
   }
 }

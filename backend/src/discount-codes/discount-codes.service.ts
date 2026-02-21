@@ -3,6 +3,7 @@ import {
   ConflictException,
   NotFoundException,
 } from '@nestjs/common';
+import { NotificationType } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   CreateDiscountCodeDto,
@@ -46,7 +47,7 @@ export class DiscountCodesService {
         data: {
           title: 'Discount code created',
           message: `Discount code ${created.code} created.`,
-          type: 'success',
+          type: NotificationType.IN_APP,
           role: 'ADMIN',
           actionUrl: '/admin/discount-codes',
         },
@@ -136,7 +137,7 @@ export class DiscountCodesService {
         data: {
           title: 'Discount code updated',
           message: `Discount code ${updated.code} updated.`,
-          type: 'info',
+          type: NotificationType.IN_APP,
           role: 'ADMIN',
           actionUrl: '/admin/discount-codes',
         },
@@ -163,7 +164,7 @@ export class DiscountCodesService {
         data: {
           title: 'Discount code deleted',
           message: `Discount code ${deleted.code} deleted.`,
-          type: 'warning',
+          type: NotificationType.IN_APP,
           role: 'ADMIN',
           actionUrl: '/admin/discount-codes',
         },

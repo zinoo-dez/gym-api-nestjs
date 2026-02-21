@@ -6,7 +6,7 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
-  imports: [PrismaModule, ScheduleModule.forRoot(), NotificationsModule],
+  imports: [PrismaModule, ScheduleModule, NotificationsModule],
   controllers: [MembershipsController],
   providers: [MembershipsService],
   exports: [MembershipsService],

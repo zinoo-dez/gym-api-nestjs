@@ -102,6 +102,17 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       return this.handlePrismaError(exception, timestamp, path);
     }
 
+    // Handle transient DB connectivity errors surfaced as regular errors
+    if (this.hasErrorCode(exception, 'ECONNREFUSED')) {
+      return {
+        statusCode: HttpStatus.SERVICE_UNAVAILABLE,
+        message: 'Database is unavailable. Please try again shortly.',
+        error: 'ServiceUnavailable',
+        timestamp,
+        path,
+      };
+    }
+
     // Handle JSON parsing errors
     if (
       exception instanceof SyntaxError &&
@@ -387,5 +398,11 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     }
 
     return sanitized;
+  }
+
+  private hasErrorCode(exception: unknown, code: string): boolean {
+    if (!exception || typeof exception !== 'object') return false;
+    if (!('code' in exception)) return false;
+    return (exception as { code?: unknown }).code === code;
   }
 }

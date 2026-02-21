@@ -22,6 +22,7 @@ import {
   AttendanceResponseDto,
   AttendanceReportDto,
   AttendanceFiltersDto,
+  QrCheckInDto,
 } from './dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -64,6 +65,32 @@ export class AttendanceController {
     @Body() checkInDto: CheckInDto,
   ): Promise<AttendanceResponseDto> {
     return this.attendanceService.checkIn(checkInDto);
+  }
+
+  @Post('qr-checkin')
+  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @ApiOperation({
+    summary: 'Check in member via QR code',
+    description:
+      'Record a member check-in using QR code token. Only ADMIN or STAFF can perform this action.',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'QR check-in recorded successfully',
+    type: AttendanceResponseDto,
+  })
+  @ApiResponse({ status: 400, description: 'Invalid QR code' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Admin or Staff role required',
+  })
+  @ApiResponse({ status: 403, description: 'Member has no active membership' })
+  @ApiResponse({ status: 404, description: 'Invalid QR code' })
+  async qrCheckIn(
+    @Body() qrCheckInDto: QrCheckInDto,
+  ): Promise<AttendanceResponseDto> {
+    return this.attendanceService.qrCheckIn(qrCheckInDto.qrCodeToken);
   }
 
   @Post(':id/check-out')

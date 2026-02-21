@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { UserRole } from '@prisma/client';
+import { NotificationType, UserRole } from '@prisma/client';
 import { NotificationResponseDto } from './dto/notification-response.dto';
 
 @Injectable()
@@ -13,7 +13,7 @@ export class NotificationsService {
     role: UserRole;
     title: string;
     message: string;
-    type?: string;
+    type?: NotificationType | string;
     actionUrl?: string;
   }) {
     try {
@@ -22,7 +22,7 @@ export class NotificationsService {
           role: params.role,
           title: params.title,
           message: params.message,
-          type: params.type ?? 'info',
+          type: this.normalizeType(params.type),
           actionUrl: params.actionUrl,
         },
       });
@@ -39,15 +39,16 @@ export class NotificationsService {
     roles: UserRole[];
     title: string;
     message: string;
-    type?: string;
+    type?: NotificationType | string;
     actionUrl?: string;
   }) {
     try {
+      const type = this.normalizeType(params.type);
       const data = params.roles.map((role) => ({
         role,
         title: params.title,
         message: params.message,
-        type: params.type ?? 'info',
+        type,
         actionUrl: params.actionUrl,
       }));
 
@@ -65,7 +66,7 @@ export class NotificationsService {
     userId: string;
     title: string;
     message: string;
-    type?: string;
+    type?: NotificationType | string;
     actionUrl?: string;
   }) {
     try {
@@ -74,7 +75,7 @@ export class NotificationsService {
           userId: params.userId,
           title: params.title,
           message: params.message,
-          type: params.type ?? 'info',
+          type: this.normalizeType(params.type),
           actionUrl: params.actionUrl,
         },
       });
@@ -143,5 +144,14 @@ export class NotificationsService {
       role: notification.role ?? undefined,
       createdAt: notification.createdAt,
     };
+  }
+
+  private normalizeType(type?: NotificationType | string): NotificationType {
+    if (!type) return NotificationType.IN_APP;
+    if (Object.values(NotificationType).includes(type as NotificationType)) {
+      return type as NotificationType;
+    }
+
+    return NotificationType.IN_APP;
   }
 }

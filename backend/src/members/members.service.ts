@@ -541,4 +541,90 @@ export class MembersService {
         : undefined,
     };
   }
+
+  async getQrCode(memberId: string): Promise<any> {
+    const member = await this.prisma.member.findUnique({
+      where: { id: memberId },
+      include: {
+        user: true,
+        subscriptions: {
+          where: {
+            status: SubscriptionStatus.ACTIVE,
+            endDate: {
+              gte: new Date(),
+            },
+          },
+          take: 1,
+        },
+      },
+    });
+
+    if (!member) {
+      throw new NotFoundException(`Member with ID ${memberId} not found`);
+    }
+
+    // Generate QR code token if not exists
+    if (!member.qrCodeToken) {
+      const { randomUUID } = await import('crypto');
+      const qrCodeToken = randomUUID();
+
+      await this.prisma.member.update({
+        where: { id: memberId },
+        data: {
+          qrCodeToken,
+          qrCodeGeneratedAt: new Date(),
+        },
+      });
+
+      member.qrCodeToken = qrCodeToken;
+      member.qrCodeGeneratedAt = new Date();
+    }
+
+    // Generate QR code image
+    const QRCode = await import('qrcode');
+    const qrCodeDataUrl = await QRCode.toDataURL(member.qrCodeToken, {
+      width: 300,
+      margin: 2,
+    });
+
+    const membershipStatus =
+      member.subscriptions.length > 0 ? 'Active' : 'Inactive';
+
+    return {
+      qrCodeToken: member.qrCodeToken,
+      qrCodeDataUrl,
+      generatedAt: member.qrCodeGeneratedAt,
+      member: {
+        id: member.id,
+        firstName: member.user.firstName,
+        lastName: member.user.lastName,
+        email: member.user.email,
+        membershipStatus,
+      },
+    };
+  }
+
+  async regenerateQrCode(memberId: string): Promise<any> {
+    const member = await this.prisma.member.findUnique({
+      where: { id: memberId },
+      select: { id: true },
+    });
+
+    if (!member) {
+      throw new NotFoundException(`Member with ID ${memberId} not found`);
+    }
+
+    const { randomUUID } = await import('crypto');
+    const qrCodeToken = randomUUID();
+
+    await this.prisma.member.update({
+      where: { id: memberId },
+      data: {
+        qrCodeToken,
+        qrCodeGeneratedAt: new Date(),
+      },
+    });
+
+    return this.getQrCode(memberId);
+  }
 }

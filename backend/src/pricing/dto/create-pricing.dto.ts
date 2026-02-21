@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { PricingCategory } from '@prisma/client';
 import {
   IsString,
   IsNotEmpty,
@@ -9,11 +10,6 @@ import {
   IsBoolean,
   Min,
 } from 'class-validator';
-export enum PricingCategory {
-  MEMBERSHIP = 'MEMBERSHIP',
-  CLASS = 'CLASS',
-  MERCHANDISE = 'MERCHANDISE',
-}
 
 export class CreatePricingDto {
   @ApiProperty({ description: 'Pricing name', example: 'Premium Membership' })

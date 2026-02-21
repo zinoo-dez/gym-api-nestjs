@@ -73,6 +73,34 @@ export interface MarketingCampaign {
   updatedAt: string;
 }
 
+export type CampaignRecipientStatus =
+  | "PENDING"
+  | "SENT"
+  | "FAILED"
+  | "OPENED"
+  | "CLICKED";
+
+export type CampaignEventType = "DELIVERED" | "OPENED" | "CLICKED" | "FAILED";
+
+export interface CampaignRecipient {
+  id: string;
+  campaignId: string;
+  userId: string;
+  destination: string;
+  type: NotificationType;
+  status: CampaignRecipientStatus;
+  sentAt?: string | null;
+  openedAt?: string | null;
+  clickedAt?: string | null;
+  failReason?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MarketingCampaignDetail extends MarketingCampaign {
+  recipients: CampaignRecipient[];
+}
+
 export interface CampaignAnalytics {
   campaignId: string;
   totalRecipients: number;
@@ -166,7 +194,9 @@ export const marketingService = {
   },
 
   async getCampaign(id: string) {
-    const response = await apiClient.get<ApiResponse<any>>(`/marketing/campaigns/${id}`);
+    const response = await apiClient.get<ApiResponse<MarketingCampaignDetail>>(
+      `/marketing/campaigns/${id}`,
+    );
     return response.data.data ?? response.data;
   },
 
@@ -227,6 +257,20 @@ export const marketingService = {
   async getCampaignAnalytics(id: string) {
     const response = await apiClient.get<ApiResponse<CampaignAnalytics>>(
       `/marketing/campaigns/${id}/analytics`,
+    );
+    return response.data.data ?? response.data;
+  },
+
+  async logCampaignEvent(
+    campaignId: string,
+    recipientId: string,
+    payload: {
+      eventType: CampaignEventType;
+    },
+  ) {
+    const response = await apiClient.post<ApiResponse<any>>(
+      `/marketing/campaigns/${campaignId}/recipients/${recipientId}/events`,
+      payload,
     );
     return response.data.data ?? response.data;
   },

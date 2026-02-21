@@ -41,6 +41,13 @@ import RecoveryPage from "../pages/admin/Recovery";
 import SalesDashboardPage from "../pages/admin/SalesDashboard";
 import PosSalesPage from "../pages/admin/PosSales";
 import InventoryManagementPage from "../pages/admin/InventoryManagement";
+import AdminQrScannerPage from "../pages/admin/QrScanner";
+import ClassesManagementPage from "../pages/admin/ClassesManagement";
+import PricingPage from "../pages/admin/Pricing";
+import WorkoutPlansPage from "../pages/admin/WorkoutPlans";
+import AttendancePage from "../pages/admin/Attendance";
+import UsersPage from "../pages/admin/Users";
+import FeaturesPage from "../pages/admin/Features";
 // Admin Pages (Converted to TSX)
 import GymManagementM3DashboardPage from "../pages/admin/GymManagementM3Dashboard";
 
@@ -50,9 +57,14 @@ import MemberRenewalPage from "../pages/member/MemberRenewal";
 import MemberProgressPage from "../pages/member/MemberProgress";
 import MemberShopPage from "../pages/member/MemberShop";
 import MemberPurchaseHistoryPage from "../pages/member/MemberPurchaseHistory";
+import MemberQrCodePage from "../pages/member/MemberQrCode";
+import MemberClassesPage from "../pages/member/MemberClasses";
+import MemberInstructorProfilePage from "../pages/member/MemberInstructorProfile";
+import MemberBodyCompositionPage from "../pages/member/MemberBodyComposition";
 import TrainerDashboardPage from "../pages/trainer/TrainerDashboard";
 import TrainerSessionsPage from "../pages/trainer/TrainerSessions";
 import StaffDashboardPage from "../pages/staff/StaffDashboard";
+import StaffQrScannerPage from "../pages/staff/QrScanner";
 
 const AppRoutes = () => {
   const withTransition = (element: React.ReactElement) => (
@@ -110,6 +122,7 @@ const AppRoutes = () => {
           element={withTransition(<AdminTrainersPage />)}
         />
         <Route path="plans" element={withTransition(<PlansPage />)} />
+        <Route path="pricing" element={withTransition(<PricingPage />)} />
         <Route path="discounts" element={withTransition(<DiscountsPage />)} />
         <Route path="payments" element={withTransition(<PaymentsPage />)} />
         <Route path="recovery" element={withTransition(<RecoveryPage />)} />
@@ -122,6 +135,14 @@ const AppRoutes = () => {
           path="inventory-management"
           element={withTransition(<InventoryManagementPage />)}
         />
+        <Route path="classes" element={withTransition(<ClassesManagementPage />)} />
+        <Route
+          path="workout-plans"
+          element={withTransition(<WorkoutPlansPage />)}
+        />
+        <Route path="attendance" element={withTransition(<AttendancePage />)} />
+        <Route path="users" element={withTransition(<UsersPage />)} />
+        <Route path="features" element={withTransition(<FeaturesPage />)} />
         <Route
           path="notifications"
           element={withTransition(<NotificationsPage />)}
@@ -145,6 +166,10 @@ const AppRoutes = () => {
         />
         <Route path="settings" element={withTransition(<SettingsPage />)} />
         <Route path="staff" element={withTransition(<StaffPage />)} />
+        <Route
+          path="qr-scanner"
+          element={withTransition(<AdminQrScannerPage />)}
+        />
         <Route
           path="retention"
           element={withTransition(<RetentionDashboardPage />)}
@@ -175,11 +200,21 @@ const AppRoutes = () => {
           path="progress"
           element={withTransition(<MemberProgressPage />)}
         />
+        <Route
+          path="body-composition"
+          element={withTransition(<MemberBodyCompositionPage />)}
+        />
         <Route path="shop" element={withTransition(<MemberShopPage />)} />
         <Route
           path="purchase-history"
           element={withTransition(<MemberPurchaseHistoryPage />)}
         />
+        <Route path="classes" element={withTransition(<MemberClassesPage />)} />
+        <Route
+          path="instructors/:trainerId"
+          element={withTransition(<MemberInstructorProfilePage />)}
+        />
+        <Route path="qr-code" element={withTransition(<MemberQrCodePage />)} />
       </Route>
 
       {/* Trainer Routes - Protected (persistent layout) */}
@@ -212,6 +247,8 @@ const AppRoutes = () => {
         }
       >
         <Route index element={withTransition(<StaffDashboardPage />)} />
+        <Route path="qr-scanner" element={withTransition(<StaffQrScannerPage />)} />
+        <Route path="attendance" element={withTransition(<AttendancePage />)} />
         <Route
           path="inventory-sales"
           element={withTransition(<SalesDashboardPage />)}

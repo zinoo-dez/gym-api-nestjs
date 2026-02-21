@@ -46,6 +46,9 @@ const toDateTimeLocalValue = (value?: string | null) => {
 
 const Discounts = () => {
   const [list, setList] = useState<DiscountCode[]>([]);
+  const [usage, setUsage] = useState<
+    Array<{ id: string; code: string; usedCount: number; totalDiscount: number }>
+  >([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -64,14 +67,19 @@ const Discounts = () => {
   const loadDiscounts = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await discountCodesService.getAll({
-        limit: 200,
-        code: search || undefined,
-      });
+      const [response, usageRows] = await Promise.all([
+        discountCodesService.getAll({
+          limit: 200,
+          code: search || undefined,
+        }),
+        discountCodesService.getUsage(),
+      ]);
       setList(Array.isArray(response.data) ? response.data : []);
+      setUsage(Array.isArray(usageRows) ? usageRows : []);
     } catch (err) {
       console.error("Failed to load discount codes", err);
       setList([]);
+      setUsage([]);
     } finally {
       setIsLoading(false);
     }
@@ -249,6 +257,21 @@ const Discounts = () => {
             />
           </div>
         </div>
+
+        {usage.length > 0 && (
+          <div className="mb-4 rounded-xl border border-border bg-muted/30 p-3">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Top Discount Usage
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {usage.slice(0, 5).map((item) => (
+                <Badge key={item.id} variant="outline">
+                  {item.code}: {item.usedCount} uses
+                </Badge>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="overflow-x-auto -mx-5">
           <table className="min-w-full text-sm">

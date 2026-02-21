@@ -22,8 +22,10 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import {
   marketingService,
+  type CampaignEventType,
   type CampaignAudienceType,
   type MarketingCampaign,
+  type MarketingCampaignDetail,
   type MarketingCampaignStatus,
   type MarketingTemplate,
   type NotificationType,
@@ -33,7 +35,7 @@ import {
   marketingAudienceOptions,
   marketingChannelOptions,
 } from "./marketing-shared";
-import { BarChart3, Plus, RefreshCcw, Send, Megaphone, Search, Filter, Edit3, Calendar, Users, Target, Rocket } from "lucide-react";
+import { BarChart3, Plus, RefreshCcw, Send, Megaphone, Search, Filter, Edit3, Calendar, Users, Target, Rocket, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -56,6 +58,11 @@ const MarketingCampaigns = () => {
   const [campaignOpen, setCampaignOpen] = useState(false);
   const [editingCampaignId, setEditingCampaignId] = useState<string | null>(null);
   const [campaignForm, setCampaignForm] = useState(defaultCampaignForm);
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [campaignDetail, setCampaignDetail] = useState<MarketingCampaignDetail | null>(null);
+  const [eventDraftByRecipient, setEventDraftByRecipient] = useState<Record<string, CampaignEventType>>({});
+  const [loggingRecipientId, setLoggingRecipientId] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -182,6 +189,47 @@ const MarketingCampaigns = () => {
     }
   };
 
+  const openCampaignDetail = async (id: string) => {
+    setDetailLoading(true);
+    setDetailOpen(true);
+    try {
+      const detail = await marketingService.getCampaign(id);
+      setCampaignDetail(detail);
+      setEventDraftByRecipient(
+        Object.fromEntries(
+          (Array.isArray(detail?.recipients) ? detail.recipients : []).map((recipient) => [
+            recipient.id,
+            "OPENED" as CampaignEventType,
+          ]),
+        ),
+      );
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Failed to load campaign detail");
+      setCampaignDetail(null);
+    } finally {
+      setDetailLoading(false);
+    }
+  };
+
+  const logRecipientEvent = async (recipientId: string) => {
+    if (!campaignDetail) return;
+    const eventType = eventDraftByRecipient[recipientId] || "OPENED";
+    setLoggingRecipientId(recipientId);
+    try {
+      await marketingService.logCampaignEvent(campaignDetail.id, recipientId, {
+        eventType,
+      });
+      toast.success(`Logged ${eventType} event`);
+      const refreshed = await marketingService.getCampaign(campaignDetail.id);
+      setCampaignDetail(refreshed);
+      await loadData();
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Failed to log campaign event");
+    } finally {
+      setLoggingRecipientId(null);
+    }
+  };
+
   return (
     <div className="space-y-4">
       {/* Header section */}
@@ -302,6 +350,15 @@ const MarketingCampaigns = () => {
                       >
                         <Edit3 className="h-3.5 w-3.5 mr-1.5" />
                         Modify
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        onClick={() => openCampaignDetail(campaign.id)}
+                        className="h-8 rounded-lg text-muted-foreground hover:text-violet-600 hover:bg-violet-50 text-xs font-bold"
+                      >
+                        <Eye className="h-3.5 w-3.5 mr-1.5" />
+                        Recipients
                       </Button>
                       <Button 
                         size="sm" 
@@ -558,6 +615,96 @@ const MarketingCampaigns = () => {
               </div>
             </div>
           </ScrollArea>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
+        <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Campaign Recipient Detail</DialogTitle>
+          </DialogHeader>
+
+          {detailLoading ? (
+            <p className="text-sm text-muted-foreground">Loading campaign detail...</p>
+          ) : !campaignDetail ? (
+            <p className="text-sm text-muted-foreground">No campaign detail available.</p>
+          ) : (
+            <div className="space-y-4">
+              <div className="rounded-lg border p-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="font-semibold">{campaignDetail.name}</p>
+                  <Badge variant="outline">{campaignDetail.type}</Badge>
+                  <Badge variant="outline">{campaignDetail.status}</Badge>
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Audience: {campaignDetail.audienceType} | Recipients:{" "}
+                  {campaignDetail.recipients?.length ?? 0}
+                </p>
+              </div>
+
+              {campaignDetail.recipients?.length ? (
+                <div className="space-y-2">
+                  {campaignDetail.recipients.map((recipient) => (
+                    <div
+                      key={recipient.id}
+                      className="rounded-lg border p-3"
+                    >
+                      <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                        <div>
+                          <p className="text-sm font-medium">Recipient: {recipient.destination}</p>
+                          <p className="text-xs text-muted-foreground">
+                            Status: {recipient.status} | Type: {recipient.type}
+                          </p>
+                          <p className="text-[11px] text-muted-foreground">
+                            Sent: {recipient.sentAt ? new Date(recipient.sentAt).toLocaleString() : "-"} | Opened:{" "}
+                            {recipient.openedAt ? new Date(recipient.openedAt).toLocaleString() : "-"} | Clicked:{" "}
+                            {recipient.clickedAt ? new Date(recipient.clickedAt).toLocaleString() : "-"}
+                          </p>
+                          {recipient.failReason && (
+                            <p className="text-[11px] text-red-600">Failure: {recipient.failReason}</p>
+                          )}
+                        </div>
+
+                        <div className="flex gap-2">
+                          <Select
+                            value={eventDraftByRecipient[recipient.id] || "OPENED"}
+                            onValueChange={(value) =>
+                              setEventDraftByRecipient((prev) => ({
+                                ...prev,
+                                [recipient.id]: value as CampaignEventType,
+                              }))
+                            }
+                          >
+                            <SelectTrigger className="h-9 w-32">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="DELIVERED">DELIVERED</SelectItem>
+                              <SelectItem value="OPENED">OPENED</SelectItem>
+                              <SelectItem value="CLICKED">CLICKED</SelectItem>
+                              <SelectItem value="FAILED">FAILED</SelectItem>
+                            </SelectContent>
+                          </Select>
+
+                          <Button
+                            size="sm"
+                            onClick={() => logRecipientEvent(recipient.id)}
+                            disabled={loggingRecipientId === recipient.id}
+                          >
+                            Log Event
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  No recipients exist yet for this campaign.
+                </p>
+              )}
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>

@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  Logger,
   NotFoundException,
   OnModuleInit,
 } from '@nestjs/common';
@@ -40,10 +41,12 @@ const DEFAULT_FEATURES = [
 
 @Injectable()
 export class FeaturesService implements OnModuleInit {
+  private readonly logger = new Logger(FeaturesService.name);
+
   constructor(private readonly prisma: PrismaService) {}
 
   async onModuleInit() {
-    await this.ensureDefaultFeatures();
+    await this.ensureDefaultFeaturesWithRetry();
   }
 
   async create(dto: CreateFeatureDto): Promise<FeatureResponseDto> {
@@ -209,6 +212,45 @@ export class FeaturesService implements OnModuleInit {
         });
       }
     }
+  }
+
+  private async ensureDefaultFeaturesWithRetry(): Promise<void> {
+    const maxAttempts = 3;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+      try {
+        await this.ensureDefaultFeatures();
+        return;
+      } catch (error) {
+        const code = this.extractErrorCode(error);
+        const isTransientDbError = code === 'ECONNREFUSED' || code === 'P1001';
+
+        if (!isTransientDbError || attempt === maxAttempts) {
+          this.logger.error(
+            `Failed to ensure default features (attempt ${attempt}/${maxAttempts})`,
+            error instanceof Error ? error.stack : String(error),
+          );
+          return;
+        }
+
+        this.logger.warn(
+          `Database temporarily unavailable while seeding default features (attempt ${attempt}/${maxAttempts}). Retrying...`,
+        );
+        await this.delay(attempt * 1000);
+      }
+    }
+  }
+
+  private extractErrorCode(error: unknown): string | undefined {
+    if (error && typeof error === 'object' && 'code' in error) {
+      const code = (error as { code?: unknown }).code;
+      return typeof code === 'string' ? code : undefined;
+    }
+    return undefined;
+  }
+
+  private async delay(ms: number): Promise<void> {
+    await new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   async ensureFeaturesExist(featureIds: string[]): Promise<void> {

@@ -156,7 +156,7 @@ export class TrainerSessionsService {
       where: { id: sessionId },
       include: {
         trainer: { select: { userId: true } },
-        member: { select: { id: true, userId: true } },
+        member: { select: { id: true, userId: true, height: true } },
       },
     });
     if (!session) throw new NotFoundException('Session not found');
@@ -170,17 +170,31 @@ export class TrainerSessionsService {
       );
     }
 
+    const computedBmi =
+      dto.bmi ?? this.calculateBmi(dto.weight, session.member.height) ?? null;
+
     const progress = await this.prisma.userProgress.create({
       data: {
         memberId: session.memberId,
         weight: dto.weight,
-        bmi: dto.bmi,
+        bmi: computedBmi,
         bodyFat: dto.bodyFat,
         muscleMass: dto.muscleMass,
         benchPress: dto.benchPress,
         squat: dto.squat,
         deadlift: dto.deadlift,
         cardioEndurance: dto.cardioEndurance,
+        neck: dto.neck,
+        chest: dto.chest,
+        waist: dto.waist,
+        hips: dto.hips,
+        leftArm: dto.leftArm,
+        rightArm: dto.rightArm,
+        leftThigh: dto.leftThigh,
+        rightThigh: dto.rightThigh,
+        leftCalf: dto.leftCalf,
+        rightCalf: dto.rightCalf,
+        notes: dto.notes,
       },
     });
 
@@ -262,5 +276,27 @@ export class TrainerSessionsService {
         lastName: row.user.lastName,
         email: row.user.email,
       }));
+  }
+
+  private calculateBmi(
+    weight?: number,
+    height?: number | null,
+  ): number | undefined {
+    if (weight === undefined || height === undefined || height === null) {
+      return undefined;
+    }
+
+    const normalizedHeight = height > 3 ? height / 100 : height;
+
+    if (normalizedHeight <= 0) {
+      return undefined;
+    }
+
+    return this.round(weight / (normalizedHeight * normalizedHeight));
+  }
+
+  private round(value: number, precision = 2): number {
+    const factor = 10 ** precision;
+    return Math.round(value * factor) / factor;
   }
 }
