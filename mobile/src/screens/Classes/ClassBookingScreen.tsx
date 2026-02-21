@@ -6,11 +6,9 @@ import { InfoCard } from "@/components/ui/InfoCard";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { colors } from "@/constants/theme";
 import { classesService } from "@/services/classes.service";
-import { useAuthStore } from "@/store/auth.store";
 
 export function ClassBookingScreen() {
   const queryClient = useQueryClient();
-  const user = useAuthStore((state) => state.user);
 
   const classesQuery = useQuery({
     queryKey: ["classes", "available"],
@@ -18,13 +16,7 @@ export function ClassBookingScreen() {
   });
 
   const bookClassMutation = useMutation({
-    mutationFn: async (classScheduleId: string) => {
-      if (!user?.id) {
-        throw new Error("User not initialized");
-      }
-
-      return classesService.bookClass(classScheduleId, user.id);
-    },
+    mutationFn: (classScheduleId: string) => classesService.bookClass(classScheduleId),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["classes", "available"] });
     },

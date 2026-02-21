@@ -11,6 +11,23 @@ export interface GetClassesParams {
   classType?: string;
 }
 
+interface MemberProfileResponse {
+  id: string;
+}
+
+async function getCurrentMemberId(): Promise<string> {
+  const response = await apiClient.get<
+    MemberProfileResponse | ApiResponseEnvelope<MemberProfileResponse>
+  >("/members/me");
+  const profile = unwrapApiData(response.data);
+
+  if (!profile?.id) {
+    throw new Error("Member profile not found");
+  }
+
+  return profile.id;
+}
+
 export const classesService = {
   async getClasses(params?: GetClassesParams): Promise<ClassesPage> {
     const response = await apiClient.get<
@@ -22,7 +39,8 @@ export const classesService = {
     return unwrapApiData(response.data);
   },
 
-  async bookClass(classScheduleId: string, memberId: string): Promise<ClassBooking> {
+  async bookClass(classScheduleId: string): Promise<ClassBooking> {
+    const memberId = await getCurrentMemberId();
     const response = await apiClient.post<
       ClassBooking | ApiResponseEnvelope<ClassBooking>
     >(`/classes/schedules/${classScheduleId}/book`, {
