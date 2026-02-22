@@ -62,7 +62,7 @@ export class RegisterDto {
     example: UserRole.MEMBER,
   })
   @IsEnum(UserRole, {
-    message: 'Role must be a valid role (ADMIN, TRAINER, MEMBER)',
+    message: 'Role must be a valid role (ADMIN, OWNER, TRAINER, MEMBER, STAFF)',
   })
   role!: UserRole;
 }

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type ComponentType } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -45,11 +46,20 @@ const DEFAULT_FILTERS: EquipmentFilterState = {
 type LoadState = "loading" | "error" | "ready";
 
 type QuickFilter = "all" | "active" | "needs_maintenance" | "out_of_order" | "upcoming_30";
+type EquipmentViewMode = "overview" | "list" | "all";
 
 interface SortState {
   field: EquipmentSortField;
   direction: SortDirection;
 }
+
+const QUICK_FILTER_VALUES: QuickFilter[] = [
+  "all",
+  "active",
+  "needs_maintenance",
+  "out_of_order",
+  "upcoming_30",
+];
 
 const toErrorMessage = (error: unknown): string => {
   if (typeof error === "object" && error !== null) {
@@ -128,16 +138,44 @@ function StatCard({
   );
 }
 
-export function EquipmentManagementPage() {
+interface EquipmentManagementPageProps {
+  view?: EquipmentViewMode;
+}
+
+export function EquipmentManagementPage({ view = "all" }: EquipmentManagementPageProps) {
   const user = useAuthStore((state) => state.user);
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  const isOverviewPage = view === "overview";
+  const isListPage = view === "list";
+  const showOverviewSection = view !== "list";
+  const showListSection = view !== "overview";
+
+  const quickFilterFromQuery = useMemo<QuickFilter>(() => {
+    if (!isListPage) {
+      return "all";
+    }
+
+    const value = searchParams.get("quickFilter");
+    if (!value) {
+      return "all";
+    }
+
+    return QUICK_FILTER_VALUES.includes(value as QuickFilter)
+      ? (value as QuickFilter)
+      : "all";
+  }, [isListPage, searchParams]);
 
   const [loadState, setLoadState] = useState<LoadState>("loading");
   const [equipment, setEquipment] = useState<EquipmentRecord[]>([]);
   const [actionError, setActionError] = useState<string | null>(null);
   const [filters, setFilters] = useState<EquipmentFilterState>(DEFAULT_FILTERS);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
-  const [quickFilter, setQuickFilter] = useState<QuickFilter>("all");
+  const [quickFilter, setQuickFilter] = useState<QuickFilter>(
+    isListPage ? quickFilterFromQuery : "all",
+  );
   const [sort, setSort] = useState<SortState>({
     field: "name",
     direction: "asc",
@@ -179,6 +217,12 @@ export function EquipmentManagementPage() {
   useEffect(() => {
     void loadEquipment();
   }, [loadEquipment]);
+
+  useEffect(() => {
+    if (isListPage) {
+      setQuickFilter(quickFilterFromQuery);
+    }
+  }, [isListPage, quickFilterFromQuery]);
 
   const metrics = useMemo(() => calculateEquipmentMetrics(equipment), [equipment]);
 
@@ -241,7 +285,35 @@ export function EquipmentManagementPage() {
   const clearFilters = () => {
     setFilters(DEFAULT_FILTERS);
     setQuickFilter("all");
+
+    if (isListPage) {
+      navigate("/management/equipment/list", { replace: true });
+    }
   };
+
+  const handleOverviewCardClick = (filter: QuickFilter) => {
+    if (isOverviewPage) {
+      const query = filter === "all" ? "" : `?quickFilter=${filter}`;
+      navigate(`/management/equipment/list${query}`);
+      return;
+    }
+
+    setQuickFilter(filter);
+  };
+
+  const pageTitle =
+    view === "overview"
+      ? "Equipment Overview"
+      : view === "list"
+        ? "Equipment List"
+        : "Equipment Management";
+
+  const pageDescription =
+    view === "overview"
+      ? "Monitor equipment health, maintenance demand, and total asset value."
+      : view === "list"
+        ? "Manage equipment records, filters, and maintenance actions."
+        : "Track gym assets, maintenance schedules, and equipment lifecycle costs.";
 
   const openAddForm = () => {
     setFormMode("add");
@@ -339,15 +411,20 @@ export function EquipmentManagementPage() {
     <div className="space-y-8">
       <header className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="page-title">Equipment Management</h1>
-          <p className="body-text text-muted-foreground">
-            Track gym assets, maintenance schedules, and equipment lifecycle costs.
-          </p>
+          <h1 className="page-title">{pageTitle}</h1>
+          <p className="body-text text-muted-foreground">{pageDescription}</p>
         </div>
-        <Button type="button" onClick={openAddForm}>
-          <Plus className="size-4" />
-          Add Equipment
-        </Button>
+        <div className="flex gap-2">
+          {isOverviewPage ? (
+            <Button type="button" variant="outline" onClick={() => navigate("/management/equipment/list")}>
+              View List
+            </Button>
+          ) : null}
+          <Button type="button" onClick={openAddForm}>
+            <Plus className="size-4" />
+            Add Equipment
+          </Button>
+        </div>
       </header>
 
       {loadState === "loading" ? (
@@ -380,68 +457,77 @@ export function EquipmentManagementPage() {
 
       {loadState === "ready" ? (
         <>
-          <section className="space-y-4">
-            <h2 className="section-title">Equipment Overview</h2>
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
-              <StatCard
-                title="Total Equipment"
-                value={metrics.totalEquipment}
-                tone="info"
-                active={quickFilter === "all"}
-                onClick={() => setQuickFilter("all")}
-                icon={CheckCircle2}
-              />
-              <StatCard
-                title="Active Equipment"
-                value={metrics.activeEquipment}
-                tone="success"
-                active={quickFilter === "active"}
-                onClick={() => setQuickFilter("active")}
-                icon={CheckCircle2}
-              />
-              <StatCard
-                title="Needs Maintenance"
-                value={metrics.needsMaintenance}
-                tone="warning"
-                active={quickFilter === "needs_maintenance"}
-                onClick={() => setQuickFilter("needs_maintenance")}
-                icon={Wrench}
-              />
-              <StatCard
-                title="Out of Order"
-                value={metrics.outOfOrder}
-                tone="danger"
-                active={quickFilter === "out_of_order"}
-                onClick={() => setQuickFilter("out_of_order")}
-                icon={AlertTriangle}
-              />
-              <StatCard
-                title="Upcoming Maintenance"
-                value={metrics.upcomingMaintenance}
-                helperText="Next 30 days"
-                tone="warning"
-                active={quickFilter === "upcoming_30"}
-                onClick={() => setQuickFilter("upcoming_30")}
-                icon={Clock3}
-              />
-              <StatCard
-                title="Total Asset Value"
-                value={formatCurrency(metrics.totalAssetValue)}
-                tone="primary"
-                active={false}
-                onClick={() => setQuickFilter("all")}
-                icon={Wallet}
-              />
-            </div>
-          </section>
+          {showOverviewSection ? (
+            <section className="space-y-4">
+              <h2 className="section-title">Equipment Overview</h2>
+              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+                <StatCard
+                  title="Total Equipment"
+                  value={metrics.totalEquipment}
+                  tone="info"
+                  active={quickFilter === "all"}
+                  onClick={() => handleOverviewCardClick("all")}
+                  icon={CheckCircle2}
+                />
+                <StatCard
+                  title="Active Equipment"
+                  value={metrics.activeEquipment}
+                  tone="success"
+                  active={quickFilter === "active"}
+                  onClick={() => handleOverviewCardClick("active")}
+                  icon={CheckCircle2}
+                />
+                <StatCard
+                  title="Needs Maintenance"
+                  value={metrics.needsMaintenance}
+                  tone="warning"
+                  active={quickFilter === "needs_maintenance"}
+                  onClick={() => handleOverviewCardClick("needs_maintenance")}
+                  icon={Wrench}
+                />
+                <StatCard
+                  title="Out of Order"
+                  value={metrics.outOfOrder}
+                  tone="danger"
+                  active={quickFilter === "out_of_order"}
+                  onClick={() => handleOverviewCardClick("out_of_order")}
+                  icon={AlertTriangle}
+                />
+                <StatCard
+                  title="Upcoming Maintenance"
+                  value={metrics.upcomingMaintenance}
+                  helperText="Next 30 days"
+                  tone="warning"
+                  active={quickFilter === "upcoming_30"}
+                  onClick={() => handleOverviewCardClick("upcoming_30")}
+                  icon={Clock3}
+                />
+                <StatCard
+                  title="Total Asset Value"
+                  value={formatCurrency(metrics.totalAssetValue)}
+                  tone="primary"
+                  active={false}
+                  onClick={() => handleOverviewCardClick("all")}
+                  icon={Wallet}
+                />
+              </div>
+            </section>
+          ) : null}
 
-          <section className="space-y-4">
+          {showListSection ? (
+            <section className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="section-title">Equipment List</h2>
               <Button type="button" variant="ghost" onClick={clearFilters} disabled={!hasActiveFilters}>
                 Clear List Filters
               </Button>
             </div>
+
+            {quickFilter !== "all" ? (
+              <p className="text-sm text-muted-foreground">
+                Quick filter applied: <span className="font-medium text-foreground">{quickFilter.replaceAll("_", " ")}</span>
+              </p>
+            ) : null}
 
             <EquipmentFilters
               filters={filters}
@@ -496,7 +582,8 @@ export function EquipmentManagementPage() {
                 onLogMaintenance={openMaintenanceLog}
               />
             ) : null}
-          </section>
+            </section>
+          ) : null}
         </>
       ) : null}
 

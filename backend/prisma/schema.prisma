@@ -1168,6 +1168,7 @@ model MarketingAutomation {
 
 enum UserRole {
     ADMIN
+    OWNER
     TRAINER
     MEMBER
     STAFF

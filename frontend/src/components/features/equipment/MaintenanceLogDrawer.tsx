@@ -9,7 +9,6 @@ import {
   MaintenanceLogFormValues,
   EquipmentRecord,
   getDefaultLogFormValues,
-  getMaintenanceHint,
 } from "@/features/equipment";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -46,7 +45,6 @@ export function MaintenanceLogDrawer({
     register,
     handleSubmit,
     reset,
-    watch,
     formState: { errors, isSubmitting, isValid },
   } = useForm<MaintenanceLogFormValues>({
     resolver: zodResolver(maintenanceLogSchema),
@@ -63,9 +61,6 @@ export function MaintenanceLogDrawer({
   if (!equipment) {
     return null;
   }
-
-  const logDate = watch("date");
-  const hint = getMaintenanceHint(equipment.maintenanceFrequency, logDate);
 
   const footer = (
     <div className="flex justify-end gap-2">
@@ -160,7 +155,9 @@ export function MaintenanceLogDrawer({
         <div className="space-y-2">
           <Label htmlFor="maintenance-next-due">Next Due Date (Optional Override)</Label>
           <Input id="maintenance-next-due" type="date" {...register("nextDueDate")} />
-          <p className="text-xs text-muted-foreground">{hint}</p>
+          <p className="text-xs text-muted-foreground">
+            Leave blank to auto-calculate based on the maintenance frequency.
+          </p>
         </div>
       </form>
     </SlidePanel>

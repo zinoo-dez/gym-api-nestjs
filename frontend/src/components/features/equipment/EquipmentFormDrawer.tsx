@@ -11,8 +11,6 @@ import {
   MAINTENANCE_FREQUENCIES,
   MAINTENANCE_FREQUENCY_LABELS,
   EquipmentFormValues,
-  calculateNextMaintenanceDue,
-  formatDisplayDate,
 } from "@/features/equipment";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -99,14 +97,7 @@ export function EquipmentFormDrawer({
     }
   }, [initialValues, open, reset]);
 
-  const frequency = watch("maintenanceFrequency");
-  const lastMaintenanceDate = watch("lastMaintenanceDate");
   const isActive = watch("isActive");
-
-  const nextDuePreview =
-    frequency && /^\d{4}-\d{2}-\d{2}$/.test(lastMaintenanceDate)
-      ? formatDisplayDate(calculateNextMaintenanceDue(lastMaintenanceDate, frequency))
-      : "-";
 
   const footer = (
     <div className="flex justify-end gap-2">
@@ -299,7 +290,9 @@ export function EquipmentFormDrawer({
             </div>
           </div>
 
-          <p className="mt-3 text-sm text-muted-foreground">Auto-calculated next maintenance due: {nextDuePreview}</p>
+          <p className="mt-3 text-sm text-muted-foreground">
+            Next maintenance due is auto-calculated when this record is saved.
+          </p>
         </section>
 
         <section className="rounded-lg border bg-card p-4">

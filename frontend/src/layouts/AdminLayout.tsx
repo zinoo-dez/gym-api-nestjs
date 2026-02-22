@@ -6,17 +6,22 @@ import {
   Bell,
   BarChart3,
   BadgeCheck,
+  CalendarClock,
   CreditCard,
   Dumbbell,
   LayoutDashboard,
   LineChart,
+  List,
   LogOut,
   Menu,
+  Package,
   ReceiptText,
   Repeat2,
   Settings,
   Shield,
+  ShoppingCart,
   Sparkles,
+  UserCheck,
   UserCog,
   Users,
   Wallet,
@@ -24,6 +29,7 @@ import {
 } from "lucide-react";
 
 import { useAuthStore } from "@/store/auth.store";
+import { NotificationBell } from "@/components/features/notifications";
 
 interface MenuItem {
   icon: ComponentType<{ className?: string }>;
@@ -48,7 +54,29 @@ const menuSections: MenuSection[] = [
       { icon: UserCog, label: "Trainers", path: "/management/trainers" },
       { icon: Shield, label: "Staff", path: "/management/staff" },
       { icon: CreditCard, label: "Payments", path: "/payments" },
-      { icon: Dumbbell, label: "Equipment", path: "/management/equipment" },
+    ],
+  },
+  {
+    title: "Classes",
+    items: [
+      { icon: CalendarClock, label: "Schedule", path: "/management/classes/schedule" },
+      { icon: UserCheck, label: "Attendance", path: "/management/classes/attendance" },
+    ],
+  },
+  {
+    title: "Equipment",
+    items: [
+      { icon: Dumbbell, label: "Equipment Overview", path: "/management/equipment/overview" },
+      { icon: List, label: "Equipment List", path: "/management/equipment/list" },
+    ],
+  },
+  {
+    title: "Inventory & Sales",
+    items: [
+      { icon: ShoppingCart, label: "Overview", path: "/management/products/overview" },
+      { icon: Package, label: "Products", path: "/management/products/management" },
+      { icon: CreditCard, label: "POS", path: "/management/products/pos" },
+      { icon: ReceiptText, label: "Sales History", path: "/management/products/history" },
     ],
   },
   {
@@ -75,7 +103,10 @@ const menuSections: MenuSection[] = [
   },
   {
     title: "System",
-    items: [{ icon: Settings, label: "Settings", path: "/settings" }],
+    items: [
+      { icon: Bell, label: "Notifications", path: "/admin/notifications" },
+      { icon: Settings, label: "Settings", path: "/settings" },
+    ],
   },
 ];
 
@@ -224,10 +255,7 @@ export function AdminLayout() {
           </div>
 
           <div className="flex items-center gap-4">
-            <button className="relative flex size-9 items-center justify-center rounded-full bg-muted/50 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
-              <Bell className="size-5" />
-              <span className="absolute right-2 top-2 size-2 rounded-full bg-danger ring-2 ring-background"></span>
-            </button>
+            <NotificationBell />
           </div>
         </header>
 

@@ -32,7 +32,7 @@ interface AuthenticatedUser {
 @ApiTags('equipment')
 @Controller('equipment')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(UserRole.ADMIN)
+@Roles(UserRole.ADMIN, UserRole.OWNER)
 export class EquipmentController {
   constructor(private readonly equipmentService: EquipmentService) {}
 
