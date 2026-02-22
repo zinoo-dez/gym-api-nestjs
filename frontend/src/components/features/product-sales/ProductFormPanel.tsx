@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Select } from "@/components/ui/Select";
 import { SlidePanel } from "@/components/ui/SlidePanel";
+import { Switch } from "@/components/ui/Switch";
 import { Textarea } from "@/components/ui/Textarea";
 import type {
   ProductFormErrors,
@@ -191,10 +192,10 @@ export function ProductFormPanel({
             <Label>Product Image</Label>
             <div className="space-y-3 rounded-md border bg-muted/10 p-3">
               <div className="flex items-center gap-3">
-                <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border bg-background px-3 py-2 text-sm font-medium transition-colors hover:bg-muted/40">
+                <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border bg-background px-3 py-2 text-sm font-medium transition-colors hover:bg-muted/40 focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-1 focus-within:ring-offset-background">
                   <ImagePlus className="size-4" />
                   Choose Image
-                  <input type="file" className="hidden" accept="image/*" onChange={onImageChange} />
+                  <input type="file" className="sr-only" accept="image/*" onChange={onImageChange} />
                 </label>
 
                 <Button type="button" variant="outline" onClick={onUploadImage} disabled={imageUploading}>
@@ -231,14 +232,13 @@ export function ProductFormPanel({
           </div>
 
           <div className="space-y-2 md:col-span-2">
-            <label className="flex items-center gap-2 rounded-md border p-3 text-sm">
-              <input
-                type="checkbox"
+            <Label className="flex cursor-pointer items-center gap-3 rounded-md border p-3">
+              <Switch
                 checked={values.isActive}
-                onChange={(event) => onFieldChange("isActive", event.target.checked)}
+                onCheckedChange={(checked) => onFieldChange("isActive", checked)}
               />
-              Product is active and available for sales
-            </label>
+              <span className="text-sm font-normal">Product is active and available for sales</span>
+            </Label>
           </div>
         </div>
       </form>

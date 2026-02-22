@@ -106,94 +106,95 @@ export function ProductTableSection({
 
         {!loading && !errorMessage ? (
           <>
-            <div className="overflow-x-auto rounded-md border">
-              <table className="w-full min-w-[760px] text-sm">
-                <thead>
-                  <tr className="border-b bg-muted/30 text-left">
-                    <th className="px-4 py-3 font-medium text-muted-foreground">Product Name</th>
-                    <th className="px-4 py-3 font-medium text-muted-foreground">Category</th>
-                    <th className="px-4 py-3 font-medium text-muted-foreground">Price</th>
-                    <th className="px-4 py-3 font-medium text-muted-foreground">Stock Level</th>
-                    <th className="px-4 py-3 font-medium text-muted-foreground">Status</th>
-                    <th className="px-4 py-3 font-medium text-muted-foreground">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {products.map((product) => {
-                    const status = getStatusPresentation(product);
-                    const imageUrl = productImageMap[product.id];
+            {products.length === 0 ? (
+              <div className="flex flex-col items-center justify-center rounded-md border border-dashed py-12 text-center text-sm text-muted-foreground">
+                <Package className="mb-4 size-10 opacity-20" />
+                <p>No products found. Add your first product to start tracking sales.</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto rounded-md border">
+                <table className="w-full min-w-[760px] text-sm">
+                  <thead>
+                    <tr className="border-b bg-muted/30 text-left">
+                      <th className="px-4 py-3 font-medium text-muted-foreground">Product Name</th>
+                      <th className="px-4 py-3 font-medium text-muted-foreground">Category</th>
+                      <th className="px-4 py-3 font-medium text-muted-foreground">Price</th>
+                      <th className="px-4 py-3 font-medium text-muted-foreground">Stock Level</th>
+                      <th className="px-4 py-3 font-medium text-muted-foreground">Status</th>
+                      <th className="px-4 py-3 font-medium text-muted-foreground">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {products.map((product) => {
+                      const status = getStatusPresentation(product);
+                      const imageUrl = productImageMap[product.id];
 
-                    return (
-                      <tr
-                        key={product.id}
-                        className="border-b last:border-0 transition-colors hover:bg-muted/30"
-                      >
-                        <td className="px-4 py-3 align-top">
-                          <div className="flex items-start gap-3">
-                            <div className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-md border bg-muted/20">
-                              {imageUrl ? (
-                                <img
-                                  src={imageUrl}
-                                  alt={`${product.name} preview`}
-                                  className="size-full object-cover"
-                                />
-                              ) : (
-                                <Package className="size-4 text-muted-foreground" />
-                              )}
-                            </div>
+                      return (
+                        <tr
+                          key={product.id}
+                          className="group border-b last:border-0 transition-colors hover:bg-muted/50"
+                        >
+                          <td className="px-4 py-3 align-top">
+                            <div className="flex items-start gap-3">
+                              <div className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-md border bg-muted/20 transition-colors group-hover:border-primary/20">
+                                {imageUrl ? (
+                                  <img
+                                    src={imageUrl}
+                                    alt={`${product.name} preview`}
+                                    className="size-full object-cover"
+                                  />
+                                ) : (
+                                  <Package className="size-4 text-muted-foreground transition-colors group-hover:text-primary/60" />
+                                )}
+                              </div>
 
-                            <div>
-                              <p className="font-medium text-foreground">{product.name}</p>
-                              <p className="text-xs text-muted-foreground">SKU: {product.sku}</p>
+                              <div>
+                                <p className="font-medium text-foreground transition-colors group-hover:text-primary">{product.name}</p>
+                                <p className="text-xs text-muted-foreground">SKU: {product.sku}</p>
+                              </div>
                             </div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 text-muted-foreground">{getCategoryLabel(product.category)}</td>
-                        <td className="px-4 py-3 text-muted-foreground">{formatCurrency(product.salePrice)}</td>
-                        <td className={`px-4 py-3 font-medium ${status.stockClassName}`}>{product.stockQuantity}</td>
-                        <td className="px-4 py-3">
-                          <span
-                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${status.className}`}
-                          >
-                            {status.label}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex flex-wrap gap-2">
-                            <Button
-                              type="button"
-                              size="sm"
-                              variant="outline"
-                              onClick={() => onEditProduct(product)}
+                          </td>
+                          <td className="px-4 py-3 text-muted-foreground">{getCategoryLabel(product.category)}</td>
+                          <td className="px-4 py-3 text-muted-foreground">{formatCurrency(product.salePrice)}</td>
+                          <td className={`px-4 py-3 font-medium ${status.stockClassName}`}>{product.stockQuantity}</td>
+                          <td className="px-4 py-3">
+                            <span
+                              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${status.className}`}
                             >
-                              <Pencil className="size-4" />
-                              Edit
-                            </Button>
-                            {showAddToCart && onAddToCart ? (
+                              {status.label}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex flex-wrap gap-2 opacity-80 transition-opacity group-hover:opacity-100">
                               <Button
                                 type="button"
                                 size="sm"
-                                onClick={() => onAddToCart(product)}
-                                disabled={product.stockQuantity <= 0}
+                                variant="outline"
+                                onClick={() => onEditProduct(product)}
                               >
-                                <ShoppingCart className="size-4" />
-                                Add to Cart
+                                <Pencil className="size-4" />
+                                Edit
                               </Button>
-                            ) : null}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-
-            {products.length === 0 ? (
-              <div className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">
-                No products found. Add your first product to start tracking sales.
+                              {showAddToCart && onAddToCart ? (
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  onClick={() => onAddToCart(product)}
+                                  disabled={product.stockQuantity <= 0}
+                                >
+                                  <ShoppingCart className="size-4" />
+                                  Add to Cart
+                                </Button>
+                              ) : null}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
-            ) : null}
+            )}
 
             <div className="flex items-center justify-between gap-3">
               <p className="text-sm text-muted-foreground">

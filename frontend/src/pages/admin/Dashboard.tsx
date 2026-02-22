@@ -1,172 +1,251 @@
-import { motion } from "framer-motion";
-import { Users, CreditCard, Activity, AlertTriangle, UserPlus, DollarSign, Calendar, FileText } from "lucide-react";
-import { KPICard } from "@/components/ui/KPICard";
-import { ActionCard } from "@/components/ui/ActionCard";
-import { ChartCard } from "@/components/ui/ChartCard";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from "recharts";
+import { useMemo, useState } from "react";
+import { CalendarCheck2, DollarSign, UserPlus, Users } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
+import { toast } from "sonner";
 
-const performanceData = [
-  { name: "Jan", members: 400, revenue: 2400 },
-  { name: "Feb", members: 300, revenue: 1398 },
-  { name: "Mar", members: 200, revenue: 9800 },
-  { name: "Apr", members: 278, revenue: 3908 },
-  { name: "May", members: 189, revenue: 4800 },
-  { name: "Jun", members: 239, revenue: 3800 },
-  { name: "Jul", members: 349, revenue: 4300 },
-];
+import {
+  createSearchParamsFromReportsFilters,
+  parseReportsFiltersFromSearchParams,
+  type ExportFormat,
+  type ReportActivityRow,
+  type ReportsFilters,
+} from "@/features/reports";
+import {
+  AttendancePatternChart,
+  MembershipDistributionChart,
+  RecentTransactionsTable,
+  ReportsFilterBar,
+  ReportsKpiCard,
+  RevenueOverviewChart,
+} from "@/components/features/reports";
+import { useAttendanceOverviewQuery, useReportsSummaryQuery, useRevenueOverviewQuery } from "@/hooks/useReports";
+import { formatCurrency } from "@/lib/currency";
+import { reportsService } from "@/services/reports.service";
 
-const memberStatsData = [
-  { name: "Premium", value: 400 },
-  { name: "Standard", value: 300 },
-  { name: "Basic", value: 300 },
-];
-const COLORS = ["hsl(var(--primary))", "hsl(var(--secondary))", "hsl(var(--muted))"];
+const INTEGER_FORMATTER = new Intl.NumberFormat("en-US");
+
+const formatInteger = (value: number): string => {
+  return INTEGER_FORMATTER.format(Math.trunc(value));
+};
+
+const toErrorMessage = (error: unknown): string => {
+  if (typeof error === "object" && error !== null) {
+    const candidate = error as {
+      message?: string;
+      response?: {
+        data?: {
+          message?: string | string[];
+        };
+      };
+    };
+
+    const apiMessage = candidate.response?.data?.message;
+
+    if (Array.isArray(apiMessage)) {
+      return apiMessage.join(", ");
+    }
+
+    if (typeof apiMessage === "string" && apiMessage.length > 0) {
+      return apiMessage;
+    }
+
+    if (typeof candidate.message === "string" && candidate.message.length > 0) {
+      return candidate.message;
+    }
+  }
+
+  return "Unable to load report data.";
+};
+
+const downloadBlob = (blob: Blob, filename: string): void => {
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(url);
+};
+
+const sanitizeFilenameToken = (value: string): string => value.replace(/[^a-zA-Z0-9-_]/g, "_");
+
+const createExportFilename = (filters: ReportsFilters, formatType: ExportFormat): string => {
+  const start = sanitizeFilenameToken(filters.startDate);
+  const end = sanitizeFilenameToken(filters.endDate);
+  return `gym-report-${start}-to-${end}.${formatType}`;
+};
+
+const toCsvString = (rows: ReportActivityRow[]): string => {
+  const headers = ["member", "action", "category", "amount", "status", "timestamp", "branch", "classCategory"];
+
+  const escapeCell = (value: string): string => {
+    if (value.includes(",") || value.includes("\"") || value.includes("\n")) {
+      return `"${value.replace(/"/g, "\"\"")}"`;
+    }
+
+    return value;
+  };
+
+  const lines = rows.map((row) => {
+    const cells = [
+      row.member,
+      row.action,
+      row.category,
+      row.amount === null ? "" : row.amount.toString(),
+      row.status,
+      row.timestamp,
+      row.branch ?? "",
+      row.classCategory ?? "",
+    ];
+
+    return cells.map((cell) => escapeCell(cell)).join(",");
+  });
+
+  return [headers.join(","), ...lines].join("\n");
+};
 
 export function Dashboard() {
-  const container = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [exportingFormat, setExportingFormat] = useState<ExportFormat | null>(null);
+
+  const filters = useMemo(
+    () => parseReportsFiltersFromSearchParams(searchParams),
+    [searchParams],
+  );
+
+  const summaryQuery = useReportsSummaryQuery(filters);
+  const revenueQuery = useRevenueOverviewQuery(filters);
+  const attendanceQuery = useAttendanceOverviewQuery(filters);
+
+  const summary = summaryQuery.data;
+
+  const updateFilters = (nextFilters: ReportsFilters) => {
+    setSearchParams(createSearchParamsFromReportsFilters(nextFilters));
+  };
+
+  const handleExport = async (formatType: ExportFormat) => {
+    setExportingFormat(formatType);
+
+    try {
+      const blob = await reportsService.exportReport(filters, formatType);
+      downloadBlob(blob, createExportFilename(filters, formatType));
+      toast.success(`${formatType.toUpperCase()} report downloaded.`);
+      return;
+    } catch (error) {
+      if (formatType === "csv" && summary?.recentTransactions.length) {
+        const csv = toCsvString(summary.recentTransactions);
+        const fallbackBlob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+        downloadBlob(fallbackBlob, createExportFilename(filters, "csv"));
+        toast.success("CSV export generated from visible table data.");
+        return;
       }
+
+      toast.error(toErrorMessage(error));
+    } finally {
+      setExportingFormat(null);
     }
   };
 
+  const summaryError = summaryQuery.isError ? toErrorMessage(summaryQuery.error) : undefined;
+  const revenueError = revenueQuery.isError ? toErrorMessage(revenueQuery.error) : undefined;
+  const attendanceError = attendanceQuery.isError ? toErrorMessage(attendanceQuery.error) : undefined;
+
   return (
     <div className="space-y-8">
-      {/* 2.2 Section 1: Overview KPIs */}
-      <motion.div 
-        variants={container} 
-        initial="hidden" 
-        animate="show"
-        className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-      >
-        <KPICard title="Total Members" value="4,231" trend={{ value: 12, isPositive: true }} icon={Users} />
-        <KPICard title="Active Memberships" value="3,802" trend={{ value: 5, isPositive: true }} icon={Activity} />
-        <KPICard title="Monthly Revenue" value="$42,500" trend={{ value: 3.2, isPositive: true }} icon={CreditCard} />
-        <KPICard title="Expiring Soon" value="142" trend={{ value: 2.1, isPositive: false }} icon={AlertTriangle} />
-      </motion.div>
+      <header className="space-y-2">
+        <h1 className="page-title">Dynamic Analytics Dashboard</h1>
+        <p className="body-text text-muted-foreground">
+          Track revenue, memberships, attendance trends, and transaction activity in one responsive reporting view.
+        </p>
+      </header>
 
-      {/* 2.2 Section 2: Analytics & Insights */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <ChartCard title="Revenue Overview" className="lg:col-span-4">
-          <div className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={performanceData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `$${value}`} />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px" }}
-                  itemStyle={{ color: "hsl(var(--foreground))" }}
-                />
-                <Line type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" strokeWidth={3} dot={false} activeDot={{ r: 8 }} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </ChartCard>
-        
-        <ChartCard title="Membership Distribution" className="lg:col-span-3">
-          <div className="h-[300px] flex items-center justify-center">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={memberStatsData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={100}
-                  fill="#8884d8"
-                  paddingAngle={5}
-                  dataKey="value"
-                  stroke="none"
-                >
-                  {memberStatsData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip 
-                  contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px" }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        </ChartCard>
-      </div>
+      <ReportsFilterBar
+        filters={filters}
+        branchOptions={summary?.branchOptions ?? []}
+        classCategoryOptions={summary?.classCategoryOptions ?? []}
+        onChange={updateFilters}
+      />
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {/* 2.2 Section 3: Actionable Alerts */}
-        <Card className="col-span-1 shadow-sm border dark:bg-card/50 dark:backdrop-blur-sm">
-          <CardHeader>
-            <CardTitle className="text-lg">System Alerts</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {[1, 2, 3].map((_, i) => (
-              <motion.div 
-                key={i}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.1 }}
-                className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50 transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="flex size-8 items-center justify-center rounded-full bg-warning/20 text-warning">
-                    <AlertTriangle className="size-4" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">Overdue Payment</p>
-                    <p className="text-xs text-muted-foreground">John Doe - $45.00</p>
-                  </div>
-                </div>
-                <button className="text-xs font-semibold text-primary hover:underline">View</button>
-              </motion.div>
-            ))}
-          </CardContent>
-        </Card>
-
-        {/* 2.2 Section 4: Management Shortcuts */}
-        <div className="col-span-1 lg:col-span-2 space-y-4">
-          <h3 className="text-lg font-medium tracking-tight">Quick Actions</h3>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-            <ActionCard title="Add Member" icon={UserPlus} />
-            <ActionCard title="Record Payment" icon={DollarSign} />
-            <ActionCard title="Manage Plans" icon={Calendar} />
-            <ActionCard title="View Reports" icon={FileText} />
-          </div>
+      {summaryError ? (
+        <div className="rounded-lg border border-danger/40 bg-danger/10 p-4 text-sm text-danger">
+          {summaryError}
         </div>
-      </div>
+      ) : null}
 
-      {/* 2.2 Section 5: Recent Activity */}
-      <Card className="shadow-sm border dark:bg-card/50 dark:backdrop-blur-sm">
-        <CardHeader>
-          <CardTitle>Recent Activity</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-0">
-            {[
-              { id: 1, text: "Sarah Connor started Premium Membership", time: "10 mins ago", status: "success" },
-              { id: 2, text: "Monthly recurring payment failed for Mike Smith", time: "1 hour ago", status: "danger" },
-              { id: 3, text: "New class schedule published for June", time: "2 hours ago", status: "info" },
-            ].map((activity, i) => (
-              <motion.div
-                key={activity.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.1 }}
-                className="flex items-center justify-between border-b p-4 last:border-0 hover:bg-muted/50 cursor-pointer transition-colors"
-              >
-                <div className="flex items-center gap-4">
-                  <div className={`size-2 rounded-full bg-${activity.status}`} />
-                  <p className="text-sm font-medium text-foreground">{activity.text}</p>
-                </div>
-                <span className="text-xs text-muted-foreground">{activity.time}</span>
-              </motion.div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <ReportsKpiCard
+          title="Total Revenue"
+          valueLabel={formatCurrency(summary?.totalRevenue.value ?? 0)}
+          trendPercent={summary?.totalRevenue.changePercent ?? 0}
+          trendDirection={summary?.totalRevenue.trendDirection ?? "flat"}
+          helperText="from previous period"
+          icon={DollarSign}
+          loading={summaryQuery.isPending && !summaryQuery.data}
+        />
+        <ReportsKpiCard
+          title="Active Members"
+          valueLabel={formatInteger(summary?.activeMembers.value ?? 0)}
+          trendPercent={summary?.activeMembers.changePercent ?? 0}
+          trendDirection={summary?.activeMembers.trendDirection ?? "flat"}
+          helperText="from previous period"
+          icon={Users}
+          loading={summaryQuery.isPending && !summaryQuery.data}
+        />
+        <ReportsKpiCard
+          title="Today's Attendance"
+          valueLabel={formatInteger(summary?.todayAttendance.value ?? 0)}
+          trendPercent={summary?.todayAttendance.changePercent ?? 0}
+          trendDirection={summary?.todayAttendance.trendDirection ?? "flat"}
+          helperText="from previous period"
+          icon={CalendarCheck2}
+          loading={summaryQuery.isPending && !summaryQuery.data}
+        />
+        <ReportsKpiCard
+          title="New Signups (This Month)"
+          valueLabel={formatInteger(summary?.newSignups.value ?? 0)}
+          trendPercent={summary?.newSignups.changePercent ?? 0}
+          trendDirection={summary?.newSignups.trendDirection ?? "flat"}
+          helperText="from previous period"
+          icon={UserPlus}
+          loading={summaryQuery.isPending && !summaryQuery.data}
+        />
+      </section>
+
+      <section className="grid gap-4 lg:grid-cols-7">
+        <RevenueOverviewChart
+          data={revenueQuery.data ?? []}
+          period={filters.period}
+          loading={revenueQuery.isPending && !revenueQuery.data}
+          errorMessage={revenueError}
+        />
+        <MembershipDistributionChart
+          data={summary?.membershipDistribution ?? []}
+          loading={summaryQuery.isPending && !summaryQuery.data}
+          errorMessage={summaryError}
+        />
+      </section>
+
+      <section className="grid gap-4 lg:grid-cols-7">
+        <AttendancePatternChart
+          peakHours={attendanceQuery.data?.peakHours ?? []}
+          peakDays={attendanceQuery.data?.peakDays ?? []}
+          loading={attendanceQuery.isPending && !attendanceQuery.data}
+          errorMessage={attendanceError}
+        />
+
+        <div className="lg:col-span-4">
+          <RecentTransactionsTable
+            rows={summary?.recentTransactions ?? []}
+            loading={summaryQuery.isPending && !summaryQuery.data}
+            exportingFormat={exportingFormat}
+            onExport={(formatType) => {
+              void handleExport(formatType);
+            }}
+            errorMessage={summaryError}
+          />
+        </div>
+      </section>
     </div>
   );
 }

@@ -19,6 +19,7 @@ import { MembershipFeatureLibraryPage } from "@/pages/admin/MembershipFeatureLib
 import { MembersManagementPage } from "@/pages/admin/MembersManagementPage";
 import { TrainersManagementPage } from "@/pages/admin/TrainersManagementPage";
 import { StaffManagementPage } from "@/pages/admin/StaffManagementPage";
+import { PaymentsDashboardPage } from "@/pages/admin/PaymentsDashboardPage";
 import { ProductManagementPage } from "@/pages/admin/ProductManagementPage";
 import { ProductPosPage } from "@/pages/admin/ProductPosPage";
 import { ProductSalesHistoryPage } from "@/pages/admin/ProductSalesHistoryPage";
@@ -107,6 +108,14 @@ const App = () => {
                     element={
                       <AdminRoute>
                         <StaffManagementPage />
+                      </AdminRoute>
+                    }
+                  />
+                  <Route
+                    path="payments"
+                    element={
+                      <AdminRoute>
+                        <PaymentsDashboardPage />
                       </AdminRoute>
                     }
                   />
@@ -283,6 +292,14 @@ const App = () => {
                     element={
                       <AdminRoute>
                         <CostManagementPage />
+                      </AdminRoute>
+                    }
+                  />
+                  <Route
+                    path="reports"
+                    element={
+                      <AdminRoute>
+                        <AdminDashboard />
                       </AdminRoute>
                     }
                   />

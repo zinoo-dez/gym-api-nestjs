@@ -398,33 +398,7 @@ export function SystemSettingsPage() {
         </p>
       </header>
 
-      <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
-        <aside className="space-y-4 lg:sticky lg:top-20 lg:h-fit">
-          {SETTINGS_SECTION_GROUPS.map((group) => (
-            <div key={group.tag} className="space-y-2">
-              <p className="meta-text uppercase tracking-wide">{group.tag}</p>
-              <div className="space-y-1">
-                {group.items.map((item) => (
-                  <NavLink
-                    key={item.id}
-                    to={`/settings/${item.id}`}
-                    className={({ isActive }) =>
-                      cn(
-                        "block rounded-lg border px-3 py-2 transition-colors",
-                        isActive
-                          ? "border-primary bg-primary/10"
-                          : "border-border bg-card hover:border-primary/40 hover:bg-muted/30",
-                      )
-                    }
-                  >
-                    <span className="text-sm font-medium text-foreground">{item.label}</span>
-                    <span className="mt-0.5 block text-xs text-muted-foreground">{item.description}</span>
-                  </NavLink>
-                ))}
-              </div>
-            </div>
-          ))}
-        </aside>
+      <div className="grid gap-6">
 
         <section className="space-y-4">
           <div className="space-y-1">
