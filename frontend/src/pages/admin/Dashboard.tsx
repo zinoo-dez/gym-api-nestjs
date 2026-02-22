@@ -23,7 +23,7 @@ const memberStatsData = [
 ];
 const COLORS = ["hsl(var(--primary))", "hsl(var(--secondary))", "hsl(var(--muted))"];
 
-export function AdminDashboard() {
+export function Dashboard() {
   const container = {
     hidden: { opacity: 0 },
     show: {

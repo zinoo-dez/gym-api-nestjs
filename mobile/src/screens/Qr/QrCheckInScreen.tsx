@@ -1,17 +1,22 @@
+import React from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Text, View, Platform } from "react-native";
 import QRCode from "react-native-qrcode-svg";
+import { styled } from "nativewind";
 
 import { AppScreen } from "@/components/ui/AppScreen";
 import { InfoCard } from "@/components/ui/InfoCard";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
-import { colors } from "@/constants/theme";
 import { qrCheckinService } from "@/services/qr-checkin.service";
+
+const StyledView = styled(View);
+const StyledText = styled(Text);
 
 export function QrCheckInScreen() {
   const queryClient = useQueryClient();
+  const isIOS = Platform.OS === "ios";
 
-  const qrQuery = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ["member", "qr-code"],
     queryFn: qrCheckinService.getMyQrCode,
   });
@@ -25,60 +30,66 @@ export function QrCheckInScreen() {
 
   return (
     <AppScreen
-      title="QR Check-In"
-      subtitle="Present this QR code at the gym entrance scanner."
+      title="Check-In"
+      subtitle="Scan this code at the gym entrance to enter."
     >
-      {qrQuery.isLoading ? (
-        <View style={styles.loading}>
-          <ActivityIndicator color={colors.primary} />
-        </View>
-      ) : qrQuery.data ? (
-        <InfoCard title="My QR Code">
-          <View style={styles.qrContainer}>
-            <QRCode value={qrQuery.data.qrCodeToken} size={220} />
-          </View>
+      {isLoading ? (
+        <StyledView className="py-20 items-center">
+          <ActivityIndicator color={isIOS ? "#007AFF" : "#6750A4"} />
+        </StyledView>
+      ) : data ? (
+        <StyledView className="gap-6">
+          {/* Main QR Card */}
+          <StyledView className={`items-center justify-center p-8 ${isIOS ? 'bg-white shadow-lg border border-gray-50' : 'bg-android-surface elevation-3'} rounded-[32px]`}>
+            <StyledView className="p-4 bg-white rounded-2xl">
+              <QRCode
+                value={data.qrCodeToken}
+                size={220}
+                color="black"
+                backgroundColor="white"
+              />
+            </StyledView>
 
-          <Text style={styles.text}>Token: {qrQuery.data.qrCodeToken}</Text>
-          <Text style={styles.text}>
-            Generated: {new Date(qrQuery.data.generatedAt).toLocaleString()}
-          </Text>
-          <Text style={styles.text}>
-            Membership: {qrQuery.data.member.membershipStatus}
-          </Text>
+            <StyledView className="mt-6 items-center">
+              <StyledText className="text-gray-400 text-xs font-bold uppercase tracking-widest">
+                Membership Status
+              </StyledText>
+              <StyledText className={`text-xl font-bold mt-1 ${data.member.membershipStatus === 'ACTIVE' ? 'text-green-500' : 'text-red-500'}`}>
+                {data.member.membershipStatus}
+              </StyledText>
+            </StyledView>
+          </StyledView>
 
-          <PrimaryButton
-            onPress={() => {
-              regenerateMutation.mutate();
-            }}
-            disabled={regenerateMutation.isPending}
-          >
-            {regenerateMutation.isPending ? "Regenerating..." : "Regenerate QR"}
-          </PrimaryButton>
-        </InfoCard>
+          <InfoCard title="Code Details">
+            <StyledView className="flex-row justify-between py-1">
+              <StyledText className="text-gray-500">Last Generated</StyledText>
+              <StyledText className="text-gray-900 font-medium">
+                {new Date(data.generatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </StyledText>
+            </StyledView>
+            <StyledView className="mt-4">
+              <PrimaryButton
+                variant="secondary"
+                onPress={() => regenerateMutation.mutate()}
+                isLoading={regenerateMutation.isPending}
+              >
+                Refresh Code
+              </PrimaryButton>
+            </StyledView>
+          </InfoCard>
+
+          <StyledView className="items-center px-4">
+            <StyledText className="text-gray-400 text-center text-xs leading-5">
+              Your QR code is unique and expires periodically for security.
+              Keep your screen brightness high for faster scanning.
+            </StyledText>
+          </StyledView>
+        </StyledView>
       ) : (
-        <Text style={styles.textMuted}>Unable to load your QR code.</Text>
+        <StyledView className="p-10 items-center">
+          <StyledText className="text-gray-400">Unable to load your QR code.</StyledText>
+        </StyledView>
       )}
     </AppScreen>
   );
 }
-
-const styles = StyleSheet.create({
-  loading: {
-    paddingVertical: 24,
-  },
-  qrContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 12,
-    backgroundColor: "#ffffff",
-    borderRadius: 10,
-  },
-  text: {
-    color: colors.text,
-    fontSize: 14,
-  },
-  textMuted: {
-    color: colors.textMuted,
-    fontSize: 14,
-  },
-});

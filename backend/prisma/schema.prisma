@@ -577,21 +577,67 @@ model Attendance {
 }
 
 model Equipment {
-    id                  String    @id @default(cuid())
-    name                String
-    category            String
-    description         String?
-    quantity            Int       @default(1)
-    lastMaintenanceDate DateTime? @map("last_maintenance_date")
-    nextMaintenanceDate DateTime? @map("next_maintenance_date")
-    maintenanceInterval Int?      @map("maintenance_interval")
-    isActive            Boolean   @default(true)
-    createdAt           DateTime  @default(now()) @map("created_at")
-    updatedAt           DateTime  @updatedAt @map("updated_at")
+    id                   String                    @id @default(cuid())
+    name                 String
+    category             String
+    description          String?
+    quantity             Int                       @default(1)
+    brandModel           String                    @default("") @map("brand_model")
+    serialNumber         String?                   @map("serial_number")
+    purchaseDate         DateTime                  @default(now()) @map("purchase_date")
+    purchaseCost         Float                     @default(0) @map("purchase_cost")
+    warrantyExpiryDate   DateTime                  @default(now()) @map("warranty_expiry_date")
+    condition            String                    @default("good")
+    maintenanceFrequency String                    @default("monthly") @map("maintenance_frequency")
+    lastMaintenanceDate  DateTime                  @default(now()) @map("last_maintenance_date")
+    nextMaintenanceDate  DateTime                  @default(now()) @map("next_maintenance_date")
+    maintenanceInterval  Int?                      @map("maintenance_interval")
+    assignedArea         String                    @default("") @map("assigned_area")
+    notes                String                    @default("")
+    isActive             Boolean                   @default(true)
+    createdAt            DateTime                  @default(now()) @map("created_at")
+    updatedAt            DateTime                  @updatedAt @map("updated_at")
+    maintenanceLogs      EquipmentMaintenanceLog[]
+    auditLogs            EquipmentAuditLog[]
 
     @@index([category])
+    @@index([condition])
+    @@index([nextMaintenanceDate])
+    @@index([warrantyExpiryDate])
     @@index([isActive])
     @@map("equipments")
+}
+
+model EquipmentMaintenanceLog {
+    id          String    @id @default(cuid())
+    equipmentId String    @map("equipment_id")
+    date        DateTime
+    type        String
+    description String
+    cost        Float     @default(0)
+    performedBy String    @map("performed_by")
+    nextDueDate DateTime? @map("next_due_date")
+    createdAt   DateTime  @default(now()) @map("created_at")
+    equipment   Equipment @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+
+    @@index([equipmentId])
+    @@index([date])
+    @@map("equipment_maintenance_logs")
+}
+
+model EquipmentAuditLog {
+    id          String    @id @default(cuid())
+    equipmentId String    @map("equipment_id")
+    date        DateTime  @default(now())
+    action      String
+    description String
+    performedBy String    @map("performed_by")
+    createdAt   DateTime  @default(now()) @map("created_at")
+    equipment   Equipment @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+
+    @@index([equipmentId])
+    @@index([date])
+    @@map("equipment_audit_logs")
 }
 
 model Product {

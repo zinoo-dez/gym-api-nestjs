@@ -1,5 +1,5 @@
 import api from "./api";
-import { User } from "@/stores/auth.store";
+import { User } from "@/store/auth.store";
 
 export interface AuthResponse {
   accessToken: string;

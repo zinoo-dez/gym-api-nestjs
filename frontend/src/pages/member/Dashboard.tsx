@@ -5,7 +5,7 @@ import { ActionCard } from "@/components/ui/ActionCard";
 import { ChartCard } from "@/components/ui/ChartCard";
 import { Card, CardContent } from "@/components/ui/Card";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
-import { useAuthStore } from "@/stores/auth.store";
+import { useAuthStore } from "@/store/auth.store";
 
 const attendanceData = [
   { day: "Mon", visits: 1 },
@@ -17,7 +17,7 @@ const attendanceData = [
   { day: "Sun", visits: 0 },
 ];
 
-export function UserDashboard() {
+export function Dashboard() {
   const { user, logout } = useAuthStore();
   
   const container = {

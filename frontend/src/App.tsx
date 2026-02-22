@@ -1,52 +1,47 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
 
-import { useAuthStore } from "@/stores/auth.store";
+import { useAuthStore } from "@/store/auth.store";
 import AttractionAuthPage from "@/pages/auth/AttractionAuthPage";
-import { AdminLayout } from "@/components/layouts/AdminLayout";
-import { AdminDashboard } from "@/pages/dashboard/AdminDashboard";
-import { UserDashboard } from "@/pages/dashboard/UserDashboard";
+import { AdminLayout } from "@/layouts/AdminLayout";
+import { AuthLayout } from "@/layouts/AuthLayout";
+import { MemberLayout } from "@/layouts/MemberLayout";
+import { PublicLayout } from "@/layouts/PublicLayout";
+import { Dashboard as AdminDashboard } from "@/pages/admin/Dashboard";
+import { Dashboard as MemberDashboard } from "@/pages/member/Dashboard";
+import { EquipmentManagementPage } from "@/pages/admin/EquipmentManagementPage";
+import { CostManagementPage } from "@/pages/admin/CostManagementPage";
+import { MembershipPlansManagementPage } from "@/pages/admin/MembershipPlansManagementPage";
+import { MemberMembershipListPage } from "@/pages/admin/MemberMembershipListPage";
+import { MembershipFeatureLibraryPage } from "@/pages/admin/MembershipFeatureLibraryPage";
+import { MembersManagementPage } from "@/pages/admin/MembersManagementPage";
+import { TrainersManagementPage } from "@/pages/admin/TrainersManagementPage";
+import { StaffManagementPage } from "@/pages/admin/StaffManagementPage";
+import { DesignSystemShowcase } from "@/pages/admin/DesignSystemShowcase";
+import { ProtectedRoute } from "@/routes/ProtectedRoute";
+import { AdminRoute } from "@/routes/AdminRoute";
+import { hasManagementAccess } from "@/lib/roles";
 
 const queryClient = new QueryClient();
 
-// A simple protected route wrapper just in case
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const isAuthenticated = useAuthStore((state) => !!state.accessToken);
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
-  return <>{children}</>;
-};
-
-const PublicRoute = ({ children }: { children: React.ReactNode }) => {
-  const isAuthenticated = useAuthStore((state) => !!state.accessToken);
-  if (isAuthenticated) return <Navigate to="/" replace />;
-  return <>{children}</>;
-};
-
 const DashboardRouter = () => {
   const user = useAuthStore((state) => state.user);
-  
-  const isAdmin = user?.role?.toLowerCase() === "admin";
-  
-  if (isAdmin) {
+
+  if (hasManagementAccess(user?.role)) {
     return <AdminLayout />;
   }
-  
-  // Standard user layout can just use an empty outlet
-  // Later you can add a UserLayout with bottom nav or generic top header
-  return <Outlet />;
+
+  return <MemberLayout />;
 };
 
 const DashboardIndex = () => {
   const user = useAuthStore((state) => state.user);
-  
-  const isAdmin = user?.role?.toLowerCase() === "admin";
 
-  if (isAdmin) {
+  if (hasManagementAccess(user?.role)) {
     return <AdminDashboard />;
   }
-  
-  return <UserDashboard />;
+
+  return <MemberDashboard />;
 };
 
 const App = () => {
@@ -54,22 +49,13 @@ const App = () => {
         <QueryClientProvider client={queryClient}>
             <BrowserRouter>
               <Routes>
-                <Route 
-                  path="/login" 
-                  element={
-                    <PublicRoute>
-                      <AttractionAuthPage />
-                    </PublicRoute>
-                  } 
-                />
-                <Route 
-                  path="/register" 
-                  element={
-                    <PublicRoute>
-                      <AttractionAuthPage />
-                    </PublicRoute>
-                  } 
-                />
+                {/* Auth Routes */}
+                <Route element={<AuthLayout />}>
+                  <Route path="/login" element={<AttractionAuthPage />} />
+                  <Route path="/register" element={<AttractionAuthPage />} />
+                </Route>
+
+                {/* Protected Dashboard Routes */}
                 <Route
                   path="/"
                   element={
@@ -79,7 +65,100 @@ const App = () => {
                   }
                 >
                   <Route index element={<DashboardIndex />} />
+                  
+                  {/* Admin Specific Routes */}
+                  <Route
+                    path="management/members"
+                    element={
+                      <AdminRoute>
+                        <MembersManagementPage />
+                      </AdminRoute>
+                    }
+                  />
+                  <Route
+                    path="management/trainers"
+                    element={
+                      <AdminRoute>
+                        <TrainersManagementPage />
+                      </AdminRoute>
+                    }
+                  />
+                  <Route
+                    path="management/staff"
+                    element={
+                      <AdminRoute>
+                        <StaffManagementPage />
+                      </AdminRoute>
+                    }
+                  />
+                  <Route
+                    path="management/equipment"
+                    element={
+                      <AdminRoute>
+                        <EquipmentManagementPage />
+                      </AdminRoute>
+                    }
+                  />
+                  <Route
+                    path="management/memberships"
+                    element={
+                      <AdminRoute>
+                        <Navigate to="/management/memberships/plans" replace />
+                      </AdminRoute>
+                    }
+                  />
+                  <Route
+                    path="management/memberships/plans"
+                    element={
+                      <AdminRoute>
+                        <MembershipPlansManagementPage />
+                      </AdminRoute>
+                    }
+                  />
+                  <Route
+                    path="management/memberships/members"
+                    element={
+                      <AdminRoute>
+                        <MemberMembershipListPage />
+                      </AdminRoute>
+                    }
+                  />
+                  <Route
+                    path="management/memberships/features"
+                    element={
+                      <AdminRoute>
+                        <MembershipFeatureLibraryPage />
+                      </AdminRoute>
+                    }
+                  />
+                  <Route
+                    path="finance/costs"
+                    element={
+                      <AdminRoute>
+                        <Navigate to="/finance/costs/overview" replace />
+                      </AdminRoute>
+                    }
+                  />
+                  <Route
+                    path="finance/costs/:section"
+                    element={
+                      <AdminRoute>
+                        <CostManagementPage />
+                      </AdminRoute>
+                    }
+                  />
+                  <Route
+                    path="design-system"
+                    element={
+                      <AdminRoute>
+                        <DesignSystemShowcase />
+                      </AdminRoute>
+                    }
+                  />
                 </Route>
+
+                {/* Catch all redirect */}
+                <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </BrowserRouter>
         </QueryClientProvider>

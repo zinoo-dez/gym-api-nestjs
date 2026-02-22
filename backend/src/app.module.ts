@@ -39,6 +39,7 @@ import { TrainerSessionsModule } from './trainer-sessions/trainer-sessions.modul
 import { MarketingModule } from './marketing/marketing.module';
 import { InventorySalesModule } from './inventory-sales/inventory-sales.module';
 import { BodyCompositionModule } from './body-composition/body-composition.module';
+import { EquipmentModule } from './equipment/equipment.module';
 
 @Module({
   imports: [
@@ -82,6 +83,7 @@ import { BodyCompositionModule } from './body-composition/body-composition.modul
     MarketingModule,
     InventorySalesModule,
     BodyCompositionModule,
+    EquipmentModule,
   ],
   controllers: [AppController],
   providers: [
