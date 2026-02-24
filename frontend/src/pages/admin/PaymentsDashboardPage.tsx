@@ -1,14 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import {
-  CalendarRange,
-  FilterX,
-  Plus,
-  RefreshCcw,
-  ReceiptText,
-  TriangleAlert,
-  Wallet,
-  XCircle,
-} from "lucide-react";
+import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import { toast } from "sonner";
 
 import {
@@ -305,16 +296,19 @@ export function PaymentsDashboardPage() {
         <div className="flex items-center gap-2">
           <Button
             type="button"
-            variant="outline"
+            variant="outlined"
             onClick={() => void paymentsQuery.refetch()}
             disabled={paymentsQuery.isFetching}
           >
-            <RefreshCcw className={cn("size-4", paymentsQuery.isFetching ? "animate-spin" : "")} />
-            Refresh
+            <MaterialIcon 
+              icon="refresh" 
+              className={cn("text-lg", paymentsQuery.isFetching ? "animate-spin" : "")} 
+            />
+            <span>Refresh</span>
           </Button>
           <Button type="button" onClick={() => setManualModalOpen(true)}>
-            <Plus className="size-4" />
-            Collect Payment
+            <MaterialIcon icon="add" className="text-lg" />
+            <span>Collect Payment</span>
           </Button>
         </div>
       </header>
@@ -324,7 +318,7 @@ export function PaymentsDashboardPage() {
           title="Total Revenue (MTD)"
           value={formatCurrency(summaryQuery.data?.totalRevenueMtd ?? 0)}
           subtitle="Recognized successful payments this month"
-          icon={Wallet}
+          icon="payments"
           tone="success"
         />
 
@@ -332,7 +326,7 @@ export function PaymentsDashboardPage() {
           title="Pending Invoices (Dues)"
           value={formatCurrency(summaryQuery.data?.pendingInvoicesDues ?? 0)}
           subtitle="Outstanding pending collections"
-          icon={CalendarRange}
+          icon="calendar_month"
           tone="warning"
         />
 
@@ -340,7 +334,7 @@ export function PaymentsDashboardPage() {
           title="Recent Failed Payments"
           value={`${summaryQuery.data?.recentFailedPayments ?? 0}`}
           subtitle="Failed attempts in the last 14 days"
-          icon={XCircle}
+          icon="cancel"
           tone="danger"
         />
       </section>
@@ -436,13 +430,13 @@ export function PaymentsDashboardPage() {
             <div className="flex items-end">
               <Button
                 type="button"
-                variant="ghost"
+                variant="text"
                 className="w-full justify-start"
                 onClick={handleClearFilters}
                 disabled={!hasActiveFilters}
               >
-                <FilterX className="size-4" />
-                Clear Filters
+                <MaterialIcon icon="filter_alt_off" className="text-lg" />
+                <span>Clear Filters</span>
               </Button>
             </div>
           </div>
@@ -458,7 +452,7 @@ export function PaymentsDashboardPage() {
           {paymentsQuery.isError ? (
             <div className="space-y-3 rounded-md border border-danger/40 bg-danger/5 p-4">
               <p className="text-sm text-danger">{toPaymentErrorMessage(paymentsQuery.error)}</p>
-              <Button type="button" variant="outline" onClick={() => void paymentsQuery.refetch()}>
+              <Button type="button" variant="outlined" onClick={() => void paymentsQuery.refetch()}>
                 Retry
               </Button>
             </div>
@@ -512,31 +506,34 @@ export function PaymentsDashboardPage() {
                           <td className="px-4 py-3 align-top">
                             <PaymentStatusBadge status={transaction.status} />
                           </td>
-                          <td className="px-4 py-3 align-top">
-                            <div className="flex justify-end gap-2">
+                          <td className="px-4 py-3 align-middle">
+                            <div className="flex justify-end gap-1">
                               <Button
                                 type="button"
                                 size="sm"
-                                variant="outline"
+                                variant="outlined"
                                 onClick={(event) => {
                                   event.stopPropagation();
                                   handleOpenInvoice(transaction);
                                 }}
+                                title="View Invoice"
                               >
-                                <ReceiptText className="size-4" />
-                                View Invoice
+                                <MaterialIcon icon="receipt_long" className="text-lg" />
+                                <span>Invoice</span>
                               </Button>
 
                               <Button
                                 type="button"
                                 size="sm"
-                                variant="ghost"
+                                variant="text"
                                 onClick={(event) => {
                                   event.stopPropagation();
                                   handleOpenRefund(transaction);
                                 }}
+                                className="text-error hover:bg-error/10 active:bg-error/20"
+                                title="Process Refund"
                               >
-                                Refund
+                                <span>Refund</span>
                               </Button>
                             </div>
                           </td>
@@ -620,10 +617,10 @@ export function PaymentsDashboardPage() {
                       </span>
                     </div>
 
-                    <div className="flex flex-wrap gap-2 pt-1">
+                    <div className="flex flex-wrap gap-2 pt-2">
                       <Button
                         type="button"
-                        variant="outline"
+                        variant="outlined"
                         onClick={() => void handleCancelAutoRenew()}
                         disabled={!canCancelAutoRenew || cancelAutoRenewMutation.isPending}
                       >
@@ -632,8 +629,9 @@ export function PaymentsDashboardPage() {
 
                       <Button
                         type="button"
-                        variant="ghost"
+                        variant="text"
                         onClick={() => handleOpenRefund(selectedTransaction)}
+                        className="text-error hover:bg-error/10 active:bg-error/20"
                       >
                         Process Refund
                       </Button>
@@ -683,10 +681,10 @@ export function PaymentsDashboardPage() {
       />
 
       {summaryQuery.isError ? (
-        <Card>
-          <CardContent className="flex items-center gap-2 p-4 text-sm text-danger">
-            <TriangleAlert className="size-4" />
-            {toPaymentErrorMessage(summaryQuery.error)}
+        <Card className="rounded-2xl border-error/50 bg-error/5">
+          <CardContent className="flex items-center gap-3 p-4 text-error">
+            <MaterialIcon icon="error" className="text-xl" />
+            <span className="text-title-small font-bold">{toPaymentErrorMessage(summaryQuery.error)}</span>
           </CardContent>
         </Card>
       ) : null}

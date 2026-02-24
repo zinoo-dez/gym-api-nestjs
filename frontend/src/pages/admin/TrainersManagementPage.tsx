@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Clock3, Plus, RefreshCcw, UserCheck, Users } from "lucide-react";
+import { MaterialIcon } from "@/components/ui/MaterialIcon";
 
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
@@ -433,8 +433,8 @@ export function TrainersManagementPage() {
           </p>
         </div>
         <Button type="button" onClick={openAddForm}>
-          <Plus className="size-4" />
-          Add Trainer
+          <MaterialIcon icon="add" className="text-lg" />
+          <span>Add Trainer</span>
         </Button>
       </header>
 
@@ -449,9 +449,9 @@ export function TrainersManagementPage() {
           <CardContent className="flex flex-col gap-3 p-6">
             <p className="text-sm text-danger">Unable to load trainer data.</p>
             <div>
-              <Button type="button" variant="outline" onClick={() => void loadData()}>
-                <RefreshCcw className="size-4" />
-                Retry
+              <Button type="button" variant="outlined" onClick={() => void loadData()}>
+                <MaterialIcon icon="refresh" className="text-lg" />
+                <span>Retry</span>
               </Button>
             </div>
           </CardContent>
@@ -475,7 +475,7 @@ export function TrainersManagementPage() {
                 tone="info"
                 active={quickFilter === "all"}
                 onClick={() => setQuickFilter("all")}
-                icon={Users}
+                icon="group"
               />
               <ManagementStatCard
                 title="Active Trainers"
@@ -483,7 +483,7 @@ export function TrainersManagementPage() {
                 tone="success"
                 active={quickFilter === "active"}
                 onClick={() => setQuickFilter((value) => (value === "active" ? "all" : "active"))}
-                icon={UserCheck}
+                icon="how_to_reg"
               />
               <ManagementStatCard
                 title="Assigned Members"
@@ -493,7 +493,7 @@ export function TrainersManagementPage() {
                 onClick={() =>
                   setQuickFilter((value) => (value === "assigned" ? "all" : "assigned"))
                 }
-                icon={UserCheck}
+                icon="how_to_reg"
               />
               <ManagementStatCard
                 title="Sessions This Month"
@@ -501,7 +501,7 @@ export function TrainersManagementPage() {
                 tone="secondary"
                 active={quickFilter === "sessions"}
                 onClick={() => setQuickFilter((value) => (value === "sessions" ? "all" : "sessions"))}
-                icon={Clock3}
+                icon="event_note"
               />
             </div>
           </section>
@@ -610,7 +610,7 @@ export function TrainersManagementPage() {
                       <div className="flex items-center justify-end gap-1">
                         <Button
                           type="button"
-                          variant="ghost"
+                          variant="text"
                           size="sm"
                           onClick={(event) => {
                             event.stopPropagation();
@@ -621,7 +621,7 @@ export function TrainersManagementPage() {
                         </Button>
                         <Button
                           type="button"
-                          variant="ghost"
+                          variant="text"
                           size="sm"
                           onClick={(event) => {
                             event.stopPropagation();
@@ -634,8 +634,9 @@ export function TrainersManagementPage() {
                         </Button>
                         <Button
                           type="button"
-                          variant="outline"
+                          variant="outlined"
                           size="sm"
+                          className="text-error border-error/20 hover:bg-error/5"
                           onClick={(event) => {
                             event.stopPropagation();
                             if (trainer) {
@@ -684,12 +685,12 @@ export function TrainersManagementPage() {
                     </dl>
 
                     <div className="mt-4 flex flex-wrap gap-2">
-                      <Button type="button" variant="ghost" size="sm" onClick={() => openTrainerDetail(row)}>
+                      <Button type="button" variant="text" size="sm" onClick={() => openTrainerDetail(row)}>
                         View
                       </Button>
                       <Button
                         type="button"
-                        variant="ghost"
+                        variant="text"
                         size="sm"
                         onClick={() => {
                           if (trainer) {
@@ -701,8 +702,9 @@ export function TrainersManagementPage() {
                       </Button>
                       <Button
                         type="button"
-                        variant="outline"
+                        variant="outlined"
                         size="sm"
+                        className="text-error border-error/20 hover:bg-error/5"
                         onClick={() => {
                           if (trainer) {
                             void handleToggleActive(trainer, false);

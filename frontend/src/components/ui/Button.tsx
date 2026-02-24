@@ -5,26 +5,26 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full text-label-large transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-38 active:scale-95",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary-hover",
-        danger: "bg-danger text-danger-foreground hover:bg-danger/90",
-        outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
-        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary-hover",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
+        filled: "bg-primary text-on-primary hover:shadow-md",
+        tonal: "bg-secondary-container text-on-secondary-container hover:shadow-sm",
+        outlined: "border border-outline bg-transparent text-primary hover:bg-primary/5",
+        text: "bg-transparent text-primary hover:bg-primary/5",
+        elevated: "bg-surface-container-low text-primary shadow-sm hover:shadow-md hover:bg-primary/5",
+        error: "bg-error text-on-error hover:shadow-md",
       },
       size: {
-        default: "h-10 px-4 py-2",
-        sm: "h-9 rounded-md px-3",
-        lg: "h-11 rounded-md px-8",
-        icon: "h-10 w-10",
+        default: "h-10 px-6",
+        sm: "h-8 px-4 text-label-medium",
+        lg: "h-12 px-8",
+        icon: "h-10 w-10 p-2",
       },
     },
     defaultVariants: {
-      variant: "default",
+      variant: "filled",
       size: "default",
     },
   }

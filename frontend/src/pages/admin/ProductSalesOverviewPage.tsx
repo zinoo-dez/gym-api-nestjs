@@ -1,4 +1,4 @@
-import { BarChart3, Package, ReceiptText, ShoppingCart } from "lucide-react";
+import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import { useNavigate } from "react-router-dom";
 
 import {
@@ -45,40 +45,40 @@ export function ProductSalesOverviewPage() {
         <CardContent className="grid gap-3 md:grid-cols-3">
           <Button
             type="button"
-            variant="outline"
-            className="justify-start"
+            variant="outlined"
+            className="justify-start shadow-sm"
             onClick={() => void navigate("/management/products/management")}
           >
-            <Package className="size-4" />
-            Product Management
+            <MaterialIcon icon="package" className="text-lg" />
+            <span>Product Management</span>
           </Button>
 
           <Button
             type="button"
-            variant="outline"
-            className="justify-start"
+            variant="outlined"
+            className="justify-start shadow-sm"
             onClick={() => void navigate("/management/products/pos")}
           >
-            <ShoppingCart className="size-4" />
-            POS
+            <MaterialIcon icon="shopping_cart" className="text-lg" />
+            <span>POS</span>
           </Button>
 
           <Button
             type="button"
-            variant="outline"
-            className="justify-start"
+            variant="outlined"
+            className="justify-start shadow-sm"
             onClick={() => void navigate("/management/products/history")}
           >
-            <ReceiptText className="size-4" />
-            Sales History
+            <MaterialIcon icon="receipt_long" className="text-lg" />
+            <span>Sales History</span>
           </Button>
         </CardContent>
       </Card>
 
       <Card>
-        <CardContent className="flex items-center gap-2 p-4 text-sm text-muted-foreground">
-          <BarChart3 className="size-4 text-info" />
-          Revenue and top-selling data use a 30-day rolling window for trend context.
+        <CardContent className="flex items-center gap-3 p-4 text-body-small text-on-surface-variant">
+          <MaterialIcon icon="bar_chart" className="text-lg text-primary" />
+          <span>Revenue and top-selling data use a 30-day rolling window for trend context.</span>
         </CardContent>
       </Card>
 

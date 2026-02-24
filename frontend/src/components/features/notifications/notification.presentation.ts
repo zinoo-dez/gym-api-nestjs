@@ -1,13 +1,3 @@
-import {
-  AlertTriangle,
-  Bell,
-  CreditCard,
-  PackageMinus,
-  UserPlus,
-  Users,
-  type LucideIcon,
-} from "lucide-react";
-
 import { formatDate } from "@/lib/date-utils";
 import type {
   NotificationCategory,
@@ -22,7 +12,7 @@ interface ToneStyle {
 }
 
 interface NotificationVisual {
-  Icon: LucideIcon;
+  materialIcon: string;
   toneStyle: ToneStyle;
 }
 
@@ -34,24 +24,24 @@ const CATEGORY_LABELS: Record<NotificationCategory, string> = {
 
 const TONE_STYLES: Record<NotificationTone, ToneStyle> = {
   danger: {
-    iconContainerClassName: "bg-danger/15",
-    iconClassName: "text-danger",
-    badgeClassName: "bg-danger/15 text-danger",
+    iconContainerClassName: "bg-error-container",
+    iconClassName: "text-on-error-container",
+    badgeClassName: "bg-error text-on-error",
   },
   warning: {
-    iconContainerClassName: "bg-warning/20",
-    iconClassName: "text-warning",
-    badgeClassName: "bg-warning/20 text-warning",
+    iconContainerClassName: "bg-warning-container",
+    iconClassName: "text-on-warning-container",
+    badgeClassName: "bg-warning text-on-warning",
   },
   success: {
-    iconContainerClassName: "bg-success/15",
-    iconClassName: "text-success",
-    badgeClassName: "bg-success/15 text-success",
+    iconContainerClassName: "bg-success-container",
+    iconClassName: "text-on-success-container",
+    badgeClassName: "bg-success text-on-success",
   },
   info: {
-    iconContainerClassName: "bg-info/15",
-    iconClassName: "text-info",
-    badgeClassName: "bg-info/15 text-info",
+    iconContainerClassName: "bg-primary-container",
+    iconClassName: "text-on-primary-container",
+    badgeClassName: "bg-primary text-on-primary",
   },
 };
 
@@ -59,40 +49,60 @@ const includesKeyword = (text: string, keywords: string[]): boolean => {
   return keywords.some((keyword) => text.includes(keyword));
 };
 
-const resolveIcon = (notification: NotificationRecord): LucideIcon => {
+const resolveMaterialIcon = (notification: NotificationRecord): string => {
   const content = `${notification.title} ${notification.message}`.toLowerCase();
 
   if (includesKeyword(content, ["low stock", "restock"])) {
-    return PackageMinus;
+    return "inventory_2";
   }
 
-  if (includesKeyword(content, ["joined", "new member", "new trainer", "registered", "signup"])) {
-    return UserPlus;
+  if (
+    includesKeyword(content, [
+      "joined",
+      "new member",
+      "new trainer",
+      "registered",
+      "signup",
+    ])
+  ) {
+    return "person_add";
   }
 
-  if (includesKeyword(content, ["overdue", "failed", "rejected", "high-risk", "high risk"])) {
-    return AlertTriangle;
+  if (
+    includesKeyword(content, [
+      "overdue",
+      "failed",
+      "rejected",
+      "high-risk",
+      "high risk",
+    ])
+  ) {
+    return "report_problem";
   }
 
   if (notification.category === "payments") {
-    return CreditCard;
+    return "payments";
   }
 
   if (notification.category === "members") {
-    return Users;
+    return "group";
   }
 
-  return Bell;
+  return "notifications";
 };
 
-export const getNotificationVisual = (notification: NotificationRecord): NotificationVisual => {
+export const getNotificationVisual = (
+  notification: NotificationRecord,
+): NotificationVisual => {
   return {
-    Icon: resolveIcon(notification),
+    materialIcon: resolveMaterialIcon(notification),
     toneStyle: TONE_STYLES[notification.tone],
   };
 };
 
-export const getNotificationCategoryLabel = (category: NotificationCategory): string => {
+export const getNotificationCategoryLabel = (
+  category: NotificationCategory,
+): string => {
   return CATEGORY_LABELS[category];
 };
 

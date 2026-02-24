@@ -1,4 +1,4 @@
-import { ArrowDownUp, Eye } from "lucide-react";
+import { MaterialIcon } from "@/components/ui/MaterialIcon";
 
 import {
   MembershipRecord,
@@ -24,30 +24,33 @@ export function MemberMembershipTable({
 }: MemberMembershipTableProps) {
   return (
     <>
-      <div className="hidden overflow-x-auto rounded-lg border bg-card md:block">
-        <table className="min-w-full border-collapse text-sm">
+      <div className="hidden overflow-x-auto rounded-2xl border border-outline-variant bg-surface-container-low md:block">
+        <table className="min-w-full border-collapse text-left">
           <thead>
-            <tr className="border-b bg-muted/20">
-              <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Member</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Plan</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Start Date</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
+            <tr className="border-b border-outline-variant bg-surface-container">
+              <th className="px-4 py-4 text-label-large font-bold text-on-surface-variant">Member</th>
+              <th className="px-4 py-4 text-label-large font-bold text-on-surface-variant">Plan</th>
+              <th className="px-4 py-4 text-label-large font-bold text-on-surface-variant">Start Date</th>
+              <th className="px-4 py-4 text-label-large font-bold text-on-surface-variant">
                 <button
                   type="button"
-                  className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground"
+                  className="group inline-flex items-center gap-1.5 text-label-large font-bold text-on-surface-variant transition-colors hover:text-on-surface"
                   onClick={onSortChange}
                 >
                   End Date
-                  <ArrowDownUp className="size-3.5" />
+                  <MaterialIcon
+                    icon={sort === "expiry_asc" ? "arrow_upward" : "arrow_downward"}
+                    className="text-lg transition-transform group-hover:scale-110"
+                  />
                   <span className="sr-only">
                     Sorted {sort === "expiry_asc" ? "ascending" : "descending"}
                   </span>
                 </button>
               </th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Remaining Days</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Status</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Payment Status</th>
-              <th className="px-4 py-3 text-right text-sm font-medium text-muted-foreground">Actions</th>
+              <th className="px-4 py-4 text-label-large font-bold text-on-surface-variant">Remaining</th>
+              <th className="px-4 py-4 text-label-large font-bold text-on-surface-variant">Status</th>
+              <th className="px-4 py-4 text-label-large font-bold text-on-surface-variant">Payment</th>
+              <th className="px-4 py-4 text-right text-label-large font-bold text-on-surface-variant">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -57,35 +60,35 @@ export function MemberMembershipTable({
                 className="cursor-pointer border-b transition-colors hover:bg-muted/50 last:border-0"
                 onClick={() => onView(membership)}
               >
-                <td className="px-4 py-3 align-top">
-                  <div className="space-y-1">
-                    <p className="font-medium text-foreground">{membership.memberName}</p>
-                    <p className="text-xs text-muted-foreground">{membership.memberEmail}</p>
+                <td className="px-4 py-4 align-middle">
+                  <div className="space-y-0.5">
+                    <p className="text-title-small font-bold text-on-surface">{membership.memberName}</p>
+                    <p className="text-label-small text-on-surface-variant">{membership.memberEmail}</p>
                   </div>
                 </td>
-                <td className="px-4 py-3 align-top text-foreground">{membership.planName}</td>
-                <td className="px-4 py-3 align-top text-foreground">{formatDisplayDate(membership.startDate)}</td>
-                <td className="px-4 py-3 align-top text-foreground">{formatDisplayDate(membership.endDate)}</td>
-                <td className="px-4 py-3 align-top text-foreground">{membership.remainingDays}</td>
-                <td className="px-4 py-3 align-top">
+                <td className="px-4 py-4 align-middle text-body-medium text-on-surface">{membership.planName}</td>
+                <td className="px-4 py-4 align-middle text-body-medium text-on-surface">{formatDisplayDate(membership.startDate)}</td>
+                <td className="px-4 py-4 align-middle text-body-medium font-medium text-on-surface">{formatDisplayDate(membership.endDate)}</td>
+                <td className="px-4 py-4 align-middle text-body-medium text-on-surface">{membership.remainingDays} days</td>
+                <td className="px-4 py-4 align-middle">
                   <MembershipStatusBadge status={membership.status} />
                 </td>
-                <td className="px-4 py-3 align-top">
+                <td className="px-4 py-4 align-middle">
                   <MembershipPaymentStatusBadge status={membership.paymentStatus} />
                 </td>
-                <td className="px-4 py-3 align-top">
-                  <div className="flex items-center justify-end gap-2">
+                <td className="px-4 py-4 align-middle">
+                  <div className="flex items-center justify-end">
                     <Button
                       type="button"
-                      variant="ghost"
+                      variant="text"
                       size="sm"
                       onClick={(event) => {
                         event.stopPropagation();
                         onView(membership);
                       }}
+                      title="View details"
                     >
-                      <Eye className="size-4" />
-                      View
+                      <MaterialIcon icon="visibility" className="text-xl" />
                     </Button>
                   </div>
                 </td>
@@ -99,52 +102,53 @@ export function MemberMembershipTable({
         {memberships.map((membership) => (
           <article
             key={membership.id}
-            className="rounded-lg border bg-card p-4 shadow-sm"
+            className="rounded-2xl border border-outline-variant bg-surface-container-low p-4 transition-all hover:bg-surface-container active:bg-surface-container-high"
             onClick={() => onView(membership)}
           >
             <div className="flex items-start justify-between gap-3">
-              <div>
-                <h3 className="text-base font-semibold tracking-tight text-foreground">
+              <div className="space-y-1">
+                <h3 className="text-title-medium font-bold text-on-surface">
                   {membership.memberName}
                 </h3>
-                <p className="text-sm text-muted-foreground">{membership.planName}</p>
+                <p className="text-title-small text-on-surface-variant">{membership.planName}</p>
               </div>
               <MembershipStatusBadge status={membership.status} />
             </div>
 
-            <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
-              <div>
-                <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Start</dt>
-                <dd className="text-foreground">{formatDisplayDate(membership.startDate)}</dd>
+            <dl className="mt-4 grid grid-cols-2 gap-4">
+              <div className="space-y-0.5">
+                <dt className="text-label-small font-bold uppercase tracking-wider text-on-surface-variant/80">Start</dt>
+                <dd className="text-body-medium text-on-surface">{formatDisplayDate(membership.startDate)}</dd>
               </div>
-              <div>
-                <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">End</dt>
-                <dd className="text-foreground">{formatDisplayDate(membership.endDate)}</dd>
+              <div className="space-y-0.5 text-right">
+                <dt className="text-label-small font-bold uppercase tracking-wider text-on-surface-variant/80">End</dt>
+                <dd className="text-body-medium font-medium text-on-surface">{formatDisplayDate(membership.endDate)}</dd>
               </div>
-              <div>
-                <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Remaining</dt>
-                <dd className="text-foreground">{membership.remainingDays} days</dd>
+              <div className="space-y-0.5">
+                <dt className="text-label-small font-bold uppercase tracking-wider text-on-surface-variant/80">Remaining</dt>
+                <dd className="text-body-medium text-on-surface">{membership.remainingDays} days</dd>
               </div>
-              <div>
-                <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Payment</dt>
+              <div className="space-y-0.5 text-right">
+                <dt className="text-label-small font-bold uppercase tracking-wider text-on-surface-variant/80">Payment</dt>
                 <dd>
                   <MembershipPaymentStatusBadge status={membership.paymentStatus} />
                 </dd>
               </div>
             </dl>
 
-            <div className="mt-4 flex flex-wrap gap-2">
+            <div className="mt-4">
               <Button
                 type="button"
-                variant="ghost"
+                variant="tonal"
                 size="sm"
+                className="w-full"
                 onClick={(event) => {
                   event.stopPropagation();
                   onView(membership);
                 }}
               >
-                <Eye className="size-4" />
-                View Details
+                <MaterialIcon icon="visibility" className="text-lg" />
+                <span>View Details</span>
               </Button>
             </div>
           </article>

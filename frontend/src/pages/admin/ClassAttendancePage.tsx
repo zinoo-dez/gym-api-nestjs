@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { addDays, addWeeks, format, subDays, subWeeks } from "date-fns";
-import { CalendarDays, ChevronLeft, ChevronRight, SquarePen } from "lucide-react";
+import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -154,11 +154,11 @@ export function ClassAttendancePage() {
 
           <Button
             type="button"
-            variant="outline"
+            variant="outlined"
             onClick={() => void navigate("/management/classes/schedule")}
           >
-            <SquarePen className="size-4" />
-            Open Scheduling
+            <MaterialIcon icon="edit_calendar" className="text-lg" />
+            <span>Open Scheduling</span>
           </Button>
         </div>
 
@@ -167,7 +167,7 @@ export function ClassAttendancePage() {
             <Button
               type="button"
               size="sm"
-              variant={viewMode === "week" ? "default" : "outline"}
+              variant={viewMode === "week" ? "tonal" : "outlined"}
               onClick={() => setViewMode("week")}
             >
               Weekly
@@ -175,7 +175,7 @@ export function ClassAttendancePage() {
             <Button
               type="button"
               size="sm"
-              variant={viewMode === "day" ? "default" : "outline"}
+              variant={viewMode === "day" ? "tonal" : "outlined"}
               onClick={() => setViewMode("day")}
             >
               Daily
@@ -183,19 +183,19 @@ export function ClassAttendancePage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <Button type="button" size="sm" variant="outline" onClick={handlePrevious}>
-              <ChevronLeft className="size-4" />
-              Previous
+            <Button type="button" size="sm" variant="outlined" onClick={handlePrevious}>
+              <MaterialIcon icon="chevron_left" className="text-lg" />
+              <span>Previous</span>
             </Button>
 
-            <Button type="button" size="sm" variant="outline" onClick={handleToday}>
-              <CalendarDays className="size-4" />
-              Today
+            <Button type="button" size="sm" variant="outlined" onClick={handleToday}>
+              <MaterialIcon icon="today" className="text-lg" />
+              <span>Today</span>
             </Button>
 
-            <Button type="button" size="sm" variant="outline" onClick={handleNext}>
-              Next
-              <ChevronRight className="size-4" />
+            <Button type="button" size="sm" variant="outlined" onClick={handleNext}>
+              <span>Next</span>
+              <MaterialIcon icon="chevron_right" className="text-lg" />
             </Button>
           </div>
 

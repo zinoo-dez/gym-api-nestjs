@@ -1,4 +1,9 @@
-export const MEMBERSHIP_PLAN_TYPES = ["monthly", "quarterly", "yearly", "custom"] as const;
+export const MEMBERSHIP_PLAN_TYPES = [
+  "monthly",
+  "quarterly",
+  "yearly",
+  "custom",
+] as const;
 
 export type MembershipPlanType = (typeof MEMBERSHIP_PLAN_TYPES)[number];
 
@@ -9,7 +14,10 @@ export const MEMBERSHIP_PLAN_TYPE_LABELS: Record<MembershipPlanType, string> = {
   custom: "Custom",
 };
 
-export const MEMBERSHIP_PLAN_TYPE_DURATIONS: Record<Exclude<MembershipPlanType, "custom">, number> = {
+export const MEMBERSHIP_PLAN_TYPE_DURATIONS: Record<
+  Exclude<MembershipPlanType, "custom">,
+  number
+> = {
   monthly: 30,
   quarterly: 90,
   yearly: 365,
@@ -43,22 +51,27 @@ export const MEMBERSHIP_DISPLAY_STATUSES = [
   "pending",
 ] as const;
 
-export type MembershipDisplayStatus = (typeof MEMBERSHIP_DISPLAY_STATUSES)[number];
+export type MembershipDisplayStatus =
+  (typeof MEMBERSHIP_DISPLAY_STATUSES)[number];
 
-export const MEMBERSHIP_STATUS_LABELS: Record<MembershipDisplayStatus, string> = {
-  active: "Active",
-  expiring_soon: "Expiring Soon",
-  expired: "Expired",
-  frozen: "Frozen",
-  pending: "Pending",
-};
+export const MEMBERSHIP_STATUS_LABELS: Record<MembershipDisplayStatus, string> =
+  {
+    active: "Active",
+    expiring_soon: "Expiring Soon",
+    expired: "Expired",
+    frozen: "Frozen",
+    pending: "Pending",
+  };
 
-export const MEMBERSHIP_STATUS_BADGE_STYLES: Record<MembershipDisplayStatus, string> = {
-  active: "bg-success/20 text-success",
-  expiring_soon: "bg-warning/20 text-warning",
-  expired: "bg-danger/20 text-danger",
-  frozen: "bg-info/20 text-info",
-  pending: "bg-secondary text-secondary-foreground",
+export const MEMBERSHIP_STATUS_BADGE_STYLES: Record<
+  MembershipDisplayStatus,
+  string
+> = {
+  active: "bg-tertiary-container text-on-tertiary-container",
+  expiring_soon: "bg-error-container text-on-error-container",
+  expired: "bg-surface-variant text-on-surface-variant",
+  frozen: "bg-secondary-container text-on-secondary-container",
+  pending: "bg-surface-container-high text-on-surface-variant",
 };
 
 export const MEMBERSHIP_QUICK_FILTERS = [
@@ -75,46 +88,70 @@ export const MEMBERSHIP_PLAN_STATUSES = ["active", "inactive"] as const;
 
 export type MembershipPlanStatus = (typeof MEMBERSHIP_PLAN_STATUSES)[number];
 
-export const MEMBERSHIP_PLAN_STATUS_LABELS: Record<MembershipPlanStatus, string> = {
+export const MEMBERSHIP_PLAN_STATUS_LABELS: Record<
+  MembershipPlanStatus,
+  string
+> = {
   active: "Active",
   inactive: "Inactive",
 };
 
-export const MEMBERSHIP_PLAN_STATUS_BADGE_STYLES: Record<MembershipPlanStatus, string> = {
-  active: "bg-success/20 text-success",
-  inactive: "bg-secondary text-secondary-foreground",
+export const MEMBERSHIP_PLAN_STATUS_BADGE_STYLES: Record<
+  MembershipPlanStatus,
+  string
+> = {
+  active: "bg-tertiary-container text-on-tertiary-container",
+  inactive: "bg-surface-variant text-on-surface-variant",
 };
 
-export const MEMBERSHIP_PAYMENT_STATUSES = ["PENDING", "PAID", "REJECTED", "UNKNOWN"] as const;
+export const MEMBERSHIP_PAYMENT_STATUSES = [
+  "PENDING",
+  "PAID",
+  "REJECTED",
+  "UNKNOWN",
+] as const;
 
-export type MembershipPaymentStatus = (typeof MEMBERSHIP_PAYMENT_STATUSES)[number];
+export type MembershipPaymentStatus =
+  (typeof MEMBERSHIP_PAYMENT_STATUSES)[number];
 
-export const MEMBERSHIP_PAYMENT_STATUS_LABELS: Record<MembershipPaymentStatus, string> = {
+export const MEMBERSHIP_PAYMENT_STATUS_LABELS: Record<
+  MembershipPaymentStatus,
+  string
+> = {
   PENDING: "Pending",
   PAID: "Paid",
   REJECTED: "Rejected",
   UNKNOWN: "Not Recorded",
 };
 
-export const MEMBERSHIP_PAYMENT_STATUS_BADGE_STYLES: Record<MembershipPaymentStatus, string> = {
-  PENDING: "bg-warning/20 text-warning",
-  PAID: "bg-success/20 text-success",
-  REJECTED: "bg-danger/20 text-danger",
-  UNKNOWN: "bg-secondary text-secondary-foreground",
+export const MEMBERSHIP_PAYMENT_STATUS_BADGE_STYLES: Record<
+  MembershipPaymentStatus,
+  string
+> = {
+  PENDING: "bg-error-container text-on-error-container",
+  PAID: "bg-tertiary-container text-on-tertiary-container",
+  REJECTED: "bg-error text-on-error",
+  UNKNOWN: "bg-surface-variant text-on-surface-variant",
 };
 
 export const FEATURE_LIBRARY_STATUSES = ["active", "inactive"] as const;
 
 export type FeatureLibraryStatus = (typeof FEATURE_LIBRARY_STATUSES)[number];
 
-export const FEATURE_LIBRARY_STATUS_LABELS: Record<FeatureLibraryStatus, string> = {
+export const FEATURE_LIBRARY_STATUS_LABELS: Record<
+  FeatureLibraryStatus,
+  string
+> = {
   active: "Active",
   inactive: "Inactive",
 };
 
-export const FEATURE_LIBRARY_STATUS_BADGE_STYLES: Record<FeatureLibraryStatus, string> = {
-  active: "bg-success/20 text-success",
-  inactive: "bg-secondary text-secondary-foreground",
+export const FEATURE_LIBRARY_STATUS_BADGE_STYLES: Record<
+  FeatureLibraryStatus,
+  string
+> = {
+  active: "bg-primary-container text-on-primary-container",
+  inactive: "bg-surface-variant text-on-surface-variant",
 };
 
 export const PLAN_SORT_OPTIONS = [

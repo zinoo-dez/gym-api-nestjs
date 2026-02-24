@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ArrowDownAZ, ArrowUpAZ, Download } from "lucide-react";
+import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import { format, isValid, parseISO } from "date-fns";
 
 import type { ExportFormat, ReportActivityRow } from "@/features/reports";
@@ -103,7 +103,7 @@ export function RecentTransactionsTable({
         );
       }
 
-      return compareValues(left[sortColumn], right[sortColumn], sortDirection);
+      return compareValues((left as any)[sortColumn], (right as any)[sortColumn], sortDirection);
     });
 
     return nextRows;
@@ -119,8 +119,6 @@ export function RecentTransactionsTable({
     setSortDirection(column === "timestamp" ? "desc" : "asc");
   };
 
-  const SortIcon = sortDirection === "asc" ? ArrowUpAZ : ArrowDownAZ;
-
   return (
     <Card className="shadow-sm">
       <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -131,23 +129,23 @@ export function RecentTransactionsTable({
         <div className="flex items-center gap-2">
           <Button
             type="button"
-            variant="outline"
+            variant="outlined"
             size="sm"
             onClick={() => onExport("csv")}
             disabled={exportingFormat !== null}
           >
-            <Download className="size-4" />
-            {exportingFormat === "csv" ? "Exporting CSV..." : "Export CSV"}
+            <MaterialIcon icon="download" className="text-sm" />
+            <span>{exportingFormat === "csv" ? "Exporting CSV..." : "Export CSV"}</span>
           </Button>
           <Button
             type="button"
-            variant="outline"
+            variant="outlined"
             size="sm"
             onClick={() => onExport("pdf")}
             disabled={exportingFormat !== null}
           >
-            <Download className="size-4" />
-            {exportingFormat === "pdf" ? "Exporting PDF..." : "Export PDF"}
+            <MaterialIcon icon="download" className="text-sm" />
+            <span>{exportingFormat === "pdf" ? "Exporting PDF..." : "Export PDF"}</span>
           </Button>
         </div>
       </CardHeader>
@@ -187,8 +185,13 @@ export function RecentTransactionsTable({
                             active && "text-foreground",
                           )}
                         >
-                          {column.label}
-                          {active ? <SortIcon className="size-3.5" /> : null}
+                           {column.label}
+                           {active ? (
+                             <MaterialIcon 
+                               icon={sortDirection === "asc" ? "arrow_upward" : "arrow_downward"} 
+                               className="text-sm" 
+                             />
+                           ) : null}
                         </button>
                       </th>
                     );

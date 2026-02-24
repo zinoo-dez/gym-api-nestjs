@@ -1,6 +1,4 @@
-import type { ComponentType } from "react";
-import { AlertTriangle, BadgeCheck, Snowflake, Wallet, XCircle } from "lucide-react";
-
+import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import {
   MembershipOverviewMetrics,
   MembershipQuickFilter,
@@ -18,7 +16,7 @@ interface MembershipOverviewKpisProps {
 interface KpiCardProps {
   title: string;
   value: string;
-  icon: ComponentType<{ className?: string }>;
+  icon: string;
   tone: "primary" | "success" | "warning" | "danger" | "info";
   helperText?: string;
   active: boolean;
@@ -26,17 +24,17 @@ interface KpiCardProps {
 }
 
 const TONE_STYLES: Record<KpiCardProps["tone"], string> = {
-  primary: "bg-primary/10 text-primary",
-  success: "bg-success/20 text-success",
-  warning: "bg-warning/20 text-warning",
-  danger: "bg-danger/20 text-danger",
-  info: "bg-info/20 text-info",
+  primary: "bg-primary-container text-on-primary-container",
+  success: "bg-tertiary-container text-on-tertiary-container",
+  warning: "bg-error-container text-on-error-container",
+  danger: "bg-error text-on-error",
+  info: "bg-secondary-container text-on-secondary-container",
 };
 
 function KpiCard({
   title,
   value,
-  icon: Icon,
+  icon,
   tone,
   helperText,
   active,
@@ -46,20 +44,30 @@ function KpiCard({
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-lg border bg-card p-4 text-left shadow-sm transition-colors hover:bg-muted/30 ${
-        active ? "border-primary" : "border-border"
+      className={`relative flex flex-col items-start justify-between gap-4 rounded-2xl border p-5 text-left transition-all duration-200 hover:shadow-md active:scale-[0.98] ${
+        active 
+          ? "border-primary bg-primary/5 ring-1 ring-primary shadow-sm" 
+          : "border-outline-variant bg-surface-container-low hover:bg-surface-container hover:border-outline"
       }`}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="space-y-1">
-          <p className="text-sm font-medium text-muted-foreground">{title}</p>
-          <p className="text-2xl font-semibold tracking-tight text-foreground">{value}</p>
-          {helperText ? <p className="text-xs text-muted-foreground">{helperText}</p> : null}
+      <div className="flex w-full items-start justify-between gap-3">
+        <div className="space-y-1.5 min-w-0">
+          <p className="text-label-medium font-bold text-on-surface-variant line-clamp-1">{title}</p>
+          <p className="text-headline-small font-bold tracking-tight text-on-surface">{value}</p>
+          {helperText ? (
+            <p className="text-body-small text-on-surface-variant font-medium">{helperText}</p>
+          ) : null}
         </div>
-        <div className={`rounded-full p-2 ${TONE_STYLES[tone]}`}>
-          <Icon className="size-5" />
+        <div className={`flex size-12 shrink-0 items-center justify-center rounded-2xl shadow-sm transition-transform ${TONE_STYLES[tone]}`}>
+          <MaterialIcon icon={icon} className="text-2xl" />
         </div>
       </div>
+      
+      {active && (
+        <div className="absolute top-2 right-2 flex size-5 items-center justify-center rounded-full bg-primary shadow-sm">
+          <MaterialIcon icon="check" className="text-on-primary text-sm" weight={700} opticalSize={16} />
+        </div>
+      )}
     </button>
   );
 }
@@ -71,11 +79,11 @@ export function MembershipOverviewKpis({
   revenuePeriodDays,
 }: MembershipOverviewKpisProps) {
   return (
-    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
       <KpiCard
-        title="Total Active Memberships"
+        title="Active Members"
         value={String(metrics.totalActiveMemberships)}
-        icon={BadgeCheck}
+        icon="how_to_reg"
         tone="success"
         active={activeFilter === "active"}
         onClick={() => onFilterChange("active")}
@@ -83,7 +91,7 @@ export function MembershipOverviewKpis({
       <KpiCard
         title="Expiring Soon"
         value={String(metrics.expiringSoon)}
-        icon={AlertTriangle}
+        icon="notification_important"
         tone="warning"
         active={activeFilter === "expiring_soon"}
         onClick={() => onFilterChange("expiring_soon")}
@@ -91,7 +99,7 @@ export function MembershipOverviewKpis({
       <KpiCard
         title="Expired"
         value={String(metrics.expired)}
-        icon={XCircle}
+        icon="history"
         tone="danger"
         active={activeFilter === "expired"}
         onClick={() => onFilterChange("expired")}
@@ -99,16 +107,16 @@ export function MembershipOverviewKpis({
       <KpiCard
         title="Frozen"
         value={String(metrics.frozen)}
-        icon={Snowflake}
+        icon="ac_unit"
         tone="info"
         active={activeFilter === "frozen"}
         onClick={() => onFilterChange("frozen")}
       />
       <KpiCard
-        title="Total Membership Revenue"
+        title="Revenue"
         value={formatCurrency(metrics.totalMembershipRevenue)}
         helperText={getMembershipRevenuePeriodLabel(revenuePeriodDays)}
-        icon={Wallet}
+        icon="payments"
         tone="primary"
         active={activeFilter === "all"}
         onClick={() => onFilterChange("all")}

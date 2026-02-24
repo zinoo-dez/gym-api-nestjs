@@ -1,21 +1,9 @@
-import {
-  AlertTriangle,
-  Eye,
-  Pencil,
-  Plus,
-  Power,
-  RefreshCcw,
-  UserCheck,
-  UserPlus,
-  UserX,
-  Users,
-} from "lucide-react";
-
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Select } from "@/components/ui/Select";
+import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import {
   ManagementDataTable,
   ManagementFilterShell,
@@ -79,49 +67,58 @@ export function MembersManagementPage() {
 
   return (
     <div className="space-y-8">
-      <header className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 className="page-title">Members Management</h1>
-          <p className="body-text text-muted-foreground">
+      <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="space-y-1">
+          <h1 className="text-display-small font-bold text-on-surface">Members Management</h1>
+          <p className="text-body-large text-on-surface-variant max-w-2xl">
             Full operational control over member profiles, membership lifecycle, and account status.
           </p>
         </div>
-        <Button type="button" onClick={openAddForm}>
-          <Plus className="size-4" />
-          Add Member
+        <Button type="button" onClick={openAddForm} className="h-14 px-8 shadow-md">
+          <MaterialIcon icon="person_add" className="text-xl" />
+          <span>Add Member</span>
         </Button>
       </header>
 
       {loadState === "loading" ? (
-        <Card>
-          <CardContent className="p-6 text-sm text-muted-foreground">Loading members...</CardContent>
-        </Card>
-      ) : null}
-
-      {loadState === "error" ? (
-        <Card>
-          <CardContent className="flex flex-col gap-3 p-6">
-            <p className="text-sm text-danger">Unable to load members data.</p>
-            <div>
-              <Button type="button" variant="outline" onClick={() => void loadData()}>
-                <RefreshCcw className="size-4" />
-                Retry
-              </Button>
+        <Card variant="filled" className="bg-surface-container">
+          <CardContent className="p-8 text-center text-body-medium text-on-surface-variant font-medium">
+            <div className="flex flex-col items-center gap-3">
+              <div className="size-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+              Loading members directory...
             </div>
           </CardContent>
         </Card>
       ) : null}
 
-      {actionError ? (
-        <Card>
-          <CardContent className="p-4 text-sm text-danger">{actionError}</CardContent>
+      {loadState === "error" ? (
+        <Card variant="outlined" className="border-error">
+          <CardContent className="flex flex-col items-center gap-4 p-8 text-center">
+            <div className="size-14 flex items-center justify-center rounded-full bg-error-container text-on-error-container">
+              <MaterialIcon icon="report_problem" className="text-3xl" />
+            </div>
+            <div className="space-y-1">
+              <p className="text-title-medium font-bold text-on-surface">Unable to load members data.</p>
+              <p className="text-body-small text-on-surface-variant">Please check your connection or try again.</p>
+            </div>
+            <Button type="button" variant="tonal" onClick={() => void loadData()}>
+              <MaterialIcon icon="refresh" />
+              Retry
+            </Button>
+          </CardContent>
         </Card>
+      ) : null}
+
+      {actionError ? (
+        <div className="rounded-xl bg-error-container p-4 text-on-error-container text-label-large font-bold shadow-sm">
+          {actionError}
+        </div>
       ) : null}
 
       {loadState === "ready" ? (
         <>
           <section className="space-y-4">
-            <h2 className="section-title">Member Overview</h2>
+            <h2 className="text-title-large font-bold text-on-surface">Member Overview</h2>
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
               <ManagementStatCard
                 title="Total Members"
@@ -134,7 +131,7 @@ export function MembersManagementPage() {
                     quickFilter: current.quickFilter === "total" ? "all" : "total",
                   }))
                 }
-                icon={Users}
+                icon="group"
               />
               <ManagementStatCard
                 title="Active Members"
@@ -147,7 +144,7 @@ export function MembersManagementPage() {
                     quickFilter: current.quickFilter === "active" ? "all" : "active",
                   }))
                 }
-                icon={UserCheck}
+                icon="person_check"
               />
               <ManagementStatCard
                 title="Expiring Memberships"
@@ -160,7 +157,7 @@ export function MembersManagementPage() {
                     quickFilter: current.quickFilter === "expiring" ? "all" : "expiring",
                   }))
                 }
-                icon={AlertTriangle}
+                icon="emergency_home"
               />
               <ManagementStatCard
                 title="Inactive Members"
@@ -173,7 +170,7 @@ export function MembersManagementPage() {
                     quickFilter: current.quickFilter === "inactive" ? "all" : "inactive",
                   }))
                 }
-                icon={UserX}
+                icon="person_off"
               />
               <ManagementStatCard
                 title="New This Month"
@@ -186,13 +183,13 @@ export function MembersManagementPage() {
                     quickFilter: current.quickFilter === "new" ? "all" : "new",
                   }))
                 }
-                icon={UserPlus}
+                icon="person_add"
               />
             </div>
           </section>
 
-          <section className="space-y-4">
-            <h2 className="section-title">Member Directory</h2>
+          <section className="space-y-6">
+            <h2 className="text-title-large font-bold text-on-surface">Member Directory</h2>
 
             <ManagementFilterShell
               searchValue={filters.search}
@@ -317,15 +314,15 @@ export function MembersManagementPage() {
                   label: "Member Name",
                   render: (row) => (
                     <div>
-                      <p className="font-medium text-foreground">{row.fullName}</p>
-                      <p className="text-xs text-muted-foreground">{row.email}</p>
+                      <p className="text-body-medium font-bold text-on-surface">{row.fullName}</p>
+                      <p className="text-label-small text-on-surface-variant font-medium">{row.email}</p>
                     </div>
                   ),
                 },
                 {
                   id: "plan",
                   label: "Membership Plan",
-                  render: (row) => <span className="text-foreground">{row.planName}</span>,
+                  render: (row) => <span className="text-body-medium font-medium text-on-surface">{row.planName}</span>,
                 },
                 {
                   id: "status",
@@ -339,14 +336,14 @@ export function MembersManagementPage() {
                   label: "Last Check-in",
                   sortable: true,
                   render: (row) => (
-                    <span className="text-foreground">{formatDisplayDateTime(row.lastCheckIn)}</span>
+                    <span className="text-body-medium text-on-surface">{formatDisplayDateTime(row.lastCheckIn)}</span>
                   ),
                 },
                 {
                   id: "expiry",
                   label: "Expiry Date",
                   sortable: true,
-                  render: (row) => <span className="text-foreground">{formatDisplayDate(row.expiryDate)}</span>,
+                  render: (row) => <span className="text-body-medium text-on-surface">{formatDisplayDate(row.expiryDate)}</span>,
                 },
                 {
                   id: "payment",
@@ -364,34 +361,35 @@ export function MembersManagementPage() {
                       <div className="flex items-center justify-end gap-1">
                         <Button
                           type="button"
-                          variant="ghost"
-                          size="sm"
+                          variant="text"
+                          size="icon"
                           onClick={(event) => {
                             event.stopPropagation();
                             openMemberDetail(row);
                           }}
+                          title="View Details"
                         >
-                          <Eye className="size-4" />
-                          View
+                          <MaterialIcon icon="visibility" />
                         </Button>
                         <Button
                           type="button"
-                          variant="ghost"
-                          size="sm"
+                          variant="text"
+                          size="icon"
                           onClick={(event) => {
                             event.stopPropagation();
                             if (member) {
                               openEditForm(member);
                             }
                           }}
+                          title="Edit Member"
                         >
-                          <Pencil className="size-4" />
-                          Edit
+                          <MaterialIcon icon="edit" />
                         </Button>
                         <Button
                           type="button"
-                          variant="outline"
+                          variant="outlined"
                           size="sm"
+                          className="rounded-full"
                           onClick={(event) => {
                             event.stopPropagation();
                             if (member) {
@@ -399,8 +397,8 @@ export function MembersManagementPage() {
                             }
                           }}
                         >
-                          <Power className="size-4" />
-                          {member?.isActive ? "Deactivate" : "Activate"}
+                          <MaterialIcon icon={member?.isActive ? "block" : "check_circle"} className="text-sm" />
+                          <span>{member?.isActive ? "Deactivate" : "Activate"}</span>
                         </Button>
                       </div>
                     );
@@ -411,65 +409,67 @@ export function MembersManagementPage() {
                 const member = members.find((item) => item.id === row.id);
 
                 return (
-                  <article className="rounded-lg border bg-card p-4 shadow-sm">
+                  <article className="rounded-2xl border border-outline-variant bg-surface-container-low p-5 shadow-sm">
                     <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <h3 className="text-base font-semibold tracking-tight text-foreground">{row.fullName}</h3>
-                        <p className="text-sm text-muted-foreground">{row.email}</p>
+                      <div className="space-y-0.5">
+                        <h3 className="text-title-medium font-bold tracking-tight text-on-surface">{row.fullName}</h3>
+                        <p className="text-body-small text-on-surface-variant">{row.email}</p>
                       </div>
                       <StatusBadge label={row.membershipDisplayStatus} tone={row.membershipStatusTone} />
                     </div>
 
-                    <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
-                      <div>
-                        <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Plan</dt>
-                        <dd className="text-foreground">{row.planName}</dd>
+                    <dl className="mt-4 grid grid-cols-2 gap-4 text-body-small">
+                      <div className="space-y-1">
+                        <dt className="text-label-small font-bold uppercase tracking-wider text-on-surface-variant/70">Plan</dt>
+                        <dd className="text-on-surface font-medium">{row.planName}</dd>
                       </div>
-                      <div>
-                        <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Expiry</dt>
-                        <dd className="text-foreground">{formatDisplayDate(row.expiryDate)}</dd>
+                      <div className="space-y-1">
+                        <dt className="text-label-small font-bold uppercase tracking-wider text-on-surface-variant/70">Expiry</dt>
+                        <dd className="text-on-surface font-medium">{formatDisplayDate(row.expiryDate)}</dd>
                       </div>
-                      <div>
-                        <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Check-in</dt>
-                        <dd className="text-foreground">{formatDisplayDateTime(row.lastCheckIn)}</dd>
+                      <div className="space-y-1">
+                        <dt className="text-label-small font-bold uppercase tracking-wider text-on-surface-variant/70">Check-in</dt>
+                        <dd className="text-on-surface font-medium">{formatDisplayDateTime(row.lastCheckIn)}</dd>
                       </div>
-                      <div>
-                        <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Payment</dt>
+                      <div className="space-y-1">
+                        <dt className="text-label-small font-bold uppercase tracking-wider text-on-surface-variant/70">Payment</dt>
                         <dd>
                           <StatusBadge label={row.paymentStatus} tone={row.paymentStatusTone} />
                         </dd>
                       </div>
                     </dl>
 
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      <Button type="button" variant="ghost" size="sm" onClick={() => openMemberDetail(row)}>
-                        <Eye className="size-4" />
+                    <div className="mt-6 flex flex-wrap gap-2">
+                      <Button type="button" variant="tonal" size="sm" onClick={() => openMemberDetail(row)} className="flex-1">
+                        <MaterialIcon icon="visibility" />
                         View
                       </Button>
                       <Button
                         type="button"
-                        variant="ghost"
+                        variant="tonal"
                         size="sm"
                         onClick={() => {
                           if (member) {
                             openEditForm(member);
                           }
                         }}
+                        className="flex-1"
                       >
-                        <Pencil className="size-4" />
+                        <MaterialIcon icon="edit" />
                         Edit
                       </Button>
                       <Button
                         type="button"
-                        variant="outline"
+                        variant="outlined"
                         size="sm"
                         onClick={() => {
                           if (member) {
                             void handleToggleActive(member, !member.isActive);
                           }
                         }}
+                        className="flex-[2]"
                       >
-                        <Power className="size-4" />
+                        <MaterialIcon icon={member?.isActive ? "block" : "check_circle"} />
                         {member?.isActive ? "Deactivate" : "Activate"}
                       </Button>
                     </div>

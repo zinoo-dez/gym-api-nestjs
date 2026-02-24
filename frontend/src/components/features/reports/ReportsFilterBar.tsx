@@ -1,4 +1,4 @@
-import { CalendarDays, FilterX } from "lucide-react";
+import { MaterialIcon } from "@/components/ui/MaterialIcon";
 
 import {
   getDefaultReportsFilters,
@@ -75,8 +75,8 @@ export function ReportsFilterBar({
       <CardContent className="space-y-4 p-4 md:p-5">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-2 rounded-md border bg-secondary/40 px-3 py-2 text-sm text-foreground">
-              <CalendarDays className="size-4 text-primary" />
+            <span className="inline-flex items-center gap-2 rounded-md border bg-surface-container-low px-3 py-2 text-label-medium text-on-surface-variant">
+              <MaterialIcon icon="calendar_month" className="text-lg text-primary" />
               Date Range
             </span>
 
@@ -85,7 +85,7 @@ export function ReportsFilterBar({
                 key={option.value}
                 type="button"
                 size="sm"
-                variant={filters.range === option.value ? "default" : "outline"}
+                variant={filters.range === option.value ? "tonal" : "outlined"}
                 onClick={() => handleRangeChange(option.value)}
               >
                 {option.label}
@@ -96,12 +96,12 @@ export function ReportsFilterBar({
           <Button
             type="button"
             size="sm"
-            variant="ghost"
+            variant="text"
             onClick={() => onChange(getDefaultReportsFilters())}
-            className="w-full justify-center lg:w-auto"
+            className="w-full justify-center lg:w-auto text-error"
           >
-            <FilterX className="size-4" />
-            Reset Filters
+            <MaterialIcon icon="filter_alt_off" className="text-lg" />
+            <span>Reset Filters</span>
           </Button>
         </div>
 

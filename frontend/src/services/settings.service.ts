@@ -29,7 +29,6 @@ interface ApiEnvelope<T> {
 
 type GenericRecord = Record<string, unknown>;
 
-const SETTINGS_BASE = "/settings";
 const GYM_SETTINGS_BASE = "/gym-settings";
 const OPERATING_HOURS_BASE = "/operating-hours";
 const MEMBERSHIP_PLANS_BASE = "/membership-plans";
@@ -86,29 +85,10 @@ const hasAnyKey = (record: GenericRecord, keys: string[]): boolean => {
 
 const extractPayload = <T>(value: unknown): T => {
   if (isRecord(value) && "data" in value) {
-    return (value as ApiEnvelope<T>).data;
+    return (value as unknown as ApiEnvelope<T>).data;
   }
 
   return value as T;
-};
-
-const isNotFoundError = (error: unknown): boolean => {
-  return axios.isAxiosError(error) && error.response?.status === 404;
-};
-
-const requestWithNotFoundFallback = async <T>(
-  primary: () => Promise<T>,
-  fallback: () => Promise<T>,
-): Promise<T> => {
-  try {
-    return await primary();
-  } catch (error) {
-    if (!isNotFoundError(error)) {
-      throw error;
-    }
-
-    return fallback();
-  }
 };
 
 const isBusinessDayId = (value: string): value is BusinessDayId => {
@@ -296,7 +276,9 @@ const normalizeSocialLinks = (value: unknown): SocialLinks => {
   };
 };
 
-const normalizeGeneralSettings = (payload: GenericRecord): GeneralSettingsFormValues => {
+const normalizeGeneralSettings = (
+  payload: GenericRecord,
+): GeneralSettingsFormValues => {
   const source = asRecord(payload.general) ?? payload;
   const socialSource =
     asRecord(source.socialLinks) ??
@@ -307,14 +289,26 @@ const normalizeGeneralSettings = (payload: GenericRecord): GeneralSettingsFormVa
 
   return {
     ...defaultGeneralSettings,
-    gymName: asString(source.gymName) ?? asString(source.name) ?? defaultGeneralSettings.gymName,
-    logo: asString(source.logo) ?? asString(source.logoUrl) ?? defaultGeneralSettings.logo,
+    gymName:
+      asString(source.gymName) ??
+      asString(source.name) ??
+      defaultGeneralSettings.gymName,
+    logo:
+      asString(source.logo) ??
+      asString(source.logoUrl) ??
+      defaultGeneralSettings.logo,
     contactEmail:
-      asString(source.contactEmail) ?? asString(source.email) ?? defaultGeneralSettings.contactEmail,
+      asString(source.contactEmail) ??
+      asString(source.email) ??
+      defaultGeneralSettings.contactEmail,
     phone: asString(source.phone) ?? defaultGeneralSettings.phone,
     address: asString(source.address) ?? defaultGeneralSettings.address,
-    tagLine: asString(source.tagLine) ?? asString(source.tagline) ?? defaultGeneralSettings.tagLine,
-    description: asString(source.description) ?? defaultGeneralSettings.description,
+    tagLine:
+      asString(source.tagLine) ??
+      asString(source.tagline) ??
+      defaultGeneralSettings.tagLine,
+    description:
+      asString(source.description) ?? defaultGeneralSettings.description,
     socialLinks: {
       ...defaultGeneralSettings.socialLinks,
       ...normalizeSocialLinks(socialSource),
@@ -333,7 +327,9 @@ const normalizeBusinessHours = (payload: GenericRecord): BusinessHourRow[] => {
     return defaults;
   }
 
-  const dayMap = new Map<BusinessDayId, BusinessHourRow>(defaults.map((row) => [row.day, row]));
+  const dayMap = new Map<BusinessDayId, BusinessHourRow>(
+    defaults.map((row) => [row.day, row]),
+  );
 
   for (const rawRow of source) {
     const row = asRecord(rawRow);
@@ -343,7 +339,10 @@ const normalizeBusinessHours = (payload: GenericRecord): BusinessHourRow[] => {
     }
 
     const rawDay =
-      asString(row.day) ?? asString(row.dayOfWeek) ?? asString(row.weekDay) ?? asString(row.name);
+      asString(row.day) ??
+      asString(row.dayOfWeek) ??
+      asString(row.weekDay) ??
+      asString(row.name);
 
     let day: BusinessDayId | null = null;
 
@@ -362,13 +361,15 @@ const normalizeBusinessHours = (payload: GenericRecord): BusinessHourRow[] => {
       continue;
     }
 
-    const current = dayMap.get(day) ?? defaults.find((item) => item.day === day);
+    const current =
+      dayMap.get(day) ?? defaults.find((item) => item.day === day);
 
     if (!current) {
       continue;
     }
 
-    const closed = asBoolean(row.closed) ?? asBoolean(row.isClosed) ?? current.closed;
+    const closed =
+      asBoolean(row.closed) ?? asBoolean(row.isClosed) ?? current.closed;
     const openTime =
       asString(row.openTime) ??
       asString(row.opensAt) ??
@@ -391,7 +392,10 @@ const normalizeBusinessHours = (payload: GenericRecord): BusinessHourRow[] => {
   return defaults.map((row) => dayMap.get(row.day) ?? row);
 };
 
-const normalizeMembershipPlan = (raw: unknown, index: number): MembershipPlan | null => {
+const normalizeMembershipPlan = (
+  raw: unknown,
+  index: number,
+): MembershipPlan | null => {
   const row = asRecord(raw);
 
   if (!row) {
@@ -402,7 +406,10 @@ const normalizeMembershipPlan = (raw: unknown, index: number): MembershipPlan | 
   const id = asString(row.id) ?? asString(row.planId) ?? `plan-${index + 1}`;
 
   const apiFeatures = normalizeFeatureList(
-    row.features ?? row.featureList ?? row.planFeatures ?? row.membershipFeatures,
+    row.features ??
+      row.featureList ??
+      row.planFeatures ??
+      row.membershipFeatures,
   );
   const descriptionFeatures = parseFeaturesFromDescription(row.description);
   const features = apiFeatures.length > 0 ? apiFeatures : descriptionFeatures;
@@ -411,13 +418,16 @@ const normalizeMembershipPlan = (raw: unknown, index: number): MembershipPlan | 
     id,
     name,
     price: asNumber(row.price) ?? asNumber(row.amount) ?? 0,
-    duration: normalizeDuration(row.duration ?? row.billingCycle ?? row.durationDays ?? row.planType),
+    duration: normalizeDuration(
+      row.duration ?? row.billingCycle ?? row.durationDays ?? row.planType,
+    ),
     features,
   };
 };
 
 const normalizeMembershipPlans = (payload: GenericRecord): MembershipPlan[] => {
-  const sourceCandidate = payload.membershipPlans ?? payload.memberships ?? payload.plans;
+  const sourceCandidate =
+    payload.membershipPlans ?? payload.memberships ?? payload.plans;
 
   const source =
     toArrayFromCandidate(sourceCandidate) ??
@@ -430,19 +440,20 @@ const normalizeMembershipPlans = (payload: GenericRecord): MembershipPlan[] => {
     .filter((plan): plan is MembershipPlan => Boolean(plan));
 };
 
-const normalizePaymentsSettings = (payload: GenericRecord): PaymentsSettingsFormValues => {
+const normalizePaymentsSettings = (
+  payload: GenericRecord,
+): PaymentsSettingsFormValues => {
   const source = asRecord(payload.payments) ?? {};
   const stripe = asRecord(source.stripe) ?? asRecord(payload.stripe) ?? {};
   const paypal = asRecord(source.paypal) ?? asRecord(payload.paypal) ?? {};
 
   return {
     ...defaultPaymentsSettings,
-    currency:
-      (
-        asString(source.currency) ??
-        asString(payload.currency) ??
-        defaultPaymentsSettings.currency
-      ).toUpperCase(),
+    currency: (
+      asString(source.currency) ??
+      asString(payload.currency) ??
+      defaultPaymentsSettings.currency
+    ).toUpperCase(),
     taxPercentage:
       asNumber(source.taxPercentage) ??
       asNumber(source.taxRate) ??
@@ -471,9 +482,15 @@ const normalizePaymentsSettings = (payload: GenericRecord): PaymentsSettingsForm
   };
 };
 
-const normalizeSecuritySettings = (payload: GenericRecord): SecuritySettingsFormValues => {
+const normalizeSecuritySettings = (
+  payload: GenericRecord,
+): SecuritySettingsFormValues => {
   const source = asRecord(payload.security) ?? {};
-  const themeCandidate = (asString(source.theme) ?? asString(payload.theme) ?? "light").toLowerCase();
+  const themeCandidate = (
+    asString(source.theme) ??
+    asString(payload.theme) ??
+    "light"
+  ).toLowerCase();
 
   return {
     ...defaultSecuritySettings,
@@ -496,17 +513,13 @@ const normalizeSecuritySettings = (payload: GenericRecord): SecuritySettingsForm
 
 const toGeneralPayload = (values: GeneralSettingsFormValues) => {
   return {
-    gymName: values.gymName,
-    name: values.gymName,
-    logo: values.logo,
-    contactEmail: values.contactEmail,
-    email: values.contactEmail,
-    phone: values.phone,
-    address: values.address,
-    tagLine: values.tagLine,
-    description: values.description,
-    socialLinks: values.socialLinks,
-    socialMedia: values.socialLinks,
+    name: values.gymName.trim(),
+    logo: values.logo.trim(),
+    email: values.contactEmail.trim(),
+    phone: values.phone.trim(),
+    address: values.address.trim(),
+    tagLine: values.tagLine.trim(),
+    description: values.description.trim(),
   };
 };
 
@@ -536,7 +549,11 @@ const toMembershipPayload = (values: MembershipPlanInput) => {
 
 const toLegacyMembershipPayload = (values: MembershipPlanInput) => {
   const normalizedFeatures = Array.from(
-    new Set(values.features.map((feature) => feature.trim()).filter((feature) => feature.length > 0)),
+    new Set(
+      values.features
+        .map((feature) => feature.trim())
+        .filter((feature) => feature.length > 0),
+    ),
   );
 
   return {
@@ -556,33 +573,16 @@ const toLegacyMembershipPayload = (values: MembershipPlanInput) => {
 };
 
 const toPaymentsPayload = (values: PaymentsSettingsFormValues) => {
-  return {
-    payments: {
-      currency: values.currency,
-      taxPercentage: values.taxPercentage,
-      stripePublicKey: values.stripePublicKey,
-      stripeSecretKey: values.stripeSecretKey,
-      paypalClientId: values.paypalClientId,
-      paypalSecret: values.paypalSecret,
-      stripe: {
-        publicKey: values.stripePublicKey,
-        secretKey: values.stripeSecretKey,
-      },
-      paypal: {
-        clientId: values.paypalClientId,
-        secret: values.paypalSecret,
-      },
-    },
-    currency: values.currency,
-    taxPercentage: values.taxPercentage,
-    stripePublicKey: values.stripePublicKey,
-    stripeSecretKey: values.stripeSecretKey,
-    paypalClientId: values.paypalClientId,
-    paypalSecret: values.paypalSecret,
-  };
+  void values;
+
+  // Backend gym settings DTO currently does not expose payment configuration fields.
+  // Return an empty payload to avoid validation errors from unknown properties.
+  return {};
 };
 
-const hasPasswordChangeInput = (values: SecuritySettingsFormValues): boolean => {
+const hasPasswordChangeInput = (
+  values: SecuritySettingsFormValues,
+): boolean => {
   return (
     values.currentPassword.length > 0 ||
     values.newPassword.length > 0 ||
@@ -591,33 +591,9 @@ const hasPasswordChangeInput = (values: SecuritySettingsFormValues): boolean => 
 };
 
 const toSecurityPayload = (values: SecuritySettingsFormValues) => {
-  const hasPasswordChange = hasPasswordChangeInput(values);
-
   return {
-    security: {
-      emailNotifications: values.emailNotifications,
-      smsNotifications: values.smsNotifications,
-      theme: values.theme,
-      ...(hasPasswordChange
-        ? {
-            changePassword: {
-              currentPassword: values.currentPassword,
-              newPassword: values.newPassword,
-            },
-          }
-        : {}),
-    },
-    emailNotifications: values.emailNotifications,
     emailNotification: values.emailNotifications,
-    smsNotifications: values.smsNotifications,
     smsNotification: values.smsNotifications,
-    theme: values.theme,
-    ...(hasPasswordChange
-      ? {
-          currentPassword: values.currentPassword,
-          newPassword: values.newPassword,
-        }
-      : {}),
   };
 };
 
@@ -633,72 +609,66 @@ const toSettingsBundle = (payload: GenericRecord): SettingsBundle => {
 
 export const settingsService = {
   async getSettings(): Promise<SettingsBundle> {
-    return requestWithNotFoundFallback(
-      async () => {
-        const response = await api.get<ApiEnvelope<unknown> | unknown>(SETTINGS_BASE);
-        const payload = asRecord(extractPayload<unknown>(response.data)) ?? {};
-        return toSettingsBundle(payload);
-      },
-      async () => {
-        const gymSettingsResponse = await api.get<ApiEnvelope<unknown> | unknown>(GYM_SETTINGS_BASE);
-        const gymSettingsPayload = asRecord(extractPayload<unknown>(gymSettingsResponse.data)) ?? {};
-
-        let operatingHoursPayload: unknown = [];
-        let membershipPlansPayload: unknown = [];
-
-        try {
-          const hoursResponse = await api.get<ApiEnvelope<unknown> | unknown>(OPERATING_HOURS_BASE);
-          operatingHoursPayload = extractPayload<unknown>(hoursResponse.data);
-        } catch (error) {
-          if (!isNotFoundError(error)) {
-            throw error;
-          }
-        }
-
-        try {
-          const plansResponse = await api.get<ApiEnvelope<unknown> | unknown>(MEMBERSHIP_PLANS_BASE, {
-            params: {
-              page: 1,
-              limit: 200,
-            },
-          });
-          membershipPlansPayload = extractPayload<unknown>(plansResponse.data);
-        } catch (error) {
-          if (!isNotFoundError(error)) {
-            throw error;
-          }
-        }
-
-        const payload: GenericRecord = {
-          ...gymSettingsPayload,
-          businessHours: operatingHoursPayload,
-          membershipPlans: membershipPlansPayload,
-        };
-
-        return toSettingsBundle(payload);
-      },
+    const gymSettingsResponse = await api.get<ApiEnvelope<unknown> | unknown>(
+      GYM_SETTINGS_BASE,
     );
+    const gymSettingsPayload =
+      asRecord(extractPayload<unknown>(gymSettingsResponse.data)) ?? {};
+
+    let operatingHoursPayload: unknown = [];
+    let membershipPlansPayload: unknown = [];
+
+    try {
+      const hoursResponse = await api.get<ApiEnvelope<unknown> | unknown>(
+        OPERATING_HOURS_BASE,
+      );
+      operatingHoursPayload = extractPayload<unknown>(hoursResponse.data);
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        // ignore
+      } else {
+        throw error;
+      }
+    }
+
+    try {
+      const plansResponse = await api.get<ApiEnvelope<unknown> | unknown>(
+        MEMBERSHIP_PLANS_BASE,
+        {
+          params: {
+            page: 1,
+            limit: 200,
+          },
+        },
+      );
+      membershipPlansPayload = extractPayload<unknown>(plansResponse.data);
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        // ignore
+      } else {
+        throw error;
+      }
+    }
+
+    const payload: GenericRecord = {
+      ...gymSettingsPayload,
+      businessHours: operatingHoursPayload,
+      membershipPlans: membershipPlansPayload,
+    };
+
+    return toSettingsBundle(payload);
   },
 
-  async updateGeneralSettings(values: GeneralSettingsFormValues): Promise<GeneralSettingsFormValues> {
-    const responsePayload = await requestWithNotFoundFallback(
-      async () => {
-        const response = await api.put<ApiEnvelope<unknown> | unknown>(
-          `${SETTINGS_BASE}/general`,
-          toGeneralPayload(values),
-        );
-
-        return asRecord(extractPayload<unknown>(response.data)) ?? {};
-      },
-      async () => {
-        const response = await api.patch<ApiEnvelope<unknown> | unknown>(
-          GYM_SETTINGS_BASE,
-          toGeneralPayload(values),
-        );
-
-        return asRecord(extractPayload<unknown>(response.data)) ?? {};
-      },
+  async updateGeneralSettings(
+    values: GeneralSettingsFormValues,
+  ): Promise<GeneralSettingsFormValues> {
+    const response = await api.patch<ApiEnvelope<unknown> | unknown>(
+      GYM_SETTINGS_BASE,
+      toGeneralPayload(values),
     );
+
+    const responsePayload =
+      asRecord(extractPayload<unknown>(response.data)) ?? {};
 
     const hasGeneralData =
       asRecord(responsePayload.general) !== null ||
@@ -732,73 +702,51 @@ export const settingsService = {
     };
   },
 
-  async updateBusinessHours(values: BusinessHoursFormValues): Promise<BusinessHourRow[]> {
-    return requestWithNotFoundFallback(
-      async () => {
-        const response = await api.put<ApiEnvelope<unknown> | unknown>(
-          `${SETTINGS_BASE}/hours`,
-          toBusinessHoursPayload(values),
-        );
+  async updateBusinessHours(
+    values: BusinessHoursFormValues,
+  ): Promise<BusinessHourRow[]> {
+    for (const row of values.hours) {
+      await api.patch(OPERATING_HOURS_BASE, {
+        dayOfWeek: businessDayToDayOfWeek(row.day),
+        openTime: row.openTime,
+        closeTime: row.closeTime,
+        isClosed: row.closed,
+      });
+    }
 
-        const payload = asRecord(extractPayload<unknown>(response.data)) ?? {};
-        const hasHoursData =
-          toArrayFromCandidate(payload.hours) !== null ||
-          toArrayFromCandidate(payload.businessHours) !== null ||
-          toArrayFromCandidate(payload.operatingHours) !== null;
+    try {
+      const response = await api.get<ApiEnvelope<unknown> | unknown>(
+        OPERATING_HOURS_BASE,
+      );
+      const payload: GenericRecord = {
+        businessHours: extractPayload<unknown>(response.data),
+      };
 
-        if (!hasHoursData) {
-          return values.hours;
-        }
+      return normalizeBusinessHours(payload);
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        return values.hours;
+      }
 
-        return normalizeBusinessHours(payload);
-      },
-      async () => {
-        for (const row of values.hours) {
-          await api.patch(OPERATING_HOURS_BASE, {
-            dayOfWeek: businessDayToDayOfWeek(row.day),
-            openTime: row.openTime,
-            closeTime: row.closeTime,
-            isClosed: row.closed,
-          });
-        }
-
-        try {
-          const response = await api.get<ApiEnvelope<unknown> | unknown>(OPERATING_HOURS_BASE);
-          const payload: GenericRecord = {
-            businessHours: extractPayload<unknown>(response.data),
-          };
-
-          return normalizeBusinessHours(payload);
-        } catch (error) {
-          if (!isNotFoundError(error)) {
-            throw error;
-          }
-
-          return values.hours;
-        }
-      },
-    );
+      throw error;
+    }
   },
 
-  async updatePayments(values: PaymentsSettingsFormValues): Promise<PaymentsSettingsFormValues> {
-    const payload = await requestWithNotFoundFallback(
-      async () => {
-        const response = await api.put<ApiEnvelope<unknown> | unknown>(
-          `${SETTINGS_BASE}/general`,
-          toPaymentsPayload(values),
-        );
+  async updatePayments(
+    values: PaymentsSettingsFormValues,
+  ): Promise<PaymentsSettingsFormValues> {
+    const payloadToSave = toPaymentsPayload(values);
 
-        return asRecord(extractPayload<unknown>(response.data)) ?? {};
-      },
-      async () => {
-        const response = await api.patch<ApiEnvelope<unknown> | unknown>(
-          GYM_SETTINGS_BASE,
-          toPaymentsPayload(values),
-        );
+    if (Object.keys(payloadToSave).length === 0) {
+      return values;
+    }
 
-        return asRecord(extractPayload<unknown>(response.data)) ?? {};
-      },
+    const response = await api.patch<ApiEnvelope<unknown> | unknown>(
+      GYM_SETTINGS_BASE,
+      payloadToSave,
     );
+
+    const payload = asRecord(extractPayload<unknown>(response.data)) ?? {};
 
     const hasPaymentsData =
       asRecord(payload.payments) !== null ||
@@ -824,7 +772,9 @@ export const settingsService = {
     };
   },
 
-  async updateSecurity(values: SecuritySettingsFormValues): Promise<SecuritySettingsFormValues> {
+  async updateSecurity(
+    values: SecuritySettingsFormValues,
+  ): Promise<SecuritySettingsFormValues> {
     if (hasPasswordChangeInput(values)) {
       await api.post("/auth/change-password", {
         currentPassword: values.currentPassword,
@@ -832,24 +782,12 @@ export const settingsService = {
       });
     }
 
-    const payload = await requestWithNotFoundFallback(
-      async () => {
-        const response = await api.put<ApiEnvelope<unknown> | unknown>(
-          `${SETTINGS_BASE}/general`,
-          toSecurityPayload(values),
-        );
-
-        return asRecord(extractPayload<unknown>(response.data)) ?? {};
-      },
-      async () => {
-        const response = await api.patch<ApiEnvelope<unknown> | unknown>(
-          GYM_SETTINGS_BASE,
-          toSecurityPayload(values),
-        );
-
-        return asRecord(extractPayload<unknown>(response.data)) ?? {};
-      },
+    const response = await api.patch<ApiEnvelope<unknown> | unknown>(
+      GYM_SETTINGS_BASE,
+      toSecurityPayload(values),
     );
+
+    const payload = asRecord(extractPayload<unknown>(response.data)) ?? {};
 
     const hasSecurityData =
       asRecord(payload.security) !== null ||
@@ -870,34 +808,31 @@ export const settingsService = {
       };
     }
 
+    const hasThemeData =
+      (asRecord(payload.security) !== null &&
+        hasAnyKey(asRecord(payload.security) ?? {}, ["theme"])) ||
+      hasAnyKey(payload, ["theme"]);
+
+    const normalized = normalizeSecuritySettings(payload);
     return {
       ...values,
-      ...normalizeSecuritySettings(payload),
+      ...normalized,
+      theme: hasThemeData ? normalized.theme : values.theme,
       currentPassword: "",
       newPassword: "",
       confirmNewPassword: "",
     };
   },
 
-  async createMembershipPlan(values: MembershipPlanInput): Promise<MembershipPlan> {
-    const responsePayload = await requestWithNotFoundFallback(
-      async () => {
-        const response = await api.post<ApiEnvelope<unknown> | unknown>(
-          `${SETTINGS_BASE}/membership-plans`,
-          toMembershipPayload(values),
-        );
-
-        return extractPayload<unknown>(response.data);
-      },
-      async () => {
-        const response = await api.post<ApiEnvelope<unknown> | unknown>(
-          MEMBERSHIP_PLANS_BASE,
-          toLegacyMembershipPayload(values),
-        );
-
-        return extractPayload<unknown>(response.data);
-      },
+  async createMembershipPlan(
+    values: MembershipPlanInput,
+  ): Promise<MembershipPlan> {
+    const response = await api.post<ApiEnvelope<unknown> | unknown>(
+      MEMBERSHIP_PLANS_BASE,
+      toLegacyMembershipPayload(values),
     );
+
+    const responsePayload = extractPayload<unknown>(response.data);
 
     const normalized = normalizeMembershipPlan(responsePayload, 0);
 
@@ -911,25 +846,16 @@ export const settingsService = {
     };
   },
 
-  async updateMembershipPlan(id: string, values: MembershipPlanInput): Promise<MembershipPlan> {
-    const responsePayload = await requestWithNotFoundFallback(
-      async () => {
-        const response = await api.put<ApiEnvelope<unknown> | unknown>(
-          `${SETTINGS_BASE}/membership-plans/${id}`,
-          toMembershipPayload(values),
-        );
-
-        return extractPayload<unknown>(response.data);
-      },
-      async () => {
-        const response = await api.patch<ApiEnvelope<unknown> | unknown>(
-          `${MEMBERSHIP_PLANS_BASE}/${id}`,
-          toLegacyMembershipPayload(values),
-        );
-
-        return extractPayload<unknown>(response.data);
-      },
+  async updateMembershipPlan(
+    id: string,
+    values: MembershipPlanInput,
+  ): Promise<MembershipPlan> {
+    const response = await api.patch<ApiEnvelope<unknown> | unknown>(
+      `${MEMBERSHIP_PLANS_BASE}/${id}`,
+      toLegacyMembershipPayload(values),
     );
+
+    const responsePayload = extractPayload<unknown>(response.data);
 
     const normalized = normalizeMembershipPlan(responsePayload, 0);
 
@@ -944,14 +870,7 @@ export const settingsService = {
   },
 
   async deleteMembershipPlan(id: string): Promise<void> {
-    await requestWithNotFoundFallback(
-      async () => {
-        await api.delete(`${SETTINGS_BASE}/membership-plans/${id}`);
-      },
-      async () => {
-        await api.delete(`${MEMBERSHIP_PLANS_BASE}/${id}`);
-      },
-    );
+    await api.delete(`${MEMBERSHIP_PLANS_BASE}/${id}`);
   },
 };
 
@@ -976,7 +895,10 @@ export const toSettingsErrorMessage = (error: unknown): string => {
       return apiMessage;
     }
 
-    if (typeof errorWithMessage.message === "string" && errorWithMessage.message.length > 0) {
+    if (
+      typeof errorWithMessage.message === "string" &&
+      errorWithMessage.message.length > 0
+    ) {
       return errorWithMessage.message;
     }
   }

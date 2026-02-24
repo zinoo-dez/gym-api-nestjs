@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { CalendarCheck2, DollarSign, UserPlus, Users } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -153,9 +152,9 @@ export function Dashboard() {
 
   return (
     <div className="space-y-8">
-      <header className="space-y-2">
-        <h1 className="page-title">Dynamic Analytics Dashboard</h1>
-        <p className="body-text text-muted-foreground">
+      <header className="space-y-3">
+        <h1 className="text-display-small font-bold text-on-surface">Gym Analytics Dashboard</h1>
+        <p className="text-body-large text-on-surface-variant max-w-2xl">
           Track revenue, memberships, attendance trends, and transaction activity in one responsive reporting view.
         </p>
       </header>
@@ -168,7 +167,7 @@ export function Dashboard() {
       />
 
       {summaryError ? (
-        <div className="rounded-lg border border-danger/40 bg-danger/10 p-4 text-sm text-danger">
+        <div className="rounded-xl bg-error-container p-4 text-on-error-container text-label-large font-bold shadow-sm">
           {summaryError}
         </div>
       ) : null}
@@ -180,7 +179,7 @@ export function Dashboard() {
           trendPercent={summary?.totalRevenue.changePercent ?? 0}
           trendDirection={summary?.totalRevenue.trendDirection ?? "flat"}
           helperText="from previous period"
-          icon={DollarSign}
+          icon="payments"
           loading={summaryQuery.isPending && !summaryQuery.data}
         />
         <ReportsKpiCard
@@ -189,7 +188,7 @@ export function Dashboard() {
           trendPercent={summary?.activeMembers.changePercent ?? 0}
           trendDirection={summary?.activeMembers.trendDirection ?? "flat"}
           helperText="from previous period"
-          icon={Users}
+          icon="group"
           loading={summaryQuery.isPending && !summaryQuery.data}
         />
         <ReportsKpiCard
@@ -198,7 +197,7 @@ export function Dashboard() {
           trendPercent={summary?.todayAttendance.changePercent ?? 0}
           trendDirection={summary?.todayAttendance.trendDirection ?? "flat"}
           helperText="from previous period"
-          icon={CalendarCheck2}
+          icon="event_available"
           loading={summaryQuery.isPending && !summaryQuery.data}
         />
         <ReportsKpiCard
@@ -207,7 +206,7 @@ export function Dashboard() {
           trendPercent={summary?.newSignups.changePercent ?? 0}
           trendDirection={summary?.newSignups.trendDirection ?? "flat"}
           helperText="from previous period"
-          icon={UserPlus}
+          icon="person_add"
           loading={summaryQuery.isPending && !summaryQuery.data}
         />
       </section>

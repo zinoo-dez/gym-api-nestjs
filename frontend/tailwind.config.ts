@@ -4,10 +4,8 @@ import defaultTheme from "tailwindcss/defaultTheme";
 export default {
   darkMode: "class",
   content: [
-    "./pages/**/*.{ts,tsx}",
-    "./components/**/*.{ts,tsx}",
-    "./app/**/*.{ts,tsx}",
-    "./src/**/*.{ts,tsx}",
+    "./index.html",
+    "./src/**/*.{js,jsx,ts,tsx,css,scss}",
   ],
   prefix: "",
   theme: {
@@ -26,58 +24,133 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ["Inter", ...defaultTheme.fontFamily.sans],
+        sans: ["Roboto", ...defaultTheme.fontFamily.sans],
       },
       colors: {
-        border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
+        border: "hsl(var(--outline-variant))",
+        input: "hsl(var(--outline))",
+        ring: "hsl(var(--primary))",
+        background: "hsl(var(--surface))",
+        foreground: "hsl(var(--on-surface))",
+        "on-primary": "hsl(var(--on-primary))",
+        "primary-container": "hsl(var(--primary-container))",
+        "on-primary-container": "hsl(var(--on-primary-container))",
+        "on-secondary": "hsl(var(--on-secondary))",
+        "secondary-container": "hsl(var(--secondary-container))",
+        "on-secondary-container": "hsl(var(--on-secondary-container))",
+        "on-tertiary": "hsl(var(--on-tertiary))",
+        "tertiary-container": "hsl(var(--tertiary-container))",
+        "on-tertiary-container": "hsl(var(--on-tertiary-container))",
+        "on-error": "hsl(var(--on-error))",
+        "error-container": "hsl(var(--error-container))",
+        "on-error-container": "hsl(var(--on-error-container))",
+        "on-surface": "hsl(var(--on-surface))",
+        "surface-variant": "hsl(var(--surface-variant))",
+        "on-surface-variant": "hsl(var(--on-surface-variant))",
+        "surface-dim": "hsl(var(--surface-dim))",
+        "surface-bright": "hsl(var(--surface-bright))",
+        "surface-container-lowest": "hsl(var(--surface-container-lowest))",
+        "surface-container-low": "hsl(var(--surface-container-low))",
+        "surface-container": "hsl(var(--surface-container))",
+        "surface-container-high": "hsl(var(--surface-container-high))",
+        "surface-container-highest": "hsl(var(--surface-container-highest))",
+        "outline-variant": "hsl(var(--outline-variant))",
         primary: {
           DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
-          hover: "hsl(var(--primary-hover))",
-          active: "hsl(var(--primary-active))",
+          foreground: "hsl(var(--on-primary))",
+          container: "hsl(var(--primary-container))",
+          "on-container": "hsl(var(--on-primary-container))",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
-          hover: "hsl(var(--secondary-hover))",
-          active: "hsl(var(--secondary-active))",
+          foreground: "hsl(var(--on-secondary))",
+          container: "hsl(var(--secondary-container))",
+          "on-container": "hsl(var(--on-secondary-container))",
         },
-        success: {
-          DEFAULT: "hsl(var(--success))",
-          foreground: "hsl(var(--success-foreground))",
+        tertiary: {
+          DEFAULT: "hsl(var(--tertiary))",
+          foreground: "hsl(var(--on-tertiary))",
+          container: "hsl(var(--tertiary-container))",
+          "on-container": "hsl(var(--on-tertiary-container))",
         },
-        warning: {
-          DEFAULT: "hsl(var(--warning))",
-          foreground: "hsl(var(--warning-foreground))",
+        error: {
+          DEFAULT: "hsl(var(--error))",
+          foreground: "hsl(var(--on-error))",
+          container: "hsl(var(--error-container))",
+          "on-container": "hsl(var(--on-error-container))",
         },
-        danger: {
-          DEFAULT: "hsl(var(--danger))",
-          foreground: "hsl(var(--danger-foreground))",
+        surface: {
+          DEFAULT: "hsl(var(--surface))",
+          foreground: "hsl(var(--on-surface))",
+          dim: "hsl(var(--surface-dim))",
+          bright: "hsl(var(--surface-bright))",
+          variant: "hsl(var(--surface-variant))",
+          "on-variant": "hsl(var(--on-surface-variant))",
+          container: {
+            lowest: "hsl(var(--surface-container-lowest))",
+            low: "hsl(var(--surface-container-low))",
+            DEFAULT: "hsl(var(--surface-container))",
+            high: "hsl(var(--surface-container-high))",
+            highest: "hsl(var(--surface-container-highest))",
+          },
         },
-        info: {
-          DEFAULT: "hsl(var(--info))",
-          foreground: "hsl(var(--info-foreground))",
+        outline: {
+          DEFAULT: "hsl(var(--outline))",
+          variant: "hsl(var(--outline-variant))",
         },
-        muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
-        },
-        accent: {
-          DEFAULT: "hsl(var(--accent))",
-          foreground: "hsl(var(--accent-foreground))",
-        },
-        card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
-        },
-        popover: {
-          DEFAULT: "hsl(var(--popover))",
-          foreground: "hsl(var(--popover-foreground))",
-        },
+        scrim: "hsl(var(--scrim))",
+        shadow: "hsl(var(--shadow))",
+      },
+      fontSize: {
+        // M3 Typescale
+        "display-large": [
+          "57px",
+          { lineHeight: "64px", letterSpacing: "-0.25px" },
+        ],
+        "display-medium": [
+          "45px",
+          { lineHeight: "52px", letterSpacing: "0px" },
+        ],
+        "display-small": ["36px", { lineHeight: "44px", letterSpacing: "0px" }],
+        "headline-large": [
+          "32px",
+          { lineHeight: "40px", letterSpacing: "0px" },
+        ],
+        "headline-medium": [
+          "28px",
+          { lineHeight: "36px", letterSpacing: "0px" },
+        ],
+        "headline-small": [
+          "24px",
+          { lineHeight: "32px", letterSpacing: "0px" },
+        ],
+        "title-large": ["22px", { lineHeight: "28px", letterSpacing: "0px" }],
+        "title-medium": [
+          "16px",
+          { lineHeight: "24px", letterSpacing: "0.15px", fontWeight: "500" },
+        ],
+        "title-small": [
+          "14px",
+          { lineHeight: "20px", letterSpacing: "0.1px", fontWeight: "500" },
+        ],
+        "body-large": ["16px", { lineHeight: "24px", letterSpacing: "0.5px" }],
+        "body-medium": [
+          "14px",
+          { lineHeight: "20px", letterSpacing: "0.25px" },
+        ],
+        "body-small": ["12px", { lineHeight: "16px", letterSpacing: "0.4px" }],
+        "label-large": [
+          "14px",
+          { lineHeight: "20px", letterSpacing: "0.1px", fontWeight: "500" },
+        ],
+        "label-medium": [
+          "12px",
+          { lineHeight: "16px", letterSpacing: "0.5px", fontWeight: "500" },
+        ],
+        "label-small": [
+          "11px",
+          { lineHeight: "16px", letterSpacing: "0.5px", fontWeight: "500" },
+        ],
       },
       borderRadius: {
         lg: "var(--radius)",

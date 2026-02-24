@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { LoaderCircle } from "lucide-react";
+import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import { useForm } from "react-hook-form";
 import { NavLink, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -10,7 +10,6 @@ import {
   GeneralSettingsForm,
   PaymentsSettingsForm,
   SecuritySettingsForm,
-  SettingsSaveFooter,
 } from "@/components/features/settings";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
@@ -359,8 +358,8 @@ export function SystemSettingsPage() {
 
         <Card>
           <CardContent className="flex min-h-[220px] items-center justify-center gap-2 text-sm text-muted-foreground">
-            <LoaderCircle className="size-4 animate-spin" />
-            Fetching settings
+            <MaterialIcon icon="progress_activity" className="size-5 animate-spin" />
+            <span>Fetching settings</span>
           </CardContent>
         </Card>
       </div>
@@ -380,7 +379,7 @@ export function SystemSettingsPage() {
         <Card>
           <CardContent className="space-y-3 p-6">
             <p className="text-sm text-danger">{toSettingsErrorMessage(settingsQuery.error)}</p>
-            <Button type="button" variant="outline" onClick={() => void settingsQuery.refetch()}>
+            <Button type="button" variant="outlined" onClick={() => void settingsQuery.refetch()}>
               Retry
             </Button>
           </CardContent>
@@ -390,12 +389,26 @@ export function SystemSettingsPage() {
   }
 
   return (
-    <div className="space-y-8 pb-24">
-      <header className="space-y-2">
-        <h1 className="page-title">System Settings</h1>
-        <p className="body-text text-muted-foreground">
-          Configure gym profile, operations, billing, and security by section.
-        </p>
+    <div className="space-y-8 pb-8">
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-2">
+          <h1 className="page-title">System Settings</h1>
+          <p className="body-text text-muted-foreground">
+            Configure gym profile, operations, billing, and security by section.
+          </p>
+        </div>
+        
+        <div className="flex shrink-0 items-center justify-end">
+          <Button
+            type="button"
+            onClick={handleSaveActiveSection}
+            disabled={!activeSectionHasUnsavedChanges || activeSectionIsSaving}
+            className="min-w-[140px]"
+          >
+            {activeSectionIsSaving && <MaterialIcon icon="progress_activity" className="mr-2 size-4 animate-spin" />}
+            <span>{activeSectionIsSaving ? "Saving..." : "Save Changes"}</span>
+          </Button>
+        </div>
       </header>
 
       <div className="grid gap-6">
@@ -444,12 +457,7 @@ export function SystemSettingsPage() {
         </section>
       </div>
 
-      <SettingsSaveFooter
-        visible
-        hasUnsavedChanges={activeSectionHasUnsavedChanges}
-        isSaving={activeSectionIsSaving}
-        onSave={handleSaveActiveSection}
-      />
+
     </div>
   );
 }

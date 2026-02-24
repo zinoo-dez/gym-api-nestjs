@@ -1,4 +1,4 @@
-import { Plus, ShoppingCart } from "lucide-react";
+import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -245,15 +245,15 @@ export function ProductManagementPage() {
         <div className="flex gap-2">
           <Button
             type="button"
-            variant="outline"
+            variant="outlined"
             onClick={() => void navigate("/management/products/pos")}
           >
-            <ShoppingCart className="size-4" />
-            Go to POS
+            <MaterialIcon icon="shopping_cart" className="text-lg" />
+            <span>Go to POS</span>
           </Button>
           <Button type="button" onClick={openAddProductPanel}>
-            <Plus className="size-4" />
-            Add Product
+            <MaterialIcon icon="add" className="text-lg" />
+            <span>Add Product</span>
           </Button>
         </div>
       </header>

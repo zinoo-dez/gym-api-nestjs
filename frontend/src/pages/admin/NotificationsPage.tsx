@@ -1,4 +1,4 @@
-import { BellOff, CheckCheck, LoaderCircle, Trash2 } from "lucide-react";
+import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -182,22 +182,22 @@ export function NotificationsPage() {
         <div className="flex flex-wrap gap-2">
           <Button
             type="button"
-            variant="outline"
+            variant="outlined"
             onClick={() => void handleMarkAllAsRead()}
             disabled={unreadCount === 0 || markAllMutation.isPending}
           >
-            <CheckCheck className="size-4" />
-            Mark all as read
+            <MaterialIcon icon="done_all" className="text-lg" />
+            <span>Mark all as read</span>
           </Button>
 
           <Button
             type="button"
-            variant="danger"
+            variant="error"
             onClick={() => void handleBulkDelete()}
             disabled={selectedIds.length === 0 || bulkDeleteMutation.isPending}
           >
-            <Trash2 className="size-4" />
-            Delete selected ({selectedIds.length})
+            <MaterialIcon icon="delete" className="text-lg" />
+            <span>Delete selected ({selectedIds.length})</span>
           </Button>
         </div>
       </header>
@@ -210,7 +210,7 @@ export function NotificationsPage() {
                 key={filter.id}
                 type="button"
                 size="sm"
-                variant={activeFilter === filter.id ? "default" : "outline"}
+                variant={activeFilter === filter.id ? "tonal" : "outlined"}
                 onClick={() => setActiveFilter(filter.id)}
               >
                 {filter.label}
@@ -231,17 +231,18 @@ export function NotificationsPage() {
 
         <CardContent className="space-y-4">
           {notificationsQuery.isLoading ? (
-            <div className="flex items-center gap-2 rounded-md border bg-muted/20 p-4 text-sm text-muted-foreground">
-              <LoaderCircle className="size-4 animate-spin" />
-              Loading notifications...
+            <div className="flex items-center gap-3 rounded-2xl border border-outline-variant bg-surface-container-low p-6 text-sm text-on-surface-variant">
+              <MaterialIcon icon="refresh" className="text-lg animate-spin" />
+              <span>Loading notifications...</span>
             </div>
           ) : null}
 
           {notificationsQuery.isError ? (
-            <div className="space-y-3 rounded-md border border-danger/40 bg-danger/5 p-4">
-              <p className="text-sm text-danger">Unable to load notifications.</p>
-              <Button type="button" variant="outline" onClick={() => void notificationsQuery.refetch()}>
-                Retry
+            <div className="space-y-4 rounded-2xl border border-error/50 bg-error/5 p-6">
+              <p className="text-title-medium font-bold text-error">Unable to load notifications.</p>
+              <Button type="button" variant="tonal" onClick={() => void notificationsQuery.refetch()}>
+                <MaterialIcon icon="refresh" className="text-lg" />
+                <span>Retry</span>
               </Button>
             </div>
           ) : null}
@@ -249,12 +250,16 @@ export function NotificationsPage() {
           {!notificationsQuery.isLoading &&
           !notificationsQuery.isError &&
           filteredNotifications.length === 0 ? (
-            <div className="flex flex-col items-center gap-3 rounded-md border border-dashed p-10 text-center">
-              <BellOff className="size-10 text-muted-foreground" />
-              <p className="text-sm font-medium text-foreground">No notifications found</p>
-              <p className="text-sm text-muted-foreground">
-                Try another filter or check back later for new alerts.
-              </p>
+            <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed border-outline-variant p-12 text-center bg-surface-container-lowest">
+              <div className="flex size-16 items-center justify-center rounded-full bg-surface-container-high text-on-surface-variant">
+                <MaterialIcon icon="notifications_off" className="text-3xl" />
+              </div>
+              <div className="space-y-1">
+                <p className="text-title-medium font-bold text-on-surface">No notifications found</p>
+                <p className="text-body-medium text-on-surface-variant max-w-xs mx-auto">
+                  Try another filter or check back later for new alerts.
+                </p>
+              </div>
             </div>
           ) : null}
 
@@ -305,14 +310,14 @@ export function NotificationsPage() {
                           </td>
 
                           <td className="px-4 py-3 align-top">
-                            <div className="flex gap-3">
+                            <div className="flex gap-4">
                               <span
                                 className={cn(
-                                  "mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full",
+                                  "mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-full shadow-sm",
                                   visual.toneStyle.iconContainerClassName,
                                 )}
                               >
-                                <visual.Icon className={cn("size-4", visual.toneStyle.iconClassName)} />
+                                <MaterialIcon icon={visual.materialIcon} className={cn("text-xl", visual.toneStyle.iconClassName)} />
                               </span>
 
                               <div className="min-w-0 space-y-1">
@@ -340,12 +345,12 @@ export function NotificationsPage() {
                             {formatNotificationTimestamp(notification.createdAt)}
                           </td>
 
-                          <td className="px-4 py-3 align-top">
-                            <div className="flex justify-end gap-2">
+                          <td className="px-4 py-3 align-middle">
+                            <div className="flex justify-end gap-1">
                               {!notification.read ? (
                                 <Button
                                   type="button"
-                                  variant="ghost"
+                                  variant="text"
                                   size="sm"
                                   onClick={() => void handleMarkAsRead(notification)}
                                   disabled={markReadMutation.isPending}
@@ -356,9 +361,9 @@ export function NotificationsPage() {
 
                               <Button
                                 type="button"
-                                variant="ghost"
+                                variant="text"
                                 size="sm"
-                                className="text-danger hover:bg-danger/10 hover:text-danger"
+                                className="text-error hover:bg-error/10 active:bg-error/20"
                                 onClick={() => void handleDeleteNotification(notification)}
                                 disabled={deleteMutation.isPending}
                               >
@@ -393,11 +398,11 @@ export function NotificationsPage() {
 
                         <span
                           className={cn(
-                            "mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full",
+                            "mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-full shadow-sm",
                             visual.toneStyle.iconContainerClassName,
                           )}
                         >
-                          <visual.Icon className={cn("size-4", visual.toneStyle.iconClassName)} />
+                          <MaterialIcon icon={visual.materialIcon} className={cn("text-xl", visual.toneStyle.iconClassName)} />
                         </span>
 
                         <div className="min-w-0 flex-1 space-y-1">
@@ -424,11 +429,11 @@ export function NotificationsPage() {
                         </div>
                       </div>
 
-                      <div className="mt-3 flex flex-wrap gap-2">
+                      <div className="mt-4 flex flex-wrap gap-2">
                         {!notification.read ? (
                           <Button
                             type="button"
-                            variant="outline"
+                            variant="outlined"
                             size="sm"
                             onClick={() => void handleMarkAsRead(notification)}
                             disabled={markReadMutation.isPending}
@@ -439,9 +444,9 @@ export function NotificationsPage() {
 
                         <Button
                           type="button"
-                          variant="ghost"
+                          variant="text"
                           size="sm"
-                          className="text-danger hover:bg-danger/10 hover:text-danger"
+                          className="text-error hover:bg-error/10 active:bg-error/20"
                           onClick={() => void handleDeleteNotification(notification)}
                           disabled={deleteMutation.isPending}
                         >
@@ -461,22 +466,24 @@ export function NotificationsPage() {
                 <div className="flex gap-2">
                   <Button
                     type="button"
-                    variant="outline"
+                    variant="outlined"
                     size="sm"
                     onClick={() => setCurrentPage((value) => Math.max(1, value - 1))}
                     disabled={currentPage <= 1}
                   >
-                    Previous
+                    <MaterialIcon icon="chevron_left" className="text-lg" />
+                    <span>Previous</span>
                   </Button>
 
                   <Button
                     type="button"
-                    variant="outline"
+                    variant="outlined"
                     size="sm"
                     onClick={() => setCurrentPage((value) => Math.min(totalPages, value + 1))}
                     disabled={currentPage >= totalPages}
                   >
-                    Next
+                    <span>Next</span>
+                    <MaterialIcon icon="chevron_right" className="text-lg" />
                   </Button>
                 </div>
               </div>

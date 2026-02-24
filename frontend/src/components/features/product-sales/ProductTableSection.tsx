@@ -1,4 +1,4 @@
-import { LoaderCircle, Package, Pencil, Plus, Search, ShoppingCart } from "lucide-react";
+import { MaterialIcon } from "@/components/ui/MaterialIcon";
 
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
@@ -58,20 +58,24 @@ export function ProductTableSection({
       <CardHeader className="space-y-4">
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <CardTitle>Product Management</CardTitle>
-          <Button type="button" variant="outline" onClick={onOpenAddProduct}>
-            <Plus className="size-4" />
-            Add Product
+          <Button type="button" variant="outlined" onClick={onOpenAddProduct}>
+            <MaterialIcon icon="add" className="text-lg" />
+            <span>Add Product</span>
           </Button>
         </div>
 
         <div className="grid gap-3 md:grid-cols-[1fr_220px]">
           <div className="relative">
-            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <MaterialIcon 
+              icon="search" 
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" 
+              opticalSize={20}
+            />
             <Input
               value={searchInput}
               onChange={(event) => onSearchInputChange(event.target.value)}
               placeholder="Search by name or SKU"
-              className="pl-9"
+              className="pl-10"
             />
           </div>
 
@@ -89,17 +93,18 @@ export function ProductTableSection({
 
       <CardContent className="space-y-4">
         {loading ? (
-          <div className="flex items-center gap-2 rounded-md border bg-muted/20 p-4 text-sm text-muted-foreground">
-            <LoaderCircle className="size-4 animate-spin" />
-            Loading products...
+          <div className="flex items-center gap-3 rounded-md border bg-surface-container-low p-4 text-body-medium text-on-surface-variant">
+            <MaterialIcon icon="progress_activity" className="size-5 animate-spin" />
+            <span>Loading products...</span>
           </div>
         ) : null}
 
         {errorMessage ? (
           <div className="space-y-3 rounded-md border border-danger/40 bg-danger/5 p-4">
             <p className="text-sm text-danger">{errorMessage}</p>
-            <Button type="button" variant="outline" onClick={onRetry}>
-              Retry
+            <Button type="button" variant="outlined" onClick={onRetry}>
+              <MaterialIcon icon="refresh" className="text-sm" />
+              <span>Retry</span>
             </Button>
           </div>
         ) : null}
@@ -108,7 +113,7 @@ export function ProductTableSection({
           <>
             {products.length === 0 ? (
               <div className="flex flex-col items-center justify-center rounded-md border border-dashed py-12 text-center text-sm text-muted-foreground">
-                <Package className="mb-4 size-10 opacity-20" />
+                <MaterialIcon icon="inventory_2" className="mb-4 text-5xl opacity-20" />
                 <p>No products found. Add your first product to start tracking sales.</p>
               </div>
             ) : (
@@ -144,7 +149,7 @@ export function ProductTableSection({
                                     className="size-full object-cover"
                                   />
                                 ) : (
-                                  <Package className="size-4 text-muted-foreground transition-colors group-hover:text-primary/60" />
+                                  <MaterialIcon icon="inventory_2" className="text-xl text-on-surface-variant transition-colors group-hover:text-primary" />
                                 )}
                               </div>
 
@@ -169,11 +174,11 @@ export function ProductTableSection({
                               <Button
                                 type="button"
                                 size="sm"
-                                variant="outline"
+                                variant="outlined"
                                 onClick={() => onEditProduct(product)}
                               >
-                                <Pencil className="size-4" />
-                                Edit
+                                <MaterialIcon icon="edit" className="text-sm" />
+                                <span>Edit</span>
                               </Button>
                               {showAddToCart && onAddToCart ? (
                                 <Button
@@ -182,8 +187,8 @@ export function ProductTableSection({
                                   onClick={() => onAddToCart(product)}
                                   disabled={product.stockQuantity <= 0}
                                 >
-                                  <ShoppingCart className="size-4" />
-                                  Add to Cart
+                                  <MaterialIcon icon="shopping_cart" className="text-sm" />
+                                  <span>Add to Cart</span>
                                 </Button>
                               ) : null}
                             </div>
@@ -202,12 +207,12 @@ export function ProductTableSection({
               </p>
 
               <div className="flex gap-2">
-                <Button type="button" variant="outline" size="sm" onClick={onPreviousPage} disabled={currentPage <= 1}>
+                <Button type="button" variant="outlined" size="sm" onClick={onPreviousPage} disabled={currentPage <= 1}>
                   Previous
                 </Button>
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="outlined"
                   size="sm"
                   onClick={onNextPage}
                   disabled={currentPage >= totalPages}

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Briefcase, Plus, RefreshCcw, ShieldCheck, Users } from "lucide-react";
+import { MaterialIcon } from "@/components/ui/MaterialIcon";
 
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
@@ -341,8 +341,8 @@ export function StaffManagementPage() {
           </p>
         </div>
         <Button type="button" onClick={openAddForm}>
-          <Plus className="size-4" />
-          Add Staff
+          <MaterialIcon icon="add" className="text-lg" />
+          <span>Add Staff</span>
         </Button>
       </header>
 
@@ -357,9 +357,9 @@ export function StaffManagementPage() {
           <CardContent className="flex flex-col gap-3 p-6">
             <p className="text-sm text-danger">Unable to load staff data.</p>
             <div>
-              <Button type="button" variant="outline" onClick={() => void loadData()}>
-                <RefreshCcw className="size-4" />
-                Retry
+              <Button type="button" variant="outlined" onClick={() => void loadData()}>
+                <MaterialIcon icon="refresh" className="text-lg" />
+                <span>Retry</span>
               </Button>
             </div>
           </CardContent>
@@ -383,7 +383,7 @@ export function StaffManagementPage() {
                 tone="info"
                 active={quickFilter === "all"}
                 onClick={() => setQuickFilter("all")}
-                icon={Users}
+                icon="group"
               />
               <ManagementStatCard
                 title="Active Staff"
@@ -391,7 +391,7 @@ export function StaffManagementPage() {
                 tone="success"
                 active={quickFilter === "active"}
                 onClick={() => setQuickFilter((value) => (value === "active" ? "all" : "active"))}
-                icon={ShieldCheck}
+                icon="verified_user"
               />
               <ManagementStatCard
                 title="Roles Distribution"
@@ -404,7 +404,7 @@ export function StaffManagementPage() {
                 tone="warning"
                 active={quickFilter === "roles"}
                 onClick={() => setQuickFilter((value) => (value === "roles" ? "all" : "roles"))}
-                icon={Briefcase}
+                icon="business_center"
               />
               <ManagementStatCard
                 title="New This Month"
@@ -412,7 +412,7 @@ export function StaffManagementPage() {
                 tone="secondary"
                 active={quickFilter === "new"}
                 onClick={() => setQuickFilter((value) => (value === "new" ? "all" : "new"))}
-                icon={Plus}
+                icon="add"
               />
             </div>
           </section>
@@ -523,7 +523,7 @@ export function StaffManagementPage() {
                       <div className="flex items-center justify-end gap-1">
                         <Button
                           type="button"
-                          variant="ghost"
+                          variant="text"
                           size="sm"
                           onClick={(event) => {
                             event.stopPropagation();
@@ -534,7 +534,7 @@ export function StaffManagementPage() {
                         </Button>
                         <Button
                           type="button"
-                          variant="ghost"
+                          variant="text"
                           size="sm"
                           onClick={(event) => {
                             event.stopPropagation();
@@ -547,8 +547,9 @@ export function StaffManagementPage() {
                         </Button>
                         <Button
                           type="button"
-                          variant="outline"
+                          variant="outlined"
                           size="sm"
+                          className="text-error border-error/20 hover:bg-error/5"
                           disabled={!record?.isActive}
                           onClick={(event) => {
                             event.stopPropagation();
@@ -589,12 +590,12 @@ export function StaffManagementPage() {
                     </dl>
 
                     <div className="mt-4 flex flex-wrap gap-2">
-                      <Button type="button" variant="ghost" size="sm" onClick={() => openStaffDetail(row)}>
+                      <Button type="button" variant="text" size="sm" onClick={() => openStaffDetail(row)}>
                         View
                       </Button>
                       <Button
                         type="button"
-                        variant="ghost"
+                        variant="text"
                         size="sm"
                         onClick={() => {
                           if (record) {
@@ -606,8 +607,9 @@ export function StaffManagementPage() {
                       </Button>
                       <Button
                         type="button"
-                        variant="outline"
+                        variant="outlined"
                         size="sm"
+                        className="text-error border-error/20 hover:bg-error/5"
                         disabled={!record?.isActive}
                         onClick={() => {
                           if (record) {

@@ -1,47 +1,15 @@
-import { useState, useEffect, type ComponentType } from "react";
+import { useState, useEffect } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Building2,
-  Bell,
-  BarChart3,
-  BadgeCheck,
-  CalendarClock,
-  CreditCard,
-  Dumbbell,
-  LayoutDashboard,
-  LineChart,
-  List,
-  LogOut,
-  Menu,
-  Package,
-  ReceiptText,
-  Repeat2,
-  Settings,
-  Shield,
-  ShoppingCart,
-  Sparkles,
-  UserCheck,
-  UserCog,
-  Users,
-  Wallet,
-  X,
-  ChevronLeft,
-  ChevronRight,
-  Globe,
-  Clock,
-  Receipt,
-  Key,
-  Sliders,
-  Lock,
-} from "lucide-react";
 
 import { useAuthStore } from "@/store/auth.store";
 import { NotificationBell } from "@/components/features/notifications";
+import { ThemeToggle } from "@/components/features/settings";
 import { cn } from "@/lib/utils";
+import { MaterialIcon } from "@/components/ui/MaterialIcon";
 
 interface MenuItem {
-  icon: ComponentType<{ className?: string }>;
+  icon: string;
   label: string;
   path: string;
 }
@@ -54,78 +22,68 @@ interface MenuSection {
 const menuSections: MenuSection[] = [
   {
     title: "Overview",
-    items: [{ icon: LayoutDashboard, label: "Dashboard", path: "/" }],
+    items: [{ icon: "dashboard", label: "Dashboard", path: "/" }],
   },
   {
     title: "Management",
     items: [
-      { icon: Users, label: "Members", path: "/management/members" },
-      { icon: UserCog, label: "Trainers", path: "/management/trainers" },
-      { icon: Shield, label: "Staff", path: "/management/staff" },
-      { icon: CreditCard, label: "Payments", path: "/payments" },
+      { icon: "group", label: "Members", path: "/management/members" },
+      { icon: "support_agent", label: "Trainers", path: "/management/trainers" },
+      { icon: "badge", label: "Staff", path: "/management/staff" },
+      { icon: "credit_card", label: "Payments", path: "/payments" },
     ],
   },
   {
     title: "Classes",
     items: [
-      { icon: CalendarClock, label: "Schedule", path: "/management/classes/schedule" },
-      { icon: UserCheck, label: "Attendance", path: "/management/classes/attendance" },
+      { icon: "calendar_month", label: "Schedule", path: "/management/classes/schedule" },
+      { icon: "how_to_reg", label: "Attendance", path: "/management/classes/attendance" },
     ],
   },
   {
     title: "Equipment",
     items: [
-      { icon: Dumbbell, label: "Equipment Overview", path: "/management/equipment/overview" },
-      { icon: List, label: "Equipment List", path: "/management/equipment/list" },
+      { icon: "fitness_center", label: "Overview", path: "/management/equipment/overview" },
+      { icon: "receipt_long", label: "Equipment List", path: "/management/equipment/list" },
     ],
   },
   {
-    title: "Inventory & Sales",
+    title: "Inventory",
     items: [
-      { icon: ShoppingCart, label: "Overview", path: "/management/products/overview" },
-      { icon: Package, label: "Products", path: "/management/products/management" },
-      { icon: CreditCard, label: "POS", path: "/management/products/pos" },
-      { icon: ReceiptText, label: "Sales History", path: "/management/products/history" },
+      { icon: "shopping_cart", label: "Overview", path: "/management/products/overview" },
+      { icon: "package_2", label: "Products", path: "/management/products/management" },
+      { icon: "point_of_sale", label: "POS", path: "/management/products/pos" },
+      { icon: "history", label: "Sales History", path: "/management/products/history" },
     ],
   },
   {
     title: "Memberships",
     items: [
-      { icon: BadgeCheck, label: "Plans", path: "/management/memberships/plans" },
-      { icon: Users, label: "Member List", path: "/management/memberships/members" },
-      { icon: Sparkles, label: "Features", path: "/management/memberships/features" },
+      { icon: "verified", label: "Plans", path: "/management/memberships/plans" },
+      { icon: "groups", label: "Member List", path: "/management/memberships/members" },
+      { icon: "auto_awesome", label: "Features", path: "/management/memberships/features" },
     ],
   },
   {
     title: "Finance",
     items: [
-      { icon: Wallet, label: "Finance Overview", path: "/finance/costs/overview" },
-      { icon: LineChart, label: "Cost Analysis", path: "/finance/costs/analysis" },
-      { icon: ReceiptText, label: "Expense Records", path: "/finance/costs/records" },
-      { icon: Repeat2, label: "Recurring Tracker", path: "/finance/costs/recurring" },
-      { icon: Building2, label: "Vendor Spend", path: "/finance/costs/vendors" },
-    ],
-  },
-  {
-    title: "Insights",
-    items: [{ icon: BarChart3, label: "Reports", path: "/reports" }],
-  },
-  {
-    title: "System",
-    items: [
-      { icon: Bell, label: "Notifications", path: "/admin/notifications" },
+      { icon: "account_balance_wallet", label: "Overview", path: "/finance/costs/overview" },
+      { icon: "monitoring", label: "Analysis", path: "/finance/costs/analysis" },
+      { icon: "receipt", label: "Records", path: "/finance/costs/records" },
+      { icon: "event_repeat", label: "Recurring", path: "/finance/costs/recurring" },
+      { icon: "store", label: "Vendors", path: "/finance/costs/vendors" },
     ],
   },
   {
     title: "Settings",
     items: [
-      { icon: Building2, label: "Gym Identity", path: "/settings/gym-identity" },
-      { icon: Globe, label: "Social Media", path: "/settings/social-media" },
-      { icon: Clock, label: "Operating Hours", path: "/settings/operating-hours" },
-      { icon: Receipt, label: "Billing Defaults", path: "/settings/billing-defaults" },
-      { icon: Key, label: "Payment Gateway", path: "/settings/payment-gateway-keys" },
-      { icon: Sliders, label: "Preferences", path: "/settings/system-preferences" },
-      { icon: Lock, label: "Change Password", path: "/settings/change-password" },
+      { icon: "settings_account_box", label: "Gym Identity", path: "/settings/gym-identity" },
+      { icon: "public", label: "Social Media", path: "/settings/social-media" },
+      { icon: "schedule", label: "Hours", path: "/settings/operating-hours" },
+      { icon: "payments", label: "Billing", path: "/settings/billing-defaults" },
+      { icon: "vpn_key", label: "Gateway", path: "/settings/payment-gateway-keys" },
+      { icon: "tune", label: "Preferences", path: "/settings/system-preferences" },
+      { icon: "lock", label: "Security", path: "/settings/change-password" },
     ],
   },
 ];
@@ -140,214 +98,261 @@ const isPathActive = (currentPath: string, itemPath: string): boolean => {
 };
 
 export function AdminLayout() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [desktopCollapsed, setDesktopCollapsed] = useState(false);
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const location = useLocation();
   const { user, logout } = useAuthStore();
-  const [isMobile, setIsMobile] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   useEffect(() => {
-    const checkScreenSize = () => {
-      setIsMobile(window.innerWidth < 768);
-      if (window.innerWidth >= 768) {
-        setSidebarOpen(false); // Mobile sidebar should be closed on desktop
-      }
-    };
-
-    checkScreenSize();
-    window.addEventListener("resize", checkScreenSize);
-    return () => window.removeEventListener("resize", checkScreenSize);
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  useEffect(() => {
-    if (isMobile) {
-      setSidebarOpen(false);
-    }
-  }, [location.pathname, isMobile]);
+  const isCompact = windowWidth < 600;
+  const isMedium = windowWidth >= 600 && windowWidth < 840;
+  const isExpanded = windowWidth >= 840;
 
   const activeLabel =
     allMenuItems.find((item) => isPathActive(location.pathname, item.path))?.label || "Overview";
 
-  const mobileNavItems = [
-    { icon: LayoutDashboard, label: "Home", path: "/" },
-    { icon: Users, label: "Members", path: "/management/members" },
-    { icon: CalendarClock, label: "Classes", path: "/management/classes/schedule" },
-    { icon: ShoppingCart, label: "Shop", path: "/management/products/overview" },
+  const mainRoutes = [
+    { icon: "dashboard", label: "Home", path: "/" },
+    { icon: "group", label: "Members", path: "/management/members" },
+    { icon: "calendar_month", label: "Schedule", path: "/management/classes/schedule" },
+    { icon: "shopping_cart", label: "Shop", path: "/management/products/overview" },
   ];
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background text-foreground">
-      {/* Mobile Sidebar Overlay */}
-      <AnimatePresence>
-        {isMobile && sidebarOpen ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setSidebarOpen(false)}
-            className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm md:hidden"
-          />
-        ) : null}
-      </AnimatePresence>
+    <div className="flex h-screen overflow-hidden bg-surface text-on-surface">
+      {/* 1. COMPACT: Navigation Bar (Bottom) */}
+      {isCompact && (
+        <nav className="fixed bottom-0 left-0 right-0 z-50 flex h-[80px] items-center justify-around border-t border-outline-variant bg-surface-container shadow-lg">
+          {mainRoutes.map((item) => {
+            const isActive = isPathActive(location.pathname, item.path);
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={cn(
+                  "flex flex-1 flex-col items-center justify-center gap-1 h-full transition-colors",
+                  isActive ? "text-on-surface" : "text-on-surface-variant hover:text-on-surface"
+                )}
+              >
+                <div className={cn(
+                  "flex items-center justify-center h-8 w-16 rounded-full transition-all duration-200",
+                  isActive ? "bg-secondary-container" : "hover:bg-on-surface/5"
+                )}>
+                  <MaterialIcon 
+                    icon={item.icon} 
+                    fill={isActive}
+                    className={cn(isActive ? "text-on-secondary-container" : "text-on-surface-variant")} 
+                  />
+                </div>
+                <span className={cn("text-label-medium", isActive && "font-bold")}>{item.label}</span>
+              </Link>
+            );
+          })}
+          <button
+            onClick={() => setDrawerOpen(true)}
+            className="flex flex-1 flex-col items-center justify-center gap-1 h-full text-on-surface-variant hover:text-on-surface"
+          >
+            <div className="flex items-center justify-center h-8 w-16 rounded-full hover:bg-on-surface/5">
+              <MaterialIcon icon="menu" />
+            </div>
+            <span className="text-label-medium">More</span>
+          </button>
+        </nav>
+      )}
 
-      {/* Sidebar (Desktop and Mobile) */}
-      <motion.aside
-        initial={false}
-        animate={{ 
-          x: isMobile ? (sidebarOpen ? 0 : "-100%") : 0,
-          width: isMobile ? 256 : (desktopCollapsed ? 64 : 250)
-        }}
-        transition={{ type: "spring", damping: 25, stiffness: 200 }}
-        className={cn(
-          "fixed inset-y-0 left-0 z-50 flex flex-col border-r bg-card shadow-sm",
-          "md:static md:translate-x-0 overflow-hidden"
-        )}
-      >
-        <div className={cn("flex h-16 shrink-0 items-center border-b", desktopCollapsed && !isMobile ? "justify-center px-0" : "justify-between px-6")}>
-          {!desktopCollapsed || isMobile ? (
-            <span className="text-xl font-bold tracking-tight text-primary truncate">GymAdmin</span>
-          ) : (
-            <span className="text-xl font-bold tracking-tight text-primary">G</span>
-          )}
-          {isMobile && (
+      {/* 2. MEDIUM: Navigation Rail */}
+      {isMedium && (
+        <aside className="fixed inset-y-0 left-0 z-40 flex w-[80px] flex-col items-center border-r border-outline-variant bg-surface-container py-4 shadow-sm">
+          <div className="mb-8 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary shadow-sm">
+            <MaterialIcon icon="fitness_center" className="text-on-primary text-2xl" />
+          </div>
+
+          <div className="flex flex-1 flex-col gap-4">
+            {mainRoutes.map((item) => {
+              const isActive = isPathActive(location.pathname, item.path);
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={cn(
+                    "flex flex-col items-center gap-1 transition-colors",
+                    isActive ? "text-on-surface" : "text-on-surface-variant hover:text-on-surface"
+                  )}
+                >
+                  <div className={cn(
+                    "flex items-center justify-center h-8 w-14 rounded-full transition-all duration-200",
+                    isActive ? "bg-secondary-container" : "hover:bg-on-surface/5"
+                  )}>
+                    <MaterialIcon icon={item.icon} fill={isActive} className={isActive ? "text-on-secondary-container" : ""} />
+                  </div>
+                  <span className={cn("text-[11px] font-medium", isActive && "font-bold")}>{item.label}</span>
+                </Link>
+              );
+            })}
             <button
-              type="button"
-              onClick={() => setSidebarOpen(false)}
-              className="text-muted-foreground hover:text-foreground shrink-0 ml-2"
+              onClick={() => setDrawerOpen(true)}
+              className="flex flex-col items-center gap-1 text-on-surface-variant hover:text-on-surface"
             >
-              <X className="size-5" />
+              <div className="flex items-center justify-center h-8 w-14 rounded-full hover:bg-on-surface/5">
+                <MaterialIcon icon="menu" />
+              </div>
+              <span className="text-[11px] font-medium">More</span>
             </button>
-          )}
-        </div>
+          </div>
 
-        <nav className="flex-1 space-y-4 overflow-y-auto overflow-x-hidden p-4 no-scrollbar">
-          {menuSections.map((section) => (
-            <div key={section.title} className="space-y-1">
-              {!desktopCollapsed || isMobile ? (
-                <p className="px-3 text-xs font-medium uppercase tracking-wide text-muted-foreground truncate">
+          <div className="mt-auto flex flex-col gap-4">
+            <ThemeToggle />
+            <div className="flex size-10 items-center justify-center rounded-full bg-primary/20 text-primary">
+              <span className="font-semibold">{user?.firstName?.[0] || "A"}</span>
+            </div>
+          </div>
+        </aside>
+      )}
+
+      {/* 3. EXPANDED: Navigation Drawer (Standard/Persistent) */}
+      {isExpanded && (
+        <aside className="z-30 flex w-[300px] shrink-0 flex-col border-r border-outline-variant bg-surface-container-low">
+          <div className="flex h-20 items-center px-6">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary">
+                <MaterialIcon icon="fitness_center" className="text-on-primary text-xl" />
+              </div>
+              <span className="text-title-large font-bold tracking-tight text-primary">GymAdmin</span>
+            </div>
+          </div>
+
+          <nav className="flex-1 overflow-y-auto px-3 no-scrollbar space-y-4 py-4">
+            {menuSections.map((section) => (
+              <div key={section.title} className="space-y-1">
+                <p className="px-3 text-label-small font-medium uppercase tracking-wider text-on-surface-variant/70">
                   {section.title}
                 </p>
-              ) : (
-                <div className="h-4" /> // spacing maintaining consistency when collapsed
-              )}
-              {section.items.map((item) => {
-                const isActive = isPathActive(location.pathname, item.path);
-                const Icon = item.icon;
-
-                return (
-                  <Link key={item.path} to={item.path} title={desktopCollapsed && !isMobile ? item.label : undefined}>
-                    <motion.div
-                      whileHover={{ x: desktopCollapsed && !isMobile ? 0 : 4 }}
-                      whileTap={{ scale: 0.98 }}
-                      className={cn(
-                        "flex items-center gap-3 rounded-lg py-2.5 transition-colors text-sm font-medium",
-                        desktopCollapsed && !isMobile ? "justify-center px-0" : "px-3",
-                        isActive
-                          ? "bg-primary text-primary-foreground"
-                          : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
-                      )}
-                    >
-                      <Icon className={cn("size-5 shrink-0", isActive && "text-primary-foreground")} />
-                      {(!desktopCollapsed || isMobile) && (
+                {section.items.map((item) => {
+                  const isActive = isPathActive(location.pathname, item.path);
+                  return (
+                    <Link key={item.path} to={item.path}>
+                      <div className={cn(
+                        "flex h-14 items-center gap-3 rounded-full px-4 text-body-medium transition-all duration-200",
+                        isActive 
+                          ? "bg-secondary-container text-on-secondary-container font-bold shadow-sm"
+                          : "text-on-surface-variant hover:bg-on-surface/5"
+                      )}>
+                        <MaterialIcon 
+                          icon={item.icon} 
+                          fill={isActive}
+                          className={cn("text-xl", isActive ? "text-on-secondary-container" : "text-on-surface-variant")} 
+                        />
                         <span className="truncate">{item.label}</span>
-                      )}
-                    </motion.div>
-                  </Link>
-                );
-              })}
-            </div>
-          ))}
-        </nav>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            ))}
+          </nav>
 
-        <div className="border-t p-4">
-          <div className={cn("mb-4 flex items-center gap-3", desktopCollapsed && !isMobile ? "justify-center px-0" : "px-3")}>
-            <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/20 text-primary">
-              <span className="font-semibold uppercase">{user?.firstName?.[0] || "A"}</span>
-            </div>
-            {(!desktopCollapsed || isMobile) && (
+          <div className="mt-auto border-t border-outline-variant p-4">
+            <div className="mb-4 flex items-center gap-3 px-3">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/20 text-primary">
+                <span className="font-semibold uppercase">{user?.firstName?.[0] || "A"}</span>
+              </div>
               <div className="flex flex-col truncate">
-                <span className="text-sm font-semibold truncate">
+                <span className="text-label-large font-bold text-on-surface truncate">
                   {user?.firstName || "Admin"} {user?.lastName || ""}
                 </span>
-                <span className="text-xs text-muted-foreground truncate">{user?.email || "admin@gym.com"}</span>
+                <span className="text-body-small text-on-surface-variant truncate">{user?.email || "admin@gym.com"}</span>
               </div>
-            )}
+            </div>
+            <button
+              type="button"
+              onClick={() => logout()}
+              className="flex w-full items-center gap-3 rounded-full h-12 px-4 text-label-large text-error transition-colors hover:bg-error/10"
+            >
+              <MaterialIcon icon="logout" className="text-xl" />
+              <span>Logout</span>
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={() => logout()}
-            className={cn(
-              "flex w-full items-center gap-3 rounded-lg py-2 text-sm font-medium text-danger transition-colors hover:bg-danger/10",
-              desktopCollapsed && !isMobile ? "justify-center px-0" : "px-3"
-            )}
-            title={desktopCollapsed && !isMobile ? "Logout" : undefined}
-          >
-            <LogOut className="size-5 shrink-0" />
-            {(!desktopCollapsed || isMobile) && <span>Logout</span>}
-          </button>
-        </div>
-      </motion.aside>
+        </aside>
+      )}
+
+      {/* 4. MODAL/DISMISSIBLE DRAWER: For More/Settings on Compact/Medium */}
+      <AnimatePresence>
+        {drawerOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setDrawerOpen(false)}
+              className="fixed inset-0 z-[60] bg-scrim/60 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              className="fixed inset-y-0 right-0 z-[70] flex w-full max-w-xs flex-col bg-surface-container-high shadow-2xl"
+            >
+              <div className="flex h-16 items-center justify-between px-6 border-b border-outline-variant">
+                <span className="text-title-medium font-bold">More Options</span>
+                <button onClick={() => setDrawerOpen(false)}>
+                  <MaterialIcon icon="close" />
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto py-4">
+                {menuSections.map((section) => (
+                  <div key={section.title} className="mb-6 px-4">
+                    <h4 className="px-4 text-label-small font-bold uppercase text-on-surface-variant mb-2">{section.title}</h4>
+                    {section.items.map((item) => (
+                      <Link 
+                        key={item.path} 
+                        to={item.path}
+                        onClick={() => setDrawerOpen(false)}
+                        className="flex items-center gap-3 h-12 px-4 rounded-full text-body-medium text-on-surface hover:bg-on-surface/5"
+                      >
+                        <MaterialIcon icon={item.icon} className="text-on-surface-variant" />
+                        <span>{item.label}</span>
+                      </Link>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* Main Content Area */}
-      <div className="flex flex-1 flex-col overflow-hidden relative">
-        <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:px-6">
+      <div className={cn(
+        "flex flex-1 flex-col overflow-hidden relative",
+        isMedium && "pl-[80px]", // adjustment for rail
+      )}>
+        <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between border-b border-outline-variant bg-surface/80 px-4 backdrop-blur-md md:px-6">
           <div className="flex items-center gap-4">
-            {/* Desktop Collapse Toggle */}
-            <button
-              className="hidden md:flex items-center justify-center text-muted-foreground hover:text-foreground"
-              onClick={() => setDesktopCollapsed(!desktopCollapsed)}
-            >
-              <Menu className="size-6" />
-            </button>
-            
-            <h1 className="text-xl font-semibold tracking-tight text-foreground md:text-2xl">
+            <h1 className="text-headline-small font-bold text-on-surface">
               {activeLabel}
             </h1>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 md:gap-4">
+            <ThemeToggle />
             <NotificationBell />
           </div>
         </header>
 
         {/* Content Box */}
         <main className={cn(
-          "flex-1 overflow-y-auto p-4 md:p-6 lg:p-8",
-          isMobile ? "pb-24" : "" // extra padding for mobile bottom nav
+          "flex-1 overflow-y-auto p-4 md:p-6 lg:p-10",
+          isCompact && "pb-24" // extra padding for mobile bottom nav
         )}>
-          <Outlet />
+          <div className="mx-auto max-w-7xl">
+            <Outlet />
+          </div>
         </main>
-
-        {/* Mobile Bottom Navigation */}
-        {isMobile && (
-          <nav className="fixed bottom-0 left-0 right-0 z-40 flex h-16 items-center justify-around border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:hidden">
-            {mobileNavItems.map((item) => {
-              const isActive = isPathActive(location.pathname, item.path);
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={cn(
-                    "flex flex-1 flex-col items-center justify-center gap-1 h-full",
-                    isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  <Icon className={cn("size-5", isActive && "fill-primary/20")} />
-                  <span className="text-[10px] font-medium">{item.label}</span>
-                </Link>
-              );
-            })}
-            
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="flex flex-1 flex-col items-center justify-center gap-1 h-full text-muted-foreground hover:text-foreground"
-            >
-              <Menu className="size-5" />
-              <span className="text-[10px] font-medium">More</span>
-            </button>
-          </nav>
-        )}
       </div>
     </div>
   );

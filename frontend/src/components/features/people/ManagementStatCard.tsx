@@ -1,7 +1,6 @@
-import { ComponentType } from "react";
-
 import { cn } from "@/lib/utils";
 import type { StatusTone } from "@/features/people";
+import { MaterialIcon } from "@/components/ui/MaterialIcon";
 
 interface ManagementStatCardProps {
   title: string;
@@ -10,15 +9,15 @@ interface ManagementStatCardProps {
   tone: StatusTone;
   active: boolean;
   onClick: () => void;
-  icon: ComponentType<{ className?: string }>;
+  icon: string;
 }
 
 const TONE_CLASS: Record<StatusTone, string> = {
-  success: "text-success bg-success/20",
-  warning: "text-warning bg-warning/20",
-  danger: "text-danger bg-danger/20",
-  info: "text-info bg-info/20",
-  secondary: "text-secondary-foreground bg-secondary",
+  success: "text-on-success-container bg-success-container",
+  warning: "text-on-warning-container bg-warning-container",
+  danger: "text-on-error-container bg-error-container",
+  info: "text-on-primary-container bg-primary-container",
+  secondary: "text-on-secondary-container bg-secondary-container",
 };
 
 export function ManagementStatCard({
@@ -28,27 +27,42 @@ export function ManagementStatCard({
   tone,
   active,
   onClick,
-  icon: Icon,
+  icon,
 }: ManagementStatCardProps) {
   return (
     <button
       type="button"
       onClick={onClick}
       className={cn(
-        "rounded-lg border bg-card p-4 text-left shadow-sm transition-colors hover:bg-muted/30",
-        active ? "border-primary" : "border-border",
+        "group relative flex flex-col rounded-2xl border p-5 text-left transition-all duration-200",
+        active 
+          ? "border-primary bg-primary/5 shadow-md ring-1 ring-primary" 
+          : "border-outline-variant bg-surface-container-low hover:bg-surface-container hover:shadow-sm"
       )}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="space-y-1">
-          <p className="text-sm font-medium text-muted-foreground">{title}</p>
-          <p className="text-2xl font-semibold tracking-tight text-foreground">{value}</p>
-          {helperText ? <p className="text-xs text-muted-foreground">{helperText}</p> : null}
+      <div className="flex items-start justify-between gap-3 w-full">
+        <div className="space-y-2">
+          <p className="text-label-medium font-medium text-on-surface-variant group-hover:text-on-surface transition-colors">
+            {title}
+          </p>
+          <p className="text-headline-small font-bold tracking-tight text-on-surface">{value}</p>
+          {helperText ? (
+            <p className="text-body-small text-on-surface-variant">{helperText}</p>
+          ) : null}
         </div>
-        <span className={cn("rounded-full p-2", TONE_CLASS[tone])}>
-          <Icon className="size-5" />
+        <span className={cn(
+          "flex size-12 shrink-0 items-center justify-center rounded-2xl shadow-sm transition-transform group-hover:scale-105", 
+          TONE_CLASS[tone]
+        )}>
+          <MaterialIcon icon={icon} className="text-2xl" />
         </span>
       </div>
+      
+      {active && (
+        <div className="absolute top-2 right-2 flex size-5 items-center justify-center rounded-full bg-primary shadow-sm">
+          <MaterialIcon icon="check" className="text-on-primary text-sm" weight={700} opticalSize={16} />
+        </div>
+      )}
     </button>
   );
 }

@@ -1,14 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, type ComponentType } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import {
-  AlertTriangle,
-  CheckCircle2,
-  Clock3,
-  Plus,
-  RefreshCcw,
-  Wallet,
-  Wrench,
-} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { MaterialIcon } from "@/components/ui/MaterialIcon";
 
 import {
   EquipmentFilterState,
@@ -96,15 +89,15 @@ interface StatCardProps {
   active: boolean;
   onClick: () => void;
   helperText?: string;
-  icon: ComponentType<{ className?: string }>;
+  icon: string;
 }
 
 const TONE_STYLES: Record<StatCardProps["tone"], string> = {
-  primary: "text-primary bg-primary/10",
-  success: "text-success bg-success/20",
-  warning: "text-warning bg-warning/20",
-  danger: "text-danger bg-danger/20",
-  info: "text-info bg-info/20",
+  primary: "text-on-primary-container bg-primary-container",
+  success: "text-on-success-container bg-success-container",
+  warning: "text-on-warning-container bg-warning-container",
+  danger: "text-on-error-container bg-error-container",
+  info: "text-on-primary-container bg-primary-container",
 };
 
 function StatCard({
@@ -114,26 +107,42 @@ function StatCard({
   active,
   onClick,
   helperText,
-  icon: Icon,
+  icon,
 }: StatCardProps) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-lg border bg-card p-4 text-left shadow-sm transition-colors hover:bg-muted/30 ${
-        active ? "border-primary" : "border-border"
-      }`}
+      className={cn(
+        "group relative flex flex-col rounded-2xl border p-5 text-left transition-all duration-200",
+        active 
+          ? "border-primary bg-primary/5 shadow-md ring-1 ring-primary" 
+          : "border-outline-variant bg-surface-container-low hover:bg-surface-container hover:shadow-sm"
+      )}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="space-y-1">
-          <p className="text-sm font-medium text-muted-foreground">{title}</p>
-          <p className="text-2xl font-semibold tracking-tight text-foreground">{value}</p>
-          {helperText ? <p className="text-xs text-muted-foreground">{helperText}</p> : null}
+      <div className="flex items-start justify-between gap-3 w-full">
+        <div className="space-y-2">
+          <p className="text-label-medium font-medium text-on-surface-variant group-hover:text-on-surface transition-colors">
+            {title}
+          </p>
+          <p className="text-headline-small font-bold tracking-tight text-on-surface">{value}</p>
+          {helperText ? (
+            <p className="text-body-small text-on-surface-variant">{helperText}</p>
+          ) : null}
         </div>
-        <div className={`rounded-full p-2 ${TONE_STYLES[tone]}`}>
-          <Icon className="size-5" />
-        </div>
+        <span className={cn(
+          "flex size-12 shrink-0 items-center justify-center rounded-2xl shadow-sm transition-transform group-hover:scale-105", 
+          TONE_STYLES[tone]
+        )}>
+          <MaterialIcon icon={icon} className="text-2xl" />
+        </span>
       </div>
+      
+      {active && (
+        <div className="absolute top-2 right-2 flex size-5 items-center justify-center rounded-full bg-primary shadow-sm">
+          <MaterialIcon icon="check" className="text-on-primary text-sm" weight={700} opticalSize={16} />
+        </div>
+      )}
     </button>
   );
 }
@@ -416,13 +425,13 @@ export function EquipmentManagementPage({ view = "all" }: EquipmentManagementPag
         </div>
         <div className="flex gap-2">
           {isOverviewPage ? (
-            <Button type="button" variant="outline" onClick={() => navigate("/management/equipment/list")}>
+            <Button type="button" variant="outlined" onClick={() => navigate("/management/equipment/list")}>
               View List
             </Button>
           ) : null}
           <Button type="button" onClick={openAddForm}>
-            <Plus className="size-4" />
-            Add Equipment
+            <MaterialIcon icon="add" className="text-lg" />
+            <span>Add Equipment</span>
           </Button>
         </div>
       </header>
@@ -440,9 +449,9 @@ export function EquipmentManagementPage({ view = "all" }: EquipmentManagementPag
           <CardContent className="flex flex-col gap-3 p-6">
             <p className="text-sm text-danger">Unable to load equipment data.</p>
             <div>
-              <Button type="button" variant="outline" onClick={() => void loadEquipment()}>
-                <RefreshCcw className="size-4" />
-                Retry
+              <Button type="button" variant="outlined" onClick={() => void loadEquipment()}>
+                <MaterialIcon icon="refresh" className="text-lg" />
+                <span>Retry</span>
               </Button>
             </div>
           </CardContent>
@@ -467,7 +476,7 @@ export function EquipmentManagementPage({ view = "all" }: EquipmentManagementPag
                   tone="info"
                   active={quickFilter === "all"}
                   onClick={() => handleOverviewCardClick("all")}
-                  icon={CheckCircle2}
+                  icon="check_circle"
                 />
                 <StatCard
                   title="Active Equipment"
@@ -475,7 +484,7 @@ export function EquipmentManagementPage({ view = "all" }: EquipmentManagementPag
                   tone="success"
                   active={quickFilter === "active"}
                   onClick={() => handleOverviewCardClick("active")}
-                  icon={CheckCircle2}
+                  icon="check_circle"
                 />
                 <StatCard
                   title="Needs Maintenance"
@@ -483,7 +492,7 @@ export function EquipmentManagementPage({ view = "all" }: EquipmentManagementPag
                   tone="warning"
                   active={quickFilter === "needs_maintenance"}
                   onClick={() => handleOverviewCardClick("needs_maintenance")}
-                  icon={Wrench}
+                   icon="build"
                 />
                 <StatCard
                   title="Out of Order"
@@ -491,7 +500,7 @@ export function EquipmentManagementPage({ view = "all" }: EquipmentManagementPag
                   tone="danger"
                   active={quickFilter === "out_of_order"}
                   onClick={() => handleOverviewCardClick("out_of_order")}
-                  icon={AlertTriangle}
+                   icon="warning"
                 />
                 <StatCard
                   title="Upcoming Maintenance"
@@ -500,7 +509,7 @@ export function EquipmentManagementPage({ view = "all" }: EquipmentManagementPag
                   tone="warning"
                   active={quickFilter === "upcoming_30"}
                   onClick={() => handleOverviewCardClick("upcoming_30")}
-                  icon={Clock3}
+                   icon="schedule"
                 />
                 <StatCard
                   title="Total Asset Value"
@@ -508,7 +517,7 @@ export function EquipmentManagementPage({ view = "all" }: EquipmentManagementPag
                   tone="primary"
                   active={false}
                   onClick={() => handleOverviewCardClick("all")}
-                  icon={Wallet}
+                   icon="payments"
                 />
               </div>
             </section>
@@ -518,7 +527,7 @@ export function EquipmentManagementPage({ view = "all" }: EquipmentManagementPag
             <section className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="section-title">Equipment List</h2>
-              <Button type="button" variant="ghost" onClick={clearFilters} disabled={!hasActiveFilters}>
+              <Button type="button" variant="text" onClick={clearFilters} disabled={!hasActiveFilters}>
                 Clear List Filters
               </Button>
             </div>
@@ -547,8 +556,8 @@ export function EquipmentManagementPage({ view = "all" }: EquipmentManagementPag
                   </p>
                   <div>
                     <Button type="button" onClick={openAddForm}>
-                      <Plus className="size-4" />
-                      Add Equipment
+                      <MaterialIcon icon="add" className="text-lg" />
+                      <span>Add Equipment</span>
                     </Button>
                   </div>
                 </CardContent>
@@ -563,7 +572,7 @@ export function EquipmentManagementPage({ view = "all" }: EquipmentManagementPag
                     Adjust or clear filters to view equipment records.
                   </p>
                   <div>
-                    <Button type="button" variant="outline" onClick={clearFilters}>
+                    <Button type="button" variant="outlined" onClick={clearFilters}>
                       Reset Filters
                     </Button>
                   </div>

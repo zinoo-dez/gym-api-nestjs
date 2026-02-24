@@ -1,5 +1,4 @@
 import * as Popover from "@radix-ui/react-popover";
-import { Bell, BellOff, LoaderCircle } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
@@ -16,6 +15,7 @@ import {
   type NotificationRecord,
 } from "@/services/notifications.service";
 import { useNotificationStore } from "@/store/notification.store";
+import { MaterialIcon } from "@/components/ui/MaterialIcon";
 
 import { formatNotificationTimestamp, getNotificationVisual } from "./notification.presentation";
 
@@ -65,14 +65,14 @@ export function NotificationBell() {
       <Popover.Trigger asChild>
         <Button
           type="button"
-          variant="ghost"
+          variant="text"
           size="icon"
           aria-label="Open notifications"
-          className="relative rounded-full"
+          className="relative size-12 rounded-full"
         >
-          <Bell className="size-5" />
+          <MaterialIcon icon="notifications" fill={hasUnread} className="text-on-surface-variant" />
           {hasUnread ? (
-            <span className="absolute -right-1 -top-1 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1 text-[10px] font-semibold text-danger-foreground">
+            <span className="absolute right-2 top-2 flex size-5 items-center justify-center rounded-full bg-error text-[10px] font-bold text-on-error shadow-sm">
               {unreadCount > 99 ? "99+" : unreadCount}
             </span>
           ) : null}
@@ -82,62 +82,66 @@ export function NotificationBell() {
       <Popover.Portal>
         <Popover.Content
           align="end"
-          sideOffset={10}
-          className="z-50 w-[360px] rounded-lg border bg-popover text-popover-foreground shadow-lg"
+          sideOffset={8}
+          className="z-50 w-[360px] rounded-2xl border border-outline-variant bg-surface-container-high text-on-surface shadow-xl focus:outline-none"
         >
-          <div className="space-y-1 border-b p-4">
-            <p className="text-sm font-semibold text-foreground">Notifications</p>
-            <p className="text-xs text-muted-foreground">
+          <div className="space-y-1 p-4">
+            <p className="text-title-medium font-bold">Notifications</p>
+            <p className="text-body-small text-on-surface-variant">
               {hasUnread ? `${unreadCount} unread alerts` : "You are all caught up"}
             </p>
           </div>
 
-          <div className="max-h-[360px] overflow-y-auto">
+          <div className="max-h-[400px] overflow-y-auto no-scrollbar border-y border-outline-variant">
             {notificationsQuery.isLoading ? (
-              <div className="flex items-center gap-2 p-4 text-sm text-muted-foreground">
-                <LoaderCircle className="size-4 animate-spin" />
+              <div className="flex items-center justify-center gap-3 p-8 text-body-medium text-on-surface-variant">
+                <div className="size-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
                 Loading notifications...
               </div>
             ) : null}
 
             {notificationsQuery.isError ? (
-              <div className="space-y-2 p-4 text-sm">
-                <p className="text-danger">Unable to load notifications.</p>
-                <Button type="button" variant="outline" size="sm" onClick={() => void notificationsQuery.refetch()}>
+              <div className="space-y-3 p-6 text-center">
+                <p className="text-body-medium text-error">Unable to load notifications.</p>
+                <Button type="button" variant="outlined" size="sm" onClick={() => void notificationsQuery.refetch()}>
                   Retry
                 </Button>
               </div>
             ) : null}
 
             {!notificationsQuery.isLoading && !notificationsQuery.isError && recentNotifications.length === 0 ? (
-              <div className="flex flex-col items-center gap-2 p-8 text-center">
-                <BellOff className="size-8 text-muted-foreground" />
-                <p className="text-sm font-medium text-foreground">No notifications yet</p>
-                <p className="text-xs text-muted-foreground">New alerts will appear here in real time.</p>
+              <div className="flex flex-col items-center gap-3 p-10 text-center text-on-surface-variant">
+                <div className="flex size-14 items-center justify-center rounded-full bg-surface-container-highest">
+                  <MaterialIcon icon="notifications_off" className="text-3xl" />
+                </div>
+                <div>
+                  <p className="text-title-small font-bold text-on-surface">No notifications yet</p>
+                  <p className="text-body-small">New alerts will appear here in real time.</p>
+                </div>
               </div>
             ) : null}
 
             {!notificationsQuery.isLoading && !notificationsQuery.isError && recentNotifications.length > 0 ? (
-              <ul>
+              <ul className="divide-y divide-outline-variant/30">
                 {recentNotifications.map((notification) => {
                   const visual = getNotificationVisual(notification);
 
                   return (
-                    <li key={notification.id} className="border-b last:border-b-0">
-                      <div className={cn("flex gap-3 p-3", !notification.read ? "bg-primary/5" : "")}>
-                        <span
+                    <li key={notification.id} className="transition-colors hover:bg-on-surface/5">
+                      <div className={cn("flex gap-4 p-4", !notification.read ? "bg-primary/5" : "")}>
+                        <div
                           className={cn(
-                            "mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full",
+                            "flex size-10 shrink-0 items-center justify-center rounded-xl",
                             visual.toneStyle.iconContainerClassName,
                           )}
                         >
-                          <visual.Icon className={cn("size-4", visual.toneStyle.iconClassName)} />
-                        </span>
+                          <MaterialIcon icon={visual.materialIcon || "info"} className={cn("text-xl", visual.toneStyle.iconClassName)} />
+                        </div>
 
                         <div className="min-w-0 flex-1 space-y-1">
-                          <p className="text-sm font-medium text-foreground">{notification.title}</p>
-                          <p className="text-xs text-muted-foreground">{notification.message}</p>
-                          <p className="text-[11px] text-muted-foreground">
+                          <p className="text-body-medium font-bold text-on-surface">{notification.title}</p>
+                          <p className="text-body-small text-on-surface-variant line-clamp-2">{notification.message}</p>
+                          <p className="text-label-small text-on-surface-variant/70">
                             {formatNotificationTimestamp(notification.createdAt)}
                           </p>
                         </div>
@@ -145,9 +149,9 @@ export function NotificationBell() {
                         {!notification.read ? (
                           <Button
                             type="button"
-                            variant="ghost"
+                            variant="text"
                             size="sm"
-                            className="h-7 px-2 text-[11px]"
+                            className="h-8 rounded-full px-3 text-label-small"
                             onClick={() => void handleMarkAsRead(notification)}
                           >
                             Mark read
@@ -161,21 +165,24 @@ export function NotificationBell() {
             ) : null}
           </div>
 
-          <div className="flex items-center justify-between border-t p-3">
+          <div className="flex items-center justify-between p-3">
             <Button
               type="button"
-              variant="ghost"
+              variant="text"
               size="sm"
+              className="text-primary hover:bg-primary/5"
               onClick={() => void handleMarkAllAsRead()}
               disabled={!hasUnread || markAllMutation.isPending}
             >
-              Mark all as read
+              Mark all read
             </Button>
 
             <Popover.Close asChild>
-              <Button type="button" asChild variant="link" size="sm" className="h-auto p-0">
-                <Link to="/admin/notifications">View all</Link>
-              </Button>
+              <Link to="/admin/notifications">
+                <Button type="button" variant="text" size="sm" className="text-primary hover:bg-primary/5">
+                  View all
+                </Button>
+              </Link>
             </Popover.Close>
           </div>
         </Popover.Content>

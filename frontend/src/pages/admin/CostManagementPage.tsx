@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Plus, RefreshCcw } from "lucide-react";
+import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import { useNavigate, useParams } from "react-router-dom";
 
 import {
@@ -338,8 +338,8 @@ export function CostManagementPage() {
           <p className="body-text text-muted-foreground">{sectionMeta.subtitle}</p>
         </div>
         <Button type="button" onClick={openAddForm}>
-          <Plus className="size-4" />
-          Add Cost
+          <MaterialIcon icon="add" className="text-lg" />
+          <span>Add Cost</span>
         </Button>
       </header>
 
@@ -354,9 +354,9 @@ export function CostManagementPage() {
           <CardContent className="flex flex-col gap-3 p-6">
             <p className="text-sm text-danger">Unable to load cost data.</p>
             <div>
-              <Button type="button" variant="outline" onClick={() => void loadCosts()}>
-                <RefreshCcw className="size-4" />
-                Retry
+              <Button type="button" variant="outlined" onClick={() => void loadCosts()}>
+                <MaterialIcon icon="refresh" className="text-lg" />
+                <span>Retry</span>
               </Button>
             </div>
           </CardContent>
@@ -438,7 +438,7 @@ export function CostManagementPage() {
             <section className="space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="card-title">Detailed Cost Records</h3>
-                <Button type="button" variant="ghost" onClick={clearFilters} disabled={!hasActiveFilters}>
+                <Button type="button" variant="text" onClick={clearFilters} disabled={!hasActiveFilters}>
                   Clear List Filters
                 </Button>
               </div>
@@ -461,8 +461,8 @@ export function CostManagementPage() {
                       </p>
                       <div>
                         <Button type="button" onClick={openAddForm}>
-                          <Plus className="size-4" />
-                          Add Cost
+                          <MaterialIcon icon="add" className="text-lg" />
+                          <span>Add Cost</span>
                         </Button>
                       </div>
                     </CardContent>
@@ -477,7 +477,7 @@ export function CostManagementPage() {
                         Adjust filters or clear quick filters to review all records.
                       </p>
                       <div>
-                        <Button type="button" variant="outline" onClick={clearFilters}>
+                        <Button type="button" variant="outlined" onClick={clearFilters}>
                           Reset Filters
                         </Button>
                       </div>

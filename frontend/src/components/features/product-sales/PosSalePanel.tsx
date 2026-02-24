@@ -1,4 +1,4 @@
-import { Search, ShoppingCart } from "lucide-react";
+import { MaterialIcon } from "@/components/ui/MaterialIcon";
 
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
@@ -136,13 +136,17 @@ export function PosSalePanel({
         <div className="space-y-2 rounded-md border p-3">
           <Label htmlFor="pos-search">Quick Add Products</Label>
           <div className="relative">
-            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <MaterialIcon 
+              icon="search" 
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" 
+              opticalSize={20}
+            />
             <Input
               id="pos-search"
               value={searchInput}
               onChange={(event) => onSearchInputChange(event.target.value)}
               placeholder="Search products to add"
-              className="pl-9"
+              className="pl-10"
             />
           </div>
 
@@ -154,8 +158,9 @@ export function PosSalePanel({
             {quickProductsError ? (
               <div className="space-y-2 rounded-md border border-danger/40 bg-danger/5 p-2">
                 <p className="text-xs text-danger">{quickProductsError}</p>
-                <Button type="button" variant="outline" size="sm" onClick={onRetryQuickProducts}>
-                  Retry
+                <Button type="button" variant="outlined" size="sm" onClick={onRetryQuickProducts}>
+                  <MaterialIcon icon="refresh" className="text-sm" />
+                  <span>Retry</span>
                 </Button>
               </div>
             ) : null}
@@ -173,11 +178,12 @@ export function PosSalePanel({
                     <Button
                       type="button"
                       size="sm"
-                      variant="outline"
+                      variant="outlined"
                       onClick={() => onAddProductToCart(product)}
                       disabled={product.stockQuantity <= 0}
                     >
-                      Add
+                      <MaterialIcon icon="add" className="text-sm" />
+                      <span>Add</span>
                     </Button>
                   </div>
                 ))
@@ -208,18 +214,19 @@ export function PosSalePanel({
                         {formatCurrency(item.unitPrice)} x {item.quantity}
                       </p>
                     </div>
-                    <Button type="button" variant="ghost" size="sm" onClick={() => onRemoveItem(item.productId)}>
-                      Remove
+                    <Button type="button" variant="text" size="sm" onClick={() => onRemoveItem(item.productId)} className="text-error">
+                      <MaterialIcon icon="delete" className="text-sm" />
+                      <span>Remove</span>
                     </Button>
                   </div>
 
                   <div className="mt-2 flex items-center gap-2">
-                    <Button type="button" variant="outline" size="sm" onClick={() => onDecreaseQuantity(item.productId)}>
-                      -
+                    <Button type="button" variant="outlined" size="sm" onClick={() => onDecreaseQuantity(item.productId)}>
+                      <MaterialIcon icon="remove" className="text-sm" />
                     </Button>
                     <span className="min-w-6 text-center text-sm font-medium">{item.quantity}</span>
-                    <Button type="button" variant="outline" size="sm" onClick={() => onIncreaseQuantity(item.productId)}>
-                      +
+                    <Button type="button" variant="outlined" size="sm" onClick={() => onIncreaseQuantity(item.productId)}>
+                      <MaterialIcon icon="add" className="text-sm" />
                     </Button>
                   </div>
                 </div>
@@ -243,9 +250,9 @@ export function PosSalePanel({
           </div>
         </div>
 
-        <Button type="button" className="w-full" onClick={onCompleteSale} disabled={completingSale || cart.length === 0}>
-          <ShoppingCart className="size-4" />
-          {completingSale ? "Completing Sale..." : "Complete Sale"}
+        <Button type="button" className="w-full shadow-elevation-1" onClick={onCompleteSale} disabled={completingSale || cart.length === 0}>
+          <MaterialIcon icon="shopping_cart" className="text-lg" />
+          <span>{completingSale ? "Completing Sale..." : "Complete Sale"}</span>
         </Button>
       </CardContent>
     </Card>
