@@ -32,6 +32,7 @@ import {
   MemberClassCreditsResponseDto,
   RateInstructorDto,
   InstructorProfileResponseDto,
+  UpdateBookingStatusDto,
 } from './dto';
 import { PaginatedResponseDto } from '../members/dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -232,6 +233,16 @@ export class ClassesController {
     return { message: 'Booking cancelled successfully' };
   }
 
+  @Patch('bookings/:id/status')
+  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @ApiBearerAuth('JWT-auth')
+  async updateBookingStatus(
+    @Param('id') bookingId: string,
+    @Body() dto: UpdateBookingStatusDto,
+  ): Promise<ClassBookingResponseDto> {
+    return this.classesService.updateBookingStatus(bookingId, dto.status);
+  }
+
   @Get('members/:memberId/bookings')
   @Roles(UserRole.ADMIN, UserRole.MEMBER)
   @ApiBearerAuth('JWT-auth')
@@ -245,9 +256,7 @@ export class ClassesController {
   @Get('bookings')
   @Roles(UserRole.ADMIN, UserRole.STAFF)
   @ApiBearerAuth('JWT-auth')
-  async getAllBookings(
-    @Query('classScheduleId') classScheduleId?: string,
-  ) {
+  async getAllBookings(@Query('classScheduleId') classScheduleId?: string) {
     return this.classesService.getAllBookings(classScheduleId);
   }
 
@@ -259,7 +268,11 @@ export class ClassesController {
     @Body() dto: Omit<BookClassDto, 'classScheduleId'>,
     @CurrentUser() user: any,
   ): Promise<ClassWaitlistResponseDto> {
-    return this.classesService.joinWaitlist(classScheduleId, dto.memberId, user);
+    return this.classesService.joinWaitlist(
+      classScheduleId,
+      dto.memberId,
+      user,
+    );
   }
 
   @Delete('waitlist/:id')

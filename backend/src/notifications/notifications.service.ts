@@ -13,7 +13,7 @@ export class NotificationsService {
     role: UserRole;
     title: string;
     message: string;
-    type?: NotificationType | string;
+    type?: NotificationType | (string & {});
     actionUrl?: string;
   }) {
     try {
@@ -39,7 +39,7 @@ export class NotificationsService {
     roles: UserRole[];
     title: string;
     message: string;
-    type?: NotificationType | string;
+    type?: NotificationType | (string & {});
     actionUrl?: string;
   }) {
     try {
@@ -66,7 +66,7 @@ export class NotificationsService {
     userId: string;
     title: string;
     message: string;
-    type?: NotificationType | string;
+    type?: NotificationType | (string & {});
     actionUrl?: string;
   }) {
     try {
@@ -146,9 +146,12 @@ export class NotificationsService {
     };
   }
 
-  private normalizeType(type?: NotificationType | string): NotificationType {
+  private normalizeType(
+    type?: NotificationType | (string & {}),
+  ): NotificationType {
     if (!type) return NotificationType.IN_APP;
-    if (Object.values(NotificationType).includes(type as NotificationType)) {
+    const typeValue = type as string;
+    if ((Object.values(NotificationType) as string[]).includes(typeValue)) {
       return type as NotificationType;
     }
 

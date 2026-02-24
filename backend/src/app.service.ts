@@ -347,13 +347,25 @@ export class AppService {
           sessionDate: { gte: start90Days },
           status: { in: ['SCHEDULED', 'COMPLETED'] },
         },
-        select: { rate: true, duration: true, status: true, sessionDate: true, trainerId: true },
+        select: {
+          rate: true,
+          duration: true,
+          status: true,
+          sessionDate: true,
+          trainerId: true,
+        },
       }),
       this.prisma.member.findMany({
         select: { id: true, createdAt: true, gender: true, dateOfBirth: true },
       }),
       this.prisma.subscription.findMany({
-        select: { startDate: true, endDate: true, status: true, membershipPlanId: true, memberId: true },
+        select: {
+          startDate: true,
+          endDate: true,
+          status: true,
+          membershipPlanId: true,
+          memberId: true,
+        },
       }),
       this.prisma.attendance.findMany({
         where: { checkInTime: { gte: start90Days } },
@@ -367,7 +379,10 @@ export class AppService {
         select: { id: true, name: true, category: true, maxCapacity: true },
       }),
       this.prisma.trainer.findMany({ select: { id: true } }),
-      this.prisma.equipment.findMany({ where: { isActive: true }, select: { category: true } }),
+      this.prisma.equipment.findMany({
+        where: { isActive: true },
+        select: { category: true },
+      }),
       this.prisma.invoice.findMany({
         where: { createdAt: { gte: start90Days } },
         select: { total: true, status: true, dueDate: true },
@@ -394,64 +409,99 @@ export class AppService {
     for (const payment of payments) {
       if (payment.status !== 'PAID') continue;
       const key = this.dayKey(payment.createdAt);
-      membershipRevenueByDay.set(key, (membershipRevenueByDay.get(key) ?? 0) + payment.amount);
+      membershipRevenueByDay.set(
+        key,
+        (membershipRevenueByDay.get(key) ?? 0) + payment.amount,
+      );
     }
     for (const sale of productSales) {
       const key = this.dayKey(sale.soldAt);
-      productRevenueByDay.set(key, (productRevenueByDay.get(key) ?? 0) + sale.total);
+      productRevenueByDay.set(
+        key,
+        (productRevenueByDay.get(key) ?? 0) + sale.total,
+      );
     }
     for (const session of trainerSessions) {
       const key = this.dayKey(session.sessionDate);
       const sessionAmount = session.status === 'COMPLETED' ? session.rate : 0;
-      sessionRevenueByDay.set(key, (sessionRevenueByDay.get(key) ?? 0) + sessionAmount);
+      sessionRevenueByDay.set(
+        key,
+        (sessionRevenueByDay.get(key) ?? 0) + sessionAmount,
+      );
     }
 
     const dailyRevenue = this.buildDaySeries(start30Days, now, (key) => {
-      return (membershipRevenueByDay.get(key) ?? 0) + (productRevenueByDay.get(key) ?? 0) + (sessionRevenueByDay.get(key) ?? 0);
+      return (
+        (membershipRevenueByDay.get(key) ?? 0) +
+        (productRevenueByDay.get(key) ?? 0) +
+        (sessionRevenueByDay.get(key) ?? 0)
+      );
     });
 
     const weeklyRevenue = this.aggregateSeriesByWeek(dailyRevenue);
-    const monthlyRevenue = this.buildMonthlySeries(start12Months, now, (monthKey, from, to) => {
-      let total = 0;
-      for (const [key, amount] of membershipRevenueByDay) {
-        if (this.keyInRange(key, from, to)) total += amount;
-      }
-      for (const [key, amount] of productRevenueByDay) {
-        if (this.keyInRange(key, from, to)) total += amount;
-      }
-      for (const [key, amount] of sessionRevenueByDay) {
-        if (this.keyInRange(key, from, to)) total += amount;
-      }
-      return { label: monthKey, value: Number(total.toFixed(2)) };
-    });
+    const monthlyRevenue = this.buildMonthlySeries(
+      start12Months,
+      now,
+      (monthKey, from, to) => {
+        let total = 0;
+        for (const [key, amount] of membershipRevenueByDay) {
+          if (this.keyInRange(key, from, to)) total += amount;
+        }
+        for (const [key, amount] of productRevenueByDay) {
+          if (this.keyInRange(key, from, to)) total += amount;
+        }
+        for (const [key, amount] of sessionRevenueByDay) {
+          if (this.keyInRange(key, from, to)) total += amount;
+        }
+        return { label: monthKey, value: Number(total.toFixed(2)) };
+      },
+    );
 
     const membershipRevenueTotal = this.sumMapValues(membershipRevenueByDay);
     const productRevenueTotal = this.sumMapValues(productRevenueByDay);
     const sessionRevenueTotal = this.sumMapValues(sessionRevenueByDay);
 
-    const invoicedAmount = invoices.reduce((sum, invoice) => sum + invoice.total, 0);
+    const invoicedAmount = invoices.reduce(
+      (sum, invoice) => sum + invoice.total,
+      0,
+    );
     const collectedAmount = invoices
       .filter((invoice) => invoice.status === 'PAID')
       .reduce((sum, invoice) => sum + invoice.total, 0);
 
     const outstandingFromInvoices = invoices
-      .filter((invoice) => invoice.status === 'SENT' || invoice.status === 'OVERDUE')
+      .filter(
+        (invoice) => invoice.status === 'SENT' || invoice.status === 'OVERDUE',
+      )
       .reduce((sum, invoice) => sum + invoice.total, 0);
     const outstandingFromPendingPayments = payments
       .filter((payment) => payment.status === 'PENDING')
       .reduce((sum, payment) => sum + payment.amount, 0);
 
     const totalMembers = members.length;
-    const memberGrowthTrends = this.buildMonthlyMemberGrowth(start12Months, now, members);
+    const memberGrowthTrends = this.buildMonthlyMemberGrowth(
+      start12Months,
+      now,
+      members,
+    );
 
     const totalSubscriptions = subscriptions.length;
-    const churnedSubscriptions = subscriptions.filter((s) =>
-      (s.status === 'CANCELLED' || s.status === 'EXPIRED') && s.endDate >= start90Days,
+    const churnedSubscriptions = subscriptions.filter(
+      (s) =>
+        (s.status === 'CANCELLED' || s.status === 'EXPIRED') &&
+        s.endDate >= start90Days,
     ).length;
-    const churnRate = totalSubscriptions > 0 ? Number(((churnedSubscriptions / totalSubscriptions) * 100).toFixed(2)) : 0;
+    const churnRate =
+      totalSubscriptions > 0
+        ? Number(((churnedSubscriptions / totalSubscriptions) * 100).toFixed(2))
+        : 0;
 
-    const activeMemberIds = new Set(activeMembersLast30.map((item) => item.memberId));
-    const previousActiveMemberIds = new Set(activeMembersPrev30.map((item) => item.memberId));
+    const activeMemberIds = new Set(
+      activeMembersLast30.map((item) => item.memberId),
+    );
+    const previousActiveMemberIds = new Set(
+      activeMembersPrev30.map((item) => item.memberId),
+    );
 
     const genderDistribution: Record<string, number> = {};
     const ageBuckets = {
@@ -467,7 +517,9 @@ export class AppService {
       const gender = member.gender?.trim() || 'Unknown';
       genderDistribution[gender] = (genderDistribution[gender] ?? 0) + 1;
 
-      const age = member.dateOfBirth ? this.calculateAge(member.dateOfBirth, now) : null;
+      const age = member.dateOfBirth
+        ? this.calculateAge(member.dateOfBirth, now)
+        : null;
       if (age === null) {
         ageBuckets.unknown += 1;
       } else if (age < 18) {
@@ -492,7 +544,10 @@ export class AppService {
     const planNameMap = new Map(plans.map((p) => [p.id, p.name]));
     for (const sub of subscriptions) {
       const planName = planNameMap.get(sub.membershipPlanId) ?? 'Unknown Plan';
-      membershipPlanDistributionCount.set(planName, (membershipPlanDistributionCount.get(planName) ?? 0) + 1);
+      membershipPlanDistributionCount.set(
+        planName,
+        (membershipPlanDistributionCount.get(planName) ?? 0) + 1,
+      );
     }
 
     const peakHoursCount = new Map<number, number>();
@@ -505,44 +560,72 @@ export class AppService {
       value: peakHoursCount.get(hour) ?? 0,
     }));
 
-    const classScheduleIds = Array.from(new Set(classBookings.map((booking) => booking.classScheduleId)));
+    const classScheduleIds = Array.from(
+      new Set(classBookings.map((booking) => booking.classScheduleId)),
+    );
     const schedules = await this.prisma.classSchedule.findMany({
       where: { id: { in: classScheduleIds } },
       select: { id: true, classId: true, trainerId: true },
     });
-    const scheduleClassMap = new Map(schedules.map((schedule) => [schedule.id, schedule.classId]));
-    const scheduleTrainerMap = new Map(schedules.map((schedule) => [schedule.id, schedule.trainerId]));
-    const classNameMap = new Map(classes.map((gymClass) => [gymClass.id, gymClass.name]));
-    const classCategoryMap = new Map(classes.map((gymClass) => [gymClass.id, gymClass.category]));
+    const scheduleClassMap = new Map(
+      schedules.map((schedule) => [schedule.id, schedule.classId]),
+    );
+    const scheduleTrainerMap = new Map(
+      schedules.map((schedule) => [schedule.id, schedule.trainerId]),
+    );
+    const classNameMap = new Map(
+      classes.map((gymClass) => [gymClass.id, gymClass.name]),
+    );
+    const classCategoryMap = new Map(
+      classes.map((gymClass) => [gymClass.id, gymClass.category]),
+    );
 
     const classAttendanceCount = new Map<string, number>();
     const trainerSessionsCount = new Map<string, number>();
     const equipmentUsageByCategory = new Map<string, number>();
 
     for (const booking of classBookings) {
-      if (booking.status !== 'CONFIRMED' && booking.status !== 'COMPLETED') continue;
+      if (booking.status !== 'CONFIRMED' && booking.status !== 'COMPLETED')
+        continue;
       const classId = scheduleClassMap.get(booking.classScheduleId);
       if (!classId) continue;
       const className = classNameMap.get(classId) ?? 'Unknown Class';
-      classAttendanceCount.set(className, (classAttendanceCount.get(className) ?? 0) + 1);
+      classAttendanceCount.set(
+        className,
+        (classAttendanceCount.get(className) ?? 0) + 1,
+      );
 
       const classCategory = classCategoryMap.get(classId) ?? 'GENERAL';
-      equipmentUsageByCategory.set(classCategory, (equipmentUsageByCategory.get(classCategory) ?? 0) + 1);
+      equipmentUsageByCategory.set(
+        classCategory,
+        (equipmentUsageByCategory.get(classCategory) ?? 0) + 1,
+      );
 
       const trainerId = scheduleTrainerMap.get(booking.classScheduleId);
       if (trainerId) {
-        trainerSessionsCount.set(trainerId, (trainerSessionsCount.get(trainerId) ?? 0) + 1);
+        trainerSessionsCount.set(
+          trainerId,
+          (trainerSessionsCount.get(trainerId) ?? 0) + 1,
+        );
       }
     }
 
     for (const session of trainerSessions) {
-      trainerSessionsCount.set(session.trainerId, (trainerSessionsCount.get(session.trainerId) ?? 0) + 1);
+      trainerSessionsCount.set(
+        session.trainerId,
+        (trainerSessionsCount.get(session.trainerId) ?? 0) + 1,
+      );
     }
 
     const trainerUtilization = {
       totalTrainers: trainers.length,
       engagedTrainers: trainerSessionsCount.size,
-      utilizationRate: trainers.length > 0 ? Number(((trainerSessionsCount.size / trainers.length) * 100).toFixed(2)) : 0,
+      utilizationRate:
+        trainers.length > 0
+          ? Number(
+              ((trainerSessionsCount.size / trainers.length) * 100).toFixed(2),
+            )
+          : 0,
       topTrainersBySessions: await Promise.all(
         Array.from(trainerSessionsCount.entries())
           .sort((a, b) => b[1] - a[1])
@@ -552,17 +635,29 @@ export class AppService {
               where: { id: trainerId },
               select: { user: { select: { firstName: true, lastName: true } } },
             });
-            const fullName = trainer?.user ? `${trainer.user.firstName} ${trainer.user.lastName}` : 'Unknown Trainer';
+            const fullName = trainer?.user
+              ? `${trainer.user.firstName} ${trainer.user.lastName}`
+              : 'Unknown Trainer';
             return { trainerId, trainerName: fullName, sessionsCount };
           }),
       ),
     };
 
-    const averageMemberLifetimeValue = totalMembers > 0
-      ? Number(((membershipRevenueTotal + productRevenueTotal + sessionRevenueTotal) / totalMembers).toFixed(2))
-      : 0;
+    const averageMemberLifetimeValue =
+      totalMembers > 0
+        ? Number(
+            (
+              (membershipRevenueTotal +
+                productRevenueTotal +
+                sessionRevenueTotal) /
+              totalMembers
+            ).toFixed(2),
+          )
+        : 0;
 
-    const equipmentInventoryByCategory = equipment.reduce<Record<string, number>>((acc, item) => {
+    const equipmentInventoryByCategory = equipment.reduce<
+      Record<string, number>
+    >((acc, item) => {
       acc[item.category] = (acc[item.category] ?? 0) + 1;
       return acc;
     }, {});
@@ -581,12 +676,19 @@ export class AppService {
         paymentCollection: {
           invoicedAmount: Number(invoicedAmount.toFixed(2)),
           collectedAmount: Number(collectedAmount.toFixed(2)),
-          collectionRate: invoicedAmount > 0 ? Number(((collectedAmount / invoicedAmount) * 100).toFixed(2)) : 0,
+          collectionRate:
+            invoicedAmount > 0
+              ? Number(((collectedAmount / invoicedAmount) * 100).toFixed(2))
+              : 0,
         },
         outstandingPayments: {
           invoiceOutstanding: Number(outstandingFromInvoices.toFixed(2)),
           pendingPayments: Number(outstandingFromPendingPayments.toFixed(2)),
-          totalOutstanding: Number((outstandingFromInvoices + outstandingFromPendingPayments).toFixed(2)),
+          totalOutstanding: Number(
+            (outstandingFromInvoices + outstandingFromPendingPayments).toFixed(
+              2,
+            ),
+          ),
         },
       },
       memberAnalytics: {
@@ -601,7 +703,9 @@ export class AppService {
           genderDistribution,
           ageDistribution: ageBuckets,
         },
-        membershipPlanDistribution: Array.from(membershipPlanDistributionCount.entries()).map(([planName, count]) => ({
+        membershipPlanDistribution: Array.from(
+          membershipPlanDistributionCount.entries(),
+        ).map(([planName, count]) => ({
           planName,
           count,
         })),
@@ -609,12 +713,17 @@ export class AppService {
       operationalMetrics: {
         peakHoursAnalysis,
         classAttendanceTrends: Array.from(classAttendanceCount.entries())
-          .map(([className, attendanceCount]) => ({ className, attendanceCount }))
+          .map(([className, attendanceCount]) => ({
+            className,
+            attendanceCount,
+          }))
           .sort((a, b) => b.attendanceCount - a.attendanceCount)
           .slice(0, 8),
         trainerUtilization,
         equipmentUsagePatterns: {
-          usageByClassCategory: Array.from(equipmentUsageByCategory.entries()).map(([category, usage]) => ({
+          usageByClassCategory: Array.from(
+            equipmentUsageByCategory.entries(),
+          ).map(([category, usage]) => ({
             category,
             usage,
           })),
@@ -672,7 +781,11 @@ export class AppService {
   private buildMonthlySeries(
     start: Date,
     end: Date,
-    resolve: (monthKey: string, monthStart: Date, monthEnd: Date) => TimeSeriesPoint,
+    resolve: (
+      monthKey: string,
+      monthStart: Date,
+      monthEnd: Date,
+    ) => TimeSeriesPoint,
   ): TimeSeriesPoint[] {
     const series: TimeSeriesPoint[] = [];
     const cursor = new Date(start.getFullYear(), start.getMonth(), 1);
@@ -687,7 +800,11 @@ export class AppService {
     return series;
   }
 
-  private buildMonthlyMemberGrowth(start: Date, end: Date, members: Array<{ createdAt: Date }>): TimeSeriesPoint[] {
+  private buildMonthlyMemberGrowth(
+    start: Date,
+    end: Date,
+    members: Array<{ createdAt: Date }>,
+  ): TimeSeriesPoint[] {
     const memberCountByMonth = new Map<string, number>();
     for (const member of members) {
       const key = `${member.createdAt.getFullYear()}-${String(member.createdAt.getMonth() + 1).padStart(2, '0')}`;
@@ -703,7 +820,10 @@ export class AppService {
   private calculateAge(dateOfBirth: Date, now: Date): number {
     let age = now.getFullYear() - dateOfBirth.getFullYear();
     const monthDiff = now.getMonth() - dateOfBirth.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < dateOfBirth.getDate())) {
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && now.getDate() < dateOfBirth.getDate())
+    ) {
       age -= 1;
     }
     return age;

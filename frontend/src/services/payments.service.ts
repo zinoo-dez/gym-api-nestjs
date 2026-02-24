@@ -115,6 +115,11 @@ export interface PaymentSummary {
   recentFailedPayments: number;
 }
 
+export interface PaymentCapabilities {
+  invoice: boolean;
+  refund: boolean;
+}
+
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
 
@@ -600,6 +605,42 @@ const shouldTryFallback = (error: unknown): boolean => {
   return error.response?.status === 404 || error.response?.status === 405;
 };
 
+const isRouteMissingError = (error: unknown, method: "GET" | "POST"): boolean => {
+  if (!axios.isAxiosError(error)) {
+    return false;
+  }
+
+  const status = error.response?.status;
+  if (status !== 404 && status !== 405 && status !== 501) {
+    return false;
+  }
+
+  const message = (() => {
+    const payload = error.response?.data;
+    if (typeof payload === "string") {
+      return payload;
+    }
+
+    if (isRecord(payload)) {
+      const raw = payload.message;
+      if (typeof raw === "string") {
+        return raw;
+      }
+      if (Array.isArray(raw)) {
+        return raw.join(" ");
+      }
+    }
+
+    return "";
+  })()
+    .toLowerCase()
+    .trim();
+
+  return message.includes(`cannot ${method.toLowerCase()}`);
+};
+
+let capabilitiesCache: PaymentCapabilities | null = null;
+
 const getFilenameFromDisposition = (value: unknown, fallback: string): string => {
   if (typeof value !== "string") {
     return fallback;
@@ -662,6 +703,42 @@ export const calculatePaymentSummary = (
 };
 
 export const paymentsService = {
+  async getCapabilities(forceRefresh = false): Promise<PaymentCapabilities> {
+    if (!forceRefresh && capabilitiesCache) {
+      return capabilitiesCache;
+    }
+
+    const probeInvoice = async (): Promise<boolean> => {
+      try {
+        await api.get("/payments/invoice/__capability_probe__");
+        return true;
+      } catch (error) {
+        if (isRouteMissingError(error, "GET")) {
+          return false;
+        }
+        return true;
+      }
+    };
+
+    const probeRefund = async (): Promise<boolean> => {
+      try {
+        await api.post("/payments/__capability_probe__/refund", {
+          reason: "capability_probe",
+        });
+        return true;
+      } catch (error) {
+        if (isRouteMissingError(error, "POST")) {
+          return false;
+        }
+        return true;
+      }
+    };
+
+    const [invoice, refund] = await Promise.all([probeInvoice(), probeRefund()]);
+    capabilitiesCache = { invoice, refund };
+    return capabilitiesCache;
+  },
+
   async listPayments(filters: PaymentsQueryFilters = {}): Promise<PaginatedResponse<PaymentTransaction>> {
     const params = buildQueryParams(filters);
 
@@ -705,7 +782,7 @@ export const paymentsService = {
       description: payload.notes?.trim(),
     });
 
-    const response = await api.post<unknown>("/payments/manual", requestPayload);
+    const response = await api.post<unknown>("/payments", requestPayload);
     return normalizeTransaction(response.data);
   },
 
@@ -741,27 +818,6 @@ export const paymentsService = {
   },
 
   async cancelAutoRenew(subscriptionId: string): Promise<void> {
-    const attempts = [
-      () => api.post(`/subscriptions/${subscriptionId}/cancel-auto-renew`),
-      () => api.post(`/memberships/${subscriptionId}/cancel-auto-renew`),
-      () => api.post(`/memberships/${subscriptionId}/cancel`),
-    ];
-
-    let lastError: unknown;
-
-    for (const attempt of attempts) {
-      try {
-        await attempt();
-        return;
-      } catch (error) {
-        lastError = error;
-
-        if (!shouldTryFallback(error)) {
-          throw error;
-        }
-      }
-    }
-
-    throw lastError ?? new Error("Unable to cancel auto-renew.");
+    await api.post(`/memberships/${subscriptionId}/cancel`);
   },
 };

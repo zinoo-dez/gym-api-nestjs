@@ -88,15 +88,13 @@ interface DashboardData {
     beforeCount: number;
     afterCount: number;
     progressCount: number;
-    latest:
-      | {
-          id: string;
-          photoUrl: string;
-          pose: ProgressPhotoPose;
-          phase: ProgressPhotoPhase;
-          capturedAt: Date;
-        }
-      | null;
+    latest: {
+      id: string;
+      photoUrl: string;
+      pose: ProgressPhotoPose;
+      phase: ProgressPhotoPhase;
+      capturedAt: Date;
+    } | null;
   };
 }
 
@@ -296,14 +294,17 @@ export class BodyCompositionService {
           startValue,
           targetValue: dto.targetValue,
           currentValue,
-          status: achieved ? ProgressGoalStatus.ACHIEVED : ProgressGoalStatus.ACTIVE,
+          status: achieved
+            ? ProgressGoalStatus.ACHIEVED
+            : ProgressGoalStatus.ACTIVE,
           targetDate: dto.targetDate ? new Date(dto.targetDate) : undefined,
           achievedAt: achieved ? new Date() : undefined,
         },
       });
 
-      let milestone: Awaited<ReturnType<typeof tx.progressMilestone.create>> | null =
-        null;
+      let milestone: Awaited<
+        ReturnType<typeof tx.progressMilestone.create>
+      > | null = null;
 
       if (achieved) {
         milestone = await tx.progressMilestone.create({
@@ -428,8 +429,9 @@ export class BodyCompositionService {
         },
       });
 
-      let milestone: Awaited<ReturnType<typeof tx.progressMilestone.create>> | null =
-        null;
+      let milestone: Awaited<
+        ReturnType<typeof tx.progressMilestone.create>
+      > | null = null;
 
       if (shouldCreateMilestone) {
         milestone = await tx.progressMilestone.create({
@@ -477,7 +479,9 @@ export class BodyCompositionService {
       }
 
       if (goal.memberId !== member.id) {
-        throw new BadRequestException('Goal does not belong to the target member');
+        throw new BadRequestException(
+          'Goal does not belong to the target member',
+        );
       }
     }
 
@@ -689,7 +693,10 @@ export class BodyCompositionService {
       latestWeight: lastEntry?.weight ?? null,
       weightChange: this.calculateDelta(firstEntry?.weight, lastEntry?.weight),
       latestBodyFat: lastEntry?.bodyFat ?? null,
-      bodyFatChange: this.calculateDelta(firstEntry?.bodyFat, lastEntry?.bodyFat),
+      bodyFatChange: this.calculateDelta(
+        firstEntry?.bodyFat,
+        lastEntry?.bodyFat,
+      ),
       latestMuscleMass: lastEntry?.muscleMass ?? null,
       muscleMassChange: this.calculateDelta(
         firstEntry?.muscleMass,
@@ -737,10 +744,12 @@ export class BodyCompositionService {
 
     const photosSummary = {
       total: photos.length,
-      beforeCount: photos.filter((photo) => photo.phase === ProgressPhotoPhase.BEFORE)
-        .length,
-      afterCount: photos.filter((photo) => photo.phase === ProgressPhotoPhase.AFTER)
-        .length,
+      beforeCount: photos.filter(
+        (photo) => photo.phase === ProgressPhotoPhase.BEFORE,
+      ).length,
+      afterCount: photos.filter(
+        (photo) => photo.phase === ProgressPhotoPhase.AFTER,
+      ).length,
       progressCount: photos.filter(
         (photo) => photo.phase === ProgressPhotoPhase.PROGRESS,
       ).length,
@@ -790,7 +799,9 @@ export class BodyCompositionService {
       }
 
       if (requestedMemberId && requestedMemberId !== self.id) {
-        throw new ForbiddenException('You can only access your own progress data');
+        throw new ForbiddenException(
+          'You can only access your own progress data',
+        );
       }
 
       return {
@@ -885,7 +896,10 @@ export class BodyCompositionService {
     }
   }
 
-  private buildDateRange(from?: string, to?: string): Prisma.DateTimeFilter | undefined {
+  private buildDateRange(
+    from?: string,
+    to?: string,
+  ): Prisma.DateTimeFilter | undefined {
     if (!from && !to) {
       return undefined;
     }
@@ -907,7 +921,10 @@ export class BodyCompositionService {
     return range;
   }
 
-  private calculateBmi(weight?: number, height?: number | null): number | undefined {
+  private calculateBmi(
+    weight?: number,
+    height?: number | null,
+  ): number | undefined {
     if (weight === undefined || height === undefined || height === null) {
       return undefined;
     }
@@ -931,7 +948,12 @@ export class BodyCompositionService {
     first?: number | null,
     last?: number | null,
   ): number | null {
-    if (first === undefined || first === null || last === undefined || last === null) {
+    if (
+      first === undefined ||
+      first === null ||
+      last === undefined ||
+      last === null
+    ) {
       return null;
     }
 
@@ -949,7 +971,12 @@ export class BodyCompositionService {
         return [];
       }
 
-      return [{ recordedAt: entry.recordedAt.toISOString(), value: this.round(value) }];
+      return [
+        {
+          recordedAt: entry.recordedAt.toISOString(),
+          value: this.round(value),
+        },
+      ];
     });
   }
 
@@ -1231,7 +1258,9 @@ export class BodyCompositionService {
           `Weight decreased by ${Math.abs(summary.weightChange)} in this period.`,
         );
       } else if (summary.weightChange > 0) {
-        highlights.push(`Weight increased by ${summary.weightChange} in this period.`);
+        highlights.push(
+          `Weight increased by ${summary.weightChange} in this period.`,
+        );
       }
     }
 

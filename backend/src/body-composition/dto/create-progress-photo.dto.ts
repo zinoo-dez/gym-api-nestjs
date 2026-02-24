@@ -1,6 +1,12 @@
 import { ProgressPhotoPhase, ProgressPhotoPose } from '@prisma/client';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsDateString, IsEnum, IsOptional, IsString, MaxLength } from 'class-validator';
+import {
+  IsDateString,
+  IsEnum,
+  IsOptional,
+  IsString,
+  MaxLength,
+} from 'class-validator';
 
 export class CreateProgressPhotoDto {
   @ApiPropertyOptional({ description: 'Required for ADMIN/TRAINER/STAFF' })
@@ -12,12 +18,18 @@ export class CreateProgressPhotoDto {
   @IsString()
   photoUrl!: string;
 
-  @ApiPropertyOptional({ enum: ProgressPhotoPose, default: ProgressPhotoPose.FRONT })
+  @ApiPropertyOptional({
+    enum: ProgressPhotoPose,
+    default: ProgressPhotoPose.FRONT,
+  })
   @IsOptional()
   @IsEnum(ProgressPhotoPose)
   pose?: ProgressPhotoPose;
 
-  @ApiPropertyOptional({ enum: ProgressPhotoPhase, default: ProgressPhotoPhase.PROGRESS })
+  @ApiPropertyOptional({
+    enum: ProgressPhotoPhase,
+    default: ProgressPhotoPhase.PROGRESS,
+  })
   @IsOptional()
   @IsEnum(ProgressPhotoPhase)
   phase?: ProgressPhotoPhase;

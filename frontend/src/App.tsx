@@ -4,6 +4,8 @@ import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom
 
 import { useAuthStore } from "@/store/auth.store";
 import AttractionAuthPage from "@/pages/auth/AttractionAuthPage";
+import ForgotPasswordPage from "@/pages/auth/ForgotPasswordPage";
+import ResetPasswordPage from "@/pages/auth/ResetPasswordPage";
 import { AdminLayout } from "@/layouts/AdminLayout";
 import { AuthLayout } from "@/layouts/AuthLayout";
 import { MemberLayout } from "@/layouts/MemberLayout";
@@ -73,6 +75,8 @@ const App = () => {
                 <Route element={<AuthLayout />}>
                   <Route path="/login" element={<AttractionAuthPage />} />
                   <Route path="/register" element={<AttractionAuthPage />} />
+                  <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                  <Route path="/reset-password" element={<ResetPasswordPage />} />
                 </Route>
 
                 {/* Protected Dashboard Routes */}

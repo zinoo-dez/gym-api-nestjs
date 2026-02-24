@@ -144,7 +144,10 @@ async function bootstrap() {
     .addTag('classes', 'Class scheduling and booking endpoints')
     .addTag('attendance', 'Attendance tracking endpoints')
     .addTag('workout-plans', 'Workout plan management endpoints')
-    .addTag('body-composition', 'Body composition and progress tracking endpoints')
+    .addTag(
+      'body-composition',
+      'Body composition and progress tracking endpoints',
+    )
     .addBearerAuth(
       {
         type: 'http',

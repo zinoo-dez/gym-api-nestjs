@@ -22,6 +22,8 @@ import { UpdatePaymentStatusDto } from './dto/update-payment-status.dto';
 import { PaginatedResponseDto } from '../common/dto/paginated-response.dto';
 import { RecoveryQueueResponseDto } from './dto/recovery-queue-response.dto';
 import { SendRecoveryFollowUpDto } from './dto/send-recovery-followup.dto';
+import { ProcessRefundDto } from './dto/process-refund.dto';
+import { PaymentInvoiceResponseDto } from './dto/payment-invoice-response.dto';
 
 @ApiTags('payments')
 @Controller('payments')
@@ -30,14 +32,16 @@ export class PaymentsController {
   constructor(private readonly paymentsService: PaymentsService) {}
 
   @Post()
-  @Roles(UserRole.MEMBER)
-  @ApiOperation({ summary: 'Create payment (member submission)' })
+  @Roles(UserRole.ADMIN, UserRole.STAFF, UserRole.MEMBER)
+  @ApiOperation({
+    summary: 'Create payment (member submission or manual admin)',
+  })
   @ApiResponse({ status: 201, type: PaymentResponseDto })
   async create(
     @Body() dto: CreatePaymentDto,
     @CurrentUser() user: any,
   ): Promise<PaymentResponseDto> {
-    return this.paymentsService.createForMember(dto, user);
+    return this.paymentsService.create(dto, user);
   }
 
   @Get()
@@ -91,5 +95,27 @@ export class PaymentsController {
   ): Promise<{ message: string }> {
     await this.paymentsService.sendRecoveryFollowUp(id, dto);
     return { message: 'Recovery follow-up sent' };
+  }
+
+  @Get('invoice/:id')
+  @Roles(UserRole.ADMIN, UserRole.STAFF, UserRole.MEMBER)
+  @ApiOperation({ summary: 'Get invoice by invoice ID/number or payment ID' })
+  @ApiResponse({ status: 200, type: PaymentInvoiceResponseDto })
+  async getInvoice(
+    @Param('id') id: string,
+    @CurrentUser() user: any,
+  ): Promise<PaymentInvoiceResponseDto> {
+    return this.paymentsService.getInvoiceByPaymentOrInvoiceId(id, user);
+  }
+
+  @Post(':id/refund')
+  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @ApiOperation({ summary: 'Process a payment refund' })
+  @ApiResponse({ status: 200, type: PaymentResponseDto })
+  async processRefund(
+    @Param('id') id: string,
+    @Body() dto: ProcessRefundDto,
+  ): Promise<PaymentResponseDto> {
+    return this.paymentsService.processRefund(id, dto);
   }
 }

@@ -24,7 +24,11 @@ export const MAINTENANCE_LOG_TYPES = [
   'replacement',
 ] as const;
 
-export const MAINTENANCE_DUE_FILTERS = ['all', 'overdue', 'next_30_days'] as const;
+export const MAINTENANCE_DUE_FILTERS = [
+  'all',
+  'overdue',
+  'next_30_days',
+] as const;
 
 export type EquipmentCategory = (typeof EQUIPMENT_CATEGORIES)[number];
 export type EquipmentCondition = (typeof EQUIPMENT_CONDITIONS)[number];

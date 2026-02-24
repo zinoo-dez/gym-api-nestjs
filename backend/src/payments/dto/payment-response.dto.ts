@@ -28,6 +28,7 @@ export class PaymentSubscriptionDto {
 export class PaymentResponseDto {
   id!: string;
   memberId!: string;
+  invoiceId?: string;
   subscriptionId?: string;
   amount!: number;
   currency!: string;

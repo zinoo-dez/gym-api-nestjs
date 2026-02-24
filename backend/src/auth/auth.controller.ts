@@ -14,6 +14,7 @@ import {
   RegisterDto,
   ChangePasswordDto,
   ForgotPasswordDto,
+  ResetPasswordDto,
 } from './dto';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
@@ -108,5 +109,17 @@ export class AuthController {
   @ApiResponse({ status: 200 })
   async forgotPassword(@Body() dto: ForgotPasswordDto) {
     return this.authService.forgotPassword(dto);
+  }
+
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Reset password with token',
+    description: 'Resets user password using a valid reset token.',
+  })
+  @ApiBody({ type: ResetPasswordDto })
+  @ApiResponse({ status: 200 })
+  async resetPassword(@Body() dto: ResetPasswordDto) {
+    return this.authService.resetPassword(dto);
   }
 }

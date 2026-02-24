@@ -1,10 +1,14 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import {
+  InvoiceStatus,
   Prisma,
+  PaymentMethodType,
+  PaymentProvider,
   PaymentStatus,
   SubscriptionStatus,
   UserRole,
@@ -18,6 +22,8 @@ import { UpdatePaymentStatusDto } from './dto/update-payment-status.dto';
 import { NotificationsService } from '../notifications/notifications.service';
 import { RecoveryQueueResponseDto } from './dto/recovery-queue-response.dto';
 import { SendRecoveryFollowUpDto } from './dto/send-recovery-followup.dto';
+import { ProcessRefundDto } from './dto/process-refund.dto';
+import { PaymentInvoiceResponseDto } from './dto/payment-invoice-response.dto';
 
 @Injectable()
 export class PaymentsService {
@@ -26,43 +32,57 @@ export class PaymentsService {
     private notificationsService: NotificationsService,
   ) {}
 
-  async createForMember(
+  async create(
     dto: CreatePaymentDto,
     currentUser: { userId: string; role: UserRole },
   ): Promise<PaymentResponseDto> {
-    if (currentUser.role !== UserRole.MEMBER) {
-      throw new ForbiddenException('Only members can submit payments.');
-    }
-
-    const member = await this.prisma.member.findUnique({
-      where: { userId: currentUser.userId },
-      include: { user: true },
-    });
+    const isManualAdminFlow =
+      currentUser.role === UserRole.ADMIN ||
+      currentUser.role === UserRole.STAFF;
+    const member = await this.resolveMemberForCreate(dto, currentUser);
 
     if (!member) {
       throw new NotFoundException('Member not found.');
     }
 
-    const subscription = await this.prisma.subscription.findUnique({
-      where: { id: dto.subscriptionId },
-      include: { membershipPlan: true },
-    });
+    let subscription: Prisma.SubscriptionGetPayload<{
+      include: { membershipPlan: true };
+    }> | null = null;
+    if (dto.subscriptionId) {
+      subscription = await this.prisma.subscription.findUnique({
+        where: { id: dto.subscriptionId },
+        include: { membershipPlan: true },
+      });
+    }
 
-    if (!subscription || subscription.memberId !== member.id) {
+    if (subscription && subscription.memberId !== member.id) {
       throw new ForbiddenException('Invalid subscription for this member.');
     }
+    if (!subscription && currentUser.role === UserRole.MEMBER) {
+      throw new BadRequestException(
+        'subscriptionId is required for member payments.',
+      );
+    }
+
+    const methodType = this.resolveMethodType(dto);
+    const provider = this.resolveProvider(dto);
+    const now = new Date();
+    const transactionNo =
+      dto.transactionNo?.trim() ||
+      `PMT-${now.getTime()}-${member.id.slice(-6)}`;
 
     const payment = await this.prisma.payment.create({
       data: {
         memberId: member.id,
-        subscriptionId: dto.subscriptionId,
+        subscriptionId: dto.subscriptionId ?? undefined,
         amount: dto.amount,
         currency: dto.currency || 'MMK',
-        methodType: dto.methodType,
-        provider: dto.provider,
-        transactionNo: dto.transactionNo,
+        methodType,
+        provider,
+        transactionNo,
         screenshotUrl: dto.screenshotUrl,
-        status: PaymentStatus.PENDING,
+        status: isManualAdminFlow ? PaymentStatus.PAID : PaymentStatus.PENDING,
+        paidAt: isManualAdminFlow ? now : undefined,
       },
       include: {
         member: { include: { user: true } },
@@ -70,23 +90,45 @@ export class PaymentsService {
       },
     });
 
-    const settings = await this.prisma.gymSetting.findFirst({
-      select: { newPaymentNotification: true },
-    });
-    if (settings?.newPaymentNotification !== false) {
-      const fullName = member.user
-        ? `${member.user.firstName} ${member.user.lastName}`.trim()
-        : 'Member';
+    await this.ensureInvoiceForPayment(payment.id);
+
+    if (isManualAdminFlow) {
       await this.notificationsService.createForRole({
         role: UserRole.ADMIN,
-        title: 'New payment submitted',
-        message: `${fullName} submitted a payment for ${subscription.membershipPlan?.name || 'a plan'}.`,
-        type: 'info',
+        title: 'Manual payment recorded',
+        message: `Payment ${transactionNo} recorded by staff.`,
+        type: 'success',
         actionUrl: '/admin/payments',
       });
+    } else {
+      const settings = await this.prisma.gymSetting.findFirst({
+        select: { newPaymentNotification: true },
+      });
+      if (settings?.newPaymentNotification !== false) {
+        const fullName = member.user
+          ? `${member.user.firstName} ${member.user.lastName}`.trim()
+          : 'Member';
+        await this.notificationsService.createForRole({
+          role: UserRole.ADMIN,
+          title: 'New payment submitted',
+          message: `${fullName} submitted a payment for ${subscription?.membershipPlan?.name || 'a plan'}.`,
+          type: 'info',
+          actionUrl: '/admin/payments',
+        });
+      }
     }
 
-    return this.toResponseDto(payment);
+    const refreshedPayment = await this.prisma.payment.findUnique({
+      where: { id: payment.id },
+      include: {
+        member: { include: { user: true } },
+        subscription: { include: { membershipPlan: true } },
+      },
+    });
+    if (!refreshedPayment) {
+      throw new NotFoundException('Payment not found after creation.');
+    }
+    return this.toResponseDto(refreshedPayment);
   }
 
   async findAll(
@@ -375,10 +417,103 @@ export class PaymentsService {
     });
   }
 
+  async getInvoiceByPaymentOrInvoiceId(
+    id: string,
+    currentUser: { userId: string; role: UserRole },
+  ): Promise<PaymentInvoiceResponseDto> {
+    const payment = await this.prisma.payment.findUnique({
+      where: { id },
+      include: {
+        invoice: {
+          include: {
+            items: true,
+            member: { include: { user: true } },
+          },
+        },
+        member: { include: { user: true } },
+      },
+    });
+
+    if (payment?.invoice) {
+      this.ensureInvoiceAccess(payment.invoice.member.userId, currentUser);
+      return this.toInvoiceResponse(payment.invoice);
+    }
+
+    const invoice = await this.prisma.invoice.findFirst({
+      where: {
+        OR: [{ id }, { invoiceNumber: id }],
+      },
+      include: {
+        items: true,
+        member: { include: { user: true } },
+      },
+    });
+    if (!invoice) {
+      throw new NotFoundException('Invoice not found.');
+    }
+
+    this.ensureInvoiceAccess(invoice.member.userId, currentUser);
+    return this.toInvoiceResponse(invoice);
+  }
+
+  async processRefund(
+    paymentId: string,
+    dto: ProcessRefundDto,
+  ): Promise<PaymentResponseDto> {
+    const payment = await this.prisma.payment.findUnique({
+      where: { id: paymentId },
+      include: {
+        member: { include: { user: true } },
+        subscription: { include: { membershipPlan: true } },
+      },
+    });
+
+    if (!payment) {
+      throw new NotFoundException('Payment not found.');
+    }
+    if (payment.status !== PaymentStatus.PAID) {
+      throw new BadRequestException('Only paid payments can be refunded.');
+    }
+
+    const requestedAmount = dto.amount ?? payment.amount;
+    if (requestedAmount <= 0 || requestedAmount > payment.amount) {
+      throw new BadRequestException(
+        'Refund amount must be greater than 0 and not exceed payment amount.',
+      );
+    }
+
+    const refundNote = `[Refund ${new Date().toISOString()}] amount=${requestedAmount} reason=${dto.reason.trim()}`;
+    const mergedNote = payment.adminNote
+      ? `${payment.adminNote}\n${refundNote}`
+      : refundNote;
+
+    const updated = await this.prisma.payment.update({
+      where: { id: paymentId },
+      data: {
+        adminNote: mergedNote,
+      },
+      include: {
+        member: { include: { user: true } },
+        subscription: { include: { membershipPlan: true } },
+      },
+    });
+
+    await this.notificationsService.createForRole({
+      role: UserRole.ADMIN,
+      title: 'Payment refund processed',
+      message: `Refund logged for payment ${updated.transactionNo}.`,
+      type: 'warning',
+      actionUrl: '/admin/payments',
+    });
+
+    return this.toResponseDto(updated);
+  }
+
   private toResponseDto(payment: any): PaymentResponseDto {
     return {
       id: payment.id,
       memberId: payment.memberId,
+      invoiceId: payment.invoiceId || undefined,
       subscriptionId: payment.subscriptionId || undefined,
       amount: payment.amount,
       currency: payment.currency,
@@ -445,6 +580,182 @@ export class PaymentsService {
       currency: payment.currency,
       createdAt: payment.createdAt,
       subscriptionId: payment.subscriptionId ?? undefined,
+    };
+  }
+
+  private resolveMethodType(dto: CreatePaymentDto): PaymentMethodType {
+    if (dto.methodType) {
+      return dto.methodType;
+    }
+    const method = dto.paymentMethod?.toUpperCase().trim();
+    if (method === 'TRANSFER') {
+      return PaymentMethodType.BANK;
+    }
+    return PaymentMethodType.WALLET;
+  }
+
+  private resolveProvider(dto: CreatePaymentDto): PaymentProvider {
+    if (dto.provider) {
+      return dto.provider;
+    }
+
+    const method = dto.paymentMethod?.toUpperCase().trim();
+    if (method === 'TRANSFER') {
+      return PaymentProvider.KBZ;
+    }
+    return PaymentProvider.KBZ_PAY;
+  }
+
+  private async resolveMemberForCreate(
+    dto: CreatePaymentDto,
+    currentUser: { userId: string; role: UserRole },
+  ) {
+    if (currentUser.role === UserRole.MEMBER) {
+      return this.prisma.member.findUnique({
+        where: { userId: currentUser.userId },
+        include: { user: true },
+      });
+    }
+
+    if (
+      currentUser.role === UserRole.ADMIN ||
+      currentUser.role === UserRole.STAFF
+    ) {
+      if (!dto.memberId) {
+        throw new BadRequestException(
+          'memberId is required for manual payments.',
+        );
+      }
+      return this.prisma.member.findUnique({
+        where: { id: dto.memberId },
+        include: { user: true },
+      });
+    }
+
+    throw new ForbiddenException('Unsupported role for payment creation.');
+  }
+
+  private async ensureInvoiceForPayment(paymentId: string): Promise<void> {
+    const payment = await this.prisma.payment.findUnique({
+      where: { id: paymentId },
+      include: {
+        member: { include: { user: true } },
+      },
+    });
+    if (!payment) {
+      throw new NotFoundException('Payment not found.');
+    }
+    if (payment.invoiceId) {
+      return;
+    }
+
+    const invoice = await this.prisma.invoice.create({
+      data: {
+        memberId: payment.memberId,
+        invoiceNumber: `INV-${Date.now()}-${payment.id.slice(-6).toUpperCase()}`,
+        status:
+          payment.status === PaymentStatus.PAID
+            ? InvoiceStatus.PAID
+            : InvoiceStatus.SENT,
+        subtotal: payment.amount,
+        tax: 0,
+        discount: 0,
+        total: payment.amount,
+        dueDate: new Date(
+          payment.createdAt.getTime() + 7 * 24 * 60 * 60 * 1000,
+        ),
+        paidAt:
+          payment.status === PaymentStatus.PAID
+            ? (payment.paidAt ?? new Date())
+            : null,
+        notes: payment.adminNote ?? undefined,
+        items: {
+          create: {
+            description: 'Gym payment',
+            quantity: 1,
+            unitPrice: payment.amount,
+            total: payment.amount,
+            itemType: 'PAYMENT',
+          },
+        },
+      },
+    });
+
+    await this.prisma.payment.update({
+      where: { id: payment.id },
+      data: { invoiceId: invoice.id },
+    });
+  }
+
+  private ensureInvoiceAccess(
+    memberUserId: string,
+    currentUser: { userId: string; role: UserRole },
+  ): void {
+    if (
+      currentUser.role === UserRole.ADMIN ||
+      currentUser.role === UserRole.STAFF
+    ) {
+      return;
+    }
+    if (
+      currentUser.role === UserRole.MEMBER &&
+      currentUser.userId === memberUserId
+    ) {
+      return;
+    }
+
+    throw new ForbiddenException('You do not have access to this invoice.');
+  }
+
+  private toInvoiceResponse(invoice: {
+    id: string;
+    invoiceNumber: string;
+    createdAt: Date;
+    dueDate: Date;
+    status: InvoiceStatus;
+    subtotal: number;
+    tax: number;
+    total: number;
+    notes: string | null;
+    member: {
+      id: string;
+      user: { firstName: string; lastName: string; email: string };
+    };
+    items: Array<{
+      id: string;
+      description: string;
+      quantity: number;
+      unitPrice: number;
+      total: number;
+    }>;
+  }): PaymentInvoiceResponseDto {
+    return {
+      id: invoice.id,
+      invoiceNumber: invoice.invoiceNumber,
+      issuedAt: invoice.createdAt,
+      dueAt: invoice.dueDate,
+      status: invoice.status,
+      currency: 'MMK',
+      gym: {
+        name: 'Gym',
+      },
+      member: {
+        id: invoice.member.id,
+        name: `${invoice.member.user.firstName} ${invoice.member.user.lastName}`.trim(),
+        email: invoice.member.user.email,
+      },
+      items: invoice.items.map((item) => ({
+        id: item.id,
+        description: item.description,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        lineTotal: item.total,
+      })),
+      subtotal: invoice.subtotal,
+      taxRate: 0,
+      taxAmount: invoice.tax,
+      total: invoice.total,
+      notes: invoice.notes ?? undefined,
     };
   }
 }

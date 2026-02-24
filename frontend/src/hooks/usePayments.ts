@@ -9,6 +9,7 @@ import { peopleService } from "@/services/people.service";
 import {
   type InvoicePdfDownload,
   type ManualPaymentPayload,
+  type PaymentCapabilities,
   type PaginatedResponse,
   type PaymentInvoice,
   type PaymentSummary,
@@ -50,6 +51,7 @@ export const paymentsQueryKeys = {
   list: (filters: PaymentsQueryFilters) => ["payments", "list", filters] as const,
   summary: () => ["payments", "summary"] as const,
   invoice: (invoiceId: string) => ["payments", "invoice", invoiceId] as const,
+  capabilities: () => ["payments", "capabilities"] as const,
   members: () => ["payments", "members"] as const,
 };
 
@@ -133,6 +135,13 @@ export const usePaymentMembersQuery = () =>
         .sort((left, right) => left.fullName.localeCompare(right.fullName));
     },
     staleTime: 120_000,
+  });
+
+export const usePaymentCapabilitiesQuery = () =>
+  useQuery<PaymentCapabilities>({
+    queryKey: paymentsQueryKeys.capabilities(),
+    queryFn: () => paymentsService.getCapabilities(),
+    staleTime: 5 * 60_000,
   });
 
 export const useManualPaymentMutation = () => {

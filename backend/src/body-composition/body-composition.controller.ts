@@ -35,7 +35,9 @@ import { BodyCompositionService } from './body-composition.service';
 @Controller('body-composition')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class BodyCompositionController {
-  constructor(private readonly bodyCompositionService: BodyCompositionService) {}
+  constructor(
+    private readonly bodyCompositionService: BodyCompositionService,
+  ) {}
 
   @Post('measurements')
   @Roles(UserRole.ADMIN, UserRole.TRAINER, UserRole.STAFF, UserRole.MEMBER)
@@ -54,7 +56,11 @@ export class BodyCompositionController {
     @Query() filters: TimelineFiltersDto,
     @CurrentUser() user: any,
   ) {
-    return this.bodyCompositionService.getMeasurements(user.memberId, filters, user);
+    return this.bodyCompositionService.getMeasurements(
+      user.memberId,
+      filters,
+      user,
+    );
   }
 
   @Get('member/:memberId/measurements')
@@ -71,7 +77,10 @@ export class BodyCompositionController {
   @Post('photos')
   @Roles(UserRole.ADMIN, UserRole.TRAINER, UserRole.STAFF, UserRole.MEMBER)
   @ApiOperation({ summary: 'Create a progress photo record' })
-  async createPhoto(@Body() dto: CreateProgressPhotoDto, @CurrentUser() user: any) {
+  async createPhoto(
+    @Body() dto: CreateProgressPhotoDto,
+    @CurrentUser() user: any,
+  ) {
     return this.bodyCompositionService.createPhoto(dto, user);
   }
 
@@ -103,7 +112,11 @@ export class BodyCompositionController {
     @Query() query: PhotoComparisonQueryDto,
     @CurrentUser() user: any,
   ) {
-    return this.bodyCompositionService.comparePhotos(user.memberId, query, user);
+    return this.bodyCompositionService.comparePhotos(
+      user.memberId,
+      query,
+      user,
+    );
   }
 
   @Get('member/:memberId/photos/comparison')
@@ -120,7 +133,10 @@ export class BodyCompositionController {
   @Post('goals')
   @Roles(UserRole.ADMIN, UserRole.TRAINER, UserRole.STAFF, UserRole.MEMBER)
   @ApiOperation({ summary: 'Create a progress goal' })
-  async createGoal(@Body() dto: CreateProgressGoalDto, @CurrentUser() user: any) {
+  async createGoal(
+    @Body() dto: CreateProgressGoalDto,
+    @CurrentUser() user: any,
+  ) {
     return this.bodyCompositionService.createGoal(dto, user);
   }
 
@@ -173,7 +189,11 @@ export class BodyCompositionController {
     @Query() filters: ProgressMilestoneFiltersDto,
     @CurrentUser() user: any,
   ) {
-    return this.bodyCompositionService.getMilestones(user.memberId, filters, user);
+    return this.bodyCompositionService.getMilestones(
+      user.memberId,
+      filters,
+      user,
+    );
   }
 
   @Get('member/:memberId/milestones')

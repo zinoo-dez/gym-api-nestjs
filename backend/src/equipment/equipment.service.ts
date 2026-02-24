@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { Prisma, UserRole } from '@prisma/client';
 
+import { PaginatedResponseDto } from '../common/dto';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   EQUIPMENT_CATEGORIES,
@@ -104,11 +105,38 @@ export class EquipmentService {
 
     const records = await this.prisma.equipment.findMany({
       where,
-      orderBy: [{ updatedAt: 'desc' }, { name: 'asc' }],
+      orderBy: this.getOrderBy(filters),
       include: equipmentInclude,
     });
 
     return records.map((record) => this.toEquipmentResponseDto(record));
+  }
+
+  async findAllPaginated(
+    filters: EquipmentFiltersDto,
+  ): Promise<PaginatedResponseDto<EquipmentResponseDto>> {
+    const where = this.buildWhere(filters);
+    const page = filters.page ?? 1;
+    const limit = filters.limit ?? 20;
+    const skip = (page - 1) * limit;
+
+    const [total, records] = await Promise.all([
+      this.prisma.equipment.count({ where }),
+      this.prisma.equipment.findMany({
+        where,
+        orderBy: this.getOrderBy(filters),
+        include: equipmentInclude,
+        skip,
+        take: limit,
+      }),
+    ]);
+
+    return new PaginatedResponseDto(
+      records.map((record) => this.toEquipmentResponseDto(record)),
+      page,
+      limit,
+      total,
+    );
   }
 
   async findOne(id: string): Promise<EquipmentResponseDto> {
@@ -207,7 +235,8 @@ export class EquipmentService {
     }
 
     const purchaseDate = dto.purchaseDate ?? existing.purchaseDate;
-    const warrantyExpiryDate = dto.warrantyExpiryDate ?? existing.warrantyExpiryDate;
+    const warrantyExpiryDate =
+      dto.warrantyExpiryDate ?? existing.warrantyExpiryDate;
     const lastMaintenanceDate =
       dto.lastMaintenanceDate ?? existing.lastMaintenanceDate;
     const maintenanceFrequency =
@@ -248,7 +277,8 @@ export class EquipmentService {
           lastMaintenanceDate,
           nextMaintenanceDate,
           assignedArea: dto.assignedArea?.trim(),
-          notes: dto.notes !== undefined ? this.normalizeText(dto.notes) : undefined,
+          notes:
+            dto.notes !== undefined ? this.normalizeText(dto.notes) : undefined,
           description:
             dto.notes !== undefined
               ? this.normalizeText(dto.notes) || null
@@ -404,6 +434,107 @@ export class EquipmentService {
     return this.findOne(id);
   }
 
+  async remove(id: string): Promise<void> {
+    await this.assertEquipmentExists(id);
+
+    await this.prisma.equipment.delete({
+      where: { id },
+    });
+  }
+
+  private buildWhere(filters: EquipmentFiltersDto): Prisma.EquipmentWhereInput {
+    const where: Prisma.EquipmentWhereInput = {};
+
+    if (filters.search) {
+      where.OR = [
+        {
+          name: {
+            contains: filters.search,
+            mode: 'insensitive',
+          },
+        },
+        {
+          category: {
+            contains: filters.search,
+            mode: 'insensitive',
+          },
+        },
+        {
+          brandModel: {
+            contains: filters.search,
+            mode: 'insensitive',
+          },
+        },
+        {
+          assignedArea: {
+            contains: filters.search,
+            mode: 'insensitive',
+          },
+        },
+      ];
+    }
+
+    if (filters.category) {
+      where.category = filters.category;
+    }
+
+    if (filters.condition) {
+      where.condition = filters.condition;
+    }
+
+    if (typeof filters.isActive === 'boolean') {
+      where.isActive = filters.isActive;
+    }
+
+    if (filters.maintenanceDue && filters.maintenanceDue !== 'all') {
+      const today = this.startOfDay(new Date());
+      const next30Days = this.addDays(today, 30);
+
+      if (filters.maintenanceDue === 'overdue') {
+        where.nextMaintenanceDate = { lt: today };
+      }
+
+      if (filters.maintenanceDue === 'next_30_days') {
+        where.nextMaintenanceDate = {
+          gte: today,
+          lte: next30Days,
+        };
+      }
+    }
+
+    return where;
+  }
+
+  private getOrderBy(
+    filters: EquipmentFiltersDto,
+  ): Prisma.EquipmentOrderByWithRelationInput[] {
+    const direction = filters.sortDirection ?? 'desc';
+
+    switch (filters.sortBy) {
+      case 'name':
+        return [{ name: direction }, { updatedAt: 'desc' }];
+      case 'category':
+        return [{ category: direction }, { name: 'asc' }];
+      case 'condition':
+        return [{ condition: direction }, { name: 'asc' }];
+      case 'assignedArea':
+        return [{ assignedArea: direction }, { name: 'asc' }];
+      case 'lastMaintenanceDate':
+        return [{ lastMaintenanceDate: direction }, { updatedAt: 'desc' }];
+      case 'isActive':
+        return [{ isActive: direction }, { name: 'asc' }];
+      case 'purchaseDate':
+        return [{ purchaseDate: direction }, { updatedAt: 'desc' }];
+      case 'purchaseCost':
+        return [{ purchaseCost: direction }, { updatedAt: 'desc' }];
+      case 'nextMaintenanceDue':
+        return [{ nextMaintenanceDate: direction }, { name: 'asc' }];
+      case 'updatedAt':
+      default:
+        return [{ updatedAt: direction }, { name: 'asc' }];
+    }
+  }
+
   private async assertEquipmentExists(id: string): Promise<void> {
     const exists = await this.prisma.equipment.findUnique({
       where: { id },
@@ -538,7 +669,9 @@ export class EquipmentService {
       purchaseCost: record.purchaseCost,
       warrantyExpiryDate: this.toDateOnly(record.warrantyExpiryDate),
       condition: this.normalizeCondition(record.condition),
-      maintenanceFrequency: this.normalizeFrequency(record.maintenanceFrequency),
+      maintenanceFrequency: this.normalizeFrequency(
+        record.maintenanceFrequency,
+      ),
       lastMaintenanceDate: this.toDateOnly(record.lastMaintenanceDate),
       nextMaintenanceDue: this.toDateOnly(record.nextMaintenanceDate),
       assignedArea: record.assignedArea,

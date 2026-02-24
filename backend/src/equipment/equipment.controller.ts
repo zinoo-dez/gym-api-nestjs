@@ -1,7 +1,10 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   Patch,
   Post,
@@ -14,6 +17,7 @@ import { UserRole } from '@prisma/client';
 import { CurrentUser, Roles } from '../auth/decorators';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
+import { PaginatedResponseDto } from '../common/dto';
 import {
   CreateEquipmentDto,
   EquipmentFiltersDto,
@@ -43,6 +47,14 @@ export class EquipmentController {
     @Query() filters: EquipmentFiltersDto,
   ): Promise<EquipmentResponseDto[]> {
     return this.equipmentService.findAll(filters);
+  }
+
+  @Get('paginated')
+  @ApiOperation({ summary: 'List equipment records with pagination metadata' })
+  async findAllPaginated(
+    @Query() filters: EquipmentFiltersDto,
+  ): Promise<PaginatedResponseDto<EquipmentResponseDto>> {
+    return this.equipmentService.findAllPaginated(filters);
   }
 
   @Post()
@@ -102,5 +114,13 @@ export class EquipmentController {
   @ApiResponse({ status: 200, type: EquipmentResponseDto })
   async findOne(@Param('id') id: string): Promise<EquipmentResponseDto> {
     return this.equipmentService.findOne(id);
+  }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Delete one equipment record permanently' })
+  @ApiResponse({ status: 204 })
+  async remove(@Param('id') id: string): Promise<void> {
+    await this.equipmentService.remove(id);
   }
 }

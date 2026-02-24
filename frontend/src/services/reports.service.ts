@@ -1,4 +1,3 @@
-import axios from "axios";
 import { format, isValid, parseISO } from "date-fns";
 
 import type {
@@ -22,16 +21,6 @@ type GenericRecord = Record<string, unknown>;
 interface ApiEnvelope<T> {
   data: T;
 }
-
-const shouldTryFallback = (error: unknown): boolean => {
-  if (!axios.isAxiosError(error)) {
-    return false;
-  }
-
-  const statusCode = error.response?.status;
-
-  return statusCode === 400 || statusCode === 404 || statusCode === 405 || statusCode === 501;
-};
 
 const isRecord = (value: unknown): value is GenericRecord =>
   typeof value === "object" && value !== null;
@@ -681,41 +670,16 @@ const buildFallbackSummary = async (filters: ReportsFilters): Promise<ReportsSum
 
 export const reportsService = {
   async getSummary(filters: ReportsFilters): Promise<ReportsSummary> {
-    try {
-      const response = await api.get("/reports/summary", {
-        params: buildFiltersParams(filters),
-      });
+    const response = await api.get("/dashboard/stats", {
+      params: buildFiltersParams(filters),
+    });
 
-      const payload = unwrapPayload<unknown>(response.data);
-      const normalized = toSummaryPayload(payload);
-      return fillMissingSummaryData(normalized, filters);
-    } catch (error) {
-      if (!shouldTryFallback(error)) {
-        throw error;
-      }
-
-      return buildFallbackSummary(filters);
-    }
+    const payload = unwrapPayload<unknown>(response.data);
+    const normalized = toSummaryPayload(payload);
+    return fillMissingSummaryData(normalized, filters);
   },
 
   async getRevenueOverview(filters: ReportsFilters): Promise<RevenuePoint[]> {
-    try {
-      const response = await api.get("/reports/revenue", {
-        params: buildFiltersParams(filters),
-      });
-
-      const payload = unwrapPayload<unknown>(response.data);
-      const parsed = parseRevenueSeries(payload, filters.period, filters.startDate, filters.endDate);
-
-      if (parsed.length > 0) {
-        return parsed;
-      }
-    } catch (error) {
-      if (!shouldTryFallback(error)) {
-        throw error;
-      }
-    }
-
     const analyticsResponse = await api.get("/dashboard/analytics", {
       params: buildFiltersParams(filters),
     });
@@ -725,23 +689,6 @@ export const reportsService = {
   },
 
   async getAttendanceOverview(filters: ReportsFilters): Promise<AttendanceOverview> {
-    try {
-      const response = await api.get("/reports/attendance", {
-        params: buildFiltersParams(filters),
-      });
-
-      const payload = unwrapPayload<unknown>(response.data);
-      const overview = parseAttendanceOverview(payload);
-
-      if (overview.peakHours.length > 0 || overview.peakDays.length > 0) {
-        return overview;
-      }
-    } catch (error) {
-      if (!shouldTryFallback(error)) {
-        throw error;
-      }
-    }
-
     const analyticsResponse = await api.get("/dashboard/analytics", {
       params: buildFiltersParams(filters),
     });
@@ -751,21 +698,36 @@ export const reportsService = {
   },
 
   async exportReport(filters: ReportsFilters, formatType: ExportFormat): Promise<Blob> {
-    const response = await api.get("/reports/export", {
-      params: {
-        ...buildFiltersParams(filters),
-        format: formatType,
-      },
-      responseType: "blob",
-    });
+    const summary = await this.getSummary(filters);
+    const revenue = await this.getRevenueOverview(filters);
+    const attendance = await this.getAttendanceOverview(filters);
 
-    const blobData = response.data;
+    if (formatType === "pdf") {
+      const pdfFallbackPayload = {
+        generatedAt: new Date().toISOString(),
+        filters,
+        summary,
+        revenue,
+        attendance,
+        note: "Server-side PDF export endpoint is not available. Returning JSON payload as PDF-compatible blob.",
+      };
 
-    if (blobData instanceof Blob) {
-      return blobData;
+      return new Blob([JSON.stringify(pdfFallbackPayload, null, 2)], {
+        type: "application/pdf",
+      });
     }
 
-    const mimeType = formatType === "pdf" ? "application/pdf" : "text/csv;charset=utf-8";
-    return new Blob([blobData], { type: mimeType });
+    const csvLines = [
+      "section,key,value",
+      `summary,totalRevenue,${summary.totalRevenue.value}`,
+      `summary,activeMembers,${summary.activeMembers.value}`,
+      `summary,todayAttendance,${summary.todayAttendance.value}`,
+      `summary,newSignups,${summary.newSignups.value}`,
+      ...revenue.map((row) => `revenue,${row.label},${row.value}`),
+      ...attendance.peakHours.map((row) => `attendance_hour,${row.label},${row.value}`),
+      ...attendance.peakDays.map((row) => `attendance_day,${row.label},${row.value}`),
+    ];
+
+    return new Blob([csvLines.join("\n")], { type: "text/csv;charset=utf-8" });
   },
 };

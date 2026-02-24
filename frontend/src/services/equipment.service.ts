@@ -15,6 +15,7 @@ import {
   MaintenanceLogFormValues,
   MaintenanceLogType,
 } from '@/features/equipment';
+import { EquipmentSortField, SortDirection } from '@/features/equipment';
 
 interface EquipmentMaintenanceLogApi {
   id: string;
@@ -56,6 +57,34 @@ interface EquipmentRecordApi {
 
 interface ApiResponse<T> {
   data: T;
+}
+
+interface PaginatedApiData<T> {
+  data: T[];
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface EquipmentListQuery {
+  search?: string;
+  category?: EquipmentCategory | 'all';
+  condition?: EquipmentCondition | 'all';
+  maintenanceDue?: 'all' | 'overdue' | 'next_30_days';
+  isActive?: boolean;
+  sortField?: EquipmentSortField;
+  sortDirection?: SortDirection;
+  page?: number;
+  limit?: number;
+}
+
+export interface PaginatedEquipmentResult {
+  data: EquipmentRecord[];
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
 }
 
 const toDateOnly = (value: string | undefined): string => {
@@ -134,6 +163,52 @@ const normalizeEquipmentRecord = (record: EquipmentRecordApi): EquipmentRecord =
   auditTrail: (record.auditTrail ?? []).map(normalizeAuditEntry),
 });
 
+const toSortBy = (field: EquipmentSortField): string => {
+  switch (field) {
+    case 'nextMaintenanceDue':
+      return 'nextMaintenanceDue';
+    case 'lastMaintenanceDate':
+      return 'lastMaintenanceDate';
+    case 'assignedArea':
+      return 'assignedArea';
+    case 'isActive':
+      return 'isActive';
+    case 'name':
+    case 'category':
+    case 'condition':
+      return field;
+    default:
+      return 'updatedAt';
+  }
+};
+
+const buildListParams = (query: EquipmentListQuery): Record<string, string | number | boolean> => {
+  const params: Record<string, string | number | boolean> = {};
+
+  if (query.search?.trim()) {
+    params.search = query.search.trim();
+  }
+  if (query.category && query.category !== 'all') {
+    params.category = query.category;
+  }
+  if (query.condition && query.condition !== 'all') {
+    params.condition = query.condition;
+  }
+  if (query.maintenanceDue && query.maintenanceDue !== 'all') {
+    params.maintenanceDue = query.maintenanceDue;
+  }
+  if (typeof query.isActive === 'boolean') {
+    params.isActive = query.isActive;
+  }
+
+  params.sortBy = toSortBy(query.sortField ?? 'name');
+  params.sortDirection = query.sortDirection ?? 'asc';
+  params.page = query.page ?? 1;
+  params.limit = query.limit ?? 20;
+
+  return params;
+};
+
 interface EquipmentUpsertPayload {
   name: string;
   category: EquipmentCategory;
@@ -188,9 +263,23 @@ const toMaintenancePayload = (
 });
 
 export const equipmentService = {
-  async listEquipment(): Promise<EquipmentRecord[]> {
-    const response = await api.get<ApiResponse<EquipmentRecordApi[]>>('/equipment');
-    return response.data.data.map(normalizeEquipmentRecord);
+  async listEquipmentPaginated(
+    query: EquipmentListQuery,
+  ): Promise<PaginatedEquipmentResult> {
+    const response = await api.get<ApiResponse<PaginatedApiData<EquipmentRecordApi>>>(
+      '/equipment/paginated',
+      {
+        params: buildListParams(query),
+      },
+    );
+
+    return {
+      data: (response.data.data.data ?? []).map(normalizeEquipmentRecord),
+      page: response.data.data.page,
+      limit: response.data.data.limit,
+      total: response.data.data.total,
+      totalPages: response.data.data.totalPages,
+    };
   },
 
   async getEquipmentById(id: string): Promise<EquipmentRecord> {

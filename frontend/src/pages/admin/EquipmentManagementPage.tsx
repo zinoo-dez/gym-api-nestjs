@@ -10,13 +10,10 @@ import {
   EquipmentSortField,
   MaintenanceLogFormValues,
   SortDirection,
-  applyEquipmentFilters,
   calculateEquipmentMetrics,
   formatCurrency,
   getDefaultFormValues,
   getFormValuesFromEquipment,
-  isDueInNextDays,
-  sortEquipmentRecords,
 } from "@/features/equipment";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { Button } from "@/components/ui/Button";
@@ -155,7 +152,7 @@ export function EquipmentManagementPage({ view = "all" }: EquipmentManagementPag
   const user = useAuthStore((state) => state.user);
   const isMobile = useIsMobile();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const isOverviewPage = view === "overview";
   const isListPage = view === "list";
@@ -177,6 +174,28 @@ export function EquipmentManagementPage({ view = "all" }: EquipmentManagementPag
       : "all";
   }, [isListPage, searchParams]);
 
+  const pageFromQuery = useMemo(() => {
+    if (!isListPage) {
+      return 1;
+    }
+
+    const raw = Number(searchParams.get("page") ?? "1");
+    return Number.isFinite(raw) && raw > 0 ? Math.floor(raw) : 1;
+  }, [isListPage, searchParams]);
+
+  const pageSizeFromQuery = useMemo(() => {
+    if (!isListPage) {
+      return 20;
+    }
+
+    const raw = Number(searchParams.get("limit") ?? "20");
+    if (!Number.isFinite(raw) || raw <= 0) {
+      return 20;
+    }
+
+    return Math.min(100, Math.floor(raw));
+  }, [isListPage, searchParams]);
+
   const [loadState, setLoadState] = useState<LoadState>("loading");
   const [equipment, setEquipment] = useState<EquipmentRecord[]>([]);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -189,6 +208,10 @@ export function EquipmentManagementPage({ view = "all" }: EquipmentManagementPag
     field: "name",
     direction: "asc",
   });
+  const [page, setPage] = useState(isListPage ? pageFromQuery : 1);
+  const [pageSize, setPageSize] = useState(isListPage ? pageSizeFromQuery : 20);
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
 
   const [detailOpen, setDetailOpen] = useState(false);
   const [selectedEquipment, setSelectedEquipment] = useState<EquipmentRecord | null>(null);
@@ -212,8 +235,43 @@ export function EquipmentManagementPage({ view = "all" }: EquipmentManagementPag
     setLoadState("loading");
 
     try {
-      const records = await equipmentService.listEquipment();
-      setEquipment(records);
+      const quickFilterToApi = (): Partial<{
+        condition: EquipmentFilterState["condition"];
+        maintenanceDue: EquipmentFilterState["maintenanceDue"];
+        isActive: boolean;
+      }> => {
+        switch (quickFilter) {
+          case "active":
+            return { isActive: true };
+          case "needs_maintenance":
+            return { condition: "needs_maintenance" };
+          case "out_of_order":
+            return { condition: "out_of_order" };
+          case "upcoming_30":
+            return { maintenanceDue: "next_30_days" };
+          default:
+            return {};
+        }
+      };
+
+      const result = await equipmentService.listEquipmentPaginated({
+        search: filters.search,
+        category: filters.category,
+        condition: quickFilterToApi().condition ?? filters.condition,
+        maintenanceDue: quickFilterToApi().maintenanceDue ?? filters.maintenanceDue,
+        isActive:
+          quickFilterToApi().isActive !== undefined
+            ? quickFilterToApi().isActive
+            : undefined,
+        sortField: sort.field,
+        sortDirection: sort.direction,
+        page,
+        limit: pageSize,
+      });
+
+      setEquipment(result.data);
+      setTotalItems(result.total);
+      setTotalPages(result.totalPages);
       setActionError(null);
       setLoadState("ready");
     } catch (error) {
@@ -221,7 +279,7 @@ export function EquipmentManagementPage({ view = "all" }: EquipmentManagementPag
       setActionError(toErrorMessage(error));
       setLoadState("error");
     }
-  }, []);
+  }, [filters, page, pageSize, quickFilter, sort.direction, sort.field]);
 
   useEffect(() => {
     void loadEquipment();
@@ -230,43 +288,44 @@ export function EquipmentManagementPage({ view = "all" }: EquipmentManagementPag
   useEffect(() => {
     if (isListPage) {
       setQuickFilter(quickFilterFromQuery);
+      setPage(pageFromQuery);
+      setPageSize(pageSizeFromQuery);
     }
-  }, [isListPage, quickFilterFromQuery]);
+  }, [isListPage, pageFromQuery, pageSizeFromQuery, quickFilterFromQuery]);
+
+  useEffect(() => {
+    if (!isListPage) {
+      return;
+    }
+
+    const next = new URLSearchParams(searchParams);
+
+    if (quickFilter === "all") {
+      next.delete("quickFilter");
+    } else {
+      next.set("quickFilter", quickFilter);
+    }
+
+    if (page <= 1) {
+      next.delete("page");
+    } else {
+      next.set("page", String(page));
+    }
+
+    if (pageSize === 20) {
+      next.delete("limit");
+    } else {
+      next.set("limit", String(pageSize));
+    }
+
+    const currentQuery = searchParams.toString();
+    const nextQuery = next.toString();
+    if (nextQuery !== currentQuery) {
+      setSearchParams(next, { replace: true });
+    }
+  }, [isListPage, page, pageSize, quickFilter, searchParams, setSearchParams]);
 
   const metrics = useMemo(() => calculateEquipmentMetrics(equipment), [equipment]);
-
-  const upsertEquipmentRecord = useCallback((record: EquipmentRecord) => {
-    setEquipment((previous) => {
-      const exists = previous.some((item) => item.id === record.id);
-      if (!exists) {
-        return [record, ...previous];
-      }
-
-      return previous.map((item) => (item.id === record.id ? record : item));
-    });
-
-    setSelectedEquipment((current) => (current?.id === record.id ? record : current));
-    setLogTargetEquipment((current) => (current?.id === record.id ? record : current));
-  }, []);
-
-  const filteredAndSorted = useMemo(() => {
-    const filtered = applyEquipmentFilters(equipment, filters).filter((record) => {
-      switch (quickFilter) {
-        case "active":
-          return record.isActive;
-        case "needs_maintenance":
-          return record.condition === "needs_maintenance";
-        case "out_of_order":
-          return record.condition === "out_of_order";
-        case "upcoming_30":
-          return isDueInNextDays(record, 30);
-        default:
-          return true;
-      }
-    });
-
-    return sortEquipmentRecords(filtered, sort.field, sort.direction);
-  }, [equipment, filters, quickFilter, sort.direction, sort.field]);
 
   const hasActiveFilters =
     filters.search.length > 0 ||
@@ -276,6 +335,7 @@ export function EquipmentManagementPage({ view = "all" }: EquipmentManagementPag
     quickFilter !== "all";
 
   const handleSortChange = (field: EquipmentSortField) => {
+    setPage(1);
     setSort((current) => {
       if (current.field === field) {
         return {
@@ -294,6 +354,7 @@ export function EquipmentManagementPage({ view = "all" }: EquipmentManagementPag
   const clearFilters = () => {
     setFilters(DEFAULT_FILTERS);
     setQuickFilter("all");
+    setPage(1);
 
     if (isListPage) {
       navigate("/management/equipment/list", { replace: true });
@@ -308,6 +369,7 @@ export function EquipmentManagementPage({ view = "all" }: EquipmentManagementPag
     }
 
     setQuickFilter(filter);
+    setPage(1);
   };
 
   const pageTitle =
@@ -354,7 +416,7 @@ export function EquipmentManagementPage({ view = "all" }: EquipmentManagementPag
 
       if (formMode === "add") {
         const created = await equipmentService.createEquipment(values);
-        upsertEquipmentRecord(created);
+        await loadEquipment();
         setFormOpen(false);
         setSelectedEquipment(created);
         setDetailOpen(true);
@@ -366,7 +428,8 @@ export function EquipmentManagementPage({ view = "all" }: EquipmentManagementPag
       }
 
       const updated = await equipmentService.updateEquipment(editingEquipmentId, values);
-      upsertEquipmentRecord(updated);
+      await loadEquipment();
+      setSelectedEquipment((current) => (current?.id === updated.id ? updated : current));
       setFormOpen(false);
     } catch (error) {
       console.error("Failed to save equipment", error);
@@ -386,7 +449,8 @@ export function EquipmentManagementPage({ view = "all" }: EquipmentManagementPag
         values,
         operator,
       );
-      upsertEquipmentRecord(updated);
+      await loadEquipment();
+      setSelectedEquipment((current) => (current?.id === updated.id ? updated : current));
       setLogOpen(false);
     } catch (error) {
       console.error("Failed to log equipment maintenance", error);
@@ -398,7 +462,8 @@ export function EquipmentManagementPage({ view = "all" }: EquipmentManagementPag
     try {
       setActionError(null);
       const updated = await equipmentService.markOutOfOrder(record.id);
-      upsertEquipmentRecord(updated);
+      await loadEquipment();
+      setSelectedEquipment((current) => (current?.id === updated.id ? updated : current));
     } catch (error) {
       console.error("Failed to mark equipment out of order", error);
       setActionError(toErrorMessage(error));
@@ -409,7 +474,8 @@ export function EquipmentManagementPage({ view = "all" }: EquipmentManagementPag
     try {
       setActionError(null);
       const updated = await equipmentService.retireEquipment(record.id);
-      upsertEquipmentRecord(updated);
+      await loadEquipment();
+      setSelectedEquipment((current) => (current?.id === updated.id ? updated : current));
     } catch (error) {
       console.error("Failed to retire equipment", error);
       setActionError(toErrorMessage(error));
@@ -540,14 +606,17 @@ export function EquipmentManagementPage({ view = "all" }: EquipmentManagementPag
 
             <EquipmentFilters
               filters={filters}
-              onChange={(next) => setFilters((current) => ({ ...current, ...next }))}
+              onChange={(next) => {
+                setPage(1);
+                setFilters((current) => ({ ...current, ...next }));
+              }}
               onReset={clearFilters}
               hasActiveFilters={hasActiveFilters}
               mobileOpen={mobileFiltersOpen}
               onMobileOpenChange={setMobileFiltersOpen}
             />
 
-            {equipment.length === 0 ? (
+            {equipment.length === 0 && totalItems === 0 && !hasActiveFilters ? (
               <Card>
                 <CardContent className="space-y-3 p-8 text-center">
                   <p className="text-base font-medium text-foreground">No equipment assets yet.</p>
@@ -564,7 +633,7 @@ export function EquipmentManagementPage({ view = "all" }: EquipmentManagementPag
               </Card>
             ) : null}
 
-            {equipment.length > 0 && filteredAndSorted.length === 0 ? (
+            {equipment.length === 0 && totalItems === 0 && hasActiveFilters ? (
               <Card>
                 <CardContent className="space-y-3 p-8 text-center">
                   <p className="text-base font-medium text-foreground">No equipment matches current filters.</p>
@@ -580,9 +649,9 @@ export function EquipmentManagementPage({ view = "all" }: EquipmentManagementPag
               </Card>
             ) : null}
 
-            {filteredAndSorted.length > 0 ? (
+            {equipment.length > 0 ? (
               <EquipmentTable
-                equipment={filteredAndSorted}
+                equipment={equipment}
                 sortField={sort.field}
                 sortDirection={sort.direction}
                 onSortChange={handleSortChange}
@@ -590,6 +659,46 @@ export function EquipmentManagementPage({ view = "all" }: EquipmentManagementPag
                 onEdit={openEditForm}
                 onLogMaintenance={openMaintenanceLog}
               />
+            ) : null}
+
+            {totalPages > 1 ? (
+              <div className="flex items-center justify-between rounded-lg border bg-card px-4 py-3">
+                <p className="text-sm text-muted-foreground">
+                  Showing page {page} of {totalPages} ({totalItems} items)
+                </p>
+                <div className="flex items-center gap-2">
+                  <select
+                    className="h-8 rounded-md border border-input bg-background px-2 text-sm"
+                    value={pageSize}
+                    onChange={(event) => {
+                      setPage(1);
+                      setPageSize(Number(event.target.value));
+                    }}
+                  >
+                    <option value={10}>10 / page</option>
+                    <option value={20}>20 / page</option>
+                    <option value={50}>50 / page</option>
+                  </select>
+                  <Button
+                    type="button"
+                    variant="outlined"
+                    size="sm"
+                    onClick={() => setPage((current) => Math.max(1, current - 1))}
+                    disabled={page <= 1}
+                  >
+                    Previous
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outlined"
+                    size="sm"
+                    onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
+                    disabled={page >= totalPages}
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
             ) : null}
             </section>
           ) : null}

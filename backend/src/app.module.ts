@@ -40,6 +40,7 @@ import { MarketingModule } from './marketing/marketing.module';
 import { InventorySalesModule } from './inventory-sales/inventory-sales.module';
 import { BodyCompositionModule } from './body-composition/body-composition.module';
 import { EquipmentModule } from './equipment/equipment.module';
+import { CostsModule } from './costs/costs.module';
 
 @Module({
   imports: [
@@ -84,6 +85,7 @@ import { EquipmentModule } from './equipment/equipment.module';
     InventorySalesModule,
     BodyCompositionModule,
     EquipmentModule,
+    CostsModule,
   ],
   controllers: [AppController],
   providers: [

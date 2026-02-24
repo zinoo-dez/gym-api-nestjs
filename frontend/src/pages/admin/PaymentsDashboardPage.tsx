@@ -18,6 +18,7 @@ import {
   toPaymentErrorMessage,
   useCancelAutoRenewMutation,
   useManualPaymentMutation,
+  usePaymentCapabilitiesQuery,
   usePaymentMembersQuery,
   usePaymentSummaryQuery,
   usePaymentsQuery,
@@ -135,10 +136,14 @@ export function PaymentsDashboardPage() {
   const paymentsQuery = usePaymentsQuery(queryFilters);
   const summaryQuery = usePaymentSummaryQuery();
   const membersQuery = usePaymentMembersQuery();
+  const capabilitiesQuery = usePaymentCapabilitiesQuery();
 
   const manualPaymentMutation = useManualPaymentMutation();
   const refundMutation = useProcessRefundMutation();
   const cancelAutoRenewMutation = useCancelAutoRenewMutation();
+
+  const canUseInvoice = capabilitiesQuery.data?.invoice ?? true;
+  const canUseRefund = capabilitiesQuery.data?.refund ?? true;
 
   const visibleTransactions = useMemo(() => {
     const items = paymentsQuery.data?.data ?? [];
@@ -232,11 +237,19 @@ export function PaymentsDashboardPage() {
   };
 
   const handleOpenInvoice = (transaction: PaymentTransaction) => {
+    if (!canUseInvoice) {
+      toast.error("Invoice endpoint is not available on this backend.");
+      return;
+    }
     setActiveInvoiceId(transaction.invoiceId || transaction.id);
     setInvoicePanelOpen(true);
   };
 
   const handleOpenRefund = (transaction: PaymentTransaction) => {
+    if (!canUseRefund) {
+      toast.error("Refund endpoint is not available on this backend.");
+      return;
+    }
     setRefundTarget(transaction);
     setRefundDialogOpen(true);
   };
@@ -516,25 +529,28 @@ export function PaymentsDashboardPage() {
                                   event.stopPropagation();
                                   handleOpenInvoice(transaction);
                                 }}
+                                disabled={!canUseInvoice}
                                 title="View Invoice"
                               >
                                 <MaterialIcon icon="receipt_long" className="text-lg" />
                                 <span>Invoice</span>
                               </Button>
 
-                              <Button
-                                type="button"
-                                size="sm"
-                                variant="text"
-                                onClick={(event) => {
-                                  event.stopPropagation();
-                                  handleOpenRefund(transaction);
-                                }}
-                                className="text-error hover:bg-error/10 active:bg-error/20"
-                                title="Process Refund"
-                              >
-                                <span>Refund</span>
-                              </Button>
+                              {canUseRefund ? (
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="text"
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    handleOpenRefund(transaction);
+                                  }}
+                                  className="text-error hover:bg-error/10 active:bg-error/20"
+                                  title="Process Refund"
+                                >
+                                  <span>Refund</span>
+                                </Button>
+                              ) : null}
                             </div>
                           </td>
                         </tr>
@@ -627,14 +643,16 @@ export function PaymentsDashboardPage() {
                         {cancelAutoRenewMutation.isPending ? "Cancelling..." : "Cancel Auto-renew"}
                       </Button>
 
-                      <Button
-                        type="button"
-                        variant="text"
-                        onClick={() => handleOpenRefund(selectedTransaction)}
-                        className="text-error hover:bg-error/10 active:bg-error/20"
-                      >
-                        Process Refund
-                      </Button>
+                      {canUseRefund ? (
+                        <Button
+                          type="button"
+                          variant="text"
+                          onClick={() => handleOpenRefund(selectedTransaction)}
+                          className="text-error hover:bg-error/10 active:bg-error/20"
+                        >
+                          Process Refund
+                        </Button>
+                      ) : null}
                     </div>
                   </>
                 ) : (

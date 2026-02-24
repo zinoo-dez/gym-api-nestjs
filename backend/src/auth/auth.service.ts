@@ -12,11 +12,20 @@ import {
   RegisterDto,
   ChangePasswordDto,
   ForgotPasswordDto,
+  ResetPasswordDto,
 } from './dto';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { UserResponse } from './interfaces/user-response.interface';
-import { UserRole } from '@prisma/client';
+import { NotificationType, UserRole } from '@prisma/client';
 import { NotificationsService } from '../notifications/notifications.service';
+import { ConfigService } from '@nestjs/config';
+
+interface PasswordResetTokenPayload {
+  sub: string;
+  email: string;
+  typ: 'password_reset';
+  pwdChangedAt: number;
+}
 
 @Injectable()
 export class AuthService {
@@ -26,6 +35,7 @@ export class AuthService {
     private prisma: PrismaService,
     private jwtService: JwtService,
     private notificationsService: NotificationsService,
+    private configService: ConfigService,
   ) {}
 
   async register(
@@ -227,7 +237,12 @@ export class AuthService {
   async forgotPassword(dto: ForgotPasswordDto) {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email },
-      select: { id: true, email: true },
+      select: {
+        id: true,
+        email: true,
+        updatedAt: true,
+        firstName: true,
+      },
     });
 
     // Always return success to avoid account enumeration.
@@ -235,7 +250,68 @@ export class AuthService {
       return { message: 'If the email exists, a reset link has been sent.' };
     }
 
-    // TODO: integrate email provider + token generation.
+    const payload: PasswordResetTokenPayload = {
+      sub: user.id,
+      email: user.email,
+      typ: 'password_reset',
+      pwdChangedAt: user.updatedAt.getTime(),
+    };
+    const resetTokenExpiresIn =
+      this.configService.get<string>('PASSWORD_RESET_TOKEN_EXPIRES_IN') ||
+      '15m';
+    const token = await this.jwtService.signAsync(payload, {
+      expiresIn: resetTokenExpiresIn as any,
+    });
+
+    const frontendUrl =
+      this.configService.get<string>('FRONTEND_URL') || 'http://localhost:5173';
+    const resetLink = `${frontendUrl.replace(/\/$/, '')}/reset-password?token=${encodeURIComponent(token)}`;
+
+    await this.notificationsService.createForUser({
+      userId: user.id,
+      title: 'Password reset requested',
+      message:
+        'Use the link sent to your email to reset your password. If this was not you, ignore this message.',
+      type: NotificationType.IN_APP,
+      actionUrl: '/login',
+    });
+    // Fallback until SMTP/provider is integrated.
+    console.info(`[Auth] Password reset link for ${user.email}: ${resetLink}`);
+
     return { message: 'If the email exists, a reset link has been sent.' };
+  }
+
+  async resetPassword(dto: ResetPasswordDto) {
+    let payload: PasswordResetTokenPayload;
+    try {
+      payload = this.jwtService.verify<PasswordResetTokenPayload>(dto.token);
+    } catch {
+      throw new UnauthorizedException('Invalid or expired reset token');
+    }
+
+    if (payload.typ !== 'password_reset') {
+      throw new UnauthorizedException('Invalid reset token');
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: payload.sub },
+      select: { id: true, email: true, updatedAt: true },
+    });
+
+    if (!user || user.email !== payload.email) {
+      throw new UnauthorizedException('Invalid reset token');
+    }
+
+    if (user.updatedAt.getTime() !== payload.pwdChangedAt) {
+      throw new UnauthorizedException('Reset token is no longer valid');
+    }
+
+    const hashedPassword = await this.hashPassword(dto.newPassword);
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { password: hashedPassword },
+    });
+
+    return { message: 'Password reset successfully' };
   }
 }

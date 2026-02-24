@@ -330,68 +330,15 @@ const toUpdatePayload = (input: Partial<SaveClassInput>): Record<string, string 
   return payload;
 };
 
-const mapRosterStatusToBackend = (status: AttendanceStatus): string => {
-  if (status === "BOOKED") {
-    return "CONFIRMED";
-  }
-
-  if (status === "ATTENDED") {
-    return "COMPLETED";
-  }
-
-  return status;
-};
-
-const patchBookingStatus = async (bookingId: string, status: AttendanceStatus): Promise<void> => {
-  const payload = { status: mapRosterStatusToBackend(status) };
-
-  const attempts: Array<() => Promise<void>> = [
-    async () => {
-      await api.patch(`/classes/bookings/${bookingId}/status`, payload);
-    },
-    async () => {
-      await api.patch(`/classes/bookings/${bookingId}`, payload);
-    },
-    async () => {
-      await api.put(`/classes/bookings/${bookingId}`, payload);
-    },
-  ];
-
-  await requestWithFallback(attempts);
-};
-
 const cancelBooking = async (bookingId: string): Promise<void> => {
-  const attempts: Array<() => Promise<void>> = [
-    async () => {
-      await api.delete(`/classes/bookings/${bookingId}`);
-    },
-    async () => {
-      await api.patch(`/classes/bookings/${bookingId}/status`, { status: "CANCELLED" });
-    },
-    async () => {
-      await api.patch(`/classes/bookings/${bookingId}`, { status: "CANCELLED" });
-    },
-  ];
-
-  await requestWithFallback(attempts);
+  await api.delete(`/classes/bookings/${bookingId}`);
 };
 
-const patchAttendanceStatusById = async (
-  attendanceId: string,
-  status: AttendanceStatus,
+const updateBookingStatus = async (
+  bookingId: string,
+  status: "CONFIRMED" | "NO_SHOW" | "CANCELLED" | "COMPLETED",
 ): Promise<void> => {
-  const payload = { status };
-
-  const attempts: Array<() => Promise<void>> = [
-    async () => {
-      await api.patch(`/attendance/${attendanceId}/status`, payload);
-    },
-    async () => {
-      await api.patch(`/attendance/${attendanceId}`, payload);
-    },
-  ];
-
-  await requestWithFallback(attempts);
+  await api.patch(`/classes/bookings/${bookingId}/status`, { status });
 };
 
 const buildClassListParams = (filters: ClassScheduleFilters): Record<string, string | number> => ({
@@ -521,71 +468,40 @@ export const classSchedulingService = {
   },
 
   async updateAttendanceStatus(input: UpdateRosterStatusInput): Promise<void> {
-    let lastError: unknown;
-
-    if (input.attendanceId) {
-      try {
-        await patchAttendanceStatusById(input.attendanceId, input.status);
-        return;
-      } catch (error) {
-        lastError = error;
-      }
+    if (input.status === "ATTENDED") {
+      await api.post("/attendance/check-in", {
+        memberId: input.memberId,
+        classScheduleId: input.classId,
+        type: "CLASS_ATTENDANCE",
+      });
+      return;
     }
 
-    try {
-      if (input.status === "ATTENDED") {
-        await requestWithFallback([
-          async () => {
-            await api.post("/attendance/check-in", {
-              memberId: input.memberId,
-              classScheduleId: input.classId,
-              type: "CLASS_ATTENDANCE",
-            });
-          },
-          async () => {
-            await api.post("/attendance/checkin", {
-              memberId: input.memberId,
-              classScheduleId: input.classId,
-              type: "CLASS_ATTENDANCE",
-            });
-          },
-        ]);
-
+    if (input.status === "BOOKED") {
+      if (input.bookingId) {
+        await updateBookingStatus(input.bookingId, "CONFIRMED");
         return;
       }
 
-      if (input.status === "BOOKED") {
-        if (input.bookingId) {
-          await patchBookingStatus(input.bookingId, "BOOKED");
-          return;
-        }
-
-        await this.addMemberToClass(input.classId, input.memberId);
-        return;
-      }
-
-      if (input.status === "NO_SHOW") {
-        if (!input.bookingId) {
-          throw new Error("No booking record found for member.");
-        }
-
-        await patchBookingStatus(input.bookingId, "NO_SHOW");
-        return;
-      }
-
-      if (input.status === "CANCELLED") {
-        if (!input.bookingId) {
-          throw new Error("No booking record found for member.");
-        }
-
-        await cancelBooking(input.bookingId);
-      }
-    } catch (error) {
-      lastError = error;
+      await this.addMemberToClass(input.classId, input.memberId);
+      return;
     }
 
-    if (lastError) {
-      throw lastError;
+    if (input.status === "NO_SHOW") {
+      if (!input.bookingId) {
+        throw new Error("No booking record found for member.");
+      }
+
+      await updateBookingStatus(input.bookingId, "NO_SHOW");
+      return;
+    }
+
+    if (input.status === "CANCELLED") {
+      if (!input.bookingId) {
+        throw new Error("No booking record found for member.");
+      }
+
+      await cancelBooking(input.bookingId);
     }
   },
 

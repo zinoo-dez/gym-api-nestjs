@@ -10,7 +10,9 @@ module.exports = {
       },
     ],
   },
+  moduleNameMapper: {
+    '^@prisma/client$': '<rootDir>/node_modules/@prisma/client',
+  },
   collectCoverageFrom: ['src/**/*.ts', '!src/main.ts'],
   testEnvironment: 'node',
 };
-

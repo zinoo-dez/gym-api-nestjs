@@ -15,6 +15,8 @@ async function main() {
 
   // Clear existing data
   console.log('🧹 Cleaning existing data...');
+  await prisma.costAuditLog.deleteMany();
+  await prisma.cost.deleteMany();
   await prisma.attendance.deleteMany();
   await prisma.userProgress.deleteMany();
   await prisma.trainerSession.deleteMany();
@@ -508,6 +510,104 @@ async function main() {
   });
   console.log('✓ 3 equipment items created\n');
 
+  // Create Costs
+  console.log('💰 Creating costs...');
+  const seededCosts = [
+    {
+      title: 'Main Facility Rent',
+      category: 'rent',
+      costType: 'fixed',
+      amount: 3250,
+      taxAmount: 0,
+      paymentMethod: 'bank',
+      billingPeriod: 'monthly',
+      costDate: new Date(now.getTime() - 20 * 24 * 60 * 60 * 1000),
+      dueDate: new Date(now.getTime() - 18 * 24 * 60 * 60 * 1000),
+      paidDate: new Date(now.getTime() - 19 * 24 * 60 * 60 * 1000),
+      paymentStatus: 'paid',
+      budgetGroup: 'Facilities',
+      vendor: 'Skyline Properties',
+      referenceNumber: 'RENT-SEED-001',
+      notes: 'Monthly lease payment for gym premises.',
+      createdBy: 'Admin User',
+      status: 'active',
+    },
+    {
+      title: 'Staff Salaries',
+      category: 'salaries',
+      costType: 'fixed',
+      amount: 13800,
+      taxAmount: 0,
+      paymentMethod: 'bank',
+      billingPeriod: 'monthly',
+      costDate: new Date(now.getTime() - 15 * 24 * 60 * 60 * 1000),
+      dueDate: new Date(now.getTime() - 15 * 24 * 60 * 60 * 1000),
+      paidDate: new Date(now.getTime() - 15 * 24 * 60 * 60 * 1000),
+      paymentStatus: 'paid',
+      budgetGroup: 'Payroll',
+      vendor: 'Payroll Transfer',
+      referenceNumber: 'SAL-SEED-001',
+      notes: 'Includes trainers and front-desk staff payouts.',
+      createdBy: 'Admin User',
+      status: 'active',
+    },
+    {
+      title: 'Electricity Bill',
+      category: 'utilities',
+      costType: 'variable',
+      amount: 980,
+      taxAmount: 53,
+      paymentMethod: 'online',
+      billingPeriod: 'monthly',
+      costDate: new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000),
+      dueDate: new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000),
+      paidDate: null,
+      paymentStatus: 'pending',
+      budgetGroup: 'Utilities',
+      vendor: 'City Electric',
+      referenceNumber: 'UTIL-SEED-001',
+      notes: 'Higher evening-class usage this cycle.',
+      createdBy: 'Admin User',
+      status: 'active',
+    },
+    {
+      title: 'Quarterly Equipment Servicing',
+      category: 'maintenance',
+      costType: 'variable',
+      amount: 640,
+      taxAmount: 21,
+      paymentMethod: 'bank',
+      billingPeriod: 'quarterly',
+      costDate: new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000),
+      dueDate: new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000),
+      paidDate: null,
+      paymentStatus: 'pending',
+      budgetGroup: 'Maintenance',
+      vendor: 'FitTech Services',
+      referenceNumber: 'MAIN-SEED-001',
+      notes: 'Preventive servicing for cardio machines.',
+      createdBy: 'Admin User',
+      status: 'active',
+    },
+  ];
+
+  for (const entry of seededCosts) {
+    await prisma.cost.create({
+      data: {
+        ...entry,
+        auditLogs: {
+          create: {
+            date: entry.costDate,
+            action: 'Created',
+            description: 'Seeded cost entry created',
+            performedBy: entry.createdBy,
+          },
+        },
+      },
+    });
+  }
+  console.log('✓ 4 costs created\n');
+
   // Final Summary
   const finalCounts = {
     users: await prisma.user.count(),
@@ -520,6 +620,7 @@ async function main() {
     classBookings: await prisma.classBooking.count(),
     workoutPlans: await prisma.workoutPlan.count(),
     equipment: await prisma.equipment.count(),
+    costs: await prisma.cost.count(),
   };
 
   console.log('✅ Database seeding completed successfully!\n');
@@ -534,6 +635,7 @@ async function main() {
   console.log(`- Class Bookings: ${finalCounts.classBookings}`);
   console.log(`- Workout Plans: ${finalCounts.workoutPlans}`);
   console.log(`- Equipment: ${finalCounts.equipment}`);
+  console.log(`- Costs: ${finalCounts.costs}`);
   console.log('\n🔑 Login credentials:');
   console.log('- Admin: admin@gym.com / Password123!');
   console.log('- Trainer: john.trainer@gym.com / Password123!');

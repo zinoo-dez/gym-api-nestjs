@@ -1,14 +1,29 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
+import {
+  IsEnum,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUUID,
+} from 'class-validator';
 import { PaymentMethodType, PaymentProvider } from '@prisma/client';
 
 export class CreatePaymentDto {
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Subscription ID related to this payment',
     example: 'cml123abc',
   })
+  @IsOptional()
   @IsString()
   subscriptionId!: string;
+
+  @ApiPropertyOptional({
+    description: 'Member ID for admin/staff manual payment',
+    example: 'cmember123abc',
+  })
+  @IsOptional()
+  @IsUUID()
+  memberId?: string;
 
   @ApiProperty({
     description: 'Payment amount',
@@ -25,28 +40,39 @@ export class CreatePaymentDto {
   @IsString()
   currency?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Payment method type',
     enum: PaymentMethodType,
     example: PaymentMethodType.BANK,
   })
+  @IsOptional()
   @IsEnum(PaymentMethodType)
-  methodType!: PaymentMethodType;
+  methodType?: PaymentMethodType;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
+    description: 'Compatibility payment method from frontend',
+    example: 'TRANSFER',
+  })
+  @IsOptional()
+  @IsString()
+  paymentMethod?: string;
+
+  @ApiPropertyOptional({
     description: 'Payment provider',
     enum: PaymentProvider,
     example: PaymentProvider.KBZ,
   })
+  @IsOptional()
   @IsEnum(PaymentProvider)
-  provider!: PaymentProvider;
+  provider?: PaymentProvider;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Transaction reference / number',
     example: 'TRX-2026-0001',
   })
+  @IsOptional()
   @IsString()
-  transactionNo!: string;
+  transactionNo?: string;
 
   @ApiPropertyOptional({
     description: 'Screenshot URL for payment proof',
@@ -63,4 +89,12 @@ export class CreatePaymentDto {
   @IsOptional()
   @IsString()
   description?: string;
+
+  @ApiPropertyOptional({
+    description: 'Compatibility field for admin notes',
+    example: 'Manual walk-in payment',
+  })
+  @IsOptional()
+  @IsString()
+  notes?: string;
 }

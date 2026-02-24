@@ -115,6 +115,16 @@ export function AuthModal({ isOpen, onOpenChange, initialView = "login" }: AuthM
             <Label>Password</Label>
             <Input type="password" {...loginForm.register("password")} hasError={!!loginForm.formState.errors.password} />
           </div>
+          <button
+            type="button"
+            className="text-sm font-medium text-primary hover:underline"
+            onClick={() => {
+              onOpenChange(false);
+              navigate("/forgot-password");
+            }}
+          >
+            Forgot password?
+          </button>
           <Button type="submit" className="w-full h-12 mt-2" disabled={loginForm.formState.isSubmitting}>
             {loginForm.formState.isSubmitting ? "Signing in..." : "Sign In"}
           </Button>

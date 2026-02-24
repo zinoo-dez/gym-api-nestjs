@@ -719,11 +719,48 @@ export class ClassesService {
         status: BookingStatus.CANCELLED,
       },
     });
-    await this.refundCreditForBooking(cancelledBooking.id, cancelledBooking.memberId);
+    await this.refundCreditForBooking(
+      cancelledBooking.id,
+      cancelledBooking.memberId,
+    );
 
     await this.promoteWaitlist(cancelledBooking.classScheduleId);
 
     this.invalidateClassesCache();
+  }
+
+  async updateBookingStatus(
+    bookingId: string,
+    status: BookingStatus,
+  ): Promise<ClassBookingResponseDto> {
+    const booking = await this.prisma.classBooking.findUnique({
+      where: { id: bookingId },
+      select: {
+        id: true,
+        memberId: true,
+        classScheduleId: true,
+        status: true,
+      },
+    });
+
+    if (!booking) {
+      throw new NotFoundException(`Booking with ID ${bookingId} not found`);
+    }
+
+    if (status === BookingStatus.WAITLISTED) {
+      throw new BadRequestException(
+        'WAITLISTED is not a valid direct booking update',
+      );
+    }
+
+    const updated = await this.prisma.classBooking.update({
+      where: { id: bookingId },
+      data: { status },
+    });
+
+    this.invalidateClassesCache();
+
+    return this.toBookingResponseDto(updated);
   }
 
   async getMemberBookings(memberId: string, currentUser?: any) {
@@ -818,7 +855,9 @@ export class ClassesService {
       include: { member: { select: { userId: true } } },
     });
     if (!entry) {
-      throw new NotFoundException(`Waitlist entry with ID ${waitlistId} not found`);
+      throw new NotFoundException(
+        `Waitlist entry with ID ${waitlistId} not found`,
+      );
     }
     if (
       currentUser?.role === UserRole.MEMBER &&
@@ -884,7 +923,9 @@ export class ClassesService {
     currentUser?: any,
   ): Promise<ClassFavoriteResponseDto> {
     await this.ensureMemberAccess(memberId, currentUser);
-    const classEntity = await this.prisma.class.findUnique({ where: { id: classId } });
+    const classEntity = await this.prisma.class.findUnique({
+      where: { id: classId },
+    });
     if (!classEntity) {
       throw new NotFoundException(`Class with ID ${classId} not found`);
     }
@@ -905,12 +946,21 @@ export class ClassesService {
     };
   }
 
-  async unfavoriteClass(classId: string, memberId: string, currentUser?: any): Promise<void> {
+  async unfavoriteClass(
+    classId: string,
+    memberId: string,
+    currentUser?: any,
+  ): Promise<void> {
     await this.ensureMemberAccess(memberId, currentUser);
-    await this.prisma.classFavorite.deleteMany({ where: { classId, memberId } });
+    await this.prisma.classFavorite.deleteMany({
+      where: { classId, memberId },
+    });
   }
 
-  async getMemberFavorites(memberId: string, currentUser?: any): Promise<ClassFavoriteResponseDto[]> {
+  async getMemberFavorites(
+    memberId: string,
+    currentUser?: any,
+  ): Promise<ClassFavoriteResponseDto[]> {
     await this.ensureMemberAccess(memberId, currentUser);
     const favorites = await this.prisma.classFavorite.findMany({
       where: { memberId },
@@ -927,7 +977,9 @@ export class ClassesService {
     }));
   }
 
-  async createClassPackage(dto: CreateClassPackageDto): Promise<ClassPackageResponseDto> {
+  async createClassPackage(
+    dto: CreateClassPackageDto,
+  ): Promise<ClassPackageResponseDto> {
     const pack = await this.prisma.classPackage.create({
       data: {
         name: dto.name,
@@ -961,12 +1013,18 @@ export class ClassesService {
       where: { id: classPackageId, isActive: true },
     });
     if (!classPackage) {
-      throw new NotFoundException(`Class package with ID ${classPackageId} not found`);
+      throw new NotFoundException(
+        `Class package with ID ${classPackageId} not found`,
+      );
     }
 
     const now = new Date();
-    const validityDays = classPackage.validityDays ?? (classPackage.passType === 'MONTHLY' ? 30 : 60);
-    const expiresAt = new Date(now.getTime() + validityDays * 24 * 60 * 60 * 1000);
+    const validityDays =
+      classPackage.validityDays ??
+      (classPackage.passType === 'MONTHLY' ? 30 : 60);
+    const expiresAt = new Date(
+      now.getTime() + validityDays * 24 * 60 * 60 * 1000,
+    );
     const bonusCredits = classPackage.creditsIncluded === 10 ? 1 : 0;
     const totalCredits = classPackage.monthlyUnlimited
       ? 0
@@ -995,7 +1053,12 @@ export class ClassesService {
       },
     });
 
-    return { passId: pass.id, expiresAt: pass.expiresAt, remainingCredits: pass.remainingCredits, monthlyUnlimited: pass.monthlyUnlimited };
+    return {
+      passId: pass.id,
+      expiresAt: pass.expiresAt,
+      remainingCredits: pass.remainingCredits,
+      monthlyUnlimited: pass.monthlyUnlimited,
+    };
   }
 
   async getMemberCredits(
@@ -1004,7 +1067,11 @@ export class ClassesService {
   ): Promise<MemberClassCreditsResponseDto> {
     await this.ensureMemberAccess(memberId, currentUser);
     const activePasses = await this.prisma.memberClassPass.findMany({
-      where: { memberId, status: PassStatus.ACTIVE, expiresAt: { gt: new Date() } },
+      where: {
+        memberId,
+        status: PassStatus.ACTIVE,
+        expiresAt: { gt: new Date() },
+      },
       include: { classPackage: true },
       orderBy: { expiresAt: 'asc' },
     });
@@ -1040,13 +1107,17 @@ export class ClassesService {
         memberId,
         status: { in: [BookingStatus.CONFIRMED, BookingStatus.COMPLETED] },
       },
-      include: { classSchedule: { select: { trainerId: true, endTime: true } } },
+      include: {
+        classSchedule: { select: { trainerId: true, endTime: true } },
+      },
     });
     if (!booking) {
       throw new BadRequestException('Member did not book this class');
     }
     if (booking.classSchedule.endTime > new Date()) {
-      throw new BadRequestException('Instructor can only be rated after class completion');
+      throw new BadRequestException(
+        'Instructor can only be rated after class completion',
+      );
     }
 
     return this.prisma.instructorRating.upsert({
@@ -1062,7 +1133,9 @@ export class ClassesService {
     });
   }
 
-  async getInstructorProfile(trainerId: string): Promise<InstructorProfileResponseDto> {
+  async getInstructorProfile(
+    trainerId: string,
+  ): Promise<InstructorProfileResponseDto> {
     const trainer = await this.prisma.trainer.findUnique({
       where: { id: trainerId },
       include: { user: true },
@@ -1078,20 +1151,28 @@ export class ClassesService {
     });
 
     const now = new Date();
-    const [pastClassesCount, upcomingClassesCount, topClassTypesRaw] = await Promise.all([
-      this.prisma.classSchedule.count({ where: { trainerId, endTime: { lt: now } } }),
-      this.prisma.classSchedule.count({ where: { trainerId, startTime: { gte: now }, isActive: true } }),
-      this.prisma.classSchedule.findMany({
-        where: { trainerId, endTime: { lt: now } },
-        include: { class: { select: { category: true } } },
-        take: 200,
-      }),
-    ]);
+    const [pastClassesCount, upcomingClassesCount, topClassTypesRaw] =
+      await Promise.all([
+        this.prisma.classSchedule.count({
+          where: { trainerId, endTime: { lt: now } },
+        }),
+        this.prisma.classSchedule.count({
+          where: { trainerId, startTime: { gte: now }, isActive: true },
+        }),
+        this.prisma.classSchedule.findMany({
+          where: { trainerId, endTime: { lt: now } },
+          include: { class: { select: { category: true } } },
+          take: 200,
+        }),
+      ]);
 
-    const grouped = topClassTypesRaw.reduce<Record<string, number>>((acc, item) => {
-      acc[item.class.category] = (acc[item.class.category] ?? 0) + 1;
-      return acc;
-    }, {});
+    const grouped = topClassTypesRaw.reduce<Record<string, number>>(
+      (acc, item) => {
+        acc[item.class.category] = (acc[item.class.category] ?? 0) + 1;
+        return acc;
+      },
+      {},
+    );
     const topClassTypes = Object.entries(grouped)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 3)
@@ -1221,20 +1302,27 @@ export class ClassesService {
     );
   }
 
-  private async ensureClassScheduleActive(classScheduleId: string): Promise<void> {
+  private async ensureClassScheduleActive(
+    classScheduleId: string,
+  ): Promise<void> {
     const classSchedule = await this.prisma.classSchedule.findUnique({
       where: { id: classScheduleId },
       select: { id: true, isActive: true },
     });
     if (!classSchedule) {
-      throw new NotFoundException(`Class schedule with ID ${classScheduleId} not found`);
+      throw new NotFoundException(
+        `Class schedule with ID ${classScheduleId} not found`,
+      );
     }
     if (!classSchedule.isActive) {
       throw new BadRequestException('Class schedule is not active');
     }
   }
 
-  private async ensureMemberAccess(memberId: string, currentUser?: any): Promise<void> {
+  private async ensureMemberAccess(
+    memberId: string,
+    currentUser?: any,
+  ): Promise<void> {
     const member = await this.prisma.member.findUnique({
       where: { id: memberId },
       select: { id: true, userId: true },
@@ -1252,14 +1340,21 @@ export class ClassesService {
 
   private async getMemberCreditsBalance(memberId: string): Promise<number> {
     const passes = await this.prisma.memberClassPass.findMany({
-      where: { memberId, status: PassStatus.ACTIVE, expiresAt: { gt: new Date() } },
+      where: {
+        memberId,
+        status: PassStatus.ACTIVE,
+        expiresAt: { gt: new Date() },
+      },
       select: { remainingCredits: true, monthlyUnlimited: true },
     });
     if (passes.some((pass) => pass.monthlyUnlimited)) return 0;
     return passes.reduce((sum, pass) => sum + pass.remainingCredits, 0);
   }
 
-  private async consumeCreditForBooking(bookingId: string, memberId: string): Promise<void> {
+  private async consumeCreditForBooking(
+    bookingId: string,
+    memberId: string,
+  ): Promise<void> {
     const passes = await this.prisma.memberClassPass.findMany({
       where: {
         memberId,
@@ -1292,7 +1387,10 @@ export class ClassesService {
     });
   }
 
-  private async refundCreditForBooking(bookingId: string, memberId: string): Promise<void> {
+  private async refundCreditForBooking(
+    bookingId: string,
+    memberId: string,
+  ): Promise<void> {
     const usageTxn = await this.prisma.classCreditTransaction.findFirst({
       where: {
         bookingId,
