@@ -1,4 +1,3 @@
-import axios from "axios";
 import { addMinutes, differenceInMinutes } from "date-fns";
 
 import { clampNumber, type AttendanceStatus } from "@/features/classes";
@@ -20,8 +19,9 @@ interface ApiEnvelope<T> {
 
 type GenericRecord = Record<string, unknown>;
 
-const CLASS_LIST_ENDPOINTS = ["/classes", "/class-schedules"] as const;
-const CLASS_CREATE_ENDPOINTS = ["/classes", "/class-schedules"] as const;
+const CLASSES_ENDPOINT = "/classes";
+const CLASS_SCHEDULES_ENDPOINT = "/classes/schedules";
+const CLASS_BOOKINGS_ENDPOINT = "/classes/bookings";
 
 const isRecord = (value: unknown): value is GenericRecord =>
   typeof value === "object" && value !== null;
@@ -75,33 +75,6 @@ const toArrayPayload = <T>(value: unknown): T[] => {
   }
 
   return [];
-};
-
-const shouldTryFallback = (error: unknown): boolean => {
-  if (!axios.isAxiosError(error)) {
-    return false;
-  }
-
-  const statusCode = error.response?.status;
-  return statusCode === 400 || statusCode === 404 || statusCode === 405 || statusCode === 501;
-};
-
-const requestWithFallback = async <T>(attempts: Array<() => Promise<T>>): Promise<T> => {
-  let lastError: unknown;
-
-  for (const attempt of attempts) {
-    try {
-      return await attempt();
-    } catch (error) {
-      lastError = error;
-
-      if (!shouldTryFallback(error)) {
-        throw error;
-      }
-    }
-  }
-
-  throw lastError ?? new Error("Unable to complete class scheduling request.");
 };
 
 const toClassSession = (row: unknown): ClassSession => {
@@ -352,68 +325,40 @@ const buildClassListParams = (filters: ClassScheduleFilters): Record<string, str
 export const classSchedulingService = {
   async listClasses(filters: ClassScheduleFilters): Promise<ClassSession[]> {
     const params = buildClassListParams(filters);
+    const response = await api.get<ApiEnvelope<unknown>>(CLASSES_ENDPOINT, { params });
+    const rows = toArrayPayload<unknown>(response.data);
 
-    const attempts = CLASS_LIST_ENDPOINTS.map(
-      (endpoint) => async (): Promise<ClassSession[]> => {
-        const response = await api.get<ApiEnvelope<unknown>>(endpoint, { params });
-        const rows = toArrayPayload<unknown>(response.data);
+    const filterStart = new Date(filters.startDate).getTime();
+    const filterEnd = new Date(filters.endDate).getTime();
 
-        const filterStart = new Date(filters.startDate).getTime();
-        const filterEnd = new Date(filters.endDate).getTime();
-
-        return rows
-          .map(toClassSession)
-          .filter((session) => {
-            const schedule = new Date(session.startTime).getTime();
-            return schedule >= filterStart && schedule <= filterEnd;
-          })
-          .sort((left, right) =>
-            new Date(left.startTime).getTime() - new Date(right.startTime).getTime(),
-          );
-      },
-    );
-
-    return requestWithFallback(attempts);
+    return rows
+      .map(toClassSession)
+      .filter((session) => {
+        const schedule = new Date(session.startTime).getTime();
+        return schedule >= filterStart && schedule <= filterEnd;
+      })
+      .sort((left, right) => new Date(left.startTime).getTime() - new Date(right.startTime).getTime());
   },
 
   async createClass(input: SaveClassInput): Promise<ClassSession> {
     const payload = toCreatePayload(input);
+    const response = await api.post<ApiEnvelope<unknown>>(CLASSES_ENDPOINT, payload);
+    const responsePayload = extractPayload<unknown>(response.data);
 
-    const attempts = CLASS_CREATE_ENDPOINTS.map(
-      (endpoint) => async (): Promise<ClassSession> => {
-        const response = await api.post<ApiEnvelope<unknown>>(endpoint, payload);
-        const responsePayload = extractPayload<unknown>(response.data);
+    if (Array.isArray(responsePayload)) {
+      return toClassSession(responsePayload[0]);
+    }
 
-        if (Array.isArray(responsePayload)) {
-          return toClassSession(responsePayload[0]);
-        }
-
-        return toClassSession(responsePayload);
-      },
-    );
-
-    return requestWithFallback(attempts);
+    return toClassSession(responsePayload);
   },
 
   async updateClass(classId: string, input: Partial<SaveClassInput>): Promise<ClassSession> {
     const payload = toUpdatePayload(input);
-
-    const attempts: Array<() => Promise<ClassSession>> = [
-      async () => {
-        const response = await api.patch<ApiEnvelope<unknown>>(`/classes/${classId}`, payload);
-        return toClassSession(extractPayload(response.data));
-      },
-      async () => {
-        const response = await api.patch<ApiEnvelope<unknown>>(`/classes/schedules/${classId}`, payload);
-        return toClassSession(extractPayload(response.data));
-      },
-      async () => {
-        const response = await api.put<ApiEnvelope<unknown>>(`/classes/schedules/${classId}`, payload);
-        return toClassSession(extractPayload(response.data));
-      },
-    ];
-
-    return requestWithFallback(attempts);
+    const response = await api.patch<ApiEnvelope<unknown>>(
+      `${CLASS_SCHEDULES_ENDPOINT}/${classId}`,
+      payload,
+    );
+    return toClassSession(extractPayload(response.data));
   },
 
   async rescheduleClass(input: RescheduleClassInput): Promise<ClassSession> {
@@ -424,43 +369,16 @@ export const classSchedulingService = {
   },
 
   async deleteClass(classId: string): Promise<void> {
-    const attempts: Array<() => Promise<void>> = [
-      async () => {
-        await api.delete(`/classes/${classId}`);
-      },
-      async () => {
-        await api.delete(`/classes/schedules/${classId}`);
-      },
-      async () => {
-        await api.patch(`/classes/schedules/${classId}`, { isActive: false });
-      },
-    ];
-
-    await requestWithFallback(attempts);
+    await api.delete(`${CLASS_SCHEDULES_ENDPOINT}/${classId}`);
   },
 
   async getClassRoster(classId: string): Promise<RosterMember[]> {
-    const directRosterAttempts: Array<() => Promise<RosterMember[]>> = [
-      async () => {
-        const response = await api.get<ApiEnvelope<unknown>>(`/classes/${classId}/roster`);
-        return toArrayPayload<unknown>(response.data).map(toRosterMember);
+    const response = await api.get<ApiEnvelope<unknown>>(CLASS_BOOKINGS_ENDPOINT, {
+      params: {
+        classScheduleId: classId,
       },
-      async () => {
-        const response = await api.get<ApiEnvelope<unknown>>(`/classes/schedules/${classId}/roster`);
-        return toArrayPayload<unknown>(response.data).map(toRosterMember);
-      },
-      async () => {
-        const response = await api.get<ApiEnvelope<unknown>>("/classes/bookings", {
-          params: {
-            classScheduleId: classId,
-          },
-        });
-
-        return toArrayPayload<unknown>(response.data).map(toRosterMember);
-      },
-    ];
-
-    const roster = await requestWithFallback(directRosterAttempts);
+    });
+    const roster = toArrayPayload<unknown>(response.data).map(toRosterMember);
 
     return roster
       .filter((member) => member.memberId.length > 0)
@@ -507,20 +425,7 @@ export const classSchedulingService = {
 
   async addMemberToClass(classId: string, memberId: string): Promise<void> {
     const payload = { memberId };
-
-    const attempts: Array<() => Promise<void>> = [
-      async () => {
-        await api.post(`/classes/${classId}/roster`, payload);
-      },
-      async () => {
-        await api.post(`/classes/schedules/${classId}/book`, payload);
-      },
-      async () => {
-        await api.post(`/classes/${classId}/book`, payload);
-      },
-    ];
-
-    await requestWithFallback(attempts);
+    await api.post(`${CLASS_SCHEDULES_ENDPOINT}/${classId}/book`, payload);
   },
 
   async searchMembers(searchTerm: string): Promise<MemberSearchOption[]> {
@@ -532,36 +437,29 @@ export const classSchedulingService = {
 
     const query = normalizedSearch.toLowerCase();
 
-    const fetchAttempts: Array<() => Promise<MemberSearchOption[]>> = [
-      async () => {
-        const response = await api.get<ApiEnvelope<unknown>>("/members", {
-          params: {
-            search: normalizedSearch,
-            page: 1,
-            limit: 25,
-          },
-        });
+    const [byNameResponse, byEmailResponse] = await Promise.all([
+      api.get<ApiEnvelope<unknown>>("/members", {
+        params: {
+          name: normalizedSearch,
+          page: 1,
+          limit: 25,
+        },
+      }),
+      api.get<ApiEnvelope<unknown>>("/members", {
+        params: {
+          email: normalizedSearch,
+          page: 1,
+          limit: 25,
+        },
+      }),
+    ]);
 
-        return toArrayPayload<unknown>(response.data)
-          .map(toMemberSearchOption)
-          .filter((option): option is MemberSearchOption => option !== null);
-      },
-      async () => {
-        const response = await api.get<ApiEnvelope<unknown>>("/members/search", {
-          params: {
-            q: normalizedSearch,
-            page: 1,
-            limit: 25,
-          },
-        });
-
-        return toArrayPayload<unknown>(response.data)
-          .map(toMemberSearchOption)
-          .filter((option): option is MemberSearchOption => option !== null);
-      },
-    ];
-
-    let members = await requestWithFallback(fetchAttempts);
+    let members = [
+      ...toArrayPayload<unknown>(byNameResponse.data),
+      ...toArrayPayload<unknown>(byEmailResponse.data),
+    ]
+      .map(toMemberSearchOption)
+      .filter((option): option is MemberSearchOption => option !== null);
 
     if (members.length === 0) {
       const response = await api.get<ApiEnvelope<unknown>>("/members", {

@@ -4,6 +4,7 @@ import { toast } from "sonner";
 
 import { useAuthStore } from "@/store/auth.store";
 import { useNotificationStore } from "@/store/notification.store";
+import { hasManagementAccess } from "@/lib/roles";
 import {
   notificationsService,
   type NotificationListResponse,
@@ -59,7 +60,7 @@ const useNotificationContext = () => {
 
   return {
     role,
-    isAdmin: role?.toUpperCase() === "ADMIN",
+    isAdmin: hasManagementAccess(role),
   };
 };
 

@@ -971,6 +971,12 @@ model GymSetting {
   logo                       String   @default("")
   description                String   @default("")
   favicon                    String   @default("")
+  currency                   String   @default("USD")
+  taxPercentage              Float    @default(0) @map("tax_percentage")
+  stripePublicKey            String   @default("") @map("stripe_public_key")
+  stripeSecretKey            String   @default("") @map("stripe_secret_key")
+  paypalClientId             String   @default("") @map("paypal_client_id")
+  paypalSecret               String   @default("") @map("paypal_secret")
   emailNotification          Boolean  @default(true) @map("email_notification")
   smsNotification            Boolean  @default(true) @map("sms_notification")
   createdAt                  DateTime @default(now()) @map("created_at")
@@ -1316,6 +1322,8 @@ enum PaymentMethodType {
 }
 
 enum PaymentProvider {
+  CASH
+  CARD
   AYA
   KBZ
   CB

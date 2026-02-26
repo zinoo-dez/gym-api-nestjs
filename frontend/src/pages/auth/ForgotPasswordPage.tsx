@@ -3,17 +3,25 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import { ArrowLeft } from "lucide-react";
 import { authService } from "@/services/auth.service";
-import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
-import { Label } from "@/components/ui/Label";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/Card";
 
 const forgotPasswordSchema = z.object({
   email: z.string().email("Invalid email address"),
 });
 
 type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
+
+const container = {
+  hidden: { opacity: 0 },
+  show: { opacity: 1, transition: { staggerChildren: 0.1 } },
+};
+
+const item = {
+  hidden: { opacity: 0, y: 10 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.28, ease: "easeOut" } },
+};
 
 export default function ForgotPasswordPage() {
   const [message, setMessage] = useState<string | null>(null);
@@ -30,6 +38,7 @@ export default function ForgotPasswordPage() {
   const onSubmit = async (data: ForgotPasswordFormValues) => {
     try {
       setError(null);
+      setMessage(null);
       const response = await authService.forgotPassword(data.email);
       setMessage(response.message);
     } catch (err: any) {
@@ -38,32 +47,49 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <Card>
-      <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl text-center">Forgot Password</CardTitle>
-        <CardDescription className="text-center">
-          Enter your account email to receive a reset link.
-        </CardDescription>
-      </CardHeader>
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <CardContent className="space-y-4">
-          {message ? <div className="rounded-md bg-success/10 p-3 text-sm text-success text-center">{message}</div> : null}
-          {error ? <div className="rounded-md bg-danger/10 p-3 text-sm text-danger text-center">{error}</div> : null}
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" hasError={!!errors.email} {...register("email")} />
-            {errors.email ? <p className="error-text text-sm font-medium text-danger mt-1">{errors.email.message}</p> : null}
-          </div>
-        </CardContent>
-        <CardFooter className="flex flex-col space-y-4">
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? "Sending..." : "Send Reset Link"}
-          </Button>
-          <Link to="/login" className="text-sm font-medium text-primary hover:underline">
-            Back to login
-          </Link>
-        </CardFooter>
-      </form>
-    </Card>
+    <motion.form initial="hidden" animate="show" variants={container} onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <motion.div variants={item} className="space-y-2">
+        <h1 className="page-title">Forgot password?</h1>
+        <p className="body-text text-muted-foreground">Enter your email and we will send you a reset link.</p>
+      </motion.div>
+
+      {message ? (
+        <motion.div variants={item} className="rounded-md bg-tertiary/10 p-3 text-sm font-medium text-tertiary">
+          {message}
+        </motion.div>
+      ) : null}
+      {error ? (
+        <motion.div variants={item} className="rounded-md bg-error/10 p-3 text-sm font-medium text-error">
+          {error}
+        </motion.div>
+      ) : null}
+
+      <motion.div variants={item} className="space-y-2">
+        <label htmlFor="email" className="small-text text-muted-foreground">Email</label>
+        <input
+          id="email"
+          type="email"
+          placeholder="name@example.com"
+          className="w-full border border-input bg-background rounded-md px-3 py-2 text-sm"
+          {...register("email")}
+        />
+        {errors.email ? <p className="small-text text-error">{errors.email.message}</p> : null}
+      </motion.div>
+
+      <motion.button
+        variants={item}
+        type="submit"
+        disabled={isSubmitting}
+        className="w-full rounded-full bg-primary text-primary-foreground hover:bg-primary-hover hover:bg-primary/90 px-4 py-2.5 text-sm font-medium transition-colors disabled:opacity-60"
+      >
+        {isSubmitting ? "Sending..." : "Send Reset Link"}
+      </motion.button>
+
+      <motion.p variants={item} className="text-center">
+        <Link to="/login" className="inline-flex items-center gap-2 text-sm font-medium hover:text-primary transition-colors">
+          <ArrowLeft className="size-4" /> Back to login
+        </Link>
+      </motion.p>
+    </motion.form>
   );
 }

@@ -1,9 +1,11 @@
 import { Suspense, lazy } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation } from "react-router-dom";
 
 import { useAuthStore } from "@/store/auth.store";
-import AttractionAuthPage from "@/pages/auth/AttractionAuthPage";
+import LandingPage from "@/pages/public/LandingPage";
+import LoginPage from "@/pages/auth/LoginPage";
+import RegisterPage from "@/pages/auth/RegisterPage";
 import ForgotPasswordPage from "@/pages/auth/ForgotPasswordPage";
 import ResetPasswordPage from "@/pages/auth/ResetPasswordPage";
 import { AdminLayout } from "@/layouts/AdminLayout";
@@ -66,22 +68,33 @@ const DashboardIndex = () => {
   return <MemberDashboard />;
 };
 
+const LegacyAppRedirect = () => {
+  const location = useLocation();
+  return <Navigate to={`/app${location.pathname}${location.search}${location.hash}`} replace />;
+};
+
 const App = () => {
     return (
         <QueryClientProvider client={queryClient}>
             <BrowserRouter>
               <Routes>
+                {/* Public Routes */}
+                <Route element={<PublicLayout />}>
+                  <Route index element={<LandingPage />} />
+                  <Route path="landing" element={<Navigate to="/" replace />} />
+                </Route>
+
                 {/* Auth Routes */}
                 <Route element={<AuthLayout />}>
-                  <Route path="/login" element={<AttractionAuthPage />} />
-                  <Route path="/register" element={<AttractionAuthPage />} />
+                  <Route path="/login" element={<LoginPage />} />
+                  <Route path="/register" element={<RegisterPage />} />
                   <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                   <Route path="/reset-password" element={<ResetPasswordPage />} />
                 </Route>
 
                 {/* Protected Dashboard Routes */}
                 <Route
-                  path="/"
+                  path="/app"
                   element={
                     <ProtectedRoute>
                       <DashboardRouter />
@@ -127,7 +140,7 @@ const App = () => {
                     path="management/classes"
                     element={
                       <AdminRoute>
-                        <Navigate to="/management/classes/schedule" replace />
+                        <Navigate to="/app/management/classes/schedule" replace />
                       </AdminRoute>
                     }
                   />
@@ -167,7 +180,7 @@ const App = () => {
                     path="management/classes/:section"
                     element={
                       <AdminRoute>
-                        <Navigate to="/management/classes/schedule" replace />
+                        <Navigate to="/app/management/classes/schedule" replace />
                       </AdminRoute>
                     }
                   />
@@ -175,7 +188,7 @@ const App = () => {
                     path="management/equipment"
                     element={
                       <AdminRoute>
-                        <Navigate to="/management/equipment/overview" replace />
+                        <Navigate to="/app/management/equipment/overview" replace />
                       </AdminRoute>
                     }
                   />
@@ -199,7 +212,7 @@ const App = () => {
                     path="management/equipment/:section"
                     element={
                       <AdminRoute>
-                        <Navigate to="/management/equipment/overview" replace />
+                        <Navigate to="/app/management/equipment/overview" replace />
                       </AdminRoute>
                     }
                   />
@@ -207,7 +220,7 @@ const App = () => {
                     path="management/products"
                     element={
                       <AdminRoute>
-                        <Navigate to="/management/products/overview" replace />
+                        <Navigate to="/app/management/products/overview" replace />
                       </AdminRoute>
                     }
                   />
@@ -247,7 +260,7 @@ const App = () => {
                     path="management/products/:section"
                     element={
                       <AdminRoute>
-                        <Navigate to="/management/products/overview" replace />
+                        <Navigate to="/app/management/products/overview" replace />
                       </AdminRoute>
                     }
                   />
@@ -255,7 +268,7 @@ const App = () => {
                     path="management/memberships"
                     element={
                       <AdminRoute>
-                        <Navigate to="/management/memberships/plans" replace />
+                        <Navigate to="/app/management/memberships/plans" replace />
                       </AdminRoute>
                     }
                   />
@@ -287,7 +300,7 @@ const App = () => {
                     path="finance/costs"
                     element={
                       <AdminRoute>
-                        <Navigate to="/finance/costs/overview" replace />
+                        <Navigate to="/app/finance/costs/overview" replace />
                       </AdminRoute>
                     }
                   />
@@ -327,7 +340,7 @@ const App = () => {
                     path="settings"
                     element={
                       <AdminRoute>
-                        <Navigate to="/settings/gym-identity" replace />
+                        <Navigate to="/app/settings/gym-identity" replace />
                       </AdminRoute>
                     }
                   />
@@ -340,6 +353,14 @@ const App = () => {
                     }
                   />
                 </Route>
+                {/* Legacy root path compatibility redirects */}
+                <Route path="/management/*" element={<LegacyAppRedirect />} />
+                <Route path="/finance/*" element={<LegacyAppRedirect />} />
+                <Route path="/payments" element={<LegacyAppRedirect />} />
+                <Route path="/reports" element={<LegacyAppRedirect />} />
+                <Route path="/design-system" element={<LegacyAppRedirect />} />
+                <Route path="/admin/*" element={<LegacyAppRedirect />} />
+                <Route path="/settings/*" element={<LegacyAppRedirect />} />
 
                 {/* Catch all redirect */}
                 <Route path="*" element={<Navigate to="/" replace />} />

@@ -14,32 +14,45 @@ import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
 import { cn } from "@/lib/utils";
 import {
-  BILLING_PAYMENT_METHODS,
+  MANUAL_OFFLINE_PAYMENT_METHODS,
   PAYMENT_CATEGORIES,
   type ManualPaymentPayload,
 } from "@/services/payments.service";
 
-const paymentMethodLabels: Record<(typeof BILLING_PAYMENT_METHODS)[number], string> = {
-  CARD: "Card",
-  CASH: "Cash",
-  TRANSFER: "Transfer",
-};
-
-const paymentCategoryLabels: Record<(typeof PAYMENT_CATEGORIES)[number], string> = {
+const paymentCategoryLabels: Record<
+  (typeof PAYMENT_CATEGORIES)[number],
+  string
+> = {
   MEMBERSHIP: "Membership",
   PERSONAL_TRAINING: "Personal Training",
   PRODUCT: "Product",
 };
 
+const paymentMethodLabels: Record<
+  (typeof MANUAL_OFFLINE_PAYMENT_METHODS)[number],
+  string
+> = {
+  CASH: "Cash",
+  CARD: "Card",
+  BANK: "Bank",
+  WALLET: "Wallet",
+};
+
 const manualPaymentFormSchema = z.object({
   memberId: z.string().trim().min(1, "Please select a member"),
   amount: z.coerce.number().positive("Amount must be a positive number"),
+  paymentMethod: z.enum(MANUAL_OFFLINE_PAYMENT_METHODS),
   paymentCategory: z.enum(PAYMENT_CATEGORIES),
-  paymentMethod: z.enum(BILLING_PAYMENT_METHODS),
-  notes: z.string().trim().max(500, "Notes must be 500 characters or less").optional().default(""),
+  notes: z
+    .string()
+    .trim()
+    .max(500, "Notes must be 500 characters or less")
+    .optional()
+    .default(""),
 });
 
-type ManualPaymentFormValues = z.infer<typeof manualPaymentFormSchema>;
+type ManualPaymentFormInput = z.input<typeof manualPaymentFormSchema>;
+type ManualPaymentFormValues = z.output<typeof manualPaymentFormSchema>;
 
 interface ManualPaymentModalProps {
   open: boolean;
@@ -49,11 +62,11 @@ interface ManualPaymentModalProps {
   isSubmitting?: boolean;
 }
 
-const defaultValues: ManualPaymentFormValues = {
+const defaultValues: ManualPaymentFormInput = {
   memberId: "",
   amount: 0,
-  paymentCategory: "MEMBERSHIP",
   paymentMethod: "CASH",
+  paymentCategory: "MEMBERSHIP",
   notes: "",
 };
 
@@ -74,7 +87,7 @@ export function ManualPaymentModal({
     reset,
     handleSubmit,
     formState: { errors, isValid, isSubmitting: isFormSubmitting },
-  } = useForm<ManualPaymentFormValues>({
+  } = useForm<ManualPaymentFormInput, undefined, ManualPaymentFormValues>({
     resolver: zodResolver(manualPaymentFormSchema),
     mode: "onChange",
     defaultValues,
@@ -113,8 +126,8 @@ export function ManualPaymentModal({
     const payload: ManualPaymentPayload = {
       memberId: values.memberId,
       amount: values.amount,
-      paymentCategory: values.paymentCategory,
       paymentMethod: values.paymentMethod,
+      paymentCategory: values.paymentCategory,
       notes: values.notes?.trim() || undefined,
     };
 
@@ -139,7 +152,8 @@ export function ManualPaymentModal({
                 Collect Payment
               </Dialog.Title>
               <Dialog.Description className="text-sm text-muted-foreground">
-                Record offline or walk-in transactions with secure validation and categorization.
+                Record offline or walk-in transactions with secure validation
+                and categorization.
               </Dialog.Description>
             </div>
 
@@ -154,25 +168,43 @@ export function ManualPaymentModal({
             </Dialog.Close>
           </div>
 
-          <form id="manual-payment-form" onSubmit={handleSubmit(handleFormSubmit)} className="space-y-5 p-4 md:p-6">
+          <form
+            id="manual-payment-form"
+            onSubmit={handleSubmit(handleFormSubmit)}
+            className="space-y-5 p-4 md:p-6"
+          >
             <div className="space-y-2">
               <Label htmlFor="payment-member-picker">
                 Member <span className="text-danger">*</span>
               </Label>
 
-              <Popover.Root open={memberSelectOpen} onOpenChange={setMemberSelectOpen}>
+              <Popover.Root
+                open={memberSelectOpen}
+                onOpenChange={setMemberSelectOpen}
+              >
                 <Popover.Trigger asChild>
                   <button
                     id="payment-member-picker"
                     type="button"
                     className={cn(
                       "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                      errors.memberId ? "border-danger focus-visible:ring-danger" : "",
+                      errors.memberId
+                        ? "border-danger focus-visible:ring-danger"
+                        : "",
                     )}
                     aria-expanded={memberSelectOpen}
                   >
-                    <span className={cn("truncate", !selectedMember ? "text-muted-foreground" : "text-foreground")}>
-                      {selectedMember ? selectedMember.fullName : "Search member by name or email"}
+                    <span
+                      className={cn(
+                        "truncate",
+                        !selectedMember
+                          ? "text-muted-foreground"
+                          : "text-foreground",
+                      )}
+                    >
+                      {selectedMember
+                        ? selectedMember.fullName
+                        : "Search member by name or email"}
                     </span>
                     <ChevronsUpDown className="size-4 text-muted-foreground" />
                   </button>
@@ -218,29 +250,39 @@ export function ManualPaymentModal({
                               )}
                             >
                               <span className="min-w-0">
-                                <span className="block truncate font-medium">{member.fullName}</span>
+                                <span className="block truncate font-medium">
+                                  {member.fullName}
+                                </span>
                                 <span
                                   className={cn(
                                     "block truncate text-xs",
-                                    isSelected ? "text-primary-foreground/90" : "text-muted-foreground",
+                                    isSelected
+                                      ? "text-primary-foreground/90"
+                                      : "text-muted-foreground",
                                   )}
                                 >
                                   {member.email}
                                 </span>
                               </span>
-                              {isSelected ? <Check className="mt-0.5 size-4" /> : null}
+                              {isSelected ? (
+                                <Check className="mt-0.5 size-4" />
+                              ) : null}
                             </button>
                           );
                         })
                       ) : (
-                        <p className="px-3 py-2 text-sm text-muted-foreground">No members match your search.</p>
+                        <p className="px-3 py-2 text-sm text-muted-foreground">
+                          No members match your search.
+                        </p>
                       )}
                     </div>
                   </Popover.Content>
                 </Popover.Portal>
               </Popover.Root>
 
-              {errors.memberId ? <p className="error-text">{errors.memberId.message}</p> : null}
+              {errors.memberId ? (
+                <p className="error-text">{errors.memberId.message}</p>
+              ) : null}
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
@@ -257,7 +299,9 @@ export function ManualPaymentModal({
                   placeholder="0.00"
                   {...register("amount")}
                 />
-                {errors.amount ? <p className="error-text">{errors.amount.message}</p> : null}
+                {errors.amount ? (
+                  <p className="error-text">{errors.amount.message}</p>
+                ) : null}
               </div>
 
               <div className="space-y-2">
@@ -286,12 +330,15 @@ export function ManualPaymentModal({
                   hasError={Boolean(errors.paymentMethod)}
                   {...register("paymentMethod")}
                 >
-                  {BILLING_PAYMENT_METHODS.map((method) => (
+                  {MANUAL_OFFLINE_PAYMENT_METHODS.map((method) => (
                     <option key={method} value={method}>
                       {paymentMethodLabels[method]}
                     </option>
                   ))}
                 </Select>
+                {errors.paymentMethod ? (
+                  <p className="error-text">{errors.paymentMethod.message}</p>
+                ) : null}
               </div>
             </div>
 
@@ -303,15 +350,25 @@ export function ManualPaymentModal({
                 className="min-h-28"
                 {...register("notes")}
               />
-              {errors.notes ? <p className="error-text">{errors.notes.message}</p> : null}
+              {errors.notes ? (
+                <p className="error-text">{errors.notes.message}</p>
+              ) : null}
             </div>
           </form>
 
           <div className="flex items-center justify-end gap-2 border-t px-4 py-4 md:px-6">
-            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
+            <Button
+              type="button"
+              variant="text"
+              onClick={() => onOpenChange(false)}
+            >
               Cancel
             </Button>
-            <Button type="submit" form="manual-payment-form" disabled={!isValid || submitting}>
+            <Button
+              type="submit"
+              form="manual-payment-form"
+              disabled={!isValid || submitting}
+            >
               {submitting ? "Saving..." : "Collect Payment"}
             </Button>
           </div>

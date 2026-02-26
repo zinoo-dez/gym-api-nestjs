@@ -1,5 +1,3 @@
-import axios from "axios";
-
 import api from "@/services/api";
 
 export type NotificationCategory = "system" | "payments" | "members";
@@ -122,12 +120,12 @@ const SUCCESS_KEYWORDS = [
   "approved",
 ];
 
-const LEGACY_LIST_ENDPOINTS = {
+const ROLE_SCOPED_LIST_ENDPOINTS = {
   admin: "/notifications/admin",
   me: "/notifications/me",
 };
 
-const LEGACY_READ_ALL_ENDPOINTS = {
+const ROLE_SCOPED_READ_ALL_ENDPOINTS = {
   admin: "/notifications/admin/read-all",
   me: "/notifications/me/read-all",
 };
@@ -404,14 +402,11 @@ const normalizeListResponse = (
   return paginateNotifications(filtered, params);
 };
 
-const fallbackListEndpoint = (context: NotificationRequestContext): string =>
-  context.isAdmin ? LEGACY_LIST_ENDPOINTS.admin : LEGACY_LIST_ENDPOINTS.me;
+const roleScopedListEndpoint = (context: NotificationRequestContext): string =>
+  context.isAdmin ? ROLE_SCOPED_LIST_ENDPOINTS.admin : ROLE_SCOPED_LIST_ENDPOINTS.me;
 
-const fallbackReadAllEndpoint = (context: NotificationRequestContext): string =>
-  context.isAdmin ? LEGACY_READ_ALL_ENDPOINTS.admin : LEGACY_READ_ALL_ENDPOINTS.me;
-
-const isNotFoundError = (error: unknown): boolean =>
-  axios.isAxiosError(error) && error.response?.status === 404;
+const roleScopedReadAllEndpoint = (context: NotificationRequestContext): string =>
+  context.isAdmin ? ROLE_SCOPED_READ_ALL_ENDPOINTS.admin : ROLE_SCOPED_READ_ALL_ENDPOINTS.me;
 
 export const toNotificationErrorMessage = (error: unknown): string => {
   if (typeof error === "object" && error !== null) {
@@ -447,27 +442,8 @@ export const notificationsService = {
     params: NotificationListParams,
     context: NotificationRequestContext,
   ): Promise<NotificationListResponse> {
-    try {
-      // Prefer role-scoped routes used by this backend to avoid repeated 404 noise.
-      const response = await api.get(fallbackListEndpoint(context));
-
-      return normalizeListResponse(response.data, params);
-    } catch (error) {
-      if (!isNotFoundError(error)) {
-        throw error;
-      }
-
-      const response = await api.get("/notifications", {
-        params: {
-          page: params.page,
-          limit: params.limit,
-          category: params.category,
-          unreadOnly: params.unreadOnly,
-        },
-      });
-
-      return normalizeListResponse(response.data, params);
-    }
+    const response = await api.get(roleScopedListEndpoint(context));
+    return normalizeListResponse(response.data, params);
   },
 
   async markNotificationAsRead(id: string): Promise<void> {
@@ -475,16 +451,7 @@ export const notificationsService = {
   },
 
   async markAllAsRead(context: NotificationRequestContext): Promise<void> {
-    try {
-      await api.patch(fallbackReadAllEndpoint(context));
-      return;
-    } catch (error) {
-      if (!isNotFoundError(error)) {
-        throw error;
-      }
-    }
-
-    await api.patch("/notifications/read-all");
+    await api.patch(roleScopedReadAllEndpoint(context));
   },
 
   async deleteNotification(id: string): Promise<void> {

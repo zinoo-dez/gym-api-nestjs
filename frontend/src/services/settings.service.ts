@@ -573,11 +573,16 @@ const toLegacyMembershipPayload = (values: MembershipPlanInput) => {
 };
 
 const toPaymentsPayload = (values: PaymentsSettingsFormValues) => {
-  void values;
-
-  // Backend gym settings DTO currently does not expose payment configuration fields.
-  // Return an empty payload to avoid validation errors from unknown properties.
-  return {};
+  return {
+    currency: values.currency.trim().toUpperCase(),
+    taxPercentage: Number.isFinite(values.taxPercentage)
+      ? values.taxPercentage
+      : defaultPaymentsSettings.taxPercentage,
+    stripePublicKey: values.stripePublicKey.trim(),
+    stripeSecretKey: values.stripeSecretKey.trim(),
+    paypalClientId: values.paypalClientId.trim(),
+    paypalSecret: values.paypalSecret.trim(),
+  };
 };
 
 const hasPasswordChangeInput = (

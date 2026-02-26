@@ -24,6 +24,33 @@ import { RecoveryQueueResponseDto } from './dto/recovery-queue-response.dto';
 import { SendRecoveryFollowUpDto } from './dto/send-recovery-followup.dto';
 import { ProcessRefundDto } from './dto/process-refund.dto';
 import { PaymentInvoiceResponseDto } from './dto/payment-invoice-response.dto';
+import PDFDocument from 'pdfkit';
+
+type InvoiceWithRelations = Prisma.InvoiceGetPayload<{
+  include: {
+    items: true;
+    member: { include: { user: true } };
+  };
+}>;
+
+const MANUAL_BANK_PROVIDERS = new Set<PaymentProvider>([
+  PaymentProvider.AYA,
+  PaymentProvider.KBZ,
+  PaymentProvider.CB,
+  PaymentProvider.UAB,
+  PaymentProvider.A_BANK,
+  PaymentProvider.YOMA,
+]);
+
+const MANUAL_WALLET_PROVIDERS = new Set<PaymentProvider>([
+  PaymentProvider.CASH,
+  PaymentProvider.CARD,
+  PaymentProvider.KBZ_PAY,
+  PaymentProvider.AYA_PAY,
+  PaymentProvider.CB_PAY,
+  PaymentProvider.UAB_PAY,
+  PaymentProvider.WAVE_MONEY,
+]);
 
 @Injectable()
 export class PaymentsService {
@@ -65,7 +92,11 @@ export class PaymentsService {
     }
 
     const methodType = this.resolveMethodType(dto);
-    const provider = this.resolveProvider(dto);
+    const provider = this.resolveProvider(dto, methodType, isManualAdminFlow);
+    if (isManualAdminFlow) {
+      this.validateManualOfflineContract(dto, methodType, provider);
+    }
+    const adminNote = this.resolveAdminNote(dto);
     const now = new Date();
     const transactionNo =
       dto.transactionNo?.trim() ||
@@ -81,6 +112,7 @@ export class PaymentsService {
         provider,
         transactionNo,
         screenshotUrl: dto.screenshotUrl,
+        adminNote,
         status: isManualAdminFlow ? PaymentStatus.PAID : PaymentStatus.PENDING,
         paidAt: isManualAdminFlow ? now : undefined,
       },
@@ -421,39 +453,25 @@ export class PaymentsService {
     id: string,
     currentUser: { userId: string; role: UserRole },
   ): Promise<PaymentInvoiceResponseDto> {
-    const payment = await this.prisma.payment.findUnique({
-      where: { id },
-      include: {
-        invoice: {
-          include: {
-            items: true,
-            member: { include: { user: true } },
-          },
-        },
-        member: { include: { user: true } },
-      },
-    });
-
-    if (payment?.invoice) {
-      this.ensureInvoiceAccess(payment.invoice.member.userId, currentUser);
-      return this.toInvoiceResponse(payment.invoice);
-    }
-
-    const invoice = await this.prisma.invoice.findFirst({
-      where: {
-        OR: [{ id }, { invoiceNumber: id }],
-      },
-      include: {
-        items: true,
-        member: { include: { user: true } },
-      },
-    });
-    if (!invoice) {
-      throw new NotFoundException('Invoice not found.');
-    }
-
-    this.ensureInvoiceAccess(invoice.member.userId, currentUser);
+    const invoice = await this.findInvoiceByPaymentOrInvoiceId(id, currentUser);
     return this.toInvoiceResponse(invoice);
+  }
+
+  async getInvoicePdfByPaymentOrInvoiceId(
+    id: string,
+    currentUser: { userId: string; role: UserRole },
+  ): Promise<{ buffer: Buffer; filename: string }> {
+    const invoice = await this.findInvoiceByPaymentOrInvoiceId(id, currentUser);
+    const invoiceResponse = this.toInvoiceResponse(invoice);
+    const buffer = await this.generateInvoicePdf(invoiceResponse);
+    const normalizedName = invoiceResponse.invoiceNumber
+      .replace(/[^a-zA-Z0-9._-]/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '');
+
+    const filename = `${normalizedName || `invoice-${invoiceResponse.id}`}.pdf`;
+
+    return { buffer, filename };
   }
 
   async processRefund(
@@ -588,22 +606,87 @@ export class PaymentsService {
       return dto.methodType;
     }
     const method = dto.paymentMethod?.toUpperCase().trim();
-    if (method === 'TRANSFER') {
+    if (method === 'BANK' || method === 'TRANSFER') {
       return PaymentMethodType.BANK;
     }
     return PaymentMethodType.WALLET;
   }
 
-  private resolveProvider(dto: CreatePaymentDto): PaymentProvider {
+  private resolveProvider(
+    dto: CreatePaymentDto,
+    methodType: PaymentMethodType,
+    isManualAdminFlow: boolean,
+  ): PaymentProvider {
     if (dto.provider) {
       return dto.provider;
     }
 
     const method = dto.paymentMethod?.toUpperCase().trim();
-    if (method === 'TRANSFER') {
+    if (method === 'CASH') {
+      return PaymentProvider.CASH;
+    }
+    if (method === 'CARD') {
+      return PaymentProvider.CARD;
+    }
+    if (method === 'BANK' || method === 'TRANSFER') {
+      return PaymentProvider.KBZ;
+    }
+    if (method === 'WALLET') {
+      return PaymentProvider.KBZ_PAY;
+    }
+    if (isManualAdminFlow) {
+      return methodType === PaymentMethodType.BANK
+        ? PaymentProvider.KBZ
+        : PaymentProvider.CASH;
+    }
+    if (methodType === PaymentMethodType.BANK) {
       return PaymentProvider.KBZ;
     }
     return PaymentProvider.KBZ_PAY;
+  }
+
+  private resolveAdminNote(dto: CreatePaymentDto): string | undefined {
+    const note = dto.notes?.trim();
+    if (note) {
+      return note;
+    }
+
+    const description = dto.description?.trim();
+    return description && description.length > 0 ? description : undefined;
+  }
+
+  private validateManualOfflineContract(
+    dto: CreatePaymentDto,
+    methodType: PaymentMethodType,
+    provider: PaymentProvider,
+  ): void {
+    const method = dto.paymentMethod?.trim().toUpperCase();
+    if (
+      method &&
+      !['CASH', 'CARD', 'BANK', 'TRANSFER', 'WALLET'].includes(method)
+    ) {
+      throw new BadRequestException(
+        'Manual payments only support CASH, CARD, BANK, or WALLET payment methods.',
+      );
+    }
+
+    if (
+      methodType === PaymentMethodType.BANK &&
+      !MANUAL_BANK_PROVIDERS.has(provider)
+    ) {
+      throw new BadRequestException(
+        'Manual BANK payments must use a bank provider.',
+      );
+    }
+
+    if (
+      methodType === PaymentMethodType.WALLET &&
+      !MANUAL_WALLET_PROVIDERS.has(provider)
+    ) {
+      throw new BadRequestException(
+        'Manual WALLET payments must use CASH, CARD, or a wallet provider.',
+      );
+    }
   }
 
   private async resolveMemberForCreate(
@@ -685,6 +768,146 @@ export class PaymentsService {
       where: { id: payment.id },
       data: { invoiceId: invoice.id },
     });
+  }
+
+  private async findInvoiceByPaymentOrInvoiceId(
+    id: string,
+    currentUser: { userId: string; role: UserRole },
+  ): Promise<InvoiceWithRelations> {
+    const payment = await this.prisma.payment.findUnique({
+      where: { id },
+      include: {
+        invoice: {
+          include: {
+            items: true,
+            member: { include: { user: true } },
+          },
+        },
+      },
+    });
+
+    if (payment?.invoice) {
+      this.ensureInvoiceAccess(payment.invoice.member.userId, currentUser);
+      return payment.invoice;
+    }
+
+    const invoice = await this.prisma.invoice.findFirst({
+      where: {
+        OR: [{ id }, { invoiceNumber: id }],
+      },
+      include: {
+        items: true,
+        member: { include: { user: true } },
+      },
+    });
+    if (!invoice) {
+      throw new NotFoundException('Invoice not found.');
+    }
+
+    this.ensureInvoiceAccess(invoice.member.userId, currentUser);
+    return invoice;
+  }
+
+  private async generateInvoicePdf(
+    invoice: PaymentInvoiceResponseDto,
+  ): Promise<Buffer> {
+    return new Promise((resolve, reject) => {
+      const doc = new PDFDocument({
+        size: 'A4',
+        margin: 50,
+      });
+      const chunks: Buffer[] = [];
+
+      doc.on('data', (chunk: Buffer) => {
+        chunks.push(Buffer.from(chunk));
+      });
+      doc.on('end', () => {
+        resolve(Buffer.concat(chunks));
+      });
+      doc.on('error', (error: Error) => {
+        reject(error);
+      });
+
+      doc.fontSize(24).text('INVOICE', { align: 'right' });
+      doc.moveDown(0.5);
+
+      doc.fontSize(12).text(`Invoice #: ${invoice.invoiceNumber}`);
+      doc.text(`Issued: ${this.formatInvoiceDate(invoice.issuedAt)}`);
+      doc.text(`Due: ${this.formatInvoiceDate(invoice.dueAt)}`);
+      doc.text(`Status: ${invoice.status}`);
+      doc.moveDown();
+
+      doc.font('Helvetica-Bold').text('Gym');
+      doc.font('Helvetica').text(invoice.gym.name);
+      doc.moveDown(0.5);
+
+      doc.font('Helvetica-Bold').text('Billed To');
+      doc.font('Helvetica').text(invoice.member.name);
+      if (invoice.member.email) {
+        doc.text(invoice.member.email);
+      }
+      doc.moveDown();
+
+      doc.font('Helvetica-Bold').text('Items');
+      doc.moveDown(0.25);
+      doc.font('Helvetica');
+      invoice.items.forEach((item, index) => {
+        const unitPrice = this.formatInvoiceAmount(
+          item.unitPrice,
+          invoice.currency,
+        );
+        const lineTotal = this.formatInvoiceAmount(
+          item.lineTotal,
+          invoice.currency,
+        );
+        doc.text(`${index + 1}. ${item.description}`);
+        doc.text(`Qty ${item.quantity} x ${unitPrice} = ${lineTotal}`, {
+          indent: 12,
+        });
+      });
+
+      doc.moveDown();
+      doc.font('Helvetica-Bold').text('Totals');
+      doc
+        .font('Helvetica')
+        .text(
+          `Subtotal: ${this.formatInvoiceAmount(invoice.subtotal, invoice.currency)}`,
+        )
+        .text(
+          `Tax: ${this.formatInvoiceAmount(invoice.taxAmount, invoice.currency)}`,
+        )
+        .font('Helvetica-Bold')
+        .text(
+          `Total: ${this.formatInvoiceAmount(invoice.total, invoice.currency)}`,
+        );
+
+      if (invoice.notes) {
+        doc.moveDown();
+        doc.font('Helvetica').text(`Notes: ${invoice.notes}`);
+      }
+
+      doc.end();
+    });
+  }
+
+  private formatInvoiceDate(value?: Date): string {
+    if (!value) {
+      return '-';
+    }
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return '-';
+    }
+
+    return date.toISOString().slice(0, 10);
+  }
+
+  private formatInvoiceAmount(amount: number, currency: string): string {
+    return `${amount.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })} ${currency}`;
   }
 
   private ensureInvoiceAccess(

@@ -50,8 +50,9 @@ export class CreatePaymentDto {
   methodType?: PaymentMethodType;
 
   @ApiPropertyOptional({
-    description: 'Compatibility payment method from frontend',
-    example: 'TRANSFER',
+    description:
+      'Legacy compatibility payment method label (manual flow supports CASH, CARD, BANK, WALLET)',
+    example: 'CASH',
   })
   @IsOptional()
   @IsString()
@@ -60,7 +61,7 @@ export class CreatePaymentDto {
   @ApiPropertyOptional({
     description: 'Payment provider',
     enum: PaymentProvider,
-    example: PaymentProvider.KBZ,
+    example: PaymentProvider.CASH,
   })
   @IsOptional()
   @IsEnum(PaymentProvider)

@@ -18,6 +18,16 @@ export class RolesGuard implements CanActivate {
     }
 
     const { user } = context.switchToHttp().getRequest();
-    return requiredRoles.some((role) => user.role === role);
+    if (!user || !user.role) {
+      return false;
+    }
+
+    // Role inheritance: OWNER inherits everything that ADMIN can do
+    return requiredRoles.some((role) => {
+      if (user.role === UserRole.OWNER) {
+        return true; // OWNER has access to everything
+      }
+      return user.role === role;
+    });
   }
 }

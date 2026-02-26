@@ -2,10 +2,20 @@ import {
   Controller,
   Get,
   Query,
+  Res,
   ServiceUnavailableException,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { UserRole } from '@prisma/client';
 import { AppService } from './app.service';
+import { Roles } from './auth/decorators';
+import { JwtAuthGuard, RolesGuard } from './auth/guards';
+import {
+  DashboardExportQueryDto,
+  DashboardFiltersDto,
+} from './dto/dashboard-filters.dto';
+import type { Response } from 'express';
 
 @ApiTags('Health')
 @Controller()
@@ -96,16 +106,20 @@ export class AppController {
   }
 
   @Get('dashboard/stats')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Get dashboard statistics' })
   @ApiResponse({
     status: 200,
     description: 'Dashboard statistics retrieved successfully',
   })
-  async getDashboardStats() {
-    return this.appService.getDashboardStats();
+  async getDashboardStats(@Query() filters: DashboardFiltersDto) {
+    return this.appService.getDashboardStats(filters);
   }
 
   @Get('dashboard/recent-members')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Get recent members' })
   @ApiResponse({
     status: 200,
@@ -116,6 +130,8 @@ export class AppController {
   }
 
   @Get('dashboard/popular-classes')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Get popular classes today' })
   @ApiResponse({
     status: 200,
@@ -126,6 +142,8 @@ export class AppController {
   }
 
   @Get('dashboard/upcoming-classes')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Get upcoming class attendance' })
   @ApiResponse({
     status: 200,
@@ -137,22 +155,48 @@ export class AppController {
   }
 
   @Get('dashboard/recent-activity')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Get recent activity' })
   @ApiResponse({
     status: 200,
     description: 'Recent activity retrieved successfully',
   })
-  async getRecentActivity() {
-    return this.appService.getRecentActivity();
+  async getRecentActivity(@Query() filters: DashboardFiltersDto) {
+    return this.appService.getRecentActivity(filters);
   }
 
   @Get('dashboard/analytics')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Get reporting and analytics dashboard data' })
   @ApiResponse({
     status: 200,
     description: 'Reporting and analytics data retrieved successfully',
   })
-  async getReportingAnalytics() {
-    return this.appService.getReportingAnalytics();
+  async getReportingAnalytics(@Query() filters: DashboardFiltersDto) {
+    return this.appService.getReportingAnalytics(filters);
+  }
+
+  @Get('dashboard/export')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Export dashboard report (CSV/PDF)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Dashboard report export generated successfully',
+  })
+  async exportDashboardReport(
+    @Query() query: DashboardExportQueryDto,
+    @Res() response: Response,
+  ): Promise<void> {
+    const { filename, mimeType, buffer } =
+      await this.appService.exportDashboardReport(query);
+    response.setHeader('Content-Type', mimeType);
+    response.setHeader(
+      'Content-Disposition',
+      `attachment; filename="${filename}"`,
+    );
+    response.send(buffer);
   }
 }

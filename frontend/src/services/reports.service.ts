@@ -698,36 +698,24 @@ export const reportsService = {
   },
 
   async exportReport(filters: ReportsFilters, formatType: ExportFormat): Promise<Blob> {
-    const summary = await this.getSummary(filters);
-    const revenue = await this.getRevenueOverview(filters);
-    const attendance = await this.getAttendanceOverview(filters);
+    const response = await api.get<Blob>("/dashboard/export", {
+      params: {
+        ...buildFiltersParams(filters),
+        format: formatType,
+      },
+      responseType: "blob",
+      headers: {
+        Accept: formatType === "pdf" ? "application/pdf" : "text/csv",
+      },
+    });
 
-    if (formatType === "pdf") {
-      const pdfFallbackPayload = {
-        generatedAt: new Date().toISOString(),
-        filters,
-        summary,
-        revenue,
-        attendance,
-        note: "Server-side PDF export endpoint is not available. Returning JSON payload as PDF-compatible blob.",
-      };
+    const contentType =
+      typeof response.headers["content-type"] === "string"
+        ? response.headers["content-type"]
+        : formatType === "pdf"
+          ? "application/pdf"
+          : "text/csv;charset=utf-8";
 
-      return new Blob([JSON.stringify(pdfFallbackPayload, null, 2)], {
-        type: "application/pdf",
-      });
-    }
-
-    const csvLines = [
-      "section,key,value",
-      `summary,totalRevenue,${summary.totalRevenue.value}`,
-      `summary,activeMembers,${summary.activeMembers.value}`,
-      `summary,todayAttendance,${summary.todayAttendance.value}`,
-      `summary,newSignups,${summary.newSignups.value}`,
-      ...revenue.map((row) => `revenue,${row.label},${row.value}`),
-      ...attendance.peakHours.map((row) => `attendance_hour,${row.label},${row.value}`),
-      ...attendance.peakDays.map((row) => `attendance_day,${row.label},${row.value}`),
-    ];
-
-    return new Blob([csvLines.join("\n")], { type: "text/csv;charset=utf-8" });
+    return new Blob([response.data], { type: contentType });
   },
 };

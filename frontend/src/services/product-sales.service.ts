@@ -1,5 +1,3 @@
-import axios from "axios";
-
 import api from "./api";
 
 export type ProductCategory = "SUPPLEMENT" | "MERCHANDISE" | "PROTEIN_SHAKE" | "OTHER";
@@ -268,11 +266,10 @@ interface LowStockAlertApi {
   deficit: number;
 }
 
-const PRODUCT_ENDPOINTS = ["/products", "/inventory-sales/products"] as const;
-const SALES_CREATE_ENDPOINTS = ["/sales", "/inventory-sales/sales"] as const;
-const SALES_HISTORY_ENDPOINTS = ["/sales/history", "/inventory-sales/sales"] as const;
-const SALES_REPORT_ENDPOINTS = ["/sales/report", "/inventory-sales/reports/sales"] as const;
-const LOW_STOCK_ENDPOINTS = ["/products/low-stock", "/inventory-sales/products/low-stock"] as const;
+const PRODUCTS_ENDPOINT = "/inventory-sales/products";
+const SALES_ENDPOINT = "/inventory-sales/sales";
+const SALES_REPORT_ENDPOINT = "/inventory-sales/reports/sales";
+const LOW_STOCK_ENDPOINT = "/inventory-sales/products/low-stock";
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
@@ -359,33 +356,6 @@ const normalizePaginatedPayload = <T>(payload: unknown): PaginatedResponse<T> =>
     total: 0,
     totalPages: 1,
   };
-};
-
-const shouldTryFallback = (error: unknown): boolean => {
-  if (!axios.isAxiosError(error)) {
-    return false;
-  }
-
-  const statusCode = error.response?.status;
-  return statusCode === 404 || statusCode === 405;
-};
-
-const requestWithFallback = async <T>(attempts: Array<() => Promise<T>>): Promise<T> => {
-  let lastError: unknown;
-
-  for (const attempt of attempts) {
-    try {
-      return await attempt();
-    } catch (error) {
-      lastError = error;
-
-      if (!shouldTryFallback(error)) {
-        throw error;
-      }
-    }
-  }
-
-  throw lastError ?? new Error("Unable to complete inventory request.");
 };
 
 const toProductRecord = (product: ProductApi): ProductRecord => ({
@@ -629,53 +599,33 @@ const buildSalesReportParams = (
 export const productSalesService = {
   async listProducts(filters: ProductQueryFilters = {}): Promise<PaginatedResponse<ProductRecord>> {
     const params = buildProductQueryParams(filters);
+    const response = await api.get<ApiEnvelope<unknown>>(PRODUCTS_ENDPOINT, {
+      params,
+    });
+    const pagePayload = normalizePaginatedPayload<ProductApi>(response.data.data);
 
-    const attempts = PRODUCT_ENDPOINTS.map(
-      (endpoint) => async (): Promise<PaginatedResponse<ProductRecord>> => {
-        const response = await api.get<ApiEnvelope<unknown>>(endpoint, { params });
-        const pagePayload = normalizePaginatedPayload<ProductApi>(response.data.data);
-
-        return {
-          ...pagePayload,
-          data: pagePayload.data.map(toProductRecord),
-        };
-      },
-    );
-
-    return requestWithFallback(attempts);
+    return {
+      ...pagePayload,
+      data: pagePayload.data.map(toProductRecord),
+    };
   },
 
   async createProduct(input: CreateProductInput): Promise<ProductRecord> {
     const payload = sanitizeProductPayload(input);
-
-    const attempts = PRODUCT_ENDPOINTS.map(
-      (endpoint) => async (): Promise<ProductRecord> => {
-        const response = await api.post<ApiEnvelope<ProductApi>>(endpoint, payload);
-        return toProductRecord(response.data.data);
-      },
+    const response = await api.post<ApiEnvelope<ProductApi>>(
+      PRODUCTS_ENDPOINT,
+      payload,
     );
-
-    return requestWithFallback(attempts);
+    return toProductRecord(response.data.data);
   },
 
   async updateProduct(productId: string, input: UpdateProductInput): Promise<ProductRecord> {
     const payload = sanitizeProductPayload(input);
-
-    const attempts: Array<() => Promise<ProductRecord>> = [];
-
-    for (const endpoint of PRODUCT_ENDPOINTS.map((base) => `${base}/${productId}`)) {
-      attempts.push(async () => {
-        const response = await api.put<ApiEnvelope<ProductApi>>(endpoint, payload);
-        return toProductRecord(response.data.data);
-      });
-
-      attempts.push(async () => {
-        const response = await api.patch<ApiEnvelope<ProductApi>>(endpoint, payload);
-        return toProductRecord(response.data.data);
-      });
-    }
-
-    return requestWithFallback(attempts);
+    const response = await api.patch<ApiEnvelope<ProductApi>>(
+      `${PRODUCTS_ENDPOINT}/${productId}`,
+      payload,
+    );
+    return toProductRecord(response.data.data);
   },
 
   async createSale(input: CreateSaleInput): Promise<SaleRecord> {
@@ -711,66 +661,43 @@ export const productSalesService = {
       payload.soldAt = input.soldAt;
     }
 
-    const attempts = SALES_CREATE_ENDPOINTS.map(
-      (endpoint) => async (): Promise<SaleRecord> => {
-        const response = await api.post<ApiEnvelope<SaleApi>>(endpoint, payload);
-        return toSaleRecord(response.data.data);
-      },
-    );
-
-    return requestWithFallback(attempts);
+    const response = await api.post<ApiEnvelope<SaleApi>>(SALES_ENDPOINT, payload);
+    return toSaleRecord(response.data.data);
   },
 
   async getSalesHistory(filters: SalesHistoryFilters = {}): Promise<PaginatedResponse<SaleRecord>> {
     const params = buildSalesQueryParams(filters);
+    const response = await api.get<ApiEnvelope<unknown>>(SALES_ENDPOINT, { params });
+    const pagePayload = normalizePaginatedPayload<SaleApi>(response.data.data);
 
-    const attempts = SALES_HISTORY_ENDPOINTS.map(
-      (endpoint) => async (): Promise<PaginatedResponse<SaleRecord>> => {
-        const response = await api.get<ApiEnvelope<unknown>>(endpoint, { params });
-        const pagePayload = normalizePaginatedPayload<SaleApi>(response.data.data);
-
-        return {
-          ...pagePayload,
-          data: pagePayload.data.map(toSaleRecord),
-        };
-      },
-    );
-
-    return requestWithFallback(attempts);
+    return {
+      ...pagePayload,
+      data: pagePayload.data.map(toSaleRecord),
+    };
   },
 
   async getSalesReport(filters: SalesReportFilters = {}): Promise<SalesReport> {
     const params = buildSalesReportParams(filters);
-
-    const attempts = SALES_REPORT_ENDPOINTS.map(
-      (endpoint) => async (): Promise<SalesReport> => {
-        const response = await api.get<ApiEnvelope<SalesReportApi>>(endpoint, { params });
-        return toSalesReport(response.data.data);
-      },
+    const response = await api.get<ApiEnvelope<SalesReportApi>>(
+      SALES_REPORT_ENDPOINT,
+      { params },
     );
-
-    return requestWithFallback(attempts);
+    return toSalesReport(response.data.data);
   },
 
   async getLowStockAlerts(): Promise<LowStockAlert[]> {
-    const attempts = LOW_STOCK_ENDPOINTS.map(
-      (endpoint) => async (): Promise<LowStockAlert[]> => {
-        const response = await api.get<ApiEnvelope<unknown>>(endpoint);
-        const payload = response.data.data;
+    const response = await api.get<ApiEnvelope<unknown>>(LOW_STOCK_ENDPOINT);
+    const payload = response.data.data;
 
-        if (Array.isArray(payload)) {
-          return payload.map((item) => toLowStockAlert(item as LowStockAlertApi));
-        }
+    if (Array.isArray(payload)) {
+      return payload.map((item) => toLowStockAlert(item as LowStockAlertApi));
+    }
 
-        if (isRecord(payload) && Array.isArray(payload.data)) {
-          return payload.data.map((item) => toLowStockAlert(item as LowStockAlertApi));
-        }
+    if (isRecord(payload) && Array.isArray(payload.data)) {
+      return payload.data.map((item) => toLowStockAlert(item as LowStockAlertApi));
+    }
 
-        return [];
-      },
-    );
-
-    return requestWithFallback(attempts);
+    return [];
   },
 
   async uploadProductImage(file: File): Promise<string> {

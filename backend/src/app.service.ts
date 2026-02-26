@@ -1,9 +1,22 @@
 import { Injectable } from '@nestjs/common';
+import PDFDocument from 'pdfkit';
 import { PrismaService } from './prisma/prisma.service';
+import {
+  type DashboardExportFormat,
+  type DashboardExportQueryDto,
+  type DashboardFiltersDto,
+} from './dto/dashboard-filters.dto';
 
-interface TimeSeriesPoint {
+export interface TimeSeriesPoint {
   label: string;
   value: number;
+}
+
+interface DashboardRangeWindow {
+  start: Date;
+  end: Date;
+  previousStart: Date;
+  previousEnd: Date;
 }
 
 @Injectable()
@@ -51,79 +64,80 @@ export class AppService {
     return this.checkHealth();
   }
 
-  async getDashboardStats() {
+  async getDashboardStats(filters?: DashboardFiltersDto) {
     const now = new Date();
-    const startOfToday = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate(),
-    );
-    const startOfYesterday = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate() - 1,
-    );
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const { start, end, previousStart, previousEnd } =
+      this.resolveDashboardRange(filters);
+    const classCategory = this.normalizeClassCategory(filters?.classCategory);
 
     const [
       totalMembers,
-      currentMonthMembers,
-      lastMonthMembers,
+      currentRangeMembers,
+      previousRangeMembers,
       activeMemberships,
+      previousActiveMemberships,
       expiringMemberships,
-      todayCheckIns,
-      yesterdayCheckIns,
-      currentMonthSubscriptions,
-      lastMonthSubscriptions,
+      currentRangeCheckIns,
+      previousRangeCheckIns,
+      currentRangeSubscriptions,
+      previousRangeSubscriptions,
     ] = await Promise.all([
       this.prisma.member.count(),
       this.prisma.member.count({
-        where: { createdAt: { gte: startOfMonth } },
+        where: { createdAt: { gte: start, lte: end } },
       }),
       this.prisma.member.count({
-        where: { createdAt: { gte: startOfLastMonth, lt: startOfMonth } },
+        where: { createdAt: { gte: previousStart, lte: previousEnd } },
       }),
-      this.prisma.subscription.count({ where: { status: 'ACTIVE' } }),
+      this.prisma.subscription.count({
+        where: {
+          status: 'ACTIVE',
+          startDate: { lte: end },
+          endDate: { gte: end },
+        },
+      }),
+      this.prisma.subscription.count({
+        where: {
+          status: 'ACTIVE',
+          startDate: { lte: previousEnd },
+          endDate: { gte: previousEnd },
+        },
+      }),
       this.prisma.subscription.count({
         where: {
           status: 'ACTIVE',
           endDate: {
-            gte: now,
-            lte: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000),
+            gte: end,
+            lte: new Date(end.getTime() + 7 * 24 * 60 * 60 * 1000),
           },
         },
       }),
-      this.prisma.attendance.count({
-        where: { checkInTime: { gte: startOfToday } },
-      }),
-      this.prisma.attendance.count({
-        where: {
-          checkInTime: { gte: startOfYesterday, lt: startOfToday },
-        },
-      }),
+      this.getAttendanceCountForRange(start, end, classCategory),
+      this.getAttendanceCountForRange(previousStart, previousEnd, classCategory),
       this.prisma.subscription.findMany({
-        where: { startDate: { gte: startOfMonth } },
+        where: { startDate: { gte: start, lte: end } },
         include: { membershipPlan: true },
       }),
       this.prisma.subscription.findMany({
-        where: { startDate: { gte: startOfLastMonth, lt: startOfMonth } },
+        where: { startDate: { gte: previousStart, lte: previousEnd } },
         include: { membershipPlan: true },
       }),
     ]);
 
-    const currentMonthRevenue = currentMonthSubscriptions.reduce(
+    const currentRangeRevenue = currentRangeSubscriptions.reduce(
       (sum, sub) => sum + (sub.membershipPlan?.price ?? 0),
       0,
     );
-    const lastMonthRevenue = lastMonthSubscriptions.reduce(
+    const previousRangeRevenue = previousRangeSubscriptions.reduce(
       (sum, sub) => sum + (sub.membershipPlan?.price ?? 0),
       0,
     );
 
-    const memberChange = currentMonthMembers - lastMonthMembers;
-    const checkInChange = todayCheckIns - yesterdayCheckIns;
-    const revenueChange = currentMonthRevenue - lastMonthRevenue;
+    const memberChange = currentRangeMembers - previousRangeMembers;
+    const activeMembershipChange =
+      activeMemberships - previousActiveMemberships;
+    const checkInChange = currentRangeCheckIns - previousRangeCheckIns;
+    const revenueChange = currentRangeRevenue - previousRangeRevenue;
 
     return {
       totalMembers: {
@@ -133,8 +147,8 @@ export class AppService {
       },
       activeMemberships: {
         value: activeMemberships,
-        change: 0,
-        type: 'increase',
+        change: activeMembershipChange,
+        type: activeMembershipChange >= 0 ? 'increase' : 'decrease',
       },
       expiringMemberships: {
         value: expiringMemberships,
@@ -142,15 +156,29 @@ export class AppService {
         type: 'decrease',
       },
       todayCheckIns: {
-        value: todayCheckIns,
+        value: currentRangeCheckIns,
         change: checkInChange,
         type: checkInChange >= 0 ? 'increase' : 'decrease',
       },
       monthlyRevenue: {
-        value: Number(currentMonthRevenue.toFixed(2)),
+        value: Number(currentRangeRevenue.toFixed(2)),
         change: Number(revenueChange.toFixed(2)),
         type: revenueChange >= 0 ? 'increase' : 'decrease',
       },
+      newSignups: {
+        value: currentRangeMembers,
+        change: memberChange,
+        type: memberChange >= 0 ? 'increase' : 'decrease',
+      },
+      filters: {
+        range: filters?.range ?? 'custom',
+        period: filters?.period ?? 'daily',
+        startDate: this.dayKey(start),
+        endDate: this.dayKey(end),
+        branch: filters?.branch ?? 'all',
+        classCategory: classCategory ?? 'all',
+      },
+      generatedAt: now.toISOString(),
     };
   }
 
@@ -273,16 +301,43 @@ export class AppService {
     };
   }
 
-  async getRecentActivity() {
+  async getRecentActivity(filters?: DashboardFiltersDto) {
+    const { start, end } = this.resolveDashboardRange(filters);
+    const classCategory = this.normalizeClassCategory(filters?.classCategory);
+
     const [attendance, bookings] = await Promise.all([
       this.prisma.attendance.findMany({
+        where: {
+          checkInTime: {
+            gte: start,
+            lte: end,
+          },
+        },
         orderBy: { checkInTime: 'desc' },
-        take: 5,
+        take: 20,
         include: { member: { include: { user: true } } },
       }),
       this.prisma.classBooking.findMany({
+        where: {
+          bookedAt: {
+            gte: start,
+            lte: end,
+          },
+          ...(classCategory
+            ? {
+                classSchedule: {
+                  class: {
+                    category: {
+                      equals: classCategory,
+                      mode: 'insensitive' as const,
+                    },
+                  },
+                },
+              }
+            : {}),
+        },
         orderBy: { bookedAt: 'desc' },
-        take: 5,
+        take: 20,
         include: {
           member: { include: { user: true } },
           classSchedule: { include: { class: true } },
@@ -292,13 +347,23 @@ export class AppService {
 
     const activity = [
       ...attendance.map((record) => ({
+        id: record.id,
+        member: `${record.member.user.firstName} ${record.member.user.lastName}`.trim(),
         action: 'Check-in',
         detail: `${record.member.user.firstName} ${record.member.user.lastName} checked in`,
+        category: record.type === 'CLASS_ATTENDANCE' ? 'Class' : 'Gym Visit',
+        classCategory: undefined as string | undefined,
+        status: 'completed',
         time: record.checkInTime,
       })),
       ...bookings.map((record) => ({
+        id: record.id,
+        member: `${record.member.user.firstName} ${record.member.user.lastName}`.trim(),
         action: 'Class booking',
         detail: `${record.member.user.firstName} ${record.member.user.lastName} booked ${record.classSchedule.class.name}`,
+        category: 'Class',
+        classCategory: record.classSchedule.class.category,
+        status: record.status.toLowerCase(),
         time: record.bookedAt,
       })),
     ]
@@ -306,18 +371,23 @@ export class AppService {
       .slice(0, 6);
 
     return activity.map((item) => ({
+      id: item.id,
+      member: item.member,
       action: item.action,
       detail: item.detail,
+      category: item.category,
+      status: item.status,
+      classCategory: item.classCategory,
       time: item.time.toISOString(),
     }));
   }
 
-  async getReportingAnalytics() {
+  async getReportingAnalytics(filters?: DashboardFiltersDto) {
     const now = new Date();
-    const dayMs = 24 * 60 * 60 * 1000;
-    const start90Days = new Date(now.getTime() - 89 * dayMs);
-    const start30Days = new Date(now.getTime() - 29 * dayMs);
-    const start12Months = new Date(now.getFullYear(), now.getMonth() - 11, 1);
+    const { start, end, previousStart, previousEnd } =
+      this.resolveDashboardRange(filters);
+    const classCategory = this.normalizeClassCategory(filters?.classCategory);
+    const startOfRangeMonth = new Date(start.getFullYear(), start.getMonth(), 1);
 
     const [
       payments,
@@ -331,20 +401,23 @@ export class AppService {
       trainers,
       equipment,
       invoices,
-      activeMembersLast30,
-      activeMembersPrev30,
+      activeMembersCurrentPeriod,
+      activeMembersPreviousPeriod,
     ] = await Promise.all([
       this.prisma.payment.findMany({
-        where: { createdAt: { gte: start90Days } },
+        where: { createdAt: { gte: start, lte: end } },
         select: { amount: true, status: true, createdAt: true },
       }),
       this.prisma.productSale.findMany({
-        where: { soldAt: { gte: start90Days }, status: 'COMPLETED' },
+        where: {
+          soldAt: { gte: start, lte: end },
+          status: 'COMPLETED',
+        },
         select: { total: true, soldAt: true },
       }),
       this.prisma.trainerSession.findMany({
         where: {
-          sessionDate: { gte: start90Days },
+          sessionDate: { gte: start, lte: end },
           status: { in: ['SCHEDULED', 'COMPLETED'] },
         },
         select: {
@@ -359,6 +432,15 @@ export class AppService {
         select: { id: true, createdAt: true, gender: true, dateOfBirth: true },
       }),
       this.prisma.subscription.findMany({
+        where: {
+          OR: [
+            {
+              startDate: { lte: end },
+              endDate: { gte: start },
+            },
+            { status: 'ACTIVE' },
+          ],
+        },
         select: {
           startDate: true,
           endDate: true,
@@ -368,14 +450,36 @@ export class AppService {
         },
       }),
       this.prisma.attendance.findMany({
-        where: { checkInTime: { gte: start90Days } },
+        where: { checkInTime: { gte: start, lte: end } },
         select: { memberId: true, checkInTime: true, type: true },
       }),
       this.prisma.classBooking.findMany({
-        where: { bookedAt: { gte: start90Days } },
+        where: {
+          bookedAt: { gte: start, lte: end },
+          ...(classCategory
+            ? {
+                classSchedule: {
+                  class: {
+                    category: {
+                      equals: classCategory,
+                      mode: 'insensitive' as const,
+                    },
+                  },
+                },
+              }
+            : {}),
+        },
         select: { classScheduleId: true, status: true, bookedAt: true },
       }),
       this.prisma.class.findMany({
+        where: classCategory
+          ? {
+              category: {
+                equals: classCategory,
+                mode: 'insensitive' as const,
+              },
+            }
+          : undefined,
         select: { id: true, name: true, category: true, maxCapacity: true },
       }),
       this.prisma.trainer.findMany({ select: { id: true } }),
@@ -384,21 +488,16 @@ export class AppService {
         select: { category: true },
       }),
       this.prisma.invoice.findMany({
-        where: { createdAt: { gte: start90Days } },
+        where: { createdAt: { gte: start, lte: end } },
         select: { total: true, status: true, dueDate: true },
       }),
       this.prisma.attendance.groupBy({
         by: ['memberId'],
-        where: { checkInTime: { gte: start30Days } },
+        where: { checkInTime: { gte: start, lte: end } },
       }),
       this.prisma.attendance.groupBy({
         by: ['memberId'],
-        where: {
-          checkInTime: {
-            gte: new Date(start30Days.getTime() - 30 * dayMs),
-            lt: start30Days,
-          },
-        },
+        where: { checkInTime: { gte: previousStart, lte: previousEnd } },
       }),
     ]);
 
@@ -430,7 +529,7 @@ export class AppService {
       );
     }
 
-    const dailyRevenue = this.buildDaySeries(start30Days, now, (key) => {
+    const dailyRevenue = this.buildDaySeries(start, end, (key) => {
       return (
         (membershipRevenueByDay.get(key) ?? 0) +
         (productRevenueByDay.get(key) ?? 0) +
@@ -440,8 +539,8 @@ export class AppService {
 
     const weeklyRevenue = this.aggregateSeriesByWeek(dailyRevenue);
     const monthlyRevenue = this.buildMonthlySeries(
-      start12Months,
-      now,
+      startOfRangeMonth,
+      end,
       (monthKey, from, to) => {
         let total = 0;
         for (const [key, amount] of membershipRevenueByDay) {
@@ -479,17 +578,21 @@ export class AppService {
       .reduce((sum, payment) => sum + payment.amount, 0);
 
     const totalMembers = members.length;
+    const membersCreatedInRange = members.filter(
+      (member) => member.createdAt >= start && member.createdAt <= end,
+    );
     const memberGrowthTrends = this.buildMonthlyMemberGrowth(
-      start12Months,
-      now,
-      members,
+      startOfRangeMonth,
+      end,
+      membersCreatedInRange,
     );
 
     const totalSubscriptions = subscriptions.length;
     const churnedSubscriptions = subscriptions.filter(
       (s) =>
         (s.status === 'CANCELLED' || s.status === 'EXPIRED') &&
-        s.endDate >= start90Days,
+        s.endDate >= start &&
+        s.endDate <= end,
     ).length;
     const churnRate =
       totalSubscriptions > 0
@@ -497,10 +600,10 @@ export class AppService {
         : 0;
 
     const activeMemberIds = new Set(
-      activeMembersLast30.map((item) => item.memberId),
+      activeMembersCurrentPeriod.map((item) => item.memberId),
     );
     const previousActiveMemberIds = new Set(
-      activeMembersPrev30.map((item) => item.memberId),
+      activeMembersPreviousPeriod.map((item) => item.memberId),
     );
 
     const genderDistribution: Record<string, number> = {};
@@ -513,7 +616,7 @@ export class AppService {
       unknown: 0,
     };
 
-    for (const member of members) {
+    for (const member of membersCreatedInRange) {
       const gender = member.gender?.trim() || 'Unknown';
       genderDistribution[gender] = (genderDistribution[gender] ?? 0) + 1;
 
@@ -542,7 +645,11 @@ export class AppService {
       select: { id: true, name: true },
     });
     const planNameMap = new Map(plans.map((p) => [p.id, p.name]));
-    for (const sub of subscriptions) {
+    const distributionSource = subscriptions.filter(
+      (sub) => sub.startDate <= end && sub.endDate >= start,
+    );
+
+    for (const sub of distributionSource) {
       const planName = planNameMap.get(sub.membershipPlanId) ?? 'Unknown Plan';
       membershipPlanDistributionCount.set(
         planName,
@@ -595,10 +702,10 @@ export class AppService {
         (classAttendanceCount.get(className) ?? 0) + 1,
       );
 
-      const classCategory = classCategoryMap.get(classId) ?? 'GENERAL';
+      const bookingClassCategory = classCategoryMap.get(classId) ?? 'GENERAL';
       equipmentUsageByCategory.set(
-        classCategory,
-        (equipmentUsageByCategory.get(classCategory) ?? 0) + 1,
+        bookingClassCategory,
+        (equipmentUsageByCategory.get(bookingClassCategory) ?? 0) + 1,
       );
 
       const trainerId = scheduleTrainerMap.get(booking.classScheduleId);
@@ -731,6 +838,344 @@ export class AppService {
         },
         averageMemberLifetimeValue,
       },
+      filters: {
+        range: filters?.range ?? 'custom',
+        period: filters?.period ?? 'daily',
+        startDate: this.dayKey(start),
+        endDate: this.dayKey(end),
+        branch: filters?.branch ?? 'all',
+        classCategory: classCategory ?? 'all',
+      },
+      filterOptions: {
+        branches: [],
+        classCategories: Array.from(
+          new Set(classes.map((gymClass) => gymClass.category)),
+        ),
+      },
+    };
+  }
+
+  async exportDashboardReport(query: DashboardExportQueryDto): Promise<{
+    filename: string;
+    mimeType: string;
+    buffer: Buffer;
+  }> {
+    const format: DashboardExportFormat = query.format ?? 'csv';
+    const generatedAt = new Date();
+    const [stats, analytics, recentActivity] = await Promise.all([
+      this.getDashboardStats(query),
+      this.getReportingAnalytics(query),
+      this.getRecentActivity(query),
+    ]);
+
+    const baseName = `dashboard-report-${this.dayKey(generatedAt)}`;
+
+    if (format === 'pdf') {
+      const buffer = await this.buildDashboardPdf({
+        generatedAt,
+        query,
+        stats,
+        analytics,
+        recentActivity,
+      });
+
+      return {
+        filename: `${baseName}.pdf`,
+        mimeType: 'application/pdf',
+        buffer,
+      };
+    }
+
+    const csv = this.buildDashboardCsv({
+      generatedAt,
+      query,
+      stats,
+      analytics,
+      recentActivity,
+    });
+
+    return {
+      filename: `${baseName}.csv`,
+      mimeType: 'text/csv; charset=utf-8',
+      buffer: Buffer.from(csv, 'utf8'),
+    };
+  }
+
+  private async buildDashboardPdf(input: {
+    generatedAt: Date;
+    query: DashboardFiltersDto;
+    stats: any;
+    analytics: any;
+    recentActivity: any[];
+  }): Promise<Buffer> {
+    const { generatedAt, query, stats, analytics, recentActivity } = input;
+
+    return new Promise((resolve, reject) => {
+      const doc = new PDFDocument({
+        size: 'A4',
+        margin: 40,
+      });
+      const chunks: Buffer[] = [];
+
+      doc.on('data', (chunk: Buffer) => chunks.push(Buffer.from(chunk)));
+      doc.on('end', () => resolve(Buffer.concat(chunks)));
+      doc.on('error', (error: Error) => reject(error));
+
+      doc.fontSize(20).text('Gym Dashboard Report', { align: 'left' });
+      doc.moveDown(0.25);
+      doc
+        .fontSize(10)
+        .fillColor('#555')
+        .text(`Generated: ${generatedAt.toISOString()}`)
+        .text(
+          `Range: ${query.startDate ?? '-'} to ${query.endDate ?? '-'} (${query.range ?? 'custom'})`,
+        )
+        .text(`Period: ${query.period ?? 'daily'}`)
+        .text(`Class Category: ${query.classCategory ?? 'all'}`);
+
+      doc.moveDown();
+      doc.fillColor('#000').fontSize(14).text('Summary');
+      doc.moveDown(0.3);
+      doc
+        .fontSize(11)
+        .text(
+          `Total Revenue: ${this.formatCurrencyValue(stats?.monthlyRevenue?.value ?? 0)}`,
+        )
+        .text(`Active Members: ${stats?.activeMemberships?.value ?? 0}`)
+        .text(`Attendance: ${stats?.todayCheckIns?.value ?? 0}`)
+        .text(`New Signups: ${stats?.newSignups?.value ?? 0}`);
+
+      doc.moveDown();
+      doc.fontSize(14).text('Revenue (Daily)');
+      doc.moveDown(0.3);
+
+      const dailyRevenue: Array<{ label: string; value: number }> =
+        analytics?.revenueReports?.dailyRevenue ?? [];
+      for (const point of dailyRevenue.slice(-14)) {
+        doc
+          .fontSize(10)
+          .text(`${point.label}: ${this.formatCurrencyValue(point.value)}`);
+      }
+
+      doc.moveDown();
+      doc.fontSize(14).text('Recent Activity');
+      doc.moveDown(0.3);
+      for (const item of recentActivity.slice(0, 8)) {
+        const time = typeof item?.time === 'string' ? item.time : '-';
+        const detail = typeof item?.detail === 'string' ? item.detail : '';
+        doc.fontSize(10).text(`${time} - ${detail}`);
+      }
+
+      doc.end();
+    });
+  }
+
+  private buildDashboardCsv(input: {
+    generatedAt: Date;
+    query: DashboardFiltersDto;
+    stats: any;
+    analytics: any;
+    recentActivity: any[];
+  }): string {
+    const { generatedAt, query, stats, analytics, recentActivity } = input;
+    const lines: string[] = [];
+    const pushRow = (...columns: Array<string | number>) => {
+      lines.push(columns.map((value) => this.escapeCsv(value)).join(','));
+    };
+
+    pushRow('section', 'key', 'value');
+    pushRow('meta', 'generatedAt', generatedAt.toISOString());
+    pushRow('meta', 'range', query.range ?? 'custom');
+    pushRow('meta', 'period', query.period ?? 'daily');
+    pushRow('meta', 'startDate', query.startDate ?? '');
+    pushRow('meta', 'endDate', query.endDate ?? '');
+    pushRow('meta', 'branch', query.branch ?? 'all');
+    pushRow('meta', 'classCategory', query.classCategory ?? 'all');
+
+    pushRow('summary', 'totalMembers', stats?.totalMembers?.value ?? 0);
+    pushRow('summary', 'activeMemberships', stats?.activeMemberships?.value ?? 0);
+    pushRow('summary', 'expiringMemberships', stats?.expiringMemberships?.value ?? 0);
+    pushRow('summary', 'attendance', stats?.todayCheckIns?.value ?? 0);
+    pushRow('summary', 'revenue', stats?.monthlyRevenue?.value ?? 0);
+    pushRow('summary', 'newSignups', stats?.newSignups?.value ?? 0);
+
+    const dailyRevenue: Array<{ label: string; value: number }> =
+      analytics?.revenueReports?.dailyRevenue ?? [];
+    for (const point of dailyRevenue) {
+      pushRow('revenue_daily', point.label, point.value);
+    }
+
+    for (const item of recentActivity) {
+      pushRow(
+        'activity',
+        item?.id ?? '',
+        `${item?.time ?? ''} ${item?.action ?? ''} ${item?.detail ?? ''}`.trim(),
+      );
+    }
+
+    return lines.join('\n');
+  }
+
+  private escapeCsv(value: string | number): string {
+    const asString = String(value ?? '');
+    if (
+      asString.includes(',') ||
+      asString.includes('"') ||
+      asString.includes('\n')
+    ) {
+      return `"${asString.replace(/"/g, '""')}"`;
+    }
+    return asString;
+  }
+
+  private formatCurrencyValue(value: number): string {
+    return value.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  }
+
+  private async getAttendanceCountForRange(
+    start: Date,
+    end: Date,
+    classCategory: string | null,
+  ): Promise<number> {
+    if (!classCategory) {
+      return this.prisma.attendance.count({
+        where: {
+          checkInTime: {
+            gte: start,
+            lte: end,
+          },
+        },
+      });
+    }
+
+    return this.prisma.classBooking.count({
+      where: {
+        bookedAt: {
+          gte: start,
+          lte: end,
+        },
+        status: {
+          in: ['CONFIRMED', 'COMPLETED'],
+        },
+        classSchedule: {
+          class: {
+            category: {
+              equals: classCategory,
+              mode: 'insensitive',
+            },
+          },
+        },
+      },
+    });
+  }
+
+  private normalizeClassCategory(value?: string): string | null {
+    const normalized = value?.trim();
+    if (!normalized || normalized.toLowerCase() === 'all') {
+      return null;
+    }
+    return normalized;
+  }
+
+  private parseDateBoundary(
+    value: string | undefined,
+    boundary: 'start' | 'end',
+  ): Date | null {
+    if (!value) {
+      return null;
+    }
+
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+      return null;
+    }
+
+    if (boundary === 'start') {
+      return new Date(
+        parsed.getFullYear(),
+        parsed.getMonth(),
+        parsed.getDate(),
+        0,
+        0,
+        0,
+        0,
+      );
+    }
+
+    return new Date(
+      parsed.getFullYear(),
+      parsed.getMonth(),
+      parsed.getDate(),
+      23,
+      59,
+      59,
+      999,
+    );
+  }
+
+  private resolveDashboardRange(filters?: DashboardFiltersDto): DashboardRangeWindow {
+    const now = new Date();
+    const endOfToday = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      23,
+      59,
+      59,
+      999,
+    );
+    const startOfToday = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      0,
+      0,
+      0,
+      0,
+    );
+
+    const explicitStart = this.parseDateBoundary(filters?.startDate, 'start');
+    const explicitEnd = this.parseDateBoundary(filters?.endDate, 'end');
+
+    let start: Date;
+    let end: Date;
+
+    if (explicitStart && explicitEnd) {
+      start = explicitStart;
+      end = explicitEnd;
+    } else if (filters?.range === 'today') {
+      start = startOfToday;
+      end = endOfToday;
+    } else if (filters?.range === 'last7days') {
+      end = endOfToday;
+      start = new Date(endOfToday);
+      start.setDate(start.getDate() - 6);
+      start.setHours(0, 0, 0, 0);
+    } else {
+      end = endOfToday;
+      start = new Date(endOfToday);
+      start.setDate(start.getDate() - 29);
+      start.setHours(0, 0, 0, 0);
+    }
+
+    if (start.getTime() > end.getTime()) {
+      const swap = start;
+      start = end;
+      end = swap;
+    }
+
+    const durationMs = Math.max(end.getTime() - start.getTime() + 1, 1);
+    const previousEnd = new Date(start.getTime() - 1);
+    const previousStart = new Date(previousEnd.getTime() - durationMs + 1);
+
+    return {
+      start,
+      end,
+      previousStart,
+      previousEnd,
     };
   }
 

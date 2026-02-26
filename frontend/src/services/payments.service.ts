@@ -3,12 +3,29 @@ import axios from "axios";
 import api from "./api";
 
 export const BILLING_PAYMENT_METHODS = ["CARD", "CASH", "TRANSFER"] as const;
-export const BILLING_PAYMENT_STATUSES = ["SUCCESS", "PENDING", "FAILED", "REFUNDED"] as const;
-export const PAYMENT_CATEGORIES = ["MEMBERSHIP", "PERSONAL_TRAINING", "PRODUCT"] as const;
+export const BILLING_PAYMENT_STATUSES = [
+  "SUCCESS",
+  "PENDING",
+  "FAILED",
+  "REFUNDED",
+] as const;
+export const PAYMENT_CATEGORIES = [
+  "MEMBERSHIP",
+  "PERSONAL_TRAINING",
+  "PRODUCT",
+] as const;
+export const MANUAL_OFFLINE_PAYMENT_METHODS = [
+  "CASH",
+  "CARD",
+  "BANK",
+  "WALLET",
+] as const;
 
 export type BillingPaymentMethod = (typeof BILLING_PAYMENT_METHODS)[number];
 export type BillingPaymentStatus = (typeof BILLING_PAYMENT_STATUSES)[number];
 export type PaymentCategory = (typeof PAYMENT_CATEGORIES)[number];
+export type ManualOfflinePaymentMethod =
+  (typeof MANUAL_OFFLINE_PAYMENT_METHODS)[number];
 
 export interface PaymentsQueryFilters {
   search?: string;
@@ -58,8 +75,8 @@ export interface PaginatedResponse<T> {
 export interface ManualPaymentPayload {
   memberId: string;
   amount: number;
+  paymentMethod: ManualOfflinePaymentMethod;
   paymentCategory: PaymentCategory;
-  paymentMethod: BillingPaymentMethod;
   notes?: string;
 }
 
@@ -120,6 +137,41 @@ export interface PaymentCapabilities {
   refund: boolean;
 }
 
+interface ManualPaymentCreateRequestDto {
+  memberId: string;
+  amount: number;
+  methodType: "WALLET" | "BANK";
+  provider: "CASH" | "CARD" | "KBZ" | "KBZ_PAY";
+  notes?: string;
+  description: string;
+}
+
+const paymentCategoryDescription: Record<PaymentCategory, string> = {
+  MEMBERSHIP: "membership",
+  PERSONAL_TRAINING: "personal training",
+  PRODUCT: "product",
+};
+
+const manualPaymentMethodDescription: Record<
+  ManualOfflinePaymentMethod,
+  string
+> = {
+  CASH: "cash",
+  CARD: "card",
+  BANK: "bank",
+  WALLET: "wallet",
+};
+
+const manualPaymentMethodToDto: Record<
+  ManualOfflinePaymentMethod,
+  Pick<ManualPaymentCreateRequestDto, "methodType" | "provider">
+> = {
+  CASH: { methodType: "WALLET", provider: "CASH" },
+  CARD: { methodType: "WALLET", provider: "CARD" },
+  BANK: { methodType: "BANK", provider: "KBZ" },
+  WALLET: { methodType: "WALLET", provider: "KBZ_PAY" },
+};
+
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
 
@@ -172,7 +224,11 @@ const joinName = (firstName?: string, lastName?: string): string => {
 const normalizePaymentStatus = (value: unknown): BillingPaymentStatus => {
   const normalized = toStringOrUndefined(value)?.toUpperCase() ?? "";
 
-  if (normalized === "SUCCESS" || normalized === "PAID" || normalized === "COMPLETED") {
+  if (
+    normalized === "SUCCESS" ||
+    normalized === "PAID" ||
+    normalized === "COMPLETED"
+  ) {
     return "SUCCESS";
   }
 
@@ -195,6 +251,14 @@ const normalizePaymentStatus = (value: unknown): BillingPaymentStatus => {
 const normalizePaymentMethod = (value: unknown): BillingPaymentMethod => {
   const normalized = toStringOrUndefined(value)?.toUpperCase() ?? "";
 
+  if (normalized === "BANK") {
+    return "TRANSFER";
+  }
+
+  if (normalized === "WALLET") {
+    return "CASH";
+  }
+
   if (
     normalized === "CARD" ||
     normalized === "CREDIT_CARD" ||
@@ -210,8 +274,16 @@ const normalizePaymentMethod = (value: unknown): BillingPaymentMethod => {
   if (
     normalized === "TRANSFER" ||
     normalized === "BANK_TRANSFER" ||
+    normalized === "KBZ" ||
+    normalized === "AYA" ||
+    normalized === "CB" ||
+    normalized === "UAB" ||
+    normalized === "A_BANK" ||
+    normalized === "YOMA" ||
     normalized === "KBZ_PAY" ||
     normalized === "AYA_PAY" ||
+    normalized === "CB_PAY" ||
+    normalized === "UAB_PAY" ||
     normalized === "WAVE_MONEY"
   ) {
     return "TRANSFER";
@@ -220,7 +292,9 @@ const normalizePaymentMethod = (value: unknown): BillingPaymentMethod => {
   return "CARD";
 };
 
-const normalizePaymentCategory = (value: unknown): PaymentCategory | undefined => {
+const normalizePaymentCategory = (
+  value: unknown,
+): PaymentCategory | undefined => {
   const normalized = toStringOrUndefined(value)?.toUpperCase() ?? "";
 
   if (
@@ -238,27 +312,36 @@ const normalizePaymentCategory = (value: unknown): PaymentCategory | undefined =
   return undefined;
 };
 
-const compactObject = <T extends Record<string, unknown>>(value: T): Partial<T> => {
-  return Object.entries(value).reduce<Partial<T>>((accumulator, [key, entry]) => {
-    if (entry === undefined || entry === null) {
-      return accumulator;
-    }
+const compactObject = <T extends Record<string, unknown>>(
+  value: T,
+): Partial<T> => {
+  return Object.entries(value).reduce<Partial<T>>(
+    (accumulator, [key, entry]) => {
+      if (entry === undefined || entry === null) {
+        return accumulator;
+      }
 
-    if (typeof entry === "string" && entry.trim().length === 0) {
-      return accumulator;
-    }
+      if (typeof entry === "string" && entry.trim().length === 0) {
+        return accumulator;
+      }
 
-    accumulator[key as keyof T] = entry as T[keyof T];
-    return accumulator;
-  }, {});
+      accumulator[key as keyof T] = entry as T[keyof T];
+      return accumulator;
+    },
+    {},
+  );
 };
 
-const normalizeSubscription = (value: unknown): PaymentSubscriptionSnapshot | undefined => {
+const normalizeSubscription = (
+  value: unknown,
+): PaymentSubscriptionSnapshot | undefined => {
   if (!isRecord(value)) {
     return undefined;
   }
 
-  const membershipPlan = isRecord(value.membershipPlan) ? value.membershipPlan : undefined;
+  const membershipPlan = isRecord(value.membershipPlan)
+    ? value.membershipPlan
+    : undefined;
   const planName =
     toStringOrUndefined(value.planName) ??
     (membershipPlan ? toStringOrUndefined(membershipPlan.name) : undefined);
@@ -315,7 +398,10 @@ const normalizeTransaction = (value: unknown): PaymentTransaction => {
       member ? toStringOrUndefined(member.lastName) : undefined,
     );
 
-  const id = toStringOrUndefined(value.id) ?? toStringOrUndefined(value.paymentId) ?? "unknown";
+  const id =
+    toStringOrUndefined(value.id) ??
+    toStringOrUndefined(value.paymentId) ??
+    "unknown";
   const transactionId =
     toStringOrUndefined(value.transactionId) ??
     toStringOrUndefined(value.transactionNo) ??
@@ -328,13 +414,15 @@ const normalizeTransaction = (value: unknown): PaymentTransaction => {
     id;
 
   const rawStatus =
-    toStringOrUndefined(value.status) ?? toStringOrUndefined(value.paymentStatus) ?? "";
+    toStringOrUndefined(value.status) ??
+    toStringOrUndefined(value.paymentStatus) ??
+    "";
 
   const methodValue =
     toStringOrUndefined(value.paymentMethod) ??
+    toStringOrUndefined(value.provider) ??
     toStringOrUndefined(value.methodType) ??
-    toStringOrUndefined(value.method) ??
-    toStringOrUndefined(value.provider);
+    toStringOrUndefined(value.method);
 
   const date =
     toStringOrUndefined(value.date) ??
@@ -359,7 +447,9 @@ const normalizeTransaction = (value: unknown): PaymentTransaction => {
     amount: toNumber(value.amount),
     currency: toStringOrUndefined(value.currency) ?? "USD",
     paymentMethod: normalizePaymentMethod(methodValue),
-    paymentCategory: normalizePaymentCategory(value.paymentCategory ?? value.category),
+    paymentCategory: normalizePaymentCategory(
+      value.paymentCategory ?? value.category,
+    ),
     status: normalizePaymentStatus(rawStatus),
     rawStatus,
     date,
@@ -388,8 +478,14 @@ const normalizePaginatedPayload = <T>(
   if (isRecord(unwrapped)) {
     if (Array.isArray(unwrapped.data)) {
       const page = Math.max(toNumber(unwrapped.page, 1), 1);
-      const limit = Math.max(toNumber(unwrapped.limit, unwrapped.data.length || 1), 1);
-      const total = Math.max(toNumber(unwrapped.total, unwrapped.data.length), unwrapped.data.length);
+      const limit = Math.max(
+        toNumber(unwrapped.limit, unwrapped.data.length || 1),
+        1,
+      );
+      const total = Math.max(
+        toNumber(unwrapped.total, unwrapped.data.length),
+        unwrapped.data.length,
+      );
       const computedPages = Math.max(Math.ceil(total / limit), 1);
 
       return {
@@ -403,15 +499,24 @@ const normalizePaginatedPayload = <T>(
 
     if (Array.isArray(unwrapped.items)) {
       const page = Math.max(toNumber(unwrapped.page, 1), 1);
-      const limit = Math.max(toNumber(unwrapped.limit, unwrapped.items.length || 1), 1);
-      const total = Math.max(toNumber(unwrapped.total, unwrapped.items.length), unwrapped.items.length);
+      const limit = Math.max(
+        toNumber(unwrapped.limit, unwrapped.items.length || 1),
+        1,
+      );
+      const total = Math.max(
+        toNumber(unwrapped.total, unwrapped.items.length),
+        unwrapped.items.length,
+      );
 
       return {
         data: unwrapped.items.map(normalizeItem),
         page,
         limit,
         total,
-        totalPages: Math.max(toNumber(unwrapped.totalPages, Math.ceil(total / limit)), 1),
+        totalPages: Math.max(
+          toNumber(unwrapped.totalPages, Math.ceil(total / limit)),
+          1,
+        ),
       };
     }
 
@@ -429,7 +534,10 @@ const normalizePaginatedPayload = <T>(
   };
 };
 
-const normalizeInvoiceItem = (value: unknown, index: number): PaymentInvoiceItem => {
+const normalizeInvoiceItem = (
+  value: unknown,
+  index: number,
+): PaymentInvoiceItem => {
   if (!isRecord(value)) {
     return {
       id: `line-${index + 1}`,
@@ -442,7 +550,10 @@ const normalizeInvoiceItem = (value: unknown, index: number): PaymentInvoiceItem
 
   const quantity = Math.max(toNumber(value.quantity, 1), 1);
   const unitPrice = toNumber(value.unitPrice ?? value.amount, 0);
-  const lineTotal = toNumber(value.lineTotal ?? value.total ?? quantity * unitPrice, quantity * unitPrice);
+  const lineTotal = toNumber(
+    value.lineTotal ?? value.total ?? quantity * unitPrice,
+    quantity * unitPrice,
+  );
 
   return {
     id: toStringOrUndefined(value.id) ?? `line-${index + 1}`,
@@ -520,11 +631,16 @@ const normalizeInvoice = (payload: unknown): PaymentInvoice => {
       toStringOrUndefined(unwrapped.date) ??
       toStringOrUndefined(unwrapped.createdAt) ??
       new Date().toISOString(),
-    dueAt: toStringOrUndefined(unwrapped.dueAt) ?? toStringOrUndefined(unwrapped.dueDate),
+    dueAt:
+      toStringOrUndefined(unwrapped.dueAt) ??
+      toStringOrUndefined(unwrapped.dueDate),
     status: toStringOrUndefined(unwrapped.status) ?? "OPEN",
     currency: toStringOrUndefined(unwrapped.currency) ?? "USD",
     gym: {
-      name: toStringOrUndefined(gym?.name) ?? toStringOrUndefined(unwrapped.gymName) ?? "Gym",
+      name:
+        toStringOrUndefined(gym?.name) ??
+        toStringOrUndefined(unwrapped.gymName) ??
+        "Gym",
       logoUrl: toStringOrUndefined(gym?.logoUrl),
       address: toStringOrUndefined(gym?.address),
       email: toStringOrUndefined(gym?.email),
@@ -553,7 +669,45 @@ const normalizeInvoice = (payload: unknown): PaymentInvoice => {
   };
 };
 
-const buildQueryParams = (filters: PaymentsQueryFilters): Record<string, string | number> => {
+const mapStatusToApiFilter = (
+  status: BillingPaymentStatus | "ALL" | undefined,
+): "PAID" | "PENDING" | "REJECTED" | undefined => {
+  if (!status || status === "ALL" || status === "REFUNDED") {
+    return undefined;
+  }
+
+  if (status === "SUCCESS") {
+    return "PAID";
+  }
+
+  if (status === "FAILED") {
+    return "REJECTED";
+  }
+
+  return "PENDING";
+};
+
+const mapMethodToApiFilter = (
+  method: BillingPaymentMethod | "ALL" | undefined,
+): "BANK" | "WALLET" | undefined => {
+  if (!method || method === "ALL") {
+    return undefined;
+  }
+
+  if (method === "TRANSFER") {
+    return "BANK";
+  }
+
+  if (method === "CASH") {
+    return "WALLET";
+  }
+
+  return undefined;
+};
+
+const buildQueryParams = (
+  filters: PaymentsQueryFilters,
+): Record<string, string | number> => {
   const params: Record<string, string | number> = {};
 
   if (typeof filters.page === "number") {
@@ -568,80 +722,48 @@ const buildQueryParams = (filters: PaymentsQueryFilters): Record<string, string 
     params.search = filters.search.trim();
   }
 
-  if (filters.status && filters.status !== "ALL") {
-    params.status =
-      filters.status === "SUCCESS"
-        ? "PAID"
-        : filters.status === "FAILED"
-          ? "REJECTED"
-          : filters.status;
-    params.paymentStatus = filters.status;
+  const statusFilter = mapStatusToApiFilter(filters.status);
+  if (statusFilter) {
+    params.status = statusFilter;
   }
 
-  if (filters.paymentMethod && filters.paymentMethod !== "ALL") {
-    const methodFilter = filters.paymentMethod === "TRANSFER" ? "BANK_TRANSFER" : filters.paymentMethod;
-    params.paymentMethod = filters.paymentMethod;
+  const methodFilter = mapMethodToApiFilter(filters.paymentMethod);
+  if (methodFilter) {
     params.methodType = methodFilter;
-  }
-
-  if (filters.dateFrom) {
-    params.startDate = filters.dateFrom;
-    params.dateFrom = filters.dateFrom;
-  }
-
-  if (filters.dateTo) {
-    params.endDate = filters.dateTo;
-    params.dateTo = filters.dateTo;
   }
 
   return params;
 };
 
-const shouldTryFallback = (error: unknown): boolean => {
-  if (!axios.isAxiosError(error)) {
-    return false;
-  }
+const mapManualPaymentToCreatePaymentDto = (
+  payload: ManualPaymentPayload,
+): ManualPaymentCreateRequestDto => {
+  const trimmedNotes = payload.notes?.trim();
+  const categoryTag = `[CATEGORY:${payload.paymentCategory}]`;
+  const methodTag = `[METHOD:${payload.paymentMethod}]`;
+  const mappedMethod = manualPaymentMethodToDto[payload.paymentMethod];
 
-  return error.response?.status === 404 || error.response?.status === 405;
-};
+  // Keep one canonical backend contract for manual collections.
+  const requestPayload: ManualPaymentCreateRequestDto = {
+    memberId: payload.memberId,
+    amount: payload.amount,
+    methodType: mappedMethod.methodType,
+    provider: mappedMethod.provider,
+    description: `Manual offline ${manualPaymentMethodDescription[payload.paymentMethod]} payment (${paymentCategoryDescription[payload.paymentCategory]})`,
+    notes: trimmedNotes
+      ? `${methodTag} ${categoryTag} ${trimmedNotes}`
+      : `${methodTag} ${categoryTag}`,
+  };
 
-const isRouteMissingError = (error: unknown, method: "GET" | "POST"): boolean => {
-  if (!axios.isAxiosError(error)) {
-    return false;
-  }
-
-  const status = error.response?.status;
-  if (status !== 404 && status !== 405 && status !== 501) {
-    return false;
-  }
-
-  const message = (() => {
-    const payload = error.response?.data;
-    if (typeof payload === "string") {
-      return payload;
-    }
-
-    if (isRecord(payload)) {
-      const raw = payload.message;
-      if (typeof raw === "string") {
-        return raw;
-      }
-      if (Array.isArray(raw)) {
-        return raw.join(" ");
-      }
-    }
-
-    return "";
-  })()
-    .toLowerCase()
-    .trim();
-
-  return message.includes(`cannot ${method.toLowerCase()}`);
+  return requestPayload;
 };
 
 let capabilitiesCache: PaymentCapabilities | null = null;
 
-const getFilenameFromDisposition = (value: unknown, fallback: string): string => {
+const getFilenameFromDisposition = (
+  value: unknown,
+  fallback: string,
+): string => {
   if (typeof value !== "string") {
     return fallback;
   }
@@ -663,12 +785,15 @@ export const calculatePaymentSummary = (
   now = new Date(),
 ): PaymentSummary => {
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
-  const recentFailedCutoff = new Date(now.getTime() - 1000 * 60 * 60 * 24 * 14).getTime();
+  const recentFailedCutoff = new Date(
+    now.getTime() - 1000 * 60 * 60 * 24 * 14,
+  ).getTime();
 
   const summary = transactions.reduce<PaymentSummary>(
     (accumulator, payment) => {
       const paymentDate = new Date(payment.date).getTime();
-      const isCurrentMonth = Number.isFinite(paymentDate) && paymentDate >= monthStart;
+      const isCurrentMonth =
+        Number.isFinite(paymentDate) && paymentDate >= monthStart;
 
       if (payment.status === "SUCCESS" && isCurrentMonth) {
         accumulator.totalRevenueMtd += payment.amount;
@@ -707,81 +832,25 @@ export const paymentsService = {
     if (!forceRefresh && capabilitiesCache) {
       return capabilitiesCache;
     }
-
-    const probeInvoice = async (): Promise<boolean> => {
-      try {
-        await api.get("/payments/invoice/__capability_probe__");
-        return true;
-      } catch (error) {
-        if (isRouteMissingError(error, "GET")) {
-          return false;
-        }
-        return true;
-      }
+    capabilitiesCache = {
+      invoice: true,
+      refund: true,
     };
-
-    const probeRefund = async (): Promise<boolean> => {
-      try {
-        await api.post("/payments/__capability_probe__/refund", {
-          reason: "capability_probe",
-        });
-        return true;
-      } catch (error) {
-        if (isRouteMissingError(error, "POST")) {
-          return false;
-        }
-        return true;
-      }
-    };
-
-    const [invoice, refund] = await Promise.all([probeInvoice(), probeRefund()]);
-    capabilitiesCache = { invoice, refund };
     return capabilitiesCache;
   },
 
-  async listPayments(filters: PaymentsQueryFilters = {}): Promise<PaginatedResponse<PaymentTransaction>> {
+  async listPayments(
+    filters: PaymentsQueryFilters = {},
+  ): Promise<PaginatedResponse<PaymentTransaction>> {
     const params = buildQueryParams(filters);
-
-    try {
-      const response = await api.get<unknown>("/payments", { params });
-      return normalizePaginatedPayload(response.data, normalizeTransaction);
-    } catch (error) {
-      const hasServerFilterParams =
-        (filters.status && filters.status !== "ALL") ||
-        (filters.paymentMethod && filters.paymentMethod !== "ALL");
-
-      if (
-        hasServerFilterParams &&
-        axios.isAxiosError(error) &&
-        (error.response?.status === 400 || error.response?.status === 422)
-      ) {
-        const fallbackResponse = await api.get<unknown>("/payments", {
-          params: buildQueryParams({
-            ...filters,
-            status: "ALL",
-            paymentMethod: "ALL",
-          }),
-        });
-
-        return normalizePaginatedPayload(fallbackResponse.data, normalizeTransaction);
-      }
-
-      throw error;
-    }
+    const response = await api.get<unknown>("/payments", { params });
+    return normalizePaginatedPayload(response.data, normalizeTransaction);
   },
 
-  async createManualPayment(payload: ManualPaymentPayload): Promise<PaymentTransaction> {
-    const requestPayload = compactObject({
-      memberId: payload.memberId,
-      amount: payload.amount,
-      paymentCategory: payload.paymentCategory,
-      category: payload.paymentCategory,
-      paymentMethod: payload.paymentMethod,
-      methodType: payload.paymentMethod,
-      notes: payload.notes?.trim(),
-      description: payload.notes?.trim(),
-    });
-
+  async createManualPayment(
+    payload: ManualPaymentPayload,
+  ): Promise<PaymentTransaction> {
+    const requestPayload = mapManualPaymentToCreatePaymentDto(payload);
     const response = await api.post<unknown>("/payments", requestPayload);
     return normalizeTransaction(response.data);
   },
@@ -792,7 +861,7 @@ export const paymentsService = {
   },
 
   async downloadInvoicePdf(invoiceId: string): Promise<InvoicePdfDownload> {
-    const response = await api.get<Blob>(`/payments/invoice/${invoiceId}`, {
+    const response = await api.get<Blob>(`/payments/invoice/${invoiceId}/pdf`, {
       responseType: "blob",
       headers: {
         Accept: "application/pdf",
@@ -803,17 +872,26 @@ export const paymentsService = {
 
     return {
       blob: response.data,
-      filename: getFilenameFromDisposition(response.headers["content-disposition"], fallbackFilename),
+      filename: getFilenameFromDisposition(
+        response.headers["content-disposition"],
+        fallbackFilename,
+      ),
     };
   },
 
-  async processRefund(paymentId: string, payload: ProcessRefundPayload): Promise<PaymentTransaction> {
+  async processRefund(
+    paymentId: string,
+    payload: ProcessRefundPayload,
+  ): Promise<PaymentTransaction> {
     const requestPayload = compactObject({
       reason: payload.reason.trim(),
       amount: payload.amount,
     });
 
-    const response = await api.post<unknown>(`/payments/${paymentId}/refund`, requestPayload);
+    const response = await api.post<unknown>(
+      `/payments/${paymentId}/refund`,
+      requestPayload,
+    );
     return normalizeTransaction(response.data);
   },
 

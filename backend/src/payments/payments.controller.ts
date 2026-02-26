@@ -2,10 +2,12 @@ import {
   Body,
   Controller,
   Get,
+  StreamableFile,
   Patch,
   Post,
   Param,
   Query,
+  Res,
   UseGuards,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -24,6 +26,7 @@ import { RecoveryQueueResponseDto } from './dto/recovery-queue-response.dto';
 import { SendRecoveryFollowUpDto } from './dto/send-recovery-followup.dto';
 import { ProcessRefundDto } from './dto/process-refund.dto';
 import { PaymentInvoiceResponseDto } from './dto/payment-invoice-response.dto';
+import type { Response } from 'express';
 
 @ApiTags('payments')
 @Controller('payments')
@@ -95,6 +98,32 @@ export class PaymentsController {
   ): Promise<{ message: string }> {
     await this.paymentsService.sendRecoveryFollowUp(id, dto);
     return { message: 'Recovery follow-up sent' };
+  }
+
+  @Get('invoice/:id/pdf')
+  @Roles(UserRole.ADMIN, UserRole.STAFF, UserRole.MEMBER)
+  @ApiOperation({
+    summary: 'Download invoice PDF by invoice ID/number or payment ID',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'PDF invoice generated successfully',
+  })
+  async downloadInvoicePdf(
+    @Param('id') id: string,
+    @CurrentUser() user: any,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<StreamableFile> {
+    const file = await this.paymentsService.getInvoicePdfByPaymentOrInvoiceId(
+      id,
+      user,
+    );
+    response.setHeader('Content-Type', 'application/pdf');
+    response.setHeader(
+      'Content-Disposition',
+      `attachment; filename="${file.filename}"`,
+    );
+    return new StreamableFile(file.buffer);
   }
 
   @Get('invoice/:id')

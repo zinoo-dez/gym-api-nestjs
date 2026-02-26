@@ -13,6 +13,7 @@ export class GymSettingsService {
   ) {}
 
   async getSettings() {
+    const envTaxPercentage = Number(process.env.PAYMENTS_TAX_PERCENTAGE);
     const defaults = {
       name: 'Your Gym',
       tagLine: 'Train smarter. Live stronger.',
@@ -23,6 +24,12 @@ export class GymSettingsService {
       description:
         'Everything you need to achieve your fitness goals under one roof, backed by expert support.',
       favicon: '',
+      currency: 'USD',
+      taxPercentage: 0,
+      stripePublicKey: '',
+      stripeSecretKey: '',
+      paypalClientId: '',
+      paypalSecret: '',
     };
 
     const settings = await this.prisma.gymSetting.findFirst();
@@ -39,6 +46,17 @@ export class GymSettingsService {
           logo: process.env.GYM_LOGO ?? defaults.logo,
           description: process.env.GYM_DESCRIPTION ?? defaults.description,
           favicon: process.env.GYM_FAVICON ?? defaults.favicon,
+          currency: process.env.PAYMENTS_CURRENCY ?? defaults.currency,
+          taxPercentage: Number.isFinite(envTaxPercentage)
+            ? envTaxPercentage
+            : defaults.taxPercentage,
+          stripePublicKey:
+            process.env.STRIPE_PUBLIC_KEY ?? defaults.stripePublicKey,
+          stripeSecretKey:
+            process.env.STRIPE_SECRET_KEY ?? defaults.stripeSecretKey,
+          paypalClientId:
+            process.env.PAYPAL_CLIENT_ID ?? defaults.paypalClientId,
+          paypalSecret: process.env.PAYPAL_SECRET ?? defaults.paypalSecret,
         },
       });
     }
@@ -48,6 +66,12 @@ export class GymSettingsService {
       name: settings?.name || defaults.name,
       tagLine: settings?.tagLine || defaults.tagLine,
       description: settings?.description || defaults.description,
+      currency: settings?.currency || defaults.currency,
+      taxPercentage: settings?.taxPercentage ?? defaults.taxPercentage,
+      stripePublicKey: settings?.stripePublicKey || defaults.stripePublicKey,
+      stripeSecretKey: settings?.stripeSecretKey || defaults.stripeSecretKey,
+      paypalClientId: settings?.paypalClientId || defaults.paypalClientId,
+      paypalSecret: settings?.paypalSecret || defaults.paypalSecret,
     };
   }
 
