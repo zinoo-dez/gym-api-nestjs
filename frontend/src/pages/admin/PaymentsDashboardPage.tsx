@@ -310,7 +310,7 @@ export function PaymentsDashboardPage() {
                 <div className="flex items-center gap-2">
                     <Button
                         type="button"
-                        variant="outlined"
+                        variant="outline"
                         onClick={() => void paymentsQuery.refetch()}
                         disabled={paymentsQuery.isFetching}
                     >
@@ -444,7 +444,7 @@ export function PaymentsDashboardPage() {
                         <div className="flex items-end">
                             <Button
                                 type="button"
-                                variant="text"
+                                variant="ghost"
                                 className="w-full justify-start"
                                 onClick={handleClearFilters}
                                 disabled={!hasActiveFilters}
@@ -466,7 +466,7 @@ export function PaymentsDashboardPage() {
                     {paymentsQuery.isError ? (
                         <div className="space-y-3 rounded-md border border-destructive/40 bg-danger/5 p-4">
                             <p className="text-sm text-destructive">{toPaymentErrorMessage(paymentsQuery.error)}</p>
-                            <Button type="button" variant="outlined" onClick={() => void paymentsQuery.refetch()}>
+                            <Button type="button" variant="outline" onClick={() => void paymentsQuery.refetch()}>
                                 Retry
                             </Button>
                         </div>
@@ -528,7 +528,7 @@ export function PaymentsDashboardPage() {
                                                 <Button
                                                     type="button"
                                                     size="sm"
-                                                    variant="outlined"
+                                                    variant="outline"
                                                     onClick={(event) => {
                                                         event.stopPropagation();
                                                         handleOpenInvoice(transaction);
@@ -544,7 +544,7 @@ export function PaymentsDashboardPage() {
                                                     <Button
                                                         type="button"
                                                         size="sm"
-                                                        variant="text"
+                                                        variant="ghost"
                                                         onClick={(event) => {
                                                             event.stopPropagation();
                                                             handleOpenRefund(transaction);
@@ -636,7 +636,7 @@ export function PaymentsDashboardPage() {
                                         <div className="flex flex-wrap gap-2 pt-2">
                                             <Button
                                                 type="button"
-                                                variant="outlined"
+                                                variant="outline"
                                                 onClick={() => void handleCancelAutoRenew()}
                                                 disabled={!canCancelAutoRenew || cancelAutoRenewMutation.isPending}
                                             >
@@ -646,7 +646,7 @@ export function PaymentsDashboardPage() {
                                             {canUseRefund ? (
                                                 <Button
                                                     type="button"
-                                                    variant="text"
+                                                    variant="ghost"
                                                     onClick={() => handleOpenRefund(selectedTransaction)}
                                                     className="text-destructive hover:bg-destructive/10 active:bg-destructive/20"
                                                 >

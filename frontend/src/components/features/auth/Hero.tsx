@@ -30,7 +30,7 @@ export function Hero({ onOpenAuth }: HeroProps) {
           </Button>
           <Button 
             size="lg" 
-            variant="outlined" 
+            variant="outline" 
             className="w-full sm:w-auto text-lg h-14 px-8"
             onClick={() => onOpenAuth("login")}
           >

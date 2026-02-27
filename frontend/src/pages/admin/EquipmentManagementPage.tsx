@@ -491,7 +491,7 @@ export function EquipmentManagementPage({ view = "all" }: EquipmentManagementPag
         </div>
         <div className="flex gap-2">
           {isOverviewPage ? (
-            <Button type="button" variant="outlined" onClick={() => navigate("/management/equipment/list")}>
+            <Button type="button" variant="outline" onClick={() => navigate("/management/equipment/list")}>
               View List
             </Button>
           ) : null}
@@ -515,7 +515,7 @@ export function EquipmentManagementPage({ view = "all" }: EquipmentManagementPag
           <CardContent className="flex flex-col gap-3 p-6">
             <p className="text-sm text-destructive">Unable to load equipment data.</p>
             <div>
-              <Button type="button" variant="outlined" onClick={() => void loadEquipment()}>
+              <Button type="button" variant="outline" onClick={() => void loadEquipment()}>
                 <MaterialIcon icon="refresh" className="text-lg" />
                 <span>Retry</span>
               </Button>
@@ -593,7 +593,7 @@ export function EquipmentManagementPage({ view = "all" }: EquipmentManagementPag
             <section className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="section-title">Equipment List</h2>
-              <Button type="button" variant="text" onClick={clearFilters} disabled={!hasActiveFilters}>
+              <Button type="button" variant="ghost" onClick={clearFilters} disabled={!hasActiveFilters}>
                 Clear List Filters
               </Button>
             </div>
@@ -641,7 +641,7 @@ export function EquipmentManagementPage({ view = "all" }: EquipmentManagementPag
                     Adjust or clear filters to view equipment records.
                   </p>
                   <div>
-                    <Button type="button" variant="outlined" onClick={clearFilters}>
+                    <Button type="button" variant="outline" onClick={clearFilters}>
                       Reset Filters
                     </Button>
                   </div>
@@ -681,7 +681,7 @@ export function EquipmentManagementPage({ view = "all" }: EquipmentManagementPag
                   </select>
                   <Button
                     type="button"
-                    variant="outlined"
+                    variant="outline"
                     size="sm"
                     onClick={() => setPage((current) => Math.max(1, current - 1))}
                     disabled={page <= 1}
@@ -690,7 +690,7 @@ export function EquipmentManagementPage({ view = "all" }: EquipmentManagementPag
                   </Button>
                   <Button
                     type="button"
-                    variant="outlined"
+                    variant="outline"
                     size="sm"
                     onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
                     disabled={page >= totalPages}

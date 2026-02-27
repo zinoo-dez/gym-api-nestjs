@@ -237,13 +237,13 @@ export function NotificationsPage() {
             render: (row) => (
                 <div className="flex justify-end gap-1">
                     {!row.read ? (
-                        <Button type="button" variant="text" size="sm" onClick={() => void handleMarkAsRead(row)} disabled={markReadMutation.isPending}>
+                        <Button type="button" variant="ghost" size="sm" onClick={() => void handleMarkAsRead(row)} disabled={markReadMutation.isPending}>
                             Mark read
                         </Button>
                     ) : null}
                     <Button
                         type="button"
-                        variant="text"
+                        variant="ghost"
                         size="sm"
                         className="text-destructive hover:bg-destructive/10 active:bg-destructive/20"
                         onClick={() => void handleDeleteNotification(row)}
@@ -285,13 +285,13 @@ export function NotificationsPage() {
                 </div>
                 <div className="mt-4 flex flex-wrap gap-2">
                     {!notification.read ? (
-                        <Button type="button" variant="outlined" size="sm" onClick={() => void handleMarkAsRead(notification)} disabled={markReadMutation.isPending}>
+                        <Button type="button" variant="outline" size="sm" onClick={() => void handleMarkAsRead(notification)} disabled={markReadMutation.isPending}>
                             Mark read
                         </Button>
                     ) : null}
                     <Button
                         type="button"
-                        variant="text"
+                        variant="ghost"
                         size="sm"
                         className="text-destructive hover:bg-destructive/10 active:bg-destructive/20"
                         onClick={() => void handleDeleteNotification(notification)}
@@ -317,7 +317,7 @@ export function NotificationsPage() {
                 <div className="flex flex-wrap gap-2">
                     <Button
                         type="button"
-                        variant="outlined"
+                        variant="outline"
                         onClick={() => void handleMarkAllAsRead()}
                         disabled={unreadCount === 0 || markAllMutation.isPending}
                     >
@@ -375,7 +375,7 @@ export function NotificationsPage() {
                     {notificationsQuery.isError ? (
                         <div className="space-y-4 rounded-2xl border border-destructive/50 bg-destructive/5 p-6">
                             <p className="text-base font-bold text-destructive">Unable to load notifications.</p>
-                            <Button type="button" variant="tonal" onClick={() => void notificationsQuery.refetch()}>
+                            <Button type="button" variant="secondary" onClick={() => void notificationsQuery.refetch()}>
                                 <MaterialIcon icon="refresh" className="text-lg" />
                                 <span>Retry</span>
                             </Button>
@@ -420,7 +420,7 @@ export function NotificationsPage() {
                                 <div className="flex gap-2">
                                     <Button
                                         type="button"
-                                        variant="outlined"
+                                        variant="outline"
                                         size="sm"
                                         onClick={() => setCurrentPage((value) => Math.max(1, value - 1))}
                                         disabled={currentPage <= 1}
@@ -431,7 +431,7 @@ export function NotificationsPage() {
 
                                     <Button
                                         type="button"
-                                        variant="outlined"
+                                        variant="outline"
                                         size="sm"
                                         onClick={() => setCurrentPage((value) => Math.min(totalPages, value + 1))}
                                         disabled={currentPage >= totalPages}

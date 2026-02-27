@@ -96,7 +96,7 @@ export function ReportsFilterBar({
           <Button
             type="button"
             size="sm"
-            variant="text"
+            variant="ghost"
             onClick={() => onChange(getDefaultReportsFilters())}
             className="w-full justify-center lg:w-auto text-destructive"
           >

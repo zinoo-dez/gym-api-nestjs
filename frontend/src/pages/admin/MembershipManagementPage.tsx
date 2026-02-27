@@ -607,7 +607,7 @@ export function MembershipManagementPage({ view = "plans" }: MembershipManagemen
 
         <div className="hidden gap-2 md:flex">
           {showFeatures ? (
-            <Button type="button" variant="outlined" onClick={openFeatureAddForm}>
+            <Button type="button" variant="outline" onClick={openFeatureAddForm}>
               <MaterialIcon icon="auto_awesome" className="text-lg" />
               <span>Add Feature</span>
             </Button>
@@ -632,7 +632,7 @@ export function MembershipManagementPage({ view = "plans" }: MembershipManagemen
           <CardContent className="flex flex-col gap-4 p-6">
             <p className="text-base font-bold text-destructive">Unable to load membership data.</p>
             <div>
-              <Button type="button" variant="tonal" onClick={() => void loadMembershipData()}>
+              <Button type="button" variant="secondary" onClick={() => void loadMembershipData()}>
                 <MaterialIcon icon="refresh" className="text-lg" />
                 <span>Retry</span>
               </Button>
@@ -714,13 +714,13 @@ export function MembershipManagementPage({ view = "plans" }: MembershipManagemen
 
                 {isMobile ? (
                   <div className="flex gap-2">
-                    <Button type="button" variant="outlined" onClick={() => setPlanFiltersMobileOpen(true)}>
+                    <Button type="button" variant="outline" onClick={() => setPlanFiltersMobileOpen(true)}>
                       <MaterialIcon icon="filter_list" className="text-lg" />
                       <span>Filters</span>
                     </Button>
                     <Button
                       type="button"
-                      variant="text"
+                      variant="ghost"
                       disabled={!hasActivePlanFilters}
                       onClick={() => setPlanFilters(defaultPlanFilters)}
                     >
@@ -763,7 +763,7 @@ export function MembershipManagementPage({ view = "plans" }: MembershipManagemen
 
                     <Button
                       type="button"
-                      variant="text"
+                      variant="ghost"
                       disabled={!hasActivePlanFilters}
                       onClick={() => setPlanFilters(defaultPlanFilters)}
                     >
@@ -819,7 +819,7 @@ export function MembershipManagementPage({ view = "plans" }: MembershipManagemen
                   <div className="flex gap-2">
                     <Button
                       type="button"
-                      variant="outlined"
+                      variant="outline"
                       onClick={() => setMembershipFiltersMobileOpen(true)}
                     >
                       <MaterialIcon icon="filter_list" className="text-lg" />
@@ -827,7 +827,7 @@ export function MembershipManagementPage({ view = "plans" }: MembershipManagemen
                     </Button>
                     <Button
                       type="button"
-                      variant="text"
+                      variant="ghost"
                       disabled={!hasActiveMembershipFilters}
                       onClick={() => setMembershipFilters(defaultMembershipFilters)}
                     >
@@ -893,7 +893,7 @@ export function MembershipManagementPage({ view = "plans" }: MembershipManagemen
 
                     <Button
                       type="button"
-                      variant="text"
+                      variant="ghost"
                       disabled={!hasActiveMembershipFilters}
                       onClick={() => setMembershipFilters(defaultMembershipFilters)}
                     >
@@ -931,7 +931,7 @@ export function MembershipManagementPage({ view = "plans" }: MembershipManagemen
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <h2 className="section-title">Membership Feature Library</h2>
               {!isMobile ? (
-                <Button type="button" variant="outlined" onClick={openFeatureAddForm}>
+                <Button type="button" variant="outline" onClick={openFeatureAddForm}>
                   <MaterialIcon icon="add" className="text-lg" />
                   <span>Add Feature</span>
                 </Button>
@@ -961,7 +961,7 @@ export function MembershipManagementPage({ view = "plans" }: MembershipManagemen
                   <div className="flex gap-2">
                     <Button
                       type="button"
-                      variant="outlined"
+                      variant="outline"
                       onClick={() => setFeatureFiltersMobileOpen(true)}
                     >
                       <MaterialIcon icon="filter_list" className="text-lg" />
@@ -969,7 +969,7 @@ export function MembershipManagementPage({ view = "plans" }: MembershipManagemen
                     </Button>
                     <Button
                       type="button"
-                      variant="text"
+                      variant="ghost"
                       disabled={!hasActiveFeatureFilters}
                       onClick={() => setFeatureFilters(defaultFeatureFilters)}
                     >
@@ -993,7 +993,7 @@ export function MembershipManagementPage({ view = "plans" }: MembershipManagemen
                     </Select>
                     <Button
                       type="button"
-                      variant="text"
+                      variant="ghost"
                       disabled={!hasActiveFeatureFilters}
                       onClick={() => setFeatureFilters(defaultFeatureFilters)}
                     >
@@ -1024,7 +1024,7 @@ export function MembershipManagementPage({ view = "plans" }: MembershipManagemen
           {isMobile && (showPlans || showFeatures) ? (
             <div className="fixed bottom-4 right-4 z-40 flex flex-col gap-2">
               {showFeatures ? (
-                <Button type="button" variant="outlined" onClick={openFeatureAddForm} className="shadow-lg backdrop-blur-md bg-background/80">
+                <Button type="button" variant="outline" onClick={openFeatureAddForm} className="shadow-lg backdrop-blur-md bg-background/80">
                   <MaterialIcon icon="auto_awesome" className="text-lg" />
                   <span>Feature</span>
                 </Button>
@@ -1049,7 +1049,7 @@ export function MembershipManagementPage({ view = "plans" }: MembershipManagemen
               <section className="absolute inset-x-0 bottom-0 rounded-t-xl border-t bg-background p-4 shadow-lg">
                 <div className="mb-4 flex items-center justify-between">
                   <h3 className="text-lg font-semibold tracking-tight">Plan Filters</h3>
-                  <Button type="button" variant="text" onClick={() => setPlanFiltersMobileOpen(false)}>
+                  <Button type="button" variant="ghost" onClick={() => setPlanFiltersMobileOpen(false)}>
                     Close
                   </Button>
                 </div>
@@ -1097,7 +1097,7 @@ export function MembershipManagementPage({ view = "plans" }: MembershipManagemen
                 <div className="mt-4 flex gap-2">
                   <Button
                     type="button"
-                    variant="outlined"
+                    variant="outline"
                     className="flex-1"
                     disabled={!hasActivePlanFilters}
                     onClick={() => setPlanFilters(defaultPlanFilters)}
@@ -1125,7 +1125,7 @@ export function MembershipManagementPage({ view = "plans" }: MembershipManagemen
                   <h3 className="text-lg font-semibold tracking-tight">Membership Filters</h3>
                   <Button
                     type="button"
-                    variant="text"
+                    variant="ghost"
                     onClick={() => setMembershipFiltersMobileOpen(false)}
                   >
                     Close
@@ -1210,7 +1210,7 @@ export function MembershipManagementPage({ view = "plans" }: MembershipManagemen
                 <div className="mt-4 flex gap-2">
                   <Button
                     type="button"
-                    variant="outlined"
+                    variant="outline"
                     className="flex-1"
                     disabled={!hasActiveMembershipFilters}
                     onClick={() => setMembershipFilters(defaultMembershipFilters)}
@@ -1240,7 +1240,7 @@ export function MembershipManagementPage({ view = "plans" }: MembershipManagemen
               <section className="absolute inset-x-0 bottom-0 rounded-t-xl border-t bg-background p-4 shadow-lg">
                 <div className="mb-4 flex items-center justify-between">
                   <h3 className="text-lg font-semibold tracking-tight">Feature Filters</h3>
-                  <Button type="button" variant="text" onClick={() => setFeatureFiltersMobileOpen(false)}>
+                  <Button type="button" variant="ghost" onClick={() => setFeatureFiltersMobileOpen(false)}>
                     Close
                   </Button>
                 </div>
@@ -1268,7 +1268,7 @@ export function MembershipManagementPage({ view = "plans" }: MembershipManagemen
                 <div className="mt-4 flex gap-2">
                   <Button
                     type="button"
-                    variant="outlined"
+                    variant="outline"
                     className="flex-1"
                     disabled={!hasActiveFeatureFilters}
                     onClick={() => setFeatureFilters(defaultFeatureFilters)}

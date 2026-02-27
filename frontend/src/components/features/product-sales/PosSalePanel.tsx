@@ -158,7 +158,7 @@ export function PosSalePanel({
             {quickProductsError ? (
               <div className="space-y-2 rounded-md border border-destructive/40 bg-danger/5 p-2">
                 <p className="text-xs text-destructive">{quickProductsError}</p>
-                <Button type="button" variant="outlined" size="sm" onClick={onRetryQuickProducts}>
+                <Button type="button" variant="outline" size="sm" onClick={onRetryQuickProducts}>
                   <MaterialIcon icon="refresh" className="text-sm" />
                   <span>Retry</span>
                 </Button>
@@ -178,7 +178,7 @@ export function PosSalePanel({
                     <Button
                       type="button"
                       size="sm"
-                      variant="outlined"
+                      variant="outline"
                       onClick={() => onAddProductToCart(product)}
                       disabled={product.stockQuantity <= 0}
                     >
@@ -214,18 +214,18 @@ export function PosSalePanel({
                         {formatCurrency(item.unitPrice)} x {item.quantity}
                       </p>
                     </div>
-                    <Button type="button" variant="text" size="sm" onClick={() => onRemoveItem(item.productId)} className="text-destructive">
+                    <Button type="button" variant="ghost" size="sm" onClick={() => onRemoveItem(item.productId)} className="text-destructive">
                       <MaterialIcon icon="delete" className="text-sm" />
                       <span>Remove</span>
                     </Button>
                   </div>
 
                   <div className="mt-2 flex items-center gap-2">
-                    <Button type="button" variant="outlined" size="sm" onClick={() => onDecreaseQuantity(item.productId)}>
+                    <Button type="button" variant="outline" size="sm" onClick={() => onDecreaseQuantity(item.productId)}>
                       <MaterialIcon icon="remove" className="text-sm" />
                     </Button>
                     <span className="min-w-6 text-center text-sm font-medium">{item.quantity}</span>
-                    <Button type="button" variant="outlined" size="sm" onClick={() => onIncreaseQuantity(item.productId)}>
+                    <Button type="button" variant="outline" size="sm" onClick={() => onIncreaseQuantity(item.productId)}>
                       <MaterialIcon icon="add" className="text-sm" />
                     </Button>
                   </div>

@@ -154,7 +154,7 @@ export function RecentTransactionsTable({
                 <div className="flex items-center gap-2">
                     <Button
                         type="button"
-                        variant="outlined"
+                        variant="outline"
                         size="sm"
                         onClick={() => onExport("csv")}
                         disabled={exportingFormat !== null}
@@ -164,7 +164,7 @@ export function RecentTransactionsTable({
                     </Button>
                     <Button
                         type="button"
-                        variant="outlined"
+                        variant="outline"
                         size="sm"
                         onClick={() => onExport("pdf")}
                         disabled={exportingFormat !== null}

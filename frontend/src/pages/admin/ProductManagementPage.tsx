@@ -245,7 +245,7 @@ export function ProductManagementPage() {
                 <div className="flex gap-2">
                     <Button
                         type="button"
-                        variant="outlined"
+                        variant="outline"
                         onClick={() => void navigate("/management/products/pos")}
                     >
                         <MaterialIcon icon="shopping_cart" className="text-lg" />

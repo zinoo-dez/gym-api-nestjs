@@ -45,7 +45,7 @@ export function ProductSalesOverviewPage() {
         <CardContent className="grid gap-3 md:grid-cols-3">
           <Button
             type="button"
-            variant="outlined"
+            variant="outline"
             className="justify-start shadow-sm"
             onClick={() => void navigate("/management/products/management")}
           >
@@ -55,7 +55,7 @@ export function ProductSalesOverviewPage() {
 
           <Button
             type="button"
-            variant="outlined"
+            variant="outline"
             className="justify-start shadow-sm"
             onClick={() => void navigate("/management/products/pos")}
           >
@@ -65,7 +65,7 @@ export function ProductSalesOverviewPage() {
 
           <Button
             type="button"
-            variant="outlined"
+            variant="outline"
             className="justify-start shadow-sm"
             onClick={() => void navigate("/management/products/history")}
           >

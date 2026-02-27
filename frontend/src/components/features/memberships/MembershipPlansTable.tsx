@@ -32,7 +32,7 @@ function ActionButtons({
         <div className="flex items-center justify-end gap-1">
             <Button
                 type="button"
-                variant="text"
+                variant="ghost"
                 size="sm"
                 onClick={(event) => {
                     event.stopPropagation();
@@ -44,7 +44,7 @@ function ActionButtons({
             </Button>
             <Button
                 type="button"
-                variant="text"
+                variant="ghost"
                 size="sm"
                 onClick={(event) => {
                     event.stopPropagation();
@@ -56,7 +56,7 @@ function ActionButtons({
             </Button>
             <Button
                 type="button"
-                variant="text"
+                variant="ghost"
                 size="sm"
                 disabled={plan.activeMembers > 0 || isDisabling}
                 onClick={(event) => {
@@ -146,7 +146,7 @@ export function MembershipPlansTable({
             <div className="mt-4 flex flex-wrap gap-2">
                 <Button
                     type="button"
-                    variant="tonal"
+                    variant="secondary"
                     size="sm"
                     onClick={(event) => { event.stopPropagation(); onView(plan); }}
                 >
@@ -155,7 +155,7 @@ export function MembershipPlansTable({
                 </Button>
                 <Button
                     type="button"
-                    variant="outlined"
+                    variant="outline"
                     size="sm"
                     onClick={(event) => { event.stopPropagation(); onEdit(plan); }}
                 >
@@ -164,7 +164,7 @@ export function MembershipPlansTable({
                 </Button>
                 <Button
                     type="button"
-                    variant="text"
+                    variant="ghost"
                     size="sm"
                     disabled={plan.activeMembers > 0 || disablingPlanId === plan.id}
                     onClick={(event) => { event.stopPropagation(); onDisable(plan); }}

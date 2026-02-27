@@ -98,7 +98,7 @@ export default function AttractionAuthPage() {
           <Button size="lg" className="h-14 px-8 text-lg w-full sm:w-auto" onClick={() => openAuth("register")}>
             Start Your Fitness Journey
           </Button>
-          <Button variant="text" className="h-14 px-8 text-lg w-full sm:w-auto" onClick={() => openAuth("login")}>
+          <Button variant="ghost" className="h-14 px-8 text-lg w-full sm:w-auto" onClick={() => openAuth("login")}>
             Login to Your Account
           </Button>
         </div>

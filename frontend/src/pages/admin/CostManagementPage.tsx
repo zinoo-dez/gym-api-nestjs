@@ -355,7 +355,7 @@ export function CostManagementPage() {
                     <CardContent className="flex flex-col gap-3 p-6">
                         <p className="text-sm text-destructive">Unable to load cost data.</p>
                         <div>
-                            <Button type="button" variant="outlined" onClick={() => void loadCosts()}>
+                            <Button type="button" variant="outline" onClick={() => void loadCosts()}>
                                 <MaterialIcon icon="refresh" className="text-lg" />
                                 <span>Retry</span>
                             </Button>
@@ -426,7 +426,7 @@ export function CostManagementPage() {
                         <section className="space-y-4">
                             <div className="flex items-center justify-between">
                                 <h3 className="text-lg font-semibold tracking-tight">Detailed Cost Records</h3>
-                                <Button type="button" variant="text" onClick={clearFilters} disabled={!hasActiveFilters}>
+                                <Button type="button" variant="ghost" onClick={clearFilters} disabled={!hasActiveFilters}>
                                     Clear List Filters
                                 </Button>
                             </div>
@@ -465,7 +465,7 @@ export function CostManagementPage() {
                                             Adjust filters or clear quick filters to review all records.
                                         </p>
                                         <div>
-                                            <Button type="button" variant="outlined" onClick={clearFilters}>
+                                            <Button type="button" variant="outline" onClick={clearFilters}>
                                                 Reset Filters
                                             </Button>
                                         </div>

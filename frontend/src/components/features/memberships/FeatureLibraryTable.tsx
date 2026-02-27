@@ -38,12 +38,12 @@ export function FeatureLibraryTable({
             align: "right",
             render: (row) => (
                 <div className="flex items-center justify-end gap-1">
-                    <Button type="button" variant="text" size="sm" onClick={() => onEdit(row)} title="Edit feature">
+                    <Button type="button" variant="ghost" size="sm" onClick={() => onEdit(row)} title="Edit feature">
                         <MaterialIcon icon="edit" className="text-xl" />
                     </Button>
                     <Button
                         type="button"
-                        variant="text"
+                        variant="ghost"
                         size="sm"
                         disabled={row.isSystem || row.assignedPlans > 0 || deletingFeatureId === row.id}
                         onClick={() => onDelete(row)}
@@ -79,13 +79,13 @@ export function FeatureLibraryTable({
             </dl>
 
             <div className="mt-4 flex flex-wrap gap-2">
-                <Button type="button" variant="outlined" size="sm" className="flex-1" onClick={() => onEdit(feature)}>
+                <Button type="button" variant="outline" size="sm" className="flex-1" onClick={() => onEdit(feature)}>
                     <MaterialIcon icon="edit" className="text-lg" />
                     <span>Edit</span>
                 </Button>
                 <Button
                     type="button"
-                    variant="text"
+                    variant="ghost"
                     size="sm"
                     className="flex-1 text-destructive hover:bg-destructive/10 active:bg-destructive/20"
                     disabled={feature.isSystem || feature.assignedPlans > 0 || deletingFeatureId === feature.id}

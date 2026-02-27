@@ -53,7 +53,7 @@ export function MemberMembershipTable({
                 <div className="flex items-center justify-end">
                     <Button
                         type="button"
-                        variant="text"
+                        variant="ghost"
                         size="sm"
                         onClick={(event) => { event.stopPropagation(); onView(row); }}
                         title="View details"
@@ -104,7 +104,7 @@ export function MemberMembershipTable({
             <div className="mt-4">
                 <Button
                     type="button"
-                    variant="tonal"
+                    variant="secondary"
                     size="sm"
                     className="w-full"
                     onClick={(event) => { event.stopPropagation(); onView(membership); }}

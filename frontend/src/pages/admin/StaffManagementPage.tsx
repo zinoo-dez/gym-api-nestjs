@@ -357,7 +357,7 @@ export function StaffManagementPage() {
           <CardContent className="flex flex-col gap-3 p-6">
             <p className="text-sm text-destructive">Unable to load staff data.</p>
             <div>
-              <Button type="button" variant="outlined" onClick={() => void loadData()}>
+              <Button type="button" variant="outline" onClick={() => void loadData()}>
                 <MaterialIcon icon="refresh" className="text-lg" />
                 <span>Retry</span>
               </Button>
@@ -523,7 +523,7 @@ export function StaffManagementPage() {
                       <div className="flex items-center justify-end gap-1">
                         <Button
                           type="button"
-                          variant="text"
+                          variant="ghost"
                           size="sm"
                           onClick={(event) => {
                             event.stopPropagation();
@@ -534,7 +534,7 @@ export function StaffManagementPage() {
                         </Button>
                         <Button
                           type="button"
-                          variant="text"
+                          variant="ghost"
                           size="sm"
                           onClick={(event) => {
                             event.stopPropagation();
@@ -547,7 +547,7 @@ export function StaffManagementPage() {
                         </Button>
                         <Button
                           type="button"
-                          variant="outlined"
+                          variant="outline"
                           size="sm"
                           className="text-destructive border-destructive/20 hover:bg-destructive/5"
                           disabled={!record?.isActive}
@@ -590,12 +590,12 @@ export function StaffManagementPage() {
                     </dl>
 
                     <div className="mt-4 flex flex-wrap gap-2">
-                      <Button type="button" variant="text" size="sm" onClick={() => openStaffDetail(row)}>
+                      <Button type="button" variant="ghost" size="sm" onClick={() => openStaffDetail(row)}>
                         View
                       </Button>
                       <Button
                         type="button"
-                        variant="text"
+                        variant="ghost"
                         size="sm"
                         onClick={() => {
                           if (record) {
@@ -607,7 +607,7 @@ export function StaffManagementPage() {
                       </Button>
                       <Button
                         type="button"
-                        variant="outlined"
+                        variant="outline"
                         size="sm"
                         className="text-destructive border-destructive/20 hover:bg-destructive/5"
                         disabled={!record?.isActive}

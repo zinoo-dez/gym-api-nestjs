@@ -449,7 +449,7 @@ export function TrainersManagementPage() {
           <CardContent className="flex flex-col gap-3 p-6">
             <p className="text-sm text-destructive">Unable to load trainer data.</p>
             <div>
-              <Button type="button" variant="outlined" onClick={() => void loadData()}>
+              <Button type="button" variant="outline" onClick={() => void loadData()}>
                 <MaterialIcon icon="refresh" className="text-lg" />
                 <span>Retry</span>
               </Button>
@@ -610,7 +610,7 @@ export function TrainersManagementPage() {
                       <div className="flex items-center justify-end gap-1">
                         <Button
                           type="button"
-                          variant="text"
+                          variant="ghost"
                           size="sm"
                           onClick={(event) => {
                             event.stopPropagation();
@@ -621,7 +621,7 @@ export function TrainersManagementPage() {
                         </Button>
                         <Button
                           type="button"
-                          variant="text"
+                          variant="ghost"
                           size="sm"
                           onClick={(event) => {
                             event.stopPropagation();
@@ -634,7 +634,7 @@ export function TrainersManagementPage() {
                         </Button>
                         <Button
                           type="button"
-                          variant="outlined"
+                          variant="outline"
                           size="sm"
                           className="text-destructive border-destructive/20 hover:bg-destructive/5"
                           onClick={(event) => {
@@ -685,12 +685,12 @@ export function TrainersManagementPage() {
                     </dl>
 
                     <div className="mt-4 flex flex-wrap gap-2">
-                      <Button type="button" variant="text" size="sm" onClick={() => openTrainerDetail(row)}>
+                      <Button type="button" variant="ghost" size="sm" onClick={() => openTrainerDetail(row)}>
                         View
                       </Button>
                       <Button
                         type="button"
-                        variant="text"
+                        variant="ghost"
                         size="sm"
                         onClick={() => {
                           if (trainer) {
@@ -702,7 +702,7 @@ export function TrainersManagementPage() {
                       </Button>
                       <Button
                         type="button"
-                        variant="outlined"
+                        variant="outline"
                         size="sm"
                         className="text-destructive border-destructive/20 hover:bg-destructive/5"
                         onClick={() => {

@@ -59,7 +59,7 @@ export function RefundConfirmationPanel({
     <div className="flex items-center justify-end gap-2">
       <Button
         type="button"
-        variant="text"
+        variant="ghost"
         onClick={() => onOpenChange(false)}
         disabled={isSubmitting}
       >

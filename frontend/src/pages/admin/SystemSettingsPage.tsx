@@ -379,7 +379,7 @@ export function SystemSettingsPage() {
                 <Card>
                     <CardContent className="space-y-3 p-6">
                         <p className="text-sm text-destructive">{toSettingsErrorMessage(settingsQuery.error)}</p>
-                        <Button type="button" variant="outlined" onClick={() => void settingsQuery.refetch()}>
+                        <Button type="button" variant="outline" onClick={() => void settingsQuery.refetch()}>
                             Retry
                         </Button>
                     </CardContent>

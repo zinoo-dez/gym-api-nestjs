@@ -232,7 +232,7 @@ export function ClassFormPanel({
 
   const footer = (
     <div className="flex flex-col gap-2 border-t pt-4 sm:flex-row sm:justify-end">
-      <Button type="button" variant="text" onClick={onClose}>
+      <Button type="button" variant="ghost" onClick={onClose}>
         Cancel
       </Button>
       <Button type="submit" form="class-form" disabled={isSubmitting}>

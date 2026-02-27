@@ -1,7 +1,11 @@
 import * as React from "react"
 import { CalendarIcon, X } from "lucide-react"
 import { format } from "date-fns"
-import * as PopoverPrimitive from "@radix-ui/react-popover"
+import {
+    Popover,
+    PopoverTrigger,
+    PopoverContent,
+} from "@/components/animate-ui/components/radix/popover"
 import { Drawer } from "vaul"
 
 import { cn } from "@/lib/utils"
@@ -61,7 +65,7 @@ export function DatePicker({
 
     const trigger = (
         <Button
-            variant="outlined"
+            variant="outline"
             role="combobox"
             aria-expanded={isOpen}
             disabled={disabled}
@@ -123,16 +127,16 @@ export function DatePicker({
                     </Drawer.Portal>
                 </Drawer.Root>
             ) : (
-                <PopoverPrimitive.Root open={isOpen} onOpenChange={setIsOpen}>
-                    <PopoverPrimitive.Trigger asChild>{trigger}</PopoverPrimitive.Trigger>
-                    <PopoverPrimitive.Content
+                <Popover open={isOpen} onOpenChange={setIsOpen}>
+                    <PopoverTrigger asChild>{trigger}</PopoverTrigger>
+                    <PopoverContent
                         align="start"
-                        className="z-50 w-auto rounded-md border bg-card p-0 text-card-foreground shadow-md outline-none animate-in fade-in-0 zoom-in-95"
+                        className="z-50 w-auto rounded-md border bg-card p-0 text-card-foreground shadow-md outline-none"
                         sideOffset={4}
                     >
                         {content}
-                    </PopoverPrimitive.Content>
-                </PopoverPrimitive.Root>
+                    </PopoverContent>
+                </Popover>
             )}
 
             {error ? (

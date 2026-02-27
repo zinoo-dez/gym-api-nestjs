@@ -94,7 +94,7 @@ export default function LandingPage() {
               <a href="#location" className="body-text text-muted-foreground transition-colors hover:text-primary">Location</a>
             </div>
 
-            <Button variant="filled" size="default" onClick={() => navigate('/register')}>Get Started</Button>
+            <Button variant="default" size="default" onClick={() => navigate('/register')}>Get Started</Button>
           </nav>
         </header>
 
@@ -118,7 +118,7 @@ export default function LandingPage() {
                 <Button size="lg" className="flex items-center gap-2" onClick={() => navigate('/register')}>
                   <span>Join Now</span> <span className="material-symbols-rounded text-[20px]">arrow_forward</span>
                 </Button>
-                <Button variant="outlined" size="lg" onClick={() => document.getElementById('plans')?.scrollIntoView({ behavior: 'smooth' })}>See Membership Plans</Button>
+                <Button variant="outline" size="lg" onClick={() => document.getElementById('plans')?.scrollIntoView({ behavior: 'smooth' })}>See Membership Plans</Button>
               </div>
             </motion.div>
 
@@ -367,7 +367,7 @@ export default function LandingPage() {
               </div>
               <div className="flex flex-wrap gap-4 pt-2">
                 <Button size="lg">Book Free Trial</Button>
-                <Button variant="outlined" size="lg">Contact Team</Button>
+                <Button variant="outline" size="lg">Contact Team</Button>
               </div>
             </motion.div>
 

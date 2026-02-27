@@ -235,17 +235,17 @@ export function ClassSchedulingPage() {
                     </div>
 
                     <div className="flex flex-wrap items-center gap-2">
-                        <Button type="button" size="sm" variant="outlined" onClick={handlePrevious}>
+                        <Button type="button" size="sm" variant="outline" onClick={handlePrevious}>
                             <MaterialIcon icon="chevron_left" className="text-lg" />
                             <span>Previous</span>
                         </Button>
 
-                        <Button type="button" size="sm" variant="outlined" onClick={handleToday}>
+                        <Button type="button" size="sm" variant="outline" onClick={handleToday}>
                             <MaterialIcon icon="today" className="text-lg" />
                             <span>Today</span>
                         </Button>
 
-                        <Button type="button" size="sm" variant="outlined" onClick={handleNext}>
+                        <Button type="button" size="sm" variant="outline" onClick={handleNext}>
                             <span>Next</span>
                             <MaterialIcon icon="chevron_right" className="text-lg" />
                         </Button>

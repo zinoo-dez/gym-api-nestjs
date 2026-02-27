@@ -104,7 +104,7 @@ export function ProductTableSection({
             label: "Actions",
             render: (row) => (
                 <div className="flex flex-wrap gap-2 opacity-80 transition-opacity group-hover:opacity-100">
-                    <Button type="button" size="sm" variant="outlined" onClick={() => onEditProduct(row)}>
+                    <Button type="button" size="sm" variant="outline" onClick={() => onEditProduct(row)}>
                         <MaterialIcon icon="edit" className="text-sm" />
                         <span>Edit</span>
                     </Button>
@@ -124,7 +124,7 @@ export function ProductTableSection({
             <CardHeader className="space-y-4">
                 <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                     <CardTitle>Product Management</CardTitle>
-                    <Button type="button" variant="outlined" onClick={onOpenAddProduct}>
+                    <Button type="button" variant="outline" onClick={onOpenAddProduct}>
                         <MaterialIcon icon="add" className="text-lg" />
                         <span>Add Product</span>
                     </Button>
@@ -168,7 +168,7 @@ export function ProductTableSection({
                 {errorMessage ? (
                     <div className="space-y-3 rounded-md border border-destructive/40 bg-danger/5 p-4">
                         <p className="text-sm text-destructive">{errorMessage}</p>
-                        <Button type="button" variant="outlined" onClick={onRetry}>
+                        <Button type="button" variant="outline" onClick={onRetry}>
                             <MaterialIcon icon="refresh" className="text-sm" />
                             <span>Retry</span>
                         </Button>
@@ -194,12 +194,12 @@ export function ProductTableSection({
                                 </p>
 
                                 <div className="flex gap-2">
-                                    <Button type="button" variant="outlined" size="sm" onClick={onPreviousPage} disabled={currentPage <= 1}>
+                                    <Button type="button" variant="outline" size="sm" onClick={onPreviousPage} disabled={currentPage <= 1}>
                                         Previous
                                     </Button>
                                     <Button
                                         type="button"
-                                        variant="outlined"
+                                        variant="outline"
                                         size="sm"
                                         onClick={onNextPage}
                                         disabled={currentPage >= totalPages}

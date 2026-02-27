@@ -78,7 +78,7 @@ export function MemberFormPanel({
 
   const footer = (
     <div className="flex justify-end gap-2">
-      <Button type="button" variant="text" onClick={onClose}>
+      <Button type="button" variant="ghost" onClick={onClose}>
         Cancel
       </Button>
       <Button type="submit" form="member-form" disabled={!isValid || isSubmitting}>

@@ -194,7 +194,7 @@ export function ClassRosterPanel({
     const footer = (
         <div className="flex flex-wrap items-center gap-2">
             {onEditClass ? (
-                <Button type="button" variant="outlined" size="sm" onClick={() => onEditClass(classSession!)}>
+                <Button type="button" variant="outline" size="sm" onClick={() => onEditClass(classSession!)}>
                     Edit Class
                 </Button>
             ) : null}
@@ -205,7 +205,7 @@ export function ClassRosterPanel({
             ) : null}
             <Button
                 type="button"
-                variant="text"
+                variant="ghost"
                 size="sm"
                 onClick={() => void rosterQuery.refetch()}
                 disabled={rosterQuery.isFetching}
@@ -311,7 +311,7 @@ export function ClassRosterPanel({
                                                     <Button
                                                         type="button"
                                                         size="sm"
-                                                        variant="outlined"
+                                                        variant="outline"
                                                         onClick={() => void handleUpdateStatus(member, "BOOKED")}
                                                         disabled={isUpdating}
                                                     >
@@ -323,7 +323,7 @@ export function ClassRosterPanel({
                                                     <Button
                                                         type="button"
                                                         size="sm"
-                                                        variant="text"
+                                                        variant="ghost"
                                                         onClick={() => void handleUpdateStatus(member, "NO_SHOW")}
                                                         disabled={isUpdating}
                                                     >
@@ -333,7 +333,7 @@ export function ClassRosterPanel({
                                                     <Button
                                                         type="button"
                                                         size="sm"
-                                                        variant="text"
+                                                        variant="ghost"
                                                         onClick={() => void handleUpdateStatus(member, "BOOKED")}
                                                         disabled={isUpdating}
                                                     >
@@ -345,7 +345,7 @@ export function ClassRosterPanel({
                                                     <Button
                                                         type="button"
                                                         size="sm"
-                                                        variant="text"
+                                                        variant="ghost"
                                                         onClick={() => void handleUpdateStatus(member, "CANCELLED")}
                                                         disabled={isUpdating}
                                                     >
@@ -355,7 +355,7 @@ export function ClassRosterPanel({
                                                     <Button
                                                         type="button"
                                                         size="sm"
-                                                        variant="text"
+                                                        variant="ghost"
                                                         onClick={() => void handleUpdateStatus(member, "BOOKED")}
                                                         disabled={isUpdating}
                                                     >
@@ -413,7 +413,7 @@ export function ClassRosterPanel({
                                             <Button
                                                 type="button"
                                                 size="sm"
-                                                variant="outlined"
+                                                variant="outline"
                                                 className="mt-3 w-full"
                                                 onClick={() => void handleAddMember(member)}
                                                 disabled={isAdding}
