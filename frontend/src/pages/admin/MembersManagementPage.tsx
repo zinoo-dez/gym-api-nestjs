@@ -69,8 +69,8 @@ export function MembersManagementPage() {
     <div className="space-y-8">
       <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="space-y-1">
-          <h1 className="text-display-small font-bold text-on-surface">Members Management</h1>
-          <p className="text-body-large text-on-surface-variant max-w-2xl">
+          <h1 className="text-3xl font-bold text-foreground">Members Management</h1>
+          <p className="text-base text-muted-foreground max-w-2xl">
             Full operational control over member profiles, membership lifecycle, and account status.
           </p>
         </div>
@@ -81,8 +81,8 @@ export function MembersManagementPage() {
       </header>
 
       {loadState === "loading" ? (
-        <Card variant="filled" className="bg-surface-container">
-          <CardContent className="p-8 text-center text-body-medium text-on-surface-variant font-medium">
+        <Card variant="filled" className="bg-card">
+          <CardContent className="p-8 text-center text-sm text-muted-foreground font-medium">
             <div className="flex flex-col items-center gap-3">
               <div className="size-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
               Loading members directory...
@@ -92,14 +92,14 @@ export function MembersManagementPage() {
       ) : null}
 
       {loadState === "error" ? (
-        <Card variant="outlined" className="border-error">
+        <Card variant="outlined" className="border-destructive">
           <CardContent className="flex flex-col items-center gap-4 p-8 text-center">
-            <div className="size-14 flex items-center justify-center rounded-full bg-error-container text-on-error-container">
+            <div className="size-14 flex items-center justify-center rounded-full bg-destructive/10 text-destructive">
               <MaterialIcon icon="report_problem" className="text-3xl" />
             </div>
             <div className="space-y-1">
-              <p className="text-title-medium font-bold text-on-surface">Unable to load members data.</p>
-              <p className="text-body-small text-on-surface-variant">Please check your connection or try again.</p>
+              <p className="text-base font-bold text-foreground">Unable to load members data.</p>
+              <p className="text-xs text-muted-foreground">Please check your connection or try again.</p>
             </div>
             <Button type="button" variant="tonal" onClick={() => void loadData()}>
               <MaterialIcon icon="refresh" />
@@ -110,7 +110,7 @@ export function MembersManagementPage() {
       ) : null}
 
       {actionError ? (
-        <div className="rounded-xl bg-error-container p-4 text-on-error-container text-label-large font-bold shadow-sm">
+        <div className="rounded-xl bg-destructive/10 p-4 text-destructive text-sm font-bold shadow-sm">
           {actionError}
         </div>
       ) : null}
@@ -118,7 +118,7 @@ export function MembersManagementPage() {
       {loadState === "ready" ? (
         <>
           <section className="space-y-4">
-            <h2 className="text-title-large font-bold text-on-surface">Member Overview</h2>
+            <h2 className="text-lg font-bold text-foreground">Member Overview</h2>
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
               <ManagementStatCard
                 title="Total Members"
@@ -189,7 +189,7 @@ export function MembersManagementPage() {
           </section>
 
           <section className="space-y-6">
-            <h2 className="text-title-large font-bold text-on-surface">Member Directory</h2>
+            <h2 className="text-lg font-bold text-foreground">Member Directory</h2>
 
             <ManagementFilterShell
               searchValue={filters.search}
@@ -314,15 +314,15 @@ export function MembersManagementPage() {
                   label: "Member Name",
                   render: (row) => (
                     <div>
-                      <p className="text-body-medium font-bold text-on-surface">{row.fullName}</p>
-                      <p className="text-label-small text-on-surface-variant font-medium">{row.email}</p>
+                      <p className="text-sm font-bold text-foreground">{row.fullName}</p>
+                      <p className="text-xs text-muted-foreground font-medium">{row.email}</p>
                     </div>
                   ),
                 },
                 {
                   id: "plan",
                   label: "Membership Plan",
-                  render: (row) => <span className="text-body-medium font-medium text-on-surface">{row.planName}</span>,
+                  render: (row) => <span className="text-sm font-medium text-foreground">{row.planName}</span>,
                 },
                 {
                   id: "status",
@@ -336,14 +336,14 @@ export function MembersManagementPage() {
                   label: "Last Check-in",
                   sortable: true,
                   render: (row) => (
-                    <span className="text-body-medium text-on-surface">{formatDisplayDateTime(row.lastCheckIn)}</span>
+                    <span className="text-sm text-foreground">{formatDisplayDateTime(row.lastCheckIn)}</span>
                   ),
                 },
                 {
                   id: "expiry",
                   label: "Expiry Date",
                   sortable: true,
-                  render: (row) => <span className="text-body-medium text-on-surface">{formatDisplayDate(row.expiryDate)}</span>,
+                  render: (row) => <span className="text-sm text-foreground">{formatDisplayDate(row.expiryDate)}</span>,
                 },
                 {
                   id: "payment",
@@ -409,30 +409,30 @@ export function MembersManagementPage() {
                 const member = members.find((item) => item.id === row.id);
 
                 return (
-                  <article className="rounded-2xl border border-outline-variant bg-surface-container-low p-5 shadow-sm">
+                  <article className="rounded-2xl border border-border bg-card p-5 shadow-sm">
                     <div className="flex items-start justify-between gap-2">
                       <div className="space-y-0.5">
-                        <h3 className="text-title-medium font-bold tracking-tight text-on-surface">{row.fullName}</h3>
-                        <p className="text-body-small text-on-surface-variant">{row.email}</p>
+                        <h3 className="text-base font-bold tracking-tight text-foreground">{row.fullName}</h3>
+                        <p className="text-xs text-muted-foreground">{row.email}</p>
                       </div>
                       <StatusBadge label={row.membershipDisplayStatus} tone={row.membershipStatusTone} />
                     </div>
 
-                    <dl className="mt-4 grid grid-cols-2 gap-4 text-body-small">
+                    <dl className="mt-4 grid grid-cols-2 gap-4 text-xs">
                       <div className="space-y-1">
-                        <dt className="text-label-small font-bold uppercase tracking-wider text-on-surface-variant/70">Plan</dt>
-                        <dd className="text-on-surface font-medium">{row.planName}</dd>
+                        <dt className="text-xs font-bold uppercase tracking-wider text-muted-foreground/70">Plan</dt>
+                        <dd className="text-foreground font-medium">{row.planName}</dd>
                       </div>
                       <div className="space-y-1">
-                        <dt className="text-label-small font-bold uppercase tracking-wider text-on-surface-variant/70">Expiry</dt>
-                        <dd className="text-on-surface font-medium">{formatDisplayDate(row.expiryDate)}</dd>
+                        <dt className="text-xs font-bold uppercase tracking-wider text-muted-foreground/70">Expiry</dt>
+                        <dd className="text-foreground font-medium">{formatDisplayDate(row.expiryDate)}</dd>
                       </div>
                       <div className="space-y-1">
-                        <dt className="text-label-small font-bold uppercase tracking-wider text-on-surface-variant/70">Check-in</dt>
-                        <dd className="text-on-surface font-medium">{formatDisplayDateTime(row.lastCheckIn)}</dd>
+                        <dt className="text-xs font-bold uppercase tracking-wider text-muted-foreground/70">Check-in</dt>
+                        <dd className="text-foreground font-medium">{formatDisplayDateTime(row.lastCheckIn)}</dd>
                       </div>
                       <div className="space-y-1">
-                        <dt className="text-label-small font-bold uppercase tracking-wider text-on-surface-variant/70">Payment</dt>
+                        <dt className="text-xs font-bold uppercase tracking-wider text-muted-foreground/70">Payment</dt>
                         <dd>
                           <StatusBadge label={row.paymentStatus} tone={row.paymentStatusTone} />
                         </dd>

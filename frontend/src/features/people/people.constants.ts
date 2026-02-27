@@ -15,7 +15,7 @@ export const STATUS_BADGE_TONE_STYLES: Record<
 > = {
   success: "bg-success/20 text-success",
   warning: "bg-warning/20 text-warning",
-  danger: "bg-danger/20 text-danger",
+  danger: "bg-danger/20 text-destructive",
   info: "bg-info/20 text-info",
   secondary: "bg-secondary text-secondary-foreground",
 };

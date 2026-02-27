@@ -87,7 +87,7 @@ export function RefundConfirmationPanel({
       className="max-w-md"
     >
       <div className="space-y-6">
-        <div className="flex items-start gap-3 rounded-lg bg-error/10 p-4 text-error">
+        <div className="flex items-start gap-3 rounded-lg bg-destructive/10 p-4 text-destructive">
           <MaterialIcon icon="warning" className="size-5 shrink-0" />
           <div className="space-y-1">
             <h4 className="text-sm font-semibold">Refund Warning</h4>
@@ -106,7 +106,7 @@ export function RefundConfirmationPanel({
 
         <div className="space-y-2">
           <Label htmlFor="refund-reason">
-            Reason for Refund <span className="text-danger">*</span>
+            Reason for Refund <span className="text-destructive">*</span>
           </Label>
           <Textarea
             id="refund-reason"

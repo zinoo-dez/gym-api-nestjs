@@ -183,10 +183,10 @@ export function AdminLayout() {
   );
 
   return (
-    <div className="flex h-screen overflow-hidden bg-surface text-on-surface">
+    <div className="flex h-screen overflow-hidden bg-background text-foreground">
       {/* 1. COMPACT: Navigation Bar (Bottom) */}
       {isCompact && (
-        <nav className="fixed bottom-0 left-0 right-0 z-50 flex h-[80px] items-center justify-around border-t border-outline-variant bg-surface-container shadow-lg">
+        <nav className="fixed bottom-0 left-0 right-0 z-50 flex h-[80px] items-center justify-around border-t border-border bg-card shadow-lg">
           {mainRoutes.map((item) => {
             const isActive = isPathActive(location.pathname, item.path);
             return (
@@ -195,40 +195,40 @@ export function AdminLayout() {
                 to={item.path}
                 className={cn(
                   "flex flex-1 flex-col items-center justify-center gap-1 h-full transition-colors",
-                  isActive ? "text-on-surface" : "text-on-surface-variant hover:text-on-surface"
+                  isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"
                 )}
               >
                 <div className={cn(
                   "flex items-center justify-center h-8 w-16 rounded-full transition-all duration-200",
-                  isActive ? "bg-secondary-container" : "hover:bg-on-surface/5"
+                  isActive ? "bg-primary/10" : "hover:bg-muted"
                 )}>
                   <MaterialIcon 
                     icon={item.icon} 
                     fill={isActive}
-                    className={cn(isActive ? "text-on-secondary-container" : "text-on-surface-variant")} 
+                    className={cn(isActive ? "text-primary" : "text-muted-foreground")} 
                   />
                 </div>
-                <span className={cn("text-label-medium", isActive && "font-bold")}>{item.label}</span>
+                <span className={cn("text-xs", isActive && "font-bold")}>{item.label}</span>
               </Link>
             );
           })}
           <button
             onClick={() => setDrawerOpen(true)}
-            className="flex flex-1 flex-col items-center justify-center gap-1 h-full text-on-surface-variant hover:text-on-surface"
+            className="flex flex-1 flex-col items-center justify-center gap-1 h-full text-muted-foreground hover:text-foreground"
           >
-            <div className="flex items-center justify-center h-8 w-16 rounded-full hover:bg-on-surface/5">
+            <div className="flex items-center justify-center h-8 w-16 rounded-full hover:bg-muted">
               <MaterialIcon icon="menu" />
             </div>
-            <span className="text-label-medium">More</span>
+            <span className="text-xs">More</span>
           </button>
         </nav>
       )}
 
       {/* 2. MEDIUM: Navigation Rail */}
       {isMedium && (
-        <aside className="fixed inset-y-0 left-0 z-40 flex w-[80px] flex-col items-center border-r border-outline-variant bg-surface-container py-4 shadow-sm">
+        <aside className="fixed inset-y-0 left-0 z-40 flex w-[80px] flex-col items-center border-r border-border bg-card py-4 shadow-sm">
           <div className="mb-8 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary shadow-sm">
-            <MaterialIcon icon="fitness_center" className="text-on-primary text-2xl" />
+            <MaterialIcon icon="fitness_center" className="text-primary-foreground text-2xl" />
           </div>
 
           <div className="flex flex-1 flex-col gap-4">
@@ -240,14 +240,14 @@ export function AdminLayout() {
                   to={item.path}
                   className={cn(
                     "flex flex-col items-center gap-1 transition-colors",
-                    isActive ? "text-on-surface" : "text-on-surface-variant hover:text-on-surface"
+                    isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"
                   )}
                 >
                   <div className={cn(
                     "flex items-center justify-center h-8 w-14 rounded-full transition-all duration-200",
-                    isActive ? "bg-secondary-container" : "hover:bg-on-surface/5"
+                    isActive ? "bg-primary/10" : "hover:bg-muted"
                   )}>
-                    <MaterialIcon icon={item.icon} fill={isActive} className={isActive ? "text-on-secondary-container" : ""} />
+                    <MaterialIcon icon={item.icon} fill={isActive} className={isActive ? "text-primary" : ""} />
                   </div>
                   <span className={cn("text-[11px] font-medium", isActive && "font-bold")}>{item.label}</span>
                 </Link>
@@ -255,9 +255,9 @@ export function AdminLayout() {
             })}
             <button
               onClick={() => setDrawerOpen(true)}
-              className="flex flex-col items-center gap-1 text-on-surface-variant hover:text-on-surface"
+              className="flex flex-col items-center gap-1 text-muted-foreground hover:text-foreground"
             >
-              <div className="flex items-center justify-center h-8 w-14 rounded-full hover:bg-on-surface/5">
+              <div className="flex items-center justify-center h-8 w-14 rounded-full hover:bg-muted">
                 <MaterialIcon icon="menu" />
               </div>
               <span className="text-[11px] font-medium">More</span>
@@ -275,20 +275,20 @@ export function AdminLayout() {
 
       {/* 3. EXPANDED: Navigation Drawer (Standard/Persistent) */}
       {isExpanded && (
-        <aside className="z-30 flex w-[300px] shrink-0 flex-col border-r border-outline-variant bg-surface-container-low">
+        <aside className="z-30 flex w-[300px] shrink-0 flex-col border-r border-border bg-card">
           <div className="flex h-20 items-center px-6">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary">
-                <MaterialIcon icon="fitness_center" className="text-on-primary text-xl" />
+                <MaterialIcon icon="fitness_center" className="text-primary-foreground text-xl" />
               </div>
-              <span className="text-title-large font-bold tracking-tight text-primary">GymAdmin</span>
+              <span className="text-lg font-bold tracking-tight text-primary">GymAdmin</span>
             </div>
           </div>
 
           <nav className="flex-1 overflow-y-auto px-3 no-scrollbar space-y-4 py-4">
             {visibleMenuSections.map((section) => (
               <div key={section.title} className="space-y-1">
-                <p className="px-3 text-label-small font-medium uppercase tracking-wider text-on-surface-variant/70">
+                <p className="px-3 text-xs font-medium uppercase tracking-wider text-muted-foreground/70">
                   {section.title}
                 </p>
                 {section.items.map((item) => {
@@ -296,15 +296,15 @@ export function AdminLayout() {
                   return (
                     <Link key={item.path} to={item.path}>
                       <div className={cn(
-                        "flex h-14 items-center gap-3 rounded-full px-4 text-body-medium transition-all duration-200",
+                        "flex h-14 items-center gap-3 rounded-full px-4 text-sm transition-all duration-200",
                         isActive 
-                          ? "bg-secondary-container text-on-secondary-container font-bold shadow-sm"
-                          : "text-on-surface-variant hover:bg-on-surface/5"
+                          ? "bg-primary/10 text-primary font-bold shadow-sm"
+                          : "text-muted-foreground hover:bg-muted"
                       )}>
                         <MaterialIcon 
                           icon={item.icon} 
                           fill={isActive}
-                          className={cn("text-xl", isActive ? "text-on-secondary-container" : "text-on-surface-variant")} 
+                          className={cn("text-xl", isActive ? "text-primary" : "text-muted-foreground")} 
                         />
                         <span className="truncate">{item.label}</span>
                       </div>
@@ -315,22 +315,22 @@ export function AdminLayout() {
             ))}
           </nav>
 
-          <div className="mt-auto border-t border-outline-variant p-4">
+          <div className="mt-auto border-t border-border p-4">
             <div className="mb-4 flex items-center gap-3 px-3">
               <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/20 text-primary">
                 <span className="font-semibold uppercase">{user?.firstName?.[0] || "A"}</span>
               </div>
               <div className="flex flex-col truncate">
-                <span className="text-label-large font-bold text-on-surface truncate">
+                <span className="text-sm font-bold text-foreground truncate">
                   {user?.firstName || "Admin"} {user?.lastName || ""}
                 </span>
-                <span className="text-body-small text-on-surface-variant truncate">{user?.email || "admin@gym.com"}</span>
+                <span className="text-xs text-muted-foreground truncate">{user?.email || "admin@gym.com"}</span>
               </div>
             </div>
             <button
               type="button"
               onClick={() => logout()}
-              className="flex w-full items-center gap-3 rounded-full h-12 px-4 text-label-large text-error transition-colors hover:bg-error/10"
+              className="flex w-full items-center gap-3 rounded-full h-12 px-4 text-sm text-destructive transition-colors hover:bg-destructive/10"
             >
               <MaterialIcon icon="logout" className="text-xl" />
               <span>Logout</span>
@@ -348,16 +348,16 @@ export function AdminLayout() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setDrawerOpen(false)}
-              className="fixed inset-0 z-[60] bg-scrim/60 backdrop-blur-sm"
+              className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm"
             />
             <motion.div
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
-              className="fixed inset-y-0 right-0 z-[70] flex w-full max-w-xs flex-col bg-surface-container-high shadow-2xl"
+              className="fixed inset-y-0 right-0 z-[70] flex w-full max-w-xs flex-col bg-card shadow-2xl"
             >
-              <div className="flex h-16 items-center justify-between px-6 border-b border-outline-variant">
-                <span className="text-title-medium font-bold">More Options</span>
+              <div className="flex h-16 items-center justify-between px-6 border-b border-border">
+                <span className="text-base font-bold">More Options</span>
                 <button onClick={() => setDrawerOpen(false)}>
                   <MaterialIcon icon="close" />
                 </button>
@@ -365,15 +365,15 @@ export function AdminLayout() {
               <div className="flex-1 overflow-y-auto py-4">
                 {visibleMenuSections.map((section) => (
                   <div key={section.title} className="mb-6 px-4">
-                    <h4 className="px-4 text-label-small font-bold uppercase text-on-surface-variant mb-2">{section.title}</h4>
+                    <h4 className="px-4 text-xs font-bold uppercase text-muted-foreground mb-2">{section.title}</h4>
                     {section.items.map((item) => (
                       <Link 
                         key={item.path} 
                         to={item.path}
                         onClick={() => setDrawerOpen(false)}
-                        className="flex items-center gap-3 h-12 px-4 rounded-full text-body-medium text-on-surface hover:bg-on-surface/5"
+                        className="flex items-center gap-3 h-12 px-4 rounded-full text-sm text-foreground hover:bg-muted"
                       >
-                        <MaterialIcon icon={item.icon} className="text-on-surface-variant" />
+                        <MaterialIcon icon={item.icon} className="text-muted-foreground" />
                         <span>{item.label}</span>
                       </Link>
                     ))}
@@ -390,9 +390,9 @@ export function AdminLayout() {
         "flex flex-1 flex-col overflow-hidden relative",
         isMedium && "pl-[80px]", // adjustment for rail
       )}>
-        <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between border-b border-outline-variant bg-surface/80 px-4 backdrop-blur-md md:px-6">
+        <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between border-b border-border bg-background/80 px-4 backdrop-blur-md md:px-6">
           <div className="flex items-center gap-4">
-            <h1 className="text-headline-small font-bold text-on-surface">
+            <h1 className="text-xl font-bold text-foreground">
               {activeLabel}
             </h1>
           </div>
@@ -409,7 +409,17 @@ export function AdminLayout() {
           isCompact && "pb-24" // extra padding for mobile bottom nav
         )}>
           <div className="mx-auto max-w-7xl">
-            <Outlet />
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={location.pathname}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.25, ease: "easeOut" }}
+              >
+                <Outlet />
+              </motion.div>
+            </AnimatePresence>
           </div>
         </main>
       </div>

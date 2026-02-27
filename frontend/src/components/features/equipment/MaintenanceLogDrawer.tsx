@@ -86,7 +86,7 @@ export function MaintenanceLogDrawer({
       <form id="maintenance-log-form" className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
         <div className="space-y-2">
           <Label htmlFor="maintenance-date">
-            Date <span className="text-danger">*</span>
+            Date <span className="text-destructive">*</span>
           </Label>
           <Input
             id="maintenance-date"
@@ -99,7 +99,7 @@ export function MaintenanceLogDrawer({
 
         <div className="space-y-2">
           <Label htmlFor="maintenance-type">
-            Type <span className="text-danger">*</span>
+            Type <span className="text-destructive">*</span>
           </Label>
           <Select id="maintenance-type" {...register("type")} hasError={Boolean(errors.type)}>
             {MAINTENANCE_LOG_TYPES.map((typeOption) => (
@@ -112,7 +112,7 @@ export function MaintenanceLogDrawer({
 
         <div className="space-y-2">
           <Label htmlFor="maintenance-description">
-            Description <span className="text-danger">*</span>
+            Description <span className="text-destructive">*</span>
           </Label>
           <Textarea
             id="maintenance-description"
@@ -126,7 +126,7 @@ export function MaintenanceLogDrawer({
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="maintenance-cost">
-              Cost (USD) <span className="text-danger">*</span>
+              Cost (USD) <span className="text-destructive">*</span>
             </Label>
             <Input
               id="maintenance-cost"
@@ -141,7 +141,7 @@ export function MaintenanceLogDrawer({
 
           <div className="space-y-2">
             <Label htmlFor="maintenance-performed-by">
-              Performed By <span className="text-danger">*</span>
+              Performed By <span className="text-destructive">*</span>
             </Label>
             <Input
               id="maintenance-performed-by"

@@ -8,7 +8,7 @@ const CONDITION_STYLES: Record<EquipmentCondition, string> = {
   new: "bg-success/20 text-success",
   good: "bg-info/20 text-info",
   needs_maintenance: "bg-warning/20 text-warning",
-  out_of_order: "bg-danger/20 text-danger",
+  out_of_order: "bg-danger/20 text-destructive",
 };
 
 interface EquipmentConditionBadgeProps {

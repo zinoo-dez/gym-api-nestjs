@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { toast } from "sonner";
+import { goeyToast } from "goey-toast";
 
 import {
   createSearchParamsFromReportsFilters,
@@ -129,18 +129,18 @@ export function Dashboard() {
     try {
       const blob = await reportsService.exportReport(filters, formatType);
       downloadBlob(blob, createExportFilename(filters, formatType));
-      toast.success(`${formatType.toUpperCase()} report downloaded.`);
+      goeyToast.success(`${formatType.toUpperCase()} report downloaded.`);
       return;
     } catch (error) {
       if (formatType === "csv" && summary?.recentTransactions.length) {
         const csv = toCsvString(summary.recentTransactions);
         const fallbackBlob = new Blob([csv], { type: "text/csv;charset=utf-8" });
         downloadBlob(fallbackBlob, createExportFilename(filters, "csv"));
-        toast.success("CSV export generated from visible table data.");
+        goeyToast.success("CSV export generated from visible table data.");
         return;
       }
 
-      toast.error(toErrorMessage(error));
+      goeyToast.error(toErrorMessage(error));
     } finally {
       setExportingFormat(null);
     }
@@ -153,8 +153,8 @@ export function Dashboard() {
   return (
     <div className="space-y-8">
       <header className="space-y-3">
-        <h1 className="text-display-small font-bold text-on-surface">Gym Analytics Dashboard</h1>
-        <p className="text-body-large text-on-surface-variant max-w-2xl">
+        <h1 className="text-3xl font-bold text-foreground">Gym Analytics Dashboard</h1>
+        <p className="text-base text-muted-foreground max-w-2xl">
           Track revenue, memberships, attendance trends, and transaction activity in one responsive reporting view.
         </p>
       </header>
@@ -167,7 +167,7 @@ export function Dashboard() {
       />
 
       {summaryError ? (
-        <div className="rounded-xl bg-error-container p-4 text-on-error-container text-label-large font-bold shadow-sm">
+        <div className="rounded-xl bg-destructive/10 p-4 text-destructive text-sm font-bold shadow-sm">
           {summaryError}
         </div>
       ) : null}

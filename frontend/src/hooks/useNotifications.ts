@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
-import { toast } from "sonner";
+import { goeyToast } from "goey-toast";
 
 import { useAuthStore } from "@/store/auth.store";
 import { useNotificationStore } from "@/store/notification.store";
@@ -107,10 +107,9 @@ export const useNotificationsRealtimeSync = () => {
         continue;
       }
 
-      toast.error(notification.title, {
+      goeyToast.error(notification.title, {
         description: notification.message,
         duration: 7000,
-        position: "top-right",
       });
     }
 

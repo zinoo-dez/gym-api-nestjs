@@ -45,15 +45,15 @@ export function ReportsKpiCard({
       <CardContent className="p-6">
         <div className="flex items-start justify-between gap-3">
           <div className="space-y-4">
-            <p className="text-label-medium font-medium text-on-surface-variant">{title}</p>
-            <p className="text-headline-medium font-bold tracking-tight text-on-surface">{valueLabel}</p>
+            <p className="text-xs font-medium text-muted-foreground">{title}</p>
+            <p className="text-2xl font-bold tracking-tight text-foreground">{valueLabel}</p>
             <div className="flex items-center gap-2">
               <span
                 className={cn(
-                  "inline-flex items-center gap-1 rounded-full px-3 py-1 text-label-small font-bold",
-                  trendDirection === "up" && "bg-success-container text-on-success-container",
-                  trendDirection === "down" && "bg-error-container text-on-error-container",
-                  trendDirection === "flat" && "bg-surface-container-highest text-on-surface-variant",
+                  "inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-bold",
+                  trendDirection === "up" && "bg-success/10 text-success",
+                  trendDirection === "down" && "bg-destructive/10 text-destructive",
+                  trendDirection === "flat" && "bg-card text-muted-foreground",
                 )}
               >
                 <MaterialIcon 
@@ -64,11 +64,11 @@ export function ReportsKpiCard({
                 />
                 {formatTrendLabel(trendPercent)}
               </span>
-              <span className="text-body-small text-on-surface-variant">{helperText}</span>
+              <span className="text-xs text-muted-foreground">{helperText}</span>
             </div>
           </div>
 
-          <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-primary-container text-on-primary-container shadow-sm">
+          <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary shadow-sm">
             <MaterialIcon icon={icon} className="text-2xl" />
           </div>
         </div>

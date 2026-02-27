@@ -8,10 +8,10 @@ const PAYMENT_STATUS_LABELS: Record<BillingPaymentStatus, string> = {
 };
 
 const PAYMENT_STATUS_STYLES: Record<BillingPaymentStatus, string> = {
-  SUCCESS: "bg-tertiary-container text-on-tertiary-container",
-  PENDING: "bg-error-container text-on-error-container",
-  FAILED: "bg-error text-on-error",
-  REFUNDED: "bg-surface-variant text-on-surface-variant",
+  SUCCESS: "bg-success/10 text-success",
+  PENDING: "bg-destructive/10 text-destructive",
+  FAILED: "bg-destructive text-destructive-foreground",
+  REFUNDED: "bg-muted text-muted-foreground",
 };
 
 interface PaymentStatusBadgeProps {

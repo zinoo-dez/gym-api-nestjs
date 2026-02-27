@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { CheckCheck, Plus, RefreshCcw, Search } from "lucide-react";
-import { toast } from "sonner";
+import { goeyToast } from "goey-toast";
 
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -166,9 +166,9 @@ export function ClassRosterPanel({
         attendanceId: member.attendanceId,
       });
 
-      toast.success(`${member.memberName} marked as ${getAttendanceStatusLabel(status)}.`);
+      goeyToast.success(`${member.memberName} marked as ${getAttendanceStatusLabel(status)}.`);
     } catch (error) {
-      toast.error(toErrorMessage(error));
+      goeyToast.error(toErrorMessage(error));
     }
   };
 
@@ -183,11 +183,11 @@ export function ClassRosterPanel({
         memberId: member.memberId,
       });
 
-      toast.success(`${member.fullName} added to class.`);
+      goeyToast.success(`${member.fullName} added to class.`);
       setSearchInput("");
       setDebouncedSearchInput("");
     } catch (error) {
-      toast.error(toErrorMessage(error));
+      goeyToast.error(toErrorMessage(error));
     }
   };
 
@@ -236,7 +236,7 @@ export function ClassRosterPanel({
           </div>
           <div className="h-2 rounded-full bg-muted">
             <div
-              className={`h-full rounded-full ${displayOccupancyPercentage >= 90 ? "bg-error" : "bg-success"}`}
+              className={`h-full rounded-full ${displayOccupancyPercentage >= 90 ? "bg-destructive" : "bg-success"}`}
               style={{ width: `${Math.min(displayOccupancyPercentage, 100)}%` }}
             />
           </div>
@@ -260,14 +260,14 @@ export function ClassRosterPanel({
           }`}
         >
           <section className="space-y-3">
-            <h3 className="card-title text-base">Booked Members</h3>
+            <h3 className="text-lg font-semibold tracking-tight text-base">Booked Members</h3>
 
             {rosterQuery.isLoading ? (
               <div className="rounded-lg border border-dashed p-6 text-sm text-muted-foreground">Loading roster...</div>
             ) : null}
 
             {rosterQuery.isError ? (
-              <div className="rounded-lg border border-error/40 bg-error/10 p-4 text-sm text-error">
+              <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive">
                 {toErrorMessage(rosterQuery.error)}
               </div>
             ) : null}
@@ -372,8 +372,8 @@ export function ClassRosterPanel({
           </section>
 
           {allowQuickAdd ? (
-            <aside className="space-y-4 rounded-lg border bg-surface-container-low p-4">
-              <h3 className="card-title text-base">Quick Add Member</h3>
+            <aside className="space-y-4 rounded-lg border bg-card p-4">
+              <h3 className="text-lg font-semibold tracking-tight text-base">Quick Add Member</h3>
 
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground" htmlFor="roster-search">

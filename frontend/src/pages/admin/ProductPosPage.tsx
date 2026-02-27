@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { toast } from "sonner";
+import { goeyToast } from "goey-toast";
 
 import { LowStockAlertStrip, PosSalePanel } from "@/components/features/product-sales";
 import { toErrorMessage, type CartItem } from "@/features/product-sales";
@@ -61,7 +61,7 @@ export function ProductPosPage() {
 
   const addProductToCart = (product: ProductRecord) => {
     if (product.stockQuantity <= 0) {
-      toast.error(`${product.name} is out of stock.`);
+      goeyToast.error(`${product.name} is out of stock.`);
       return;
     }
 
@@ -83,7 +83,7 @@ export function ProductPosPage() {
       }
 
       if (existing.quantity >= existing.maxStock) {
-        toast.error(`Only ${existing.maxStock} item(s) available for ${existing.name}.`);
+        goeyToast.error(`Only ${existing.maxStock} item(s) available for ${existing.name}.`);
         return currentCart;
       }
 
@@ -106,7 +106,7 @@ export function ProductPosPage() {
         }
 
         if (item.quantity >= item.maxStock) {
-          toast.error(`Only ${item.maxStock} item(s) available for ${item.name}.`);
+          goeyToast.error(`Only ${item.maxStock} item(s) available for ${item.name}.`);
           return item;
         }
 
@@ -139,12 +139,12 @@ export function ProductPosPage() {
 
   const completeSale = async () => {
     if (cart.length === 0) {
-      toast.error("Add at least one product to the cart.");
+      goeyToast.error("Add at least one product to the cart.");
       return;
     }
 
     if (saleDiscount > saleSubtotal) {
-      toast.error("Discount cannot exceed subtotal.");
+      goeyToast.error("Discount cannot exceed subtotal.");
       return;
     }
 
@@ -161,14 +161,14 @@ export function ProductPosPage() {
         })),
       });
 
-      toast.success(`Sale ${sale.saleNumber} completed.`);
+      goeyToast.success(`Sale ${sale.saleNumber} completed.`);
       setCart([]);
       setSelectedMemberId("");
       setSelectedPaymentMethod("CASH");
       setDiscountInput("0");
       setSaleNotes("");
     } catch (error) {
-      toast.error(toErrorMessage(error));
+      goeyToast.error(toErrorMessage(error));
     }
   };
 

@@ -202,7 +202,7 @@ export function ManualPaymentPanel({
       >
         <div className="space-y-2">
           <Label htmlFor="payment-member-picker">
-            Member <span className="text-danger">*</span>
+            Member <span className="text-destructive">*</span>
           </Label>
 
           <Popover.Root
@@ -216,7 +216,7 @@ export function ManualPaymentPanel({
                 className={cn(
                   "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                   errors.memberId
-                    ? "border-danger focus-visible:ring-danger"
+                    ? "border-destructive focus-visible:ring-danger"
                     : "",
                 )}
                 aria-expanded={memberSelectOpen}
@@ -239,7 +239,7 @@ export function ManualPaymentPanel({
 
             <Popover.Portal>
               <Popover.Content
-                className="z-50 w-[var(--radix-popover-trigger-width)] rounded-xl border bg-surface-container-highest p-2 text-on-surface shadow-elevation-3 border-outline-variant animate-in fade-in zoom-in-95 duration-200"
+                className="z-50 w-[var(--radix-popover-trigger-width)] rounded-xl border bg-card p-2 text-foreground shadow-elevation-3 border-border animate-in fade-in zoom-in-95 duration-200"
                 align="start"
                 sideOffset={8}
               >
@@ -272,7 +272,7 @@ export function ManualPaymentPanel({
                           className={cn(
                             "flex w-full items-start justify-between rounded-lg px-4 py-2.5 text-left text-sm transition-all focus:outline-none",
                             isSelected
-                              ? "bg-primary text-on-primary shadow-sm"
+                              ? "bg-primary text-primary-foreground shadow-sm"
                               : "hover:bg-primary/10 active:bg-primary/20",
                           )}
                         >
@@ -315,7 +315,7 @@ export function ManualPaymentPanel({
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="manual-payment-amount">
-              Amount <span className="text-danger">*</span>
+              Amount <span className="text-destructive">*</span>
             </Label>
             <Input
               id="manual-payment-amount"
@@ -333,7 +333,7 @@ export function ManualPaymentPanel({
 
           <div className="space-y-2">
             <Label htmlFor="manual-payment-category">
-              Payment Category <span className="text-danger">*</span>
+              Payment Category <span className="text-destructive">*</span>
             </Label>
             <Select
               id="manual-payment-category"
@@ -350,7 +350,7 @@ export function ManualPaymentPanel({
 
           <div className="space-y-2 md:col-span-2">
             <Label htmlFor="manual-payment-method">
-              Payment Method <span className="text-danger">*</span>
+              Payment Method <span className="text-destructive">*</span>
             </Label>
             <Select
               id="manual-payment-method"

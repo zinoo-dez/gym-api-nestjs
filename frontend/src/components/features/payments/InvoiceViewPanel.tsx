@@ -1,5 +1,5 @@
 import { Download, Printer } from "lucide-react";
-import { toast } from "sonner";
+import { goeyToast } from "goey-toast";
 
 import {
   toPaymentErrorMessage,
@@ -41,7 +41,7 @@ const invoiceStatusClass = (status: string): string => {
   }
 
   if (normalized === "OVERDUE" || normalized === "FAILED") {
-    return "bg-danger/20 text-danger";
+    return "bg-danger/20 text-destructive";
   }
 
   if (normalized === "PENDING" || normalized === "OPEN" || normalized === "DRAFT") {
@@ -209,7 +209,7 @@ export function InvoiceViewPanel({ open, onClose, invoiceId, isMobile }: Invoice
       link.remove();
       window.URL.revokeObjectURL(objectUrl);
     } catch (error) {
-      toast.error(toPaymentErrorMessage(error));
+      goeyToast.error(toPaymentErrorMessage(error));
     }
   };
 
@@ -221,7 +221,7 @@ export function InvoiceViewPanel({ open, onClose, invoiceId, isMobile }: Invoice
     const printWindow = window.open("", "_blank", "noopener,noreferrer,width=960,height=900");
 
     if (!printWindow) {
-      toast.error("Unable to open print preview. Check pop-up permissions and retry.");
+      goeyToast.error("Unable to open print preview. Check pop-up permissions and retry.");
       return;
     }
 
@@ -264,8 +264,8 @@ export function InvoiceViewPanel({ open, onClose, invoiceId, isMobile }: Invoice
       ) : null}
 
       {invoiceQuery.isError ? (
-        <div className="space-y-3 rounded-lg border border-danger/40 bg-danger/5 p-4">
-          <p className="text-sm text-danger">{toPaymentErrorMessage(invoiceQuery.error)}</p>
+        <div className="space-y-3 rounded-lg border border-destructive/40 bg-danger/5 p-4">
+          <p className="text-sm text-destructive">{toPaymentErrorMessage(invoiceQuery.error)}</p>
           <Button type="button" variant="outline" onClick={() => void invoiceQuery.refetch()}>
             Retry
           </Button>
@@ -296,7 +296,7 @@ export function InvoiceViewPanel({ open, onClose, invoiceId, isMobile }: Invoice
           </header>
 
           <section className="rounded-lg border bg-card p-4">
-            <h4 className="card-title">Member Details</h4>
+            <h4 className="text-lg font-semibold tracking-tight">Member Details</h4>
             <div className="mt-3 grid gap-2 text-sm md:grid-cols-2">
               <p className="text-foreground">
                 <span className="text-muted-foreground">Name:</span> {invoice.member.name}
@@ -314,7 +314,7 @@ export function InvoiceViewPanel({ open, onClose, invoiceId, isMobile }: Invoice
           </section>
 
           <section className="rounded-lg border bg-card p-4">
-            <h4 className="card-title">Itemized Charges</h4>
+            <h4 className="text-lg font-semibold tracking-tight">Itemized Charges</h4>
             <div className="mt-3 overflow-x-auto rounded-md border">
               <table className="w-full min-w-[640px] text-sm">
                 <thead>

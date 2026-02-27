@@ -3,7 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import { useForm } from "react-hook-form";
 import { NavLink, useNavigate, useParams } from "react-router-dom";
-import { toast } from "sonner";
+import { goeyToast } from "goey-toast";
 
 import {
   BusinessHoursForm,
@@ -256,9 +256,9 @@ export function SystemSettingsPage() {
 
       generalForm.reset(nextValues);
       setLogoPreviewUrl(nextValues.logo);
-      toast.success("General settings saved.");
+      goeyToast.success("General settings saved.");
     } catch (error) {
-      toast.error(toSettingsErrorMessage(error));
+      goeyToast.error(toSettingsErrorMessage(error));
     }
   };
 
@@ -270,9 +270,9 @@ export function SystemSettingsPage() {
       };
 
       businessHoursForm.reset(nextValues);
-      toast.success("Business hours saved.");
+      goeyToast.success("Business hours saved.");
     } catch (error) {
-      toast.error(toSettingsErrorMessage(error));
+      goeyToast.error(toSettingsErrorMessage(error));
     }
   };
 
@@ -285,9 +285,9 @@ export function SystemSettingsPage() {
       };
 
       paymentsForm.reset(nextValues);
-      toast.success("Payment settings saved.");
+      goeyToast.success("Payment settings saved.");
     } catch (error) {
-      toast.error(toSettingsErrorMessage(error));
+      goeyToast.error(toSettingsErrorMessage(error));
     }
   };
 
@@ -303,9 +303,9 @@ export function SystemSettingsPage() {
       };
 
       securityForm.reset(nextValues);
-      toast.success("Security settings saved.");
+      goeyToast.success("Security settings saved.");
     } catch (error) {
-      toast.error(toSettingsErrorMessage(error));
+      goeyToast.error(toSettingsErrorMessage(error));
     }
   };
 
@@ -378,7 +378,7 @@ export function SystemSettingsPage() {
 
         <Card>
           <CardContent className="space-y-3 p-6">
-            <p className="text-sm text-danger">{toSettingsErrorMessage(settingsQuery.error)}</p>
+            <p className="text-sm text-destructive">{toSettingsErrorMessage(settingsQuery.error)}</p>
             <Button type="button" variant="outlined" onClick={() => void settingsQuery.refetch()}>
               Retry
             </Button>

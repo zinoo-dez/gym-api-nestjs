@@ -75,7 +75,7 @@ export function ReportsFilterBar({
       <CardContent className="space-y-4 p-4 md:p-5">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-2 rounded-md border bg-surface-container-low px-3 py-2 text-label-medium text-on-surface-variant">
+            <span className="inline-flex items-center gap-2 rounded-md border bg-card px-3 py-2 text-xs text-muted-foreground">
               <MaterialIcon icon="calendar_month" className="text-lg text-primary" />
               Date Range
             </span>
@@ -98,7 +98,7 @@ export function ReportsFilterBar({
             size="sm"
             variant="text"
             onClick={() => onChange(getDefaultReportsFilters())}
-            className="w-full justify-center lg:w-auto text-error"
+            className="w-full justify-center lg:w-auto text-destructive"
           >
             <MaterialIcon icon="filter_alt_off" className="text-lg" />
             <span>Reset Filters</span>

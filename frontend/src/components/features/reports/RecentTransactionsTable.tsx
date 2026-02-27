@@ -43,7 +43,7 @@ const statusToneClass = (status: string): string => {
   }
 
   if (normalized === "failed") {
-    return "bg-danger/20 text-danger";
+    return "bg-danger/20 text-destructive";
   }
 
   return "bg-secondary text-secondary-foreground";
@@ -154,7 +154,7 @@ export function RecentTransactionsTable({
         {loading ? (
           <TableSkeleton />
         ) : errorMessage ? (
-          <div className="rounded-md border border-danger/40 bg-danger/10 p-4 text-sm text-danger">
+          <div className="rounded-md border border-destructive/40 bg-danger/10 p-4 text-sm text-destructive">
             {errorMessage}
           </div>
         ) : sortedRows.length === 0 ? (

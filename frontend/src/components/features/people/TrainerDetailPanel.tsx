@@ -152,7 +152,7 @@ export function TrainerDetailPanel({
           ) : null}
 
           <section className="rounded-lg border bg-card p-4">
-            <h3 className="card-title">Profile Info</h3>
+            <h3 className="text-lg font-semibold tracking-tight">Profile Info</h3>
 
             <div className="mt-4 flex flex-wrap gap-2">
               <StatusBadge value={trainer.isActive ? "ACTIVE" : "INACTIVE"} />
@@ -191,7 +191,7 @@ export function TrainerDetailPanel({
           </section>
 
           <section className="rounded-lg border bg-card p-4">
-            <h3 className="card-title">Certifications</h3>
+            <h3 className="text-lg font-semibold tracking-tight">Certifications</h3>
             <div className="mt-4 flex flex-wrap gap-2">
               {trainer.certifications.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No certifications recorded.</p>
@@ -210,7 +210,7 @@ export function TrainerDetailPanel({
 
           <section className="rounded-lg border bg-card p-4">
             <div className="flex items-center justify-between gap-2">
-              <h3 className="card-title">Assigned Members</h3>
+              <h3 className="text-lg font-semibold tracking-tight">Assigned Members</h3>
               <span className="text-sm text-muted-foreground">{assignedMembers.length} active members</span>
             </div>
 
@@ -249,7 +249,7 @@ export function TrainerDetailPanel({
           </section>
 
           <section className="rounded-lg border bg-card p-4">
-            <h3 className="card-title">Assign Member</h3>
+            <h3 className="text-lg font-semibold tracking-tight">Assign Member</h3>
 
             <div className="mt-4 grid gap-4 md:grid-cols-2">
               <div className="space-y-2 md:col-span-2">
@@ -379,7 +379,7 @@ export function TrainerDetailPanel({
 
           <section className="rounded-lg border bg-card p-4">
             <div className="flex items-center justify-between gap-2">
-              <h3 className="card-title">Session Schedule (Read-only)</h3>
+              <h3 className="text-lg font-semibold tracking-tight">Session Schedule (Read-only)</h3>
               <CalendarClock className="size-5 text-muted-foreground" />
             </div>
 
@@ -424,7 +424,7 @@ export function TrainerDetailPanel({
 
           <section className="rounded-lg border bg-card p-4">
             <div className="flex items-center justify-between gap-2">
-              <h3 className="card-title">Performance Summary</h3>
+              <h3 className="text-lg font-semibold tracking-tight">Performance Summary</h3>
               <TrendingUp className="size-5 text-muted-foreground" />
             </div>
 

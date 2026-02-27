@@ -144,12 +144,12 @@ export function MembershipPlanFormDrawer({
 
         {step === 0 ? (
           <section className="rounded-lg border bg-card p-4">
-            <h3 className="card-title">Basic Info</h3>
+            <h3 className="text-lg font-semibold tracking-tight">Basic Info</h3>
 
             <div className="mt-4 grid gap-4 md:grid-cols-2">
               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="plan-name">
-                  Plan Name <span className="text-danger">*</span>
+                  Plan Name <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="plan-name"
@@ -202,12 +202,12 @@ export function MembershipPlanFormDrawer({
 
         {step === 1 ? (
           <section className="rounded-lg border bg-card p-4">
-            <h3 className="card-title">Pricing & Duration</h3>
+            <h3 className="text-lg font-semibold tracking-tight">Pricing & Duration</h3>
 
             <div className="mt-4 grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="plan-type">
-                  Plan Type <span className="text-danger">*</span>
+                  Plan Type <span className="text-destructive">*</span>
                 </Label>
                 <Select
                   id="plan-type"
@@ -231,7 +231,7 @@ export function MembershipPlanFormDrawer({
 
               <div className="space-y-2">
                 <Label htmlFor="plan-duration">
-                  Duration (Days) <span className="text-danger">*</span>
+                  Duration (Days) <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="plan-duration"
@@ -254,7 +254,7 @@ export function MembershipPlanFormDrawer({
 
               <div className="space-y-2">
                 <Label htmlFor="plan-price">
-                  Price (USD) <span className="text-danger">*</span>
+                  Price (USD) <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="plan-price"
@@ -353,7 +353,7 @@ export function MembershipPlanFormDrawer({
 
         {step === 2 ? (
           <section className="rounded-lg border bg-card p-4">
-            <h3 className="card-title">Feature Selection</h3>
+            <h3 className="text-lg font-semibold tracking-tight">Feature Selection</h3>
 
             <div className="mt-4 space-y-3">
               {features.length === 0 ? (

@@ -47,7 +47,7 @@ export function AuthLayout() {
             <div className="rounded-2xl bg-secondary/20 p-8">
               <div className="grid h-64 place-content-center rounded-2xl border border-input bg-background/70 text-center">
                 <Activity className="mx-auto size-8 text-primary" />
-                <p className="card-title mt-4">Training Dashboard Preview</p>
+                <p className="text-lg font-semibold tracking-tight mt-4">Training Dashboard Preview</p>
                 <p className="small-text mt-2 text-muted-foreground">Illustration / Product Visual</p>
               </div>
             </div>
@@ -59,7 +59,7 @@ export function AuthLayout() {
               className="absolute -left-5 top-10 rounded-xl border border-input bg-background/85 px-4 py-3 shadow-sm backdrop-blur"
             >
               <p className="small-text text-muted-foreground">Daily Focus</p>
-              <p className="card-title inline-flex items-center gap-2">
+              <p className="text-lg font-semibold tracking-tight inline-flex items-center gap-2">
                 <BarChart3 className="size-5 text-primary" /> 10 Tasks / 84%
               </p>
             </motion.div>

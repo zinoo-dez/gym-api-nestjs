@@ -54,12 +54,12 @@ export default function ForgotPasswordPage() {
       </motion.div>
 
       {message ? (
-        <motion.div variants={item} className="rounded-md bg-tertiary/10 p-3 text-sm font-medium text-tertiary">
+        <motion.div variants={item} className="rounded-md bg-success/10 p-3 text-sm font-medium text-success">
           {message}
         </motion.div>
       ) : null}
       {error ? (
-        <motion.div variants={item} className="rounded-md bg-error/10 p-3 text-sm font-medium text-error">
+        <motion.div variants={item} className="rounded-md bg-destructive/10 p-3 text-sm font-medium text-destructive">
           {error}
         </motion.div>
       ) : null}
@@ -73,7 +73,7 @@ export default function ForgotPasswordPage() {
           className="w-full border border-input bg-background rounded-md px-3 py-2 text-sm"
           {...register("email")}
         />
-        {errors.email ? <p className="small-text text-error">{errors.email.message}</p> : null}
+        {errors.email ? <p className="small-text text-destructive">{errors.email.message}</p> : null}
       </motion.div>
 
       <motion.button

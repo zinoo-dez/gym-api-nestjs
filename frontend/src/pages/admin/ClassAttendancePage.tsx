@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { addDays, addWeeks, format, subDays, subWeeks } from "date-fns";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
+import { goeyToast } from "goey-toast";
 
 import {
   ClassRosterPanel,
@@ -137,13 +137,13 @@ export function ClassAttendancePage() {
 
     try {
       await deleteClassMutation.mutateAsync(classSession.id);
-      toast.success("Class session cancelled.");
+      goeyToast.success("Class session cancelled.");
 
       if (activeClass?.id === classSession.id) {
         setActiveClass(null);
       }
     } catch (error) {
-      toast.error(toErrorMessage(error));
+      goeyToast.error(toErrorMessage(error));
     }
   };
 
@@ -235,7 +235,7 @@ export function ClassAttendancePage() {
       </section>
 
       {classSchedulesQuery.isError ? (
-        <div className="rounded-lg border border-danger/40 bg-danger/10 p-4 text-sm text-danger">
+        <div className="rounded-lg border border-destructive/40 bg-danger/10 p-4 text-sm text-destructive">
           {toErrorMessage(classSchedulesQuery.error)}
         </div>
       ) : null}

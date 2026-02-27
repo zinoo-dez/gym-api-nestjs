@@ -100,7 +100,7 @@ export function AuthModal({ isOpen, onOpenChange, initialView = "login" }: AuthM
       </div>
 
       {apiError && (
-        <div className="rounded-md bg-danger/10 p-3 text-sm font-medium text-danger text-center animate-in fade-in">
+        <div className="rounded-md bg-danger/10 p-3 text-sm font-medium text-destructive text-center animate-in fade-in">
           {apiError}
         </div>
       )}

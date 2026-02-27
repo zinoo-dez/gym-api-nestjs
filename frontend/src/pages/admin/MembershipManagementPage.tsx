@@ -628,9 +628,9 @@ export function MembershipManagementPage({ view = "plans" }: MembershipManagemen
       ) : null}
 
       {loadState === "error" ? (
-        <Card className="rounded-2xl border-error/50 bg-error/5">
+        <Card className="rounded-2xl border-destructive/50 bg-destructive/5">
           <CardContent className="flex flex-col gap-4 p-6">
-            <p className="text-title-medium font-bold text-error">Unable to load membership data.</p>
+            <p className="text-base font-bold text-destructive">Unable to load membership data.</p>
             <div>
               <Button type="button" variant="tonal" onClick={() => void loadMembershipData()}>
                 <MaterialIcon icon="refresh" className="text-lg" />
@@ -643,7 +643,7 @@ export function MembershipManagementPage({ view = "plans" }: MembershipManagemen
 
       {actionError ? (
         <Card>
-          <CardContent className="p-4 text-sm text-danger">{actionError}</CardContent>
+          <CardContent className="p-4 text-sm text-destructive">{actionError}</CardContent>
         </Card>
       ) : null}
 
@@ -654,7 +654,7 @@ export function MembershipManagementPage({ view = "plans" }: MembershipManagemen
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <h2 className="section-title">Membership Overview</h2>
                 <div className="flex items-center gap-3">
-                  <label htmlFor="revenue-window" className="text-label-medium font-bold text-on-surface-variant">
+                  <label htmlFor="revenue-window" className="text-xs font-bold text-muted-foreground">
                     Revenue Window
                   </label>
                   <Select
@@ -1024,7 +1024,7 @@ export function MembershipManagementPage({ view = "plans" }: MembershipManagemen
           {isMobile && (showPlans || showFeatures) ? (
             <div className="fixed bottom-4 right-4 z-40 flex flex-col gap-2">
               {showFeatures ? (
-                <Button type="button" variant="outlined" onClick={openFeatureAddForm} className="shadow-lg backdrop-blur-md bg-surface/80">
+                <Button type="button" variant="outlined" onClick={openFeatureAddForm} className="shadow-lg backdrop-blur-md bg-background/80">
                   <MaterialIcon icon="auto_awesome" className="text-lg" />
                   <span>Feature</span>
                 </Button>

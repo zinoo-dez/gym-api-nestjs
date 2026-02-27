@@ -67,11 +67,11 @@ export const MEMBERSHIP_STATUS_BADGE_STYLES: Record<
   MembershipDisplayStatus,
   string
 > = {
-  active: "bg-tertiary-container text-on-tertiary-container",
-  expiring_soon: "bg-error-container text-on-error-container",
-  expired: "bg-surface-variant text-on-surface-variant",
-  frozen: "bg-secondary-container text-on-secondary-container",
-  pending: "bg-surface-container-high text-on-surface-variant",
+  active: "bg-success/10 text-success",
+  expiring_soon: "bg-destructive/10 text-destructive",
+  expired: "bg-muted text-muted-foreground",
+  frozen: "bg-secondary text-secondary-foreground",
+  pending: "bg-card text-muted-foreground",
 };
 
 export const MEMBERSHIP_QUICK_FILTERS = [
@@ -100,8 +100,8 @@ export const MEMBERSHIP_PLAN_STATUS_BADGE_STYLES: Record<
   MembershipPlanStatus,
   string
 > = {
-  active: "bg-tertiary-container text-on-tertiary-container",
-  inactive: "bg-surface-variant text-on-surface-variant",
+  active: "bg-success/10 text-success",
+  inactive: "bg-muted text-muted-foreground",
 };
 
 export const MEMBERSHIP_PAYMENT_STATUSES = [
@@ -128,10 +128,10 @@ export const MEMBERSHIP_PAYMENT_STATUS_BADGE_STYLES: Record<
   MembershipPaymentStatus,
   string
 > = {
-  PENDING: "bg-error-container text-on-error-container",
-  PAID: "bg-tertiary-container text-on-tertiary-container",
-  REJECTED: "bg-error text-on-error",
-  UNKNOWN: "bg-surface-variant text-on-surface-variant",
+  PENDING: "bg-destructive/10 text-destructive",
+  PAID: "bg-success/10 text-success",
+  REJECTED: "bg-destructive text-destructive-foreground",
+  UNKNOWN: "bg-muted text-muted-foreground",
 };
 
 export const FEATURE_LIBRARY_STATUSES = ["active", "inactive"] as const;
@@ -150,8 +150,8 @@ export const FEATURE_LIBRARY_STATUS_BADGE_STYLES: Record<
   FeatureLibraryStatus,
   string
 > = {
-  active: "bg-primary-container text-on-primary-container",
-  inactive: "bg-surface-variant text-on-surface-variant",
+  active: "bg-primary/10 text-primary",
+  inactive: "bg-muted text-muted-foreground",
 };
 
 export const PLAN_SORT_OPTIONS = [

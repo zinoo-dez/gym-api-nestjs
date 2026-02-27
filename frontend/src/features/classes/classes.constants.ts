@@ -27,8 +27,8 @@ export const CATEGORY_STYLES: Record<
     cardClassName: "border-info/50 bg-info/25",
   },
   HIIT: {
-    badgeClassName: "bg-danger/20 text-danger",
-    cardClassName: "border-danger/50 bg-danger/25",
+    badgeClassName: "bg-danger/20 text-destructive",
+    cardClassName: "border-destructive/50 bg-danger/25",
   },
   CROSSFIT: {
     badgeClassName: "bg-success/20 text-success",
@@ -55,8 +55,8 @@ export const CATEGORY_STYLES: Record<
     cardClassName: "border-primary/50 bg-primary/25",
   },
   BOXING: {
-    badgeClassName: "bg-danger/20 text-danger",
-    cardClassName: "border-danger/50 bg-danger/25",
+    badgeClassName: "bg-danger/20 text-destructive",
+    cardClassName: "border-destructive/50 bg-danger/25",
   },
   OTHER: {
     badgeClassName: "bg-muted text-muted-foreground",
@@ -75,7 +75,7 @@ export const ATTENDANCE_STATUS_STYLES: Record<AttendanceStatus, string> = {
   BOOKED: "bg-secondary text-secondary-foreground",
   ATTENDED: "bg-success/20 text-success",
   NO_SHOW: "bg-warning/20 text-warning",
-  CANCELLED: "bg-danger/20 text-danger",
+  CANCELLED: "bg-danger/20 text-destructive",
 };
 
 export const RECURRENCE_DAY_OPTIONS: Array<{

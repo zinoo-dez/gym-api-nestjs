@@ -227,7 +227,7 @@ export function MembershipPlansManager({
           </form>
 
           <div className="space-y-2">
-            <h3 className="card-title">Existing Plans</h3>
+            <h3 className="text-lg font-semibold tracking-tight">Existing Plans</h3>
 
             {sortedPlans.length === 0 ? (
               <div className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">

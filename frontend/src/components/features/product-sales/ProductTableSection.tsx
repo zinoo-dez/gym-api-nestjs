@@ -68,7 +68,7 @@ export function ProductTableSection({
           <div className="relative">
             <MaterialIcon 
               icon="search" 
-              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" 
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" 
               opticalSize={20}
             />
             <Input
@@ -93,15 +93,15 @@ export function ProductTableSection({
 
       <CardContent className="space-y-4">
         {loading ? (
-          <div className="flex items-center gap-3 rounded-md border bg-surface-container-low p-4 text-body-medium text-on-surface-variant">
+          <div className="flex items-center gap-3 rounded-md border bg-card p-4 text-sm text-muted-foreground">
             <MaterialIcon icon="progress_activity" className="size-5 animate-spin" />
             <span>Loading products...</span>
           </div>
         ) : null}
 
         {errorMessage ? (
-          <div className="space-y-3 rounded-md border border-danger/40 bg-danger/5 p-4">
-            <p className="text-sm text-danger">{errorMessage}</p>
+          <div className="space-y-3 rounded-md border border-destructive/40 bg-danger/5 p-4">
+            <p className="text-sm text-destructive">{errorMessage}</p>
             <Button type="button" variant="outlined" onClick={onRetry}>
               <MaterialIcon icon="refresh" className="text-sm" />
               <span>Retry</span>
@@ -149,7 +149,7 @@ export function ProductTableSection({
                                     className="size-full object-cover"
                                   />
                                 ) : (
-                                  <MaterialIcon icon="inventory_2" className="text-xl text-on-surface-variant transition-colors group-hover:text-primary" />
+                                  <MaterialIcon icon="inventory_2" className="text-xl text-muted-foreground transition-colors group-hover:text-primary" />
                                 )}
                               </div>
 

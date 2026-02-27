@@ -48,7 +48,7 @@ export function RevenueOverviewChart({
       {loading ? (
         <ChartSkeleton />
       ) : errorMessage ? (
-        <div className="flex h-72 items-center justify-center rounded-md border border-danger/40 bg-danger/10 p-4 text-sm text-danger">
+        <div className="flex h-72 items-center justify-center rounded-md border border-destructive/40 bg-danger/10 p-4 text-sm text-destructive">
           {errorMessage}
         </div>
       ) : data.length === 0 ? (

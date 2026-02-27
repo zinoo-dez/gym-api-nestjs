@@ -7,7 +7,7 @@ interface CostPaymentStatusBadgeProps {
 const STATUS_STYLES: Record<CostPaymentStatus, string> = {
   paid: "bg-success/15 text-success",
   pending: "bg-warning/15 text-warning",
-  overdue: "bg-danger/15 text-danger",
+  overdue: "bg-danger/15 text-destructive",
 };
 
 export function CostPaymentStatusBadge({ status }: CostPaymentStatusBadgeProps) {

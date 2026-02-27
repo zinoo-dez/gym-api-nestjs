@@ -28,7 +28,7 @@ export function KPICard({ title, value, trend, icon: Icon, className }: KPICardP
                 <span
                   className={cn(
                     "text-xs font-semibold",
-                    trend.isPositive ? "text-success" : "text-danger"
+                    trend.isPositive ? "text-success" : "text-destructive"
                   )}
                 >
                   {trend.isPositive ? "↑" : "↓"} {trend.value}%

@@ -147,7 +147,7 @@ export function MemberDetailPanel({
       ) : (
         <div className="space-y-6">
           <section className="rounded-lg border bg-card p-4">
-            <h3 className="card-title">Personal Info</h3>
+            <h3 className="text-lg font-semibold tracking-tight">Personal Info</h3>
 
             <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
               <div>
@@ -180,7 +180,7 @@ export function MemberDetailPanel({
           </section>
 
           <section className="rounded-lg border bg-card p-4">
-            <h3 className="card-title">Membership Info</h3>
+            <h3 className="text-lg font-semibold tracking-tight">Membership Info</h3>
 
             <div className="mt-4 flex flex-wrap gap-2">
               <StatusBadge label={memberRow.membershipDisplayStatus} tone={memberRow.membershipStatusTone} />
@@ -235,7 +235,7 @@ export function MemberDetailPanel({
           </section>
 
           <section className="rounded-lg border bg-card p-4">
-            <h3 className="card-title">Attendance Summary</h3>
+            <h3 className="text-lg font-semibold tracking-tight">Attendance Summary</h3>
             {attendanceSummary ? (
               <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
                 <div>
@@ -275,7 +275,7 @@ export function MemberDetailPanel({
           </section>
 
           <section className="rounded-lg border bg-card p-4">
-            <h3 className="card-title">Payment History</h3>
+            <h3 className="text-lg font-semibold tracking-tight">Payment History</h3>
 
             <div className="mt-4 space-y-2">
               {(showFullHistory ? paymentHistory : paymentHistory.slice(0, 5)).map((payment) => (
@@ -299,7 +299,7 @@ export function MemberDetailPanel({
           </section>
 
           <section className="rounded-lg border bg-card p-4">
-            <h3 className="card-title">Notes</h3>
+            <h3 className="text-lg font-semibold tracking-tight">Notes</h3>
 
             <div className="mt-4 space-y-2">
               {(showFullHistory ? notes : notes.slice(0, 5)).map((entry) => (

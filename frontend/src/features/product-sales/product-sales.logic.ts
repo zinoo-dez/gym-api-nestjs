@@ -56,16 +56,16 @@ export const getStatusPresentation = (product: ProductRecord): ProductStatusPres
   if (product.stockQuantity <= 0) {
     return {
       label: "Out of Stock",
-      className: "bg-danger/20 text-danger",
-      stockClassName: "text-danger",
+      className: "bg-danger/20 text-destructive",
+      stockClassName: "text-destructive",
     };
   }
 
   if (product.stockQuantity < 5 || product.isLowStock) {
     return {
       label: "Low Stock",
-      className: "bg-danger/20 text-danger",
-      stockClassName: "text-danger",
+      className: "bg-danger/20 text-destructive",
+      stockClassName: "text-destructive",
     };
   }
 

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
-import { toast } from "sonner";
+import { goeyToast } from "goey-toast";
 
 import {
   FinancialSummaryRibbon,
@@ -71,7 +71,7 @@ const subscriptionStatusBadgeStyle = (status?: string): string => {
   }
 
   if (normalized === "CANCELLED" || normalized === "FAILED" || normalized === "EXPIRED") {
-    return "bg-danger/20 text-danger";
+    return "bg-danger/20 text-destructive";
   }
 
   return "bg-secondary text-secondary-foreground";
@@ -238,7 +238,7 @@ export function PaymentsDashboardPage() {
 
   const handleOpenInvoice = (transaction: PaymentTransaction) => {
     if (!canUseInvoice) {
-      toast.error("Invoice endpoint is not available on this backend.");
+      goeyToast.error("Invoice endpoint is not available on this backend.");
       return;
     }
     setActiveInvoiceId(transaction.invoiceId || transaction.id);
@@ -247,7 +247,7 @@ export function PaymentsDashboardPage() {
 
   const handleOpenRefund = (transaction: PaymentTransaction) => {
     if (!canUseRefund) {
-      toast.error("Refund endpoint is not available on this backend.");
+      goeyToast.error("Refund endpoint is not available on this backend.");
       return;
     }
     setRefundTarget(transaction);
@@ -257,9 +257,9 @@ export function PaymentsDashboardPage() {
   const handleManualSubmit = async (payload: ManualPaymentPayload) => {
     try {
       await manualPaymentMutation.mutateAsync(payload);
-      toast.success("Manual payment recorded successfully.");
+      goeyToast.success("Manual payment recorded successfully.");
     } catch (error) {
-      toast.error(toPaymentErrorMessage(error));
+      goeyToast.error(toPaymentErrorMessage(error));
       throw error;
     }
   };
@@ -274,11 +274,11 @@ export function PaymentsDashboardPage() {
         paymentId: refundTarget.id,
         payload: { reason },
       });
-      toast.success("Refund processed successfully.");
+      goeyToast.success("Refund processed successfully.");
       setRefundPanelOpen(false);
       setRefundTarget(null);
     } catch (error) {
-      toast.error(toPaymentErrorMessage(error));
+      goeyToast.error(toPaymentErrorMessage(error));
       throw error;
     }
   };
@@ -290,9 +290,9 @@ export function PaymentsDashboardPage() {
 
     try {
       await cancelAutoRenewMutation.mutateAsync(selectedTransaction.subscription.id);
-      toast.success("Auto-renew has been cancelled.");
+      goeyToast.success("Auto-renew has been cancelled.");
     } catch (error) {
-      toast.error(toPaymentErrorMessage(error));
+      goeyToast.error(toPaymentErrorMessage(error));
     }
   };
 
@@ -463,8 +463,8 @@ export function PaymentsDashboardPage() {
           ) : null}
 
           {paymentsQuery.isError ? (
-            <div className="space-y-3 rounded-md border border-danger/40 bg-danger/5 p-4">
-              <p className="text-sm text-danger">{toPaymentErrorMessage(paymentsQuery.error)}</p>
+            <div className="space-y-3 rounded-md border border-destructive/40 bg-danger/5 p-4">
+              <p className="text-sm text-destructive">{toPaymentErrorMessage(paymentsQuery.error)}</p>
               <Button type="button" variant="outlined" onClick={() => void paymentsQuery.refetch()}>
                 Retry
               </Button>
@@ -545,7 +545,7 @@ export function PaymentsDashboardPage() {
                                     event.stopPropagation();
                                     handleOpenRefund(transaction);
                                   }}
-                                  className="text-error hover:bg-error/10 active:bg-error/20"
+                                  className="text-destructive hover:bg-destructive/10 active:bg-destructive/20"
                                   title="Process Refund"
                                 >
                                   <span>Refund</span>
@@ -579,7 +579,7 @@ export function PaymentsDashboardPage() {
           {selectedTransaction ? (
             <div className="grid gap-4 md:grid-cols-[1.2fr_1fr]">
               <section className="space-y-3 rounded-md border bg-card p-4">
-                <h3 className="card-title">Selected Payment</h3>
+                <h3 className="text-lg font-semibold tracking-tight">Selected Payment</h3>
 
                 <dl className="grid gap-2 text-sm md:grid-cols-2">
                   <div>
@@ -604,7 +604,7 @@ export function PaymentsDashboardPage() {
               </section>
 
               <section className="space-y-3 rounded-md border bg-card p-4">
-                <h3 className="card-title">Subscription Status</h3>
+                <h3 className="text-lg font-semibold tracking-tight">Subscription Status</h3>
 
                 {selectedTransaction.subscription ? (
                   <>
@@ -648,7 +648,7 @@ export function PaymentsDashboardPage() {
                           type="button"
                           variant="text"
                           onClick={() => handleOpenRefund(selectedTransaction)}
-                          className="text-error hover:bg-error/10 active:bg-error/20"
+                          className="text-destructive hover:bg-destructive/10 active:bg-destructive/20"
                         >
                           Process Refund
                         </Button>
@@ -703,10 +703,10 @@ export function PaymentsDashboardPage() {
       />
 
       {summaryQuery.isError ? (
-        <Card className="rounded-2xl border-error/50 bg-error/5">
-          <CardContent className="flex items-center gap-3 p-4 text-error">
+        <Card className="rounded-2xl border-destructive/50 bg-destructive/5">
+          <CardContent className="flex items-center gap-3 p-4 text-destructive">
             <MaterialIcon icon="error" className="text-xl" />
-            <span className="text-title-small font-bold">{toPaymentErrorMessage(summaryQuery.error)}</span>
+            <span className="text-sm font-bold">{toPaymentErrorMessage(summaryQuery.error)}</span>
           </CardContent>
         </Card>
       ) : null}

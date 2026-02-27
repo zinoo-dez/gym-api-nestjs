@@ -1,9 +1,10 @@
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 
 import { useAuthStore } from "@/store/auth.store";
-import LandingPage from "@/pages/public/LandingPage";
+import { useThemeStore } from "@/store/theme.store";
+import LandingPage from "@/pages/public";
 import LoginPage from "@/pages/auth/LoginPage";
 import RegisterPage from "@/pages/auth/RegisterPage";
 import ForgotPasswordPage from "@/pages/auth/ForgotPasswordPage";
@@ -108,297 +109,303 @@ const LegacyAppRedirect = () => {
 };
 
 const App = () => {
+    const theme = useThemeStore((state) => state.theme);
+
+    useEffect(() => {
+      document.documentElement.classList.toggle("dark", theme === "dark");
+    }, [theme]);
+
     return (
         <QueryClientProvider client={queryClient}>
             <BrowserRouter>
-              <Routes>
-                {/* Public Routes */}
-                <Route element={<PublicLayout />}>
-                  <Route index element={<LandingPage />} />
-                  <Route path="landing" element={<Navigate to="/" replace />} />
-                </Route>
+                <Routes>
+                  {/* Public Routes */}
+                  <Route element={<PublicLayout />}>
+                    <Route index element={<LandingPage />} />
+                    <Route path="landing" element={<Navigate to="/" replace />} />
+                  </Route>
 
-                {/* Auth Routes */}
-                <Route element={<AuthLayout />}>
-                  <Route path="/login" element={<LoginPage />} />
-                  <Route path="/register" element={<RegisterPage />} />
-                  <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-                  <Route path="/reset-password" element={<ResetPasswordPage />} />
-                </Route>
+                  {/* Auth Routes */}
+                  <Route element={<AuthLayout />}>
+                    <Route path="/login" element={<LoginPage />} />
+                    <Route path="/register" element={<RegisterPage />} />
+                    <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                    <Route path="/reset-password" element={<ResetPasswordPage />} />
+                  </Route>
 
-                {/* Protected Dashboard Routes */}
-                <Route
-                  path="/app"
-                  element={
-                    <ProtectedRoute>
-                      <DashboardRouter />
-                    </ProtectedRoute>
-                  }
-                >
-                  <Route index element={<DashboardIndex />} />
-                  
-                  {/* Admin Specific Routes */}
+                  {/* Protected Dashboard Routes */}
                   <Route
-                    path="management/members"
+                    path="/app"
                     element={
-                      <AdminRoute>
-                        <MembersManagementPage />
-                      </AdminRoute>
+                      <ProtectedRoute>
+                        <DashboardRouter />
+                      </ProtectedRoute>
                     }
-                  />
-                  <Route
-                    path="management/trainers"
-                    element={
-                      <AdminRoute>
-                        <TrainersManagementPage />
-                      </AdminRoute>
-                    }
-                  />
-                  <Route
-                    path="management/staff"
-                    element={
-                      <AdminRoute>
-                        <StaffManagementPage />
-                      </AdminRoute>
-                    }
-                  />
-                  <Route
-                    path="payments"
-                    element={
-                      <AdminRoute allowedRoles={PAYMENT_ROUTE_ROLES}>
-                        <PaymentsDashboardPage />
-                      </AdminRoute>
-                    }
-                  />
-                  <Route
-                    path="management/classes"
-                    element={
-                      <AdminRoute allowedRoles={CLASS_MANAGEMENT_ROUTE_ROLES}>
-                        <ClassManagementIndex />
-                      </AdminRoute>
-                    }
-                  />
-                  <Route
-                    path="management/classes/schedule"
-                    element={
-                      <AdminRoute allowedRoles={CLASS_SCHEDULE_ROUTE_ROLES}>
-                        <Suspense
-                          fallback={
-                            <div className="flex min-h-[260px] items-center justify-center rounded-lg border bg-card p-6 text-sm text-muted-foreground">
-                              Loading class scheduling module...
-                            </div>
-                          }
-                        >
-                          <LazyClassSchedulingPage />
-                        </Suspense>
-                      </AdminRoute>
-                    }
-                  />
-                  <Route
-                    path="management/classes/attendance"
-                    element={
-                      <AdminRoute allowedRoles={CLASS_ATTENDANCE_ROUTE_ROLES}>
-                        <Suspense
-                          fallback={
-                            <div className="flex min-h-[260px] items-center justify-center rounded-lg border bg-card p-6 text-sm text-muted-foreground">
-                              Loading class attendance module...
-                            </div>
-                          }
-                        >
-                          <LazyClassAttendancePage />
-                        </Suspense>
-                      </AdminRoute>
-                    }
-                  />
-                  <Route
-                    path="management/classes/:section"
-                    element={
-                      <AdminRoute allowedRoles={CLASS_MANAGEMENT_ROUTE_ROLES}>
-                        <ClassManagementIndex />
-                      </AdminRoute>
-                    }
-                  />
-                  <Route
-                    path="management/equipment"
-                    element={
-                      <AdminRoute>
-                        <Navigate to="/app/management/equipment/overview" replace />
-                      </AdminRoute>
-                    }
-                  />
-                  <Route
-                    path="management/equipment/overview"
-                    element={
-                      <AdminRoute>
-                        <EquipmentOverviewPage />
-                      </AdminRoute>
-                    }
-                  />
-                  <Route
-                    path="management/equipment/list"
-                    element={
-                      <AdminRoute>
-                        <EquipmentListPage />
-                      </AdminRoute>
-                    }
-                  />
-                  <Route
-                    path="management/equipment/:section"
-                    element={
-                      <AdminRoute>
-                        <Navigate to="/app/management/equipment/overview" replace />
-                      </AdminRoute>
-                    }
-                  />
-                  <Route
-                    path="management/products"
-                    element={
-                      <AdminRoute allowedRoles={INVENTORY_ROUTE_ROLES}>
-                        <Navigate to="/app/management/products/overview" replace />
-                      </AdminRoute>
-                    }
-                  />
-                  <Route
-                    path="management/products/overview"
-                    element={
-                      <AdminRoute allowedRoles={INVENTORY_ROUTE_ROLES}>
-                        <ProductSalesOverviewPage />
-                      </AdminRoute>
-                    }
-                  />
-                  <Route
-                    path="management/products/management"
-                    element={
-                      <AdminRoute allowedRoles={INVENTORY_ROUTE_ROLES}>
-                        <ProductManagementPage />
-                      </AdminRoute>
-                    }
-                  />
-                  <Route
-                    path="management/products/pos"
-                    element={
-                      <AdminRoute allowedRoles={INVENTORY_ROUTE_ROLES}>
-                        <ProductPosPage />
-                      </AdminRoute>
-                    }
-                  />
-                  <Route
-                    path="management/products/history"
-                    element={
-                      <AdminRoute allowedRoles={INVENTORY_ROUTE_ROLES}>
-                        <ProductSalesHistoryPage />
-                      </AdminRoute>
-                    }
-                  />
-                  <Route
-                    path="management/products/:section"
-                    element={
-                      <AdminRoute allowedRoles={INVENTORY_ROUTE_ROLES}>
-                        <Navigate to="/app/management/products/overview" replace />
-                      </AdminRoute>
-                    }
-                  />
-                  <Route
-                    path="management/memberships"
-                    element={
-                      <AdminRoute>
-                        <Navigate to="/app/management/memberships/plans" replace />
-                      </AdminRoute>
-                    }
-                  />
-                  <Route
-                    path="management/memberships/plans"
-                    element={
-                      <AdminRoute>
-                        <MembershipPlansManagementPage />
-                      </AdminRoute>
-                    }
-                  />
-                  <Route
-                    path="management/memberships/members"
-                    element={
-                      <AdminRoute>
-                        <MemberMembershipListPage />
-                      </AdminRoute>
-                    }
-                  />
-                  <Route
-                    path="management/memberships/features"
-                    element={
-                      <AdminRoute>
-                        <MembershipFeatureLibraryPage />
-                      </AdminRoute>
-                    }
-                  />
-                  <Route
-                    path="finance/costs"
-                    element={
-                      <AdminRoute>
-                        <Navigate to="/app/finance/costs/overview" replace />
-                      </AdminRoute>
-                    }
-                  />
-                  <Route
-                    path="finance/costs/:section"
-                    element={
-                      <AdminRoute>
-                        <CostManagementPage />
-                      </AdminRoute>
-                    }
-                  />
-                  <Route
-                    path="reports"
-                    element={
-                      <AdminRoute>
-                        <AdminDashboard />
-                      </AdminRoute>
-                    }
-                  />
-                  <Route
-                    path="design-system"
-                    element={
-                      <AdminRoute>
-                        <DesignSystemShowcase />
-                      </AdminRoute>
-                    }
-                  />
-                  <Route
-                    path="admin/notifications"
-                    element={
-                      <AdminRoute>
-                        <NotificationsPage />
-                      </AdminRoute>
-                    }
-                  />
-                  <Route
-                    path="settings"
-                    element={
-                      <AdminRoute>
-                        <Navigate to="/app/settings/gym-identity" replace />
-                      </AdminRoute>
-                    }
-                  />
-                  <Route
-                    path="settings/:section"
-                    element={
-                      <AdminRoute>
-                        <SystemSettingsPage />
-                      </AdminRoute>
-                    }
-                  />
-                </Route>
-                {/* Legacy root path compatibility redirects */}
-                <Route path="/management/*" element={<LegacyAppRedirect />} />
-                <Route path="/finance/*" element={<LegacyAppRedirect />} />
-                <Route path="/payments" element={<LegacyAppRedirect />} />
-                <Route path="/reports" element={<LegacyAppRedirect />} />
-                <Route path="/design-system" element={<LegacyAppRedirect />} />
-                <Route path="/admin/*" element={<LegacyAppRedirect />} />
-                <Route path="/settings/*" element={<LegacyAppRedirect />} />
+                  >
+                    <Route index element={<DashboardIndex />} />
+                    
+                    {/* Admin Specific Routes */}
+                    <Route
+                      path="management/members"
+                      element={
+                        <AdminRoute>
+                          <MembersManagementPage />
+                        </AdminRoute>
+                      }
+                    />
+                    <Route
+                      path="management/trainers"
+                      element={
+                        <AdminRoute>
+                          <TrainersManagementPage />
+                        </AdminRoute>
+                      }
+                    />
+                    <Route
+                      path="management/staff"
+                      element={
+                        <AdminRoute>
+                          <StaffManagementPage />
+                        </AdminRoute>
+                      }
+                    />
+                    <Route
+                      path="payments"
+                      element={
+                        <AdminRoute allowedRoles={PAYMENT_ROUTE_ROLES}>
+                          <PaymentsDashboardPage />
+                        </AdminRoute>
+                      }
+                    />
+                    <Route
+                      path="management/classes"
+                      element={
+                        <AdminRoute allowedRoles={CLASS_MANAGEMENT_ROUTE_ROLES}>
+                          <ClassManagementIndex />
+                        </AdminRoute>
+                      }
+                    />
+                    <Route
+                      path="management/classes/schedule"
+                      element={
+                        <AdminRoute allowedRoles={CLASS_SCHEDULE_ROUTE_ROLES}>
+                          <Suspense
+                            fallback={
+                              <div className="flex min-h-[260px] items-center justify-center rounded-lg border bg-card p-6 text-sm text-muted-foreground">
+                                Loading class scheduling module...
+                              </div>
+                            }
+                          >
+                            <LazyClassSchedulingPage />
+                          </Suspense>
+                        </AdminRoute>
+                      }
+                    />
+                    <Route
+                      path="management/classes/attendance"
+                      element={
+                        <AdminRoute allowedRoles={CLASS_ATTENDANCE_ROUTE_ROLES}>
+                          <Suspense
+                            fallback={
+                              <div className="flex min-h-[260px] items-center justify-center rounded-lg border bg-card p-6 text-sm text-muted-foreground">
+                                Loading class attendance module...
+                              </div>
+                            }
+                          >
+                            <LazyClassAttendancePage />
+                          </Suspense>
+                        </AdminRoute>
+                      }
+                    />
+                    <Route
+                      path="management/classes/:section"
+                      element={
+                        <AdminRoute allowedRoles={CLASS_MANAGEMENT_ROUTE_ROLES}>
+                          <ClassManagementIndex />
+                        </AdminRoute>
+                      }
+                    />
+                    <Route
+                      path="management/equipment"
+                      element={
+                        <AdminRoute>
+                          <Navigate to="/app/management/equipment/overview" replace />
+                        </AdminRoute>
+                      }
+                    />
+                    <Route
+                      path="management/equipment/overview"
+                      element={
+                        <AdminRoute>
+                          <EquipmentOverviewPage />
+                        </AdminRoute>
+                      }
+                    />
+                    <Route
+                      path="management/equipment/list"
+                      element={
+                        <AdminRoute>
+                          <EquipmentListPage />
+                        </AdminRoute>
+                      }
+                    />
+                    <Route
+                      path="management/equipment/:section"
+                      element={
+                        <AdminRoute>
+                          <Navigate to="/app/management/equipment/overview" replace />
+                        </AdminRoute>
+                      }
+                    />
+                    <Route
+                      path="management/products"
+                      element={
+                        <AdminRoute allowedRoles={INVENTORY_ROUTE_ROLES}>
+                          <Navigate to="/app/management/products/overview" replace />
+                        </AdminRoute>
+                      }
+                    />
+                    <Route
+                      path="management/products/overview"
+                      element={
+                        <AdminRoute allowedRoles={INVENTORY_ROUTE_ROLES}>
+                          <ProductSalesOverviewPage />
+                        </AdminRoute>
+                      }
+                    />
+                    <Route
+                      path="management/products/management"
+                      element={
+                        <AdminRoute allowedRoles={INVENTORY_ROUTE_ROLES}>
+                          <ProductManagementPage />
+                        </AdminRoute>
+                      }
+                    />
+                    <Route
+                      path="management/products/pos"
+                      element={
+                        <AdminRoute allowedRoles={INVENTORY_ROUTE_ROLES}>
+                          <ProductPosPage />
+                        </AdminRoute>
+                      }
+                    />
+                    <Route
+                      path="management/products/history"
+                      element={
+                        <AdminRoute allowedRoles={INVENTORY_ROUTE_ROLES}>
+                          <ProductSalesHistoryPage />
+                        </AdminRoute>
+                      }
+                    />
+                    <Route
+                      path="management/products/:section"
+                      element={
+                        <AdminRoute allowedRoles={INVENTORY_ROUTE_ROLES}>
+                          <Navigate to="/app/management/products/overview" replace />
+                        </AdminRoute>
+                      }
+                    />
+                    <Route
+                      path="management/memberships"
+                      element={
+                        <AdminRoute>
+                          <Navigate to="/app/management/memberships/plans" replace />
+                        </AdminRoute>
+                      }
+                    />
+                    <Route
+                      path="management/memberships/plans"
+                      element={
+                        <AdminRoute>
+                          <MembershipPlansManagementPage />
+                        </AdminRoute>
+                      }
+                    />
+                    <Route
+                      path="management/memberships/members"
+                      element={
+                        <AdminRoute>
+                          <MemberMembershipListPage />
+                        </AdminRoute>
+                      }
+                    />
+                    <Route
+                      path="management/memberships/features"
+                      element={
+                        <AdminRoute>
+                          <MembershipFeatureLibraryPage />
+                        </AdminRoute>
+                      }
+                    />
+                    <Route
+                      path="finance/costs"
+                      element={
+                        <AdminRoute>
+                          <Navigate to="/app/finance/costs/overview" replace />
+                        </AdminRoute>
+                      }
+                    />
+                    <Route
+                      path="finance/costs/:section"
+                      element={
+                        <AdminRoute>
+                          <CostManagementPage />
+                        </AdminRoute>
+                      }
+                    />
+                    <Route
+                      path="reports"
+                      element={
+                        <AdminRoute>
+                          <AdminDashboard />
+                        </AdminRoute>
+                      }
+                    />
+                    <Route
+                      path="design-system"
+                      element={
+                        <AdminRoute>
+                          <DesignSystemShowcase />
+                        </AdminRoute>
+                      }
+                    />
+                    <Route
+                      path="admin/notifications"
+                      element={
+                        <AdminRoute>
+                          <NotificationsPage />
+                        </AdminRoute>
+                      }
+                    />
+                    <Route
+                      path="settings"
+                      element={
+                        <AdminRoute>
+                          <Navigate to="/app/settings/gym-identity" replace />
+                        </AdminRoute>
+                      }
+                    />
+                    <Route
+                      path="settings/:section"
+                      element={
+                        <AdminRoute>
+                          <SystemSettingsPage />
+                        </AdminRoute>
+                      }
+                    />
+                  </Route>
+                  {/* Legacy root path compatibility redirects */}
+                  <Route path="/management/*" element={<LegacyAppRedirect />} />
+                  <Route path="/finance/*" element={<LegacyAppRedirect />} />
+                  <Route path="/payments" element={<LegacyAppRedirect />} />
+                  <Route path="/reports" element={<LegacyAppRedirect />} />
+                  <Route path="/design-system" element={<LegacyAppRedirect />} />
+                  <Route path="/admin/*" element={<LegacyAppRedirect />} />
+                  <Route path="/settings/*" element={<LegacyAppRedirect />} />
 
-                {/* Catch all redirect */}
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
+                  {/* Catch all redirect */}
+                  <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
             </BrowserRouter>
             <AppToaster />
         </QueryClientProvider>

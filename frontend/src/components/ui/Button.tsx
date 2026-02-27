@@ -1,30 +1,40 @@
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
+import { motion, type HTMLMotionProps } from "framer-motion"
 
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full text-label-large transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-38 active:scale-95",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        filled: "bg-primary text-on-primary hover:shadow-md",
-        tonal: "bg-secondary-container text-on-secondary-container hover:shadow-sm",
-        outlined: "border border-outline bg-transparent text-primary hover:bg-primary/5",
-        text: "bg-transparent text-primary hover:bg-primary/5",
-        elevated: "bg-surface-container-low text-primary shadow-sm hover:shadow-md hover:bg-primary/5",
-        error: "bg-error text-on-error hover:shadow-md",
+        // shadcn standard variants
+        default: "bg-primary text-primary-foreground shadow hover:bg-primary/90",
+        destructive: "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
+        outline: "border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground",
+        secondary: "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
+        ghost: "hover:bg-accent hover:text-accent-foreground",
+        link: "text-primary underline-offset-4 hover:underline",
+        // Backward-compatible aliases (maps to shadcn equivalents)
+        filled: "bg-primary text-primary-foreground shadow hover:bg-primary/90",
+        tonal: "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
+        outlined: "border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground",
+        text: "hover:bg-accent hover:text-accent-foreground",
+        elevated: "bg-card text-card-foreground shadow-md hover:shadow-lg hover:bg-accent",
+        error: "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
+        danger: "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
       },
       size: {
-        default: "h-10 px-6",
-        sm: "h-8 px-4 text-label-medium",
-        lg: "h-12 px-8",
-        icon: "h-10 w-10 p-2",
+        default: "h-9 px-4 py-2",
+        sm: "h-8 rounded-md px-3 text-xs",
+        lg: "h-10 rounded-lg px-8",
+        icon: "h-9 w-9",
       },
     },
     defaultVariants: {
-      variant: "filled",
+      variant: "default",
       size: "default",
     },
   }
@@ -34,16 +44,30 @@ export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean
+  hoverScale?: number
+  tapScale?: number
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
-    const Comp = asChild ? Slot : "button"
+  ({ className, variant, size, asChild = false, hoverScale = 1.02, tapScale = 0.97, ...props }, ref) => {
+    if (asChild) {
+      return (
+        <Slot
+          className={cn(buttonVariants({ variant, size, className }))}
+          ref={ref}
+          {...props}
+        />
+      )
+    }
+
     return (
-      <Comp
+      <motion.button
+        whileHover={{ scale: hoverScale }}
+        whileTap={{ scale: tapScale }}
+        transition={{ type: "spring", stiffness: 400, damping: 17 }}
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
-        {...props}
+        {...(props as HTMLMotionProps<"button">)}
       />
     )
   }

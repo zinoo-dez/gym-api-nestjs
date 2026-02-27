@@ -13,11 +13,11 @@ interface ManagementStatCardProps {
 }
 
 const TONE_CLASS: Record<StatusTone, string> = {
-  success: "text-on-success-container bg-success-container",
-  warning: "text-on-warning-container bg-warning-container",
-  danger: "text-on-error-container bg-error-container",
-  info: "text-on-primary-container bg-primary-container",
-  secondary: "text-on-secondary-container bg-secondary-container",
+  success: "text-success bg-success/10",
+  warning: "text-warning bg-warning/10",
+  danger: "text-destructive bg-destructive/10",
+  info: "text-primary bg-primary/10",
+  secondary: "text-secondary-foreground bg-secondary",
 };
 
 export function ManagementStatCard({
@@ -37,17 +37,17 @@ export function ManagementStatCard({
         "group relative flex flex-col rounded-2xl border p-5 text-left transition-all duration-200",
         active 
           ? "border-primary bg-primary/5 shadow-md ring-1 ring-primary" 
-          : "border-outline-variant bg-surface-container-low hover:bg-surface-container hover:shadow-sm"
+          : "border-border bg-card hover:bg-card hover:shadow-sm"
       )}
     >
       <div className="flex items-start justify-between gap-3 w-full">
         <div className="space-y-2">
-          <p className="text-label-medium font-medium text-on-surface-variant group-hover:text-on-surface transition-colors">
+          <p className="text-xs font-medium text-muted-foreground group-hover:text-foreground transition-colors">
             {title}
           </p>
-          <p className="text-headline-small font-bold tracking-tight text-on-surface">{value}</p>
+          <p className="text-xl font-bold tracking-tight text-foreground">{value}</p>
           {helperText ? (
-            <p className="text-body-small text-on-surface-variant">{helperText}</p>
+            <p className="text-xs text-muted-foreground">{helperText}</p>
           ) : null}
         </div>
         <span className={cn(
@@ -60,7 +60,7 @@ export function ManagementStatCard({
       
       {active && (
         <div className="absolute top-2 right-2 flex size-5 items-center justify-center rounded-full bg-primary shadow-sm">
-          <MaterialIcon icon="check" className="text-on-primary text-sm" weight={700} opticalSize={16} />
+          <MaterialIcon icon="check" className="text-primary-foreground text-sm" weight={700} opticalSize={16} />
         </div>
       )}
     </button>

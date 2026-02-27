@@ -447,7 +447,7 @@ export function TrainersManagementPage() {
       {loadState === "error" ? (
         <Card>
           <CardContent className="flex flex-col gap-3 p-6">
-            <p className="text-sm text-danger">Unable to load trainer data.</p>
+            <p className="text-sm text-destructive">Unable to load trainer data.</p>
             <div>
               <Button type="button" variant="outlined" onClick={() => void loadData()}>
                 <MaterialIcon icon="refresh" className="text-lg" />
@@ -460,7 +460,7 @@ export function TrainersManagementPage() {
 
       {actionError ? (
         <Card>
-          <CardContent className="p-4 text-sm text-danger">{actionError}</CardContent>
+          <CardContent className="p-4 text-sm text-destructive">{actionError}</CardContent>
         </Card>
       ) : null}
 
@@ -636,7 +636,7 @@ export function TrainersManagementPage() {
                           type="button"
                           variant="outlined"
                           size="sm"
-                          className="text-error border-error/20 hover:bg-error/5"
+                          className="text-destructive border-destructive/20 hover:bg-destructive/5"
                           onClick={(event) => {
                             event.stopPropagation();
                             if (trainer) {
@@ -704,7 +704,7 @@ export function TrainersManagementPage() {
                         type="button"
                         variant="outlined"
                         size="sm"
-                        className="text-error border-error/20 hover:bg-error/5"
+                        className="text-destructive border-destructive/20 hover:bg-destructive/5"
                         onClick={() => {
                           if (trainer) {
                             void handleToggleActive(trainer, false);

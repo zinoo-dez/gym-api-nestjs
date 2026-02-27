@@ -90,11 +90,11 @@ interface StatCardProps {
 }
 
 const TONE_STYLES: Record<StatCardProps["tone"], string> = {
-  primary: "text-on-primary-container bg-primary-container",
-  success: "text-on-success-container bg-success-container",
-  warning: "text-on-warning-container bg-warning-container",
-  danger: "text-on-error-container bg-error-container",
-  info: "text-on-primary-container bg-primary-container",
+  primary: "text-primary bg-primary/10",
+  success: "text-success bg-success/10",
+  warning: "text-warning bg-warning/10",
+  danger: "text-destructive bg-destructive/10",
+  info: "text-primary bg-primary/10",
 };
 
 function StatCard({
@@ -114,17 +114,17 @@ function StatCard({
         "group relative flex flex-col rounded-2xl border p-5 text-left transition-all duration-200",
         active 
           ? "border-primary bg-primary/5 shadow-md ring-1 ring-primary" 
-          : "border-outline-variant bg-surface-container-low hover:bg-surface-container hover:shadow-sm"
+          : "border-border bg-card hover:bg-card hover:shadow-sm"
       )}
     >
       <div className="flex items-start justify-between gap-3 w-full">
         <div className="space-y-2">
-          <p className="text-label-medium font-medium text-on-surface-variant group-hover:text-on-surface transition-colors">
+          <p className="text-xs font-medium text-muted-foreground group-hover:text-foreground transition-colors">
             {title}
           </p>
-          <p className="text-headline-small font-bold tracking-tight text-on-surface">{value}</p>
+          <p className="text-xl font-bold tracking-tight text-foreground">{value}</p>
           {helperText ? (
-            <p className="text-body-small text-on-surface-variant">{helperText}</p>
+            <p className="text-xs text-muted-foreground">{helperText}</p>
           ) : null}
         </div>
         <span className={cn(
@@ -137,7 +137,7 @@ function StatCard({
       
       {active && (
         <div className="absolute top-2 right-2 flex size-5 items-center justify-center rounded-full bg-primary shadow-sm">
-          <MaterialIcon icon="check" className="text-on-primary text-sm" weight={700} opticalSize={16} />
+          <MaterialIcon icon="check" className="text-primary-foreground text-sm" weight={700} opticalSize={16} />
         </div>
       )}
     </button>
@@ -513,7 +513,7 @@ export function EquipmentManagementPage({ view = "all" }: EquipmentManagementPag
       {loadState === "error" ? (
         <Card>
           <CardContent className="flex flex-col gap-3 p-6">
-            <p className="text-sm text-danger">Unable to load equipment data.</p>
+            <p className="text-sm text-destructive">Unable to load equipment data.</p>
             <div>
               <Button type="button" variant="outlined" onClick={() => void loadEquipment()}>
                 <MaterialIcon icon="refresh" className="text-lg" />
@@ -526,7 +526,7 @@ export function EquipmentManagementPage({ view = "all" }: EquipmentManagementPag
 
       {actionError ? (
         <Card>
-          <CardContent className="p-4 text-sm text-danger">{actionError}</CardContent>
+          <CardContent className="p-4 text-sm text-destructive">{actionError}</CardContent>
         </Card>
       ) : null}
 

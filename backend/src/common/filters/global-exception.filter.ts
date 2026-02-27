@@ -248,6 +248,15 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const { method, url, body, query, params } = request;
     const user = (request as any).user;
 
+    // Ignore noisy 404 polling requests from dev tools/extensions
+    if (
+      url.startsWith('/polling') &&
+      exception instanceof HttpException &&
+      exception.getStatus() === HttpStatus.NOT_FOUND
+    ) {
+      return;
+    }
+
     // Sanitize request data (remove sensitive fields)
     const sanitizedBody = this.sanitizeData(body);
     const sanitizedQuery = this.sanitizeData(query);

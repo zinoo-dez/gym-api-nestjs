@@ -82,7 +82,7 @@ export function EquipmentDetailDrawer({
     >
       <div className="space-y-6">
         <section className="rounded-lg border bg-card p-4">
-          <h3 className="card-title">Basic Info</h3>
+          <h3 className="text-lg font-semibold tracking-tight">Basic Info</h3>
           <div className="mt-4 flex flex-wrap gap-2">
             <EquipmentConditionBadge condition={equipment.condition} />
             <EquipmentStatusBadge isActive={equipment.isActive} />
@@ -113,7 +113,7 @@ export function EquipmentDetailDrawer({
         </section>
 
         <section className="rounded-lg border bg-card p-4">
-          <h3 className="card-title">Maintenance Schedule</h3>
+          <h3 className="text-lg font-semibold tracking-tight">Maintenance Schedule</h3>
           <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
             <div>
               <dt className="text-muted-foreground">Frequency</dt>
@@ -137,7 +137,7 @@ export function EquipmentDetailDrawer({
         </section>
 
         <section className="rounded-lg border bg-card p-4">
-          <h3 className="card-title">Cost & Warranty</h3>
+          <h3 className="text-lg font-semibold tracking-tight">Cost & Warranty</h3>
           <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
             <div>
               <dt className="text-muted-foreground">Purchase Cost</dt>
@@ -159,7 +159,7 @@ export function EquipmentDetailDrawer({
         </section>
 
         <section className="rounded-lg border bg-card p-4">
-          <h3 className="card-title">Notes & History</h3>
+          <h3 className="text-lg font-semibold tracking-tight">Notes & History</h3>
           <p className="mt-2 text-sm text-foreground">{equipment.notes || "No notes provided."}</p>
 
           <div className="mt-4 space-y-3">

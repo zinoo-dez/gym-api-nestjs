@@ -55,8 +55,8 @@ export function SalesHistorySection({
         ) : null}
 
         {errorMessage ? (
-          <div className="space-y-3 rounded-md border border-danger/40 bg-danger/5 p-4">
-            <p className="text-sm text-danger">{errorMessage}</p>
+          <div className="space-y-3 rounded-md border border-destructive/40 bg-danger/5 p-4">
+            <p className="text-sm text-destructive">{errorMessage}</p>
             <Button type="button" variant="outline" onClick={onRetry}>
               Retry
             </Button>

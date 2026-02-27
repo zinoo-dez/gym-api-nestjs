@@ -24,11 +24,11 @@ interface KpiCardProps {
 }
 
 const TONE_STYLES: Record<KpiCardProps["tone"], string> = {
-  primary: "bg-primary-container text-on-primary-container",
-  success: "bg-tertiary-container text-on-tertiary-container",
-  warning: "bg-error-container text-on-error-container",
-  danger: "bg-error text-on-error",
-  info: "bg-secondary-container text-on-secondary-container",
+  primary: "bg-primary/10 text-primary",
+  success: "bg-success/10 text-success",
+  warning: "bg-destructive/10 text-destructive",
+  danger: "bg-destructive text-destructive-foreground",
+  info: "bg-secondary text-secondary-foreground",
 };
 
 function KpiCard({
@@ -47,15 +47,15 @@ function KpiCard({
       className={`relative flex flex-col items-start justify-between gap-4 rounded-2xl border p-5 text-left transition-all duration-200 hover:shadow-md active:scale-[0.98] ${
         active 
           ? "border-primary bg-primary/5 ring-1 ring-primary shadow-sm" 
-          : "border-outline-variant bg-surface-container-low hover:bg-surface-container hover:border-outline"
+          : "border-border bg-card hover:bg-card hover:border-input"
       }`}
     >
       <div className="flex w-full items-start justify-between gap-3">
         <div className="space-y-1.5 min-w-0">
-          <p className="text-label-medium font-bold text-on-surface-variant line-clamp-1">{title}</p>
-          <p className="text-headline-small font-bold tracking-tight text-on-surface">{value}</p>
+          <p className="text-xs font-bold text-muted-foreground line-clamp-1">{title}</p>
+          <p className="text-xl font-bold tracking-tight text-foreground">{value}</p>
           {helperText ? (
-            <p className="text-body-small text-on-surface-variant font-medium">{helperText}</p>
+            <p className="text-xs text-muted-foreground font-medium">{helperText}</p>
           ) : null}
         </div>
         <div className={`flex size-12 shrink-0 items-center justify-center rounded-2xl shadow-sm transition-transform ${TONE_STYLES[tone]}`}>
@@ -65,7 +65,7 @@ function KpiCard({
       
       {active && (
         <div className="absolute top-2 right-2 flex size-5 items-center justify-center rounded-full bg-primary shadow-sm">
-          <MaterialIcon icon="check" className="text-on-primary text-sm" weight={700} opticalSize={16} />
+          <MaterialIcon icon="check" className="text-primary-foreground text-sm" weight={700} opticalSize={16} />
         </div>
       )}
     </button>

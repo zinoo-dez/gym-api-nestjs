@@ -24,24 +24,24 @@ const CATEGORY_LABELS: Record<NotificationCategory, string> = {
 
 const TONE_STYLES: Record<NotificationTone, ToneStyle> = {
   danger: {
-    iconContainerClassName: "bg-error-container",
-    iconClassName: "text-on-error-container",
-    badgeClassName: "bg-error text-on-error",
+    iconContainerClassName: "bg-destructive/10",
+    iconClassName: "text-destructive",
+    badgeClassName: "bg-destructive text-destructive-foreground",
   },
   warning: {
-    iconContainerClassName: "bg-warning-container",
-    iconClassName: "text-on-warning-container",
-    badgeClassName: "bg-warning text-on-warning",
+    iconContainerClassName: "bg-warning/10",
+    iconClassName: "text-warning",
+    badgeClassName: "bg-warning text-warning-foreground",
   },
   success: {
-    iconContainerClassName: "bg-success-container",
-    iconClassName: "text-on-success-container",
-    badgeClassName: "bg-success text-on-success",
+    iconContainerClassName: "bg-success/10",
+    iconClassName: "text-success",
+    badgeClassName: "bg-success text-success-foreground",
   },
   info: {
-    iconContainerClassName: "bg-primary-container",
-    iconClassName: "text-on-primary-container",
-    badgeClassName: "bg-primary text-on-primary",
+    iconContainerClassName: "bg-primary/10",
+    iconClassName: "text-primary",
+    badgeClassName: "bg-primary text-primary-foreground",
   },
 };
 

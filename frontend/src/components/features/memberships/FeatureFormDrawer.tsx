@@ -79,12 +79,12 @@ export function FeatureFormDrawer({
     >
       <form id="feature-form" className="space-y-6" onSubmit={submitForm}>
         <section className="rounded-lg border bg-card p-4">
-          <h3 className="card-title">Feature Details</h3>
+          <h3 className="text-lg font-semibold tracking-tight">Feature Details</h3>
 
           <div className="mt-4 space-y-4">
             <div className="space-y-2">
               <Label htmlFor="feature-name">
-                Feature Name <span className="text-danger">*</span>
+                Feature Name <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="feature-name"

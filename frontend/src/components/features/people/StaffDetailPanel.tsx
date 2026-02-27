@@ -116,7 +116,7 @@ export function StaffDetailPanel({
         ) : null}
 
         <section className="rounded-lg border bg-card p-4">
-          <h3 className="card-title">Personal Info</h3>
+          <h3 className="text-lg font-semibold tracking-tight">Personal Info</h3>
 
           <div className="mt-4 flex flex-wrap gap-2">
             <StatusBadge value={staff.isActive ? "ACTIVE" : "INACTIVE"} />
@@ -155,7 +155,7 @@ export function StaffDetailPanel({
 
         <section className="rounded-lg border bg-card p-4">
           <div className="flex items-center justify-between gap-2">
-            <h3 className="card-title">Role & Permissions</h3>
+            <h3 className="text-lg font-semibold tracking-tight">Role & Permissions</h3>
             <ShieldCheck className="size-5 text-muted-foreground" />
           </div>
 
@@ -192,14 +192,14 @@ export function StaffDetailPanel({
         </section>
 
         <section className="rounded-lg border bg-card p-4">
-          <h3 className="card-title">Work Schedule</h3>
+          <h3 className="text-lg font-semibold tracking-tight">Work Schedule</h3>
           <p className="mt-4 text-sm text-muted-foreground">
             Shift schedule data is not currently exposed by the staff API.
           </p>
         </section>
 
         <section className="rounded-lg border bg-card p-4">
-          <h3 className="card-title">Activity Log</h3>
+          <h3 className="text-lg font-semibold tracking-tight">Activity Log</h3>
 
           <div className="mt-4 space-y-2">
             {activityLog.map((entry) => (

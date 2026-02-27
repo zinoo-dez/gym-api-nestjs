@@ -352,7 +352,7 @@ export function CostManagementPage() {
       {loadState === "error" ? (
         <Card>
           <CardContent className="flex flex-col gap-3 p-6">
-            <p className="text-sm text-danger">Unable to load cost data.</p>
+            <p className="text-sm text-destructive">Unable to load cost data.</p>
             <div>
               <Button type="button" variant="outlined" onClick={() => void loadCosts()}>
                 <MaterialIcon icon="refresh" className="text-lg" />
@@ -365,7 +365,7 @@ export function CostManagementPage() {
 
       {actionError ? (
         <Card>
-          <CardContent className="p-4 text-sm text-danger">{actionError}</CardContent>
+          <CardContent className="p-4 text-sm text-destructive">{actionError}</CardContent>
         </Card>
       ) : null}
 
@@ -386,7 +386,7 @@ export function CostManagementPage() {
               <CostPaymentHealthCards metrics={paymentMetrics} />
 
               <section className="space-y-4">
-                <h3 className="card-title">Upcoming Due Costs (Next 14 Days)</h3>
+                <h3 className="text-lg font-semibold tracking-tight">Upcoming Due Costs (Next 14 Days)</h3>
 
                 {upcomingDueCosts.length === 0 ? (
                   <Card>
@@ -437,7 +437,7 @@ export function CostManagementPage() {
           {activeSection === "records" ? (
             <section className="space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="card-title">Detailed Cost Records</h3>
+                <h3 className="text-lg font-semibold tracking-tight">Detailed Cost Records</h3>
                 <Button type="button" variant="text" onClick={clearFilters} disabled={!hasActiveFilters}>
                   Clear List Filters
                 </Button>

@@ -138,7 +138,7 @@ export function PosSalePanel({
           <div className="relative">
             <MaterialIcon 
               icon="search" 
-              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" 
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" 
               opticalSize={20}
             />
             <Input
@@ -156,8 +156,8 @@ export function PosSalePanel({
             ) : null}
 
             {quickProductsError ? (
-              <div className="space-y-2 rounded-md border border-danger/40 bg-danger/5 p-2">
-                <p className="text-xs text-danger">{quickProductsError}</p>
+              <div className="space-y-2 rounded-md border border-destructive/40 bg-danger/5 p-2">
+                <p className="text-xs text-destructive">{quickProductsError}</p>
                 <Button type="button" variant="outlined" size="sm" onClick={onRetryQuickProducts}>
                   <MaterialIcon icon="refresh" className="text-sm" />
                   <span>Retry</span>
@@ -214,7 +214,7 @@ export function PosSalePanel({
                         {formatCurrency(item.unitPrice)} x {item.quantity}
                       </p>
                     </div>
-                    <Button type="button" variant="text" size="sm" onClick={() => onRemoveItem(item.productId)} className="text-error">
+                    <Button type="button" variant="text" size="sm" onClick={() => onRemoveItem(item.productId)} className="text-destructive">
                       <MaterialIcon icon="delete" className="text-sm" />
                       <span>Remove</span>
                     </Button>

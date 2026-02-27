@@ -76,7 +76,7 @@ export function ProductSalesOverviewPage() {
       </Card>
 
       <Card>
-        <CardContent className="flex items-center gap-3 p-4 text-body-small text-on-surface-variant">
+        <CardContent className="flex items-center gap-3 p-4 text-xs text-muted-foreground">
           <MaterialIcon icon="bar_chart" className="text-lg text-primary" />
           <span>Revenue and top-selling data use a 30-day rolling window for trend context.</span>
         </CardContent>

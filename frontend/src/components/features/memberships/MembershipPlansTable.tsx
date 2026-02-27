@@ -62,7 +62,7 @@ function ActionButtons({
           event.stopPropagation();
           onDisable(plan);
         }}
-        className="text-error hover:bg-error/10 active:bg-error/20"
+        className="text-destructive hover:bg-destructive/10 active:bg-destructive/20"
         title="Disable plan"
       >
         <MaterialIcon icon="block" className="text-xl" />
@@ -80,17 +80,17 @@ export function MembershipPlansTable({
 }: MembershipPlansTableProps) {
   return (
     <>
-      <div className="hidden overflow-x-auto rounded-2xl border border-outline-variant bg-surface-container-low md:block">
+      <div className="hidden overflow-x-auto rounded-2xl border border-border bg-card md:block">
         <table className="min-w-full border-collapse text-left">
           <thead>
-            <tr className="border-b border-outline-variant bg-surface-container">
-              <th className="px-4 py-4 text-label-large font-bold text-on-surface-variant">Plan Name</th>
-              <th className="px-4 py-4 text-label-large font-bold text-on-surface-variant">Duration</th>
-              <th className="px-4 py-4 text-label-large font-bold text-on-surface-variant">Price</th>
-              <th className="px-4 py-4 text-label-large font-bold text-on-surface-variant">Features</th>
-              <th className="px-4 py-4 text-label-large font-bold text-on-surface-variant">Members</th>
-              <th className="px-4 py-4 text-label-large font-bold text-on-surface-variant">Status</th>
-              <th className="px-4 py-4 text-right text-label-large font-bold text-on-surface-variant">Actions</th>
+            <tr className="border-b border-border bg-card">
+              <th className="px-4 py-4 text-sm font-bold text-muted-foreground">Plan Name</th>
+              <th className="px-4 py-4 text-sm font-bold text-muted-foreground">Duration</th>
+              <th className="px-4 py-4 text-sm font-bold text-muted-foreground">Price</th>
+              <th className="px-4 py-4 text-sm font-bold text-muted-foreground">Features</th>
+              <th className="px-4 py-4 text-sm font-bold text-muted-foreground">Members</th>
+              <th className="px-4 py-4 text-sm font-bold text-muted-foreground">Status</th>
+              <th className="px-4 py-4 text-right text-sm font-bold text-muted-foreground">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -102,14 +102,14 @@ export function MembershipPlansTable({
               >
                 <td className="px-4 py-4 align-middle">
                   <div className="space-y-0.5">
-                    <p className="text-title-small font-bold text-on-surface">{plan.name}</p>
-                    <p className="text-label-small text-on-surface-variant">{plan.planType.toUpperCase()}</p>
+                    <p className="text-sm font-bold text-foreground">{plan.name}</p>
+                    <p className="text-xs text-muted-foreground">{plan.planType.toUpperCase()}</p>
                   </div>
                 </td>
-                <td className="px-4 py-4 align-middle text-body-medium text-on-surface">{plan.durationDays} days</td>
-                <td className="px-4 py-4 align-middle text-body-medium font-medium text-on-surface">${plan.price.toFixed(2)}</td>
-                <td className="px-4 py-4 align-middle text-body-medium text-on-surface">{plan.planFeatures.length}</td>
-                <td className="px-4 py-4 align-middle text-body-medium text-on-surface">{plan.activeMembers}</td>
+                <td className="px-4 py-4 align-middle text-sm text-foreground">{plan.durationDays} days</td>
+                <td className="px-4 py-4 align-middle text-sm font-medium text-foreground">${plan.price.toFixed(2)}</td>
+                <td className="px-4 py-4 align-middle text-sm text-foreground">{plan.planFeatures.length}</td>
+                <td className="px-4 py-4 align-middle text-sm text-foreground">{plan.activeMembers}</td>
                 <td className="px-4 py-3 align-top">
                   <MembershipPlanStatusBadge status={plan.status} />
                 </td>
@@ -132,33 +132,33 @@ export function MembershipPlansTable({
         {plans.map((plan) => (
           <article
             key={plan.id}
-            className="rounded-2xl border border-outline-variant bg-surface-container-low p-4 transition-all hover:bg-surface-container active:bg-surface-container-high"
+            className="rounded-2xl border border-border bg-card p-4 transition-all hover:bg-card active:bg-card"
             onClick={() => onView(plan)}
           >
             <div className="flex items-start justify-between gap-3">
               <div className="space-y-1">
-                <h3 className="text-title-medium font-bold text-on-surface">{plan.name}</h3>
-                <p className="text-label-medium text-on-surface-variant">{plan.durationDays} days</p>
+                <h3 className="text-base font-bold text-foreground">{plan.name}</h3>
+                <p className="text-xs text-muted-foreground">{plan.durationDays} days</p>
               </div>
               <MembershipPlanStatusBadge status={plan.status} />
             </div>
 
             <dl className="mt-4 grid grid-cols-2 gap-4">
               <div className="space-y-0.5">
-                <dt className="text-label-small font-bold uppercase tracking-wider text-on-surface-variant/80">Price</dt>
-                <dd className="text-body-medium font-medium text-on-surface">${plan.price.toFixed(2)}</dd>
+                <dt className="text-xs font-bold uppercase tracking-wider text-muted-foreground/80">Price</dt>
+                <dd className="text-sm font-medium text-foreground">${plan.price.toFixed(2)}</dd>
               </div>
               <div className="space-y-0.5 text-right">
-                <dt className="text-label-small font-bold uppercase tracking-wider text-on-surface-variant/80">Features</dt>
-                <dd className="text-body-medium text-on-surface">{plan.planFeatures.length}</dd>
+                <dt className="text-xs font-bold uppercase tracking-wider text-muted-foreground/80">Features</dt>
+                <dd className="text-sm text-foreground">{plan.planFeatures.length}</dd>
               </div>
               <div className="space-y-0.5">
-                <dt className="text-label-small font-bold uppercase tracking-wider text-on-surface-variant/80">Members</dt>
-                <dd className="text-body-medium text-on-surface">{plan.activeMembers}</dd>
+                <dt className="text-xs font-bold uppercase tracking-wider text-muted-foreground/80">Members</dt>
+                <dd className="text-sm text-foreground">{plan.activeMembers}</dd>
               </div>
               <div className="space-y-0.5 text-right">
-                <dt className="text-label-small font-bold uppercase tracking-wider text-on-surface-variant/80">Type</dt>
-                <dd className="text-body-medium text-on-surface">{plan.planType.toUpperCase()}</dd>
+                <dt className="text-xs font-bold uppercase tracking-wider text-muted-foreground/80">Type</dt>
+                <dd className="text-sm text-foreground">{plan.planType.toUpperCase()}</dd>
               </div>
             </dl>
 
@@ -196,7 +196,7 @@ export function MembershipPlansTable({
                   event.stopPropagation();
                   onDisable(plan);
                 }}
-                className="text-error hover:bg-error/10 active:bg-error/20"
+                className="text-destructive hover:bg-destructive/10 active:bg-destructive/20"
               >
                 <MaterialIcon icon="block" className="text-lg" />
                 <span>Disable</span>

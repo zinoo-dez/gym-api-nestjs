@@ -68,7 +68,7 @@ export function DatePicker({
       className={cn(
         "w-full justify-start text-left font-normal h-10 px-3",
         !selectedDate && "text-muted-foreground",
-        error && "border-danger focus-visible:ring-danger",
+        error && "border-destructive focus-visible:ring-destructive",
         className
       )}
       onClick={() => setIsOpen(!isOpen)}
@@ -103,9 +103,9 @@ export function DatePicker({
   return (
     <div className="grid w-full items-center gap-1.5">
       {label && (
-        <Label className={cn(error && "text-danger")}>
+        <Label className={cn(error && "text-destructive")}>
           {label}
-          {required && <span className="text-danger ml-1">*</span>}
+          {required && <span className="text-destructive ml-1">*</span>}
         </Label>
       )}
 
@@ -136,7 +136,7 @@ export function DatePicker({
       )}
 
       {error ? (
-        <p className="text-sm font-medium text-danger">{error}</p>
+        <p className="text-sm font-medium text-destructive">{error}</p>
       ) : (
         helperText && (
           <p className="text-sm text-muted-foreground">{helperText}</p>

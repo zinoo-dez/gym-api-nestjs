@@ -61,17 +61,17 @@ export default function ResetPasswordPage() {
       </CardHeader>
       <form onSubmit={handleSubmit(onSubmit)}>
         <CardContent className="space-y-4">
-          {message ? <div className="rounded-md bg-tertiary/10 p-3 text-sm text-tertiary text-center">{message}</div> : null}
-          {error ? <div className="rounded-md bg-error/10 p-3 text-sm text-error text-center">{error}</div> : null}
+          {message ? <div className="rounded-md bg-success/10 p-3 text-sm text-success text-center">{message}</div> : null}
+          {error ? <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive text-center">{error}</div> : null}
           <div className="space-y-2">
             <Label htmlFor="newPassword">New Password</Label>
             <Input id="newPassword" type="password" hasError={!!errors.newPassword} {...register("newPassword")} />
-            {errors.newPassword ? <p className="error-text text-sm font-medium text-error mt-1">{errors.newPassword.message}</p> : null}
+            {errors.newPassword ? <p className="error-text text-sm font-medium text-destructive mt-1">{errors.newPassword.message}</p> : null}
           </div>
           <div className="space-y-2">
             <Label htmlFor="confirmPassword">Confirm Password</Label>
             <Input id="confirmPassword" type="password" hasError={!!errors.confirmPassword} {...register("confirmPassword")} />
-            {errors.confirmPassword ? <p className="error-text text-sm font-medium text-error mt-1">{errors.confirmPassword.message}</p> : null}
+            {errors.confirmPassword ? <p className="error-text text-sm font-medium text-destructive mt-1">{errors.confirmPassword.message}</p> : null}
           </div>
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">

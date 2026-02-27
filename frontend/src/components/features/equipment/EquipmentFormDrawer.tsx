@@ -122,11 +122,11 @@ export function EquipmentFormDrawer({
     >
       <form id="equipment-form" className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
         <section className="rounded-lg border bg-card p-4">
-          <h3 className="card-title">Basic Info</h3>
+          <h3 className="text-lg font-semibold tracking-tight">Basic Info</h3>
           <div className="mt-4 grid gap-4 md:grid-cols-2">
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="name">
-                Equipment Name <span className="text-danger">*</span>
+                Equipment Name <span className="text-destructive">*</span>
               </Label>
               <Input id="name" {...register("name")} hasError={Boolean(errors.name)} />
               {errors.name ? <p className="error-text">{errors.name.message}</p> : null}
@@ -134,7 +134,7 @@ export function EquipmentFormDrawer({
 
             <div className="space-y-2">
               <Label htmlFor="category">
-                Category <span className="text-danger">*</span>
+                Category <span className="text-destructive">*</span>
               </Label>
               <Select id="category" {...register("category")} hasError={Boolean(errors.category)}>
                 {EQUIPMENT_CATEGORIES.map((category) => (
@@ -147,7 +147,7 @@ export function EquipmentFormDrawer({
 
             <div className="space-y-2">
               <Label htmlFor="condition">
-                Condition Status <span className="text-danger">*</span>
+                Condition Status <span className="text-destructive">*</span>
               </Label>
               <Select id="condition" {...register("condition")} hasError={Boolean(errors.condition)}>
                 {EQUIPMENT_CONDITIONS.map((condition) => (
@@ -160,7 +160,7 @@ export function EquipmentFormDrawer({
 
             <div className="space-y-2">
               <Label htmlFor="brandModel">
-                Brand / Model <span className="text-danger">*</span>
+                Brand / Model <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="brandModel"
@@ -177,7 +177,7 @@ export function EquipmentFormDrawer({
 
             <div className="space-y-2">
               <Label htmlFor="assignedArea">
-                Assigned Area <span className="text-danger">*</span>
+                Assigned Area <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="assignedArea"
@@ -207,11 +207,11 @@ export function EquipmentFormDrawer({
         </section>
 
         <section className="rounded-lg border bg-card p-4">
-          <h3 className="card-title">Purchase & Warranty</h3>
+          <h3 className="text-lg font-semibold tracking-tight">Purchase & Warranty</h3>
           <div className="mt-4 grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="purchaseDate">
-                Purchase Date <span className="text-danger">*</span>
+                Purchase Date <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="purchaseDate"
@@ -224,7 +224,7 @@ export function EquipmentFormDrawer({
 
             <div className="space-y-2">
               <Label htmlFor="purchaseCost">
-                Purchase Cost (USD) <span className="text-danger">*</span>
+                Purchase Cost (USD) <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="purchaseCost"
@@ -239,7 +239,7 @@ export function EquipmentFormDrawer({
 
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="warrantyExpiryDate">
-                Warranty Expiry Date <span className="text-danger">*</span>
+                Warranty Expiry Date <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="warrantyExpiryDate"
@@ -255,11 +255,11 @@ export function EquipmentFormDrawer({
         </section>
 
         <section className="rounded-lg border bg-card p-4">
-          <h3 className="card-title">Maintenance Setup</h3>
+          <h3 className="text-lg font-semibold tracking-tight">Maintenance Setup</h3>
           <div className="mt-4 grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="maintenanceFrequency">
-                Maintenance Frequency <span className="text-danger">*</span>
+                Maintenance Frequency <span className="text-destructive">*</span>
               </Label>
               <Select
                 id="maintenanceFrequency"
@@ -276,7 +276,7 @@ export function EquipmentFormDrawer({
 
             <div className="space-y-2">
               <Label htmlFor="lastMaintenanceDate">
-                Last Maintenance Date <span className="text-danger">*</span>
+                Last Maintenance Date <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="lastMaintenanceDate"
@@ -296,7 +296,7 @@ export function EquipmentFormDrawer({
         </section>
 
         <section className="rounded-lg border bg-card p-4">
-          <h3 className="card-title">Notes</h3>
+          <h3 className="text-lg font-semibold tracking-tight">Notes</h3>
           <div className="mt-4 space-y-2">
             <Label htmlFor="notes">Operational Notes</Label>
             <Textarea id="notes" {...register("notes")} placeholder="Optional notes for technicians and admins" />

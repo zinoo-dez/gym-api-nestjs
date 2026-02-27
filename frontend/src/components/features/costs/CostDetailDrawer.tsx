@@ -72,7 +72,7 @@ export function CostDetailDrawer({
     >
       <div className="space-y-6">
         <section className="rounded-lg border bg-card p-4">
-          <h3 className="card-title">Cost Information</h3>
+          <h3 className="text-lg font-semibold tracking-tight">Cost Information</h3>
 
           <div className="mt-4 flex flex-wrap gap-2">
             <CostStatusBadge status={cost.status} />
@@ -116,7 +116,7 @@ export function CostDetailDrawer({
         </section>
 
         <section className="rounded-lg border bg-card p-4">
-          <h3 className="card-title">Payment Details</h3>
+          <h3 className="text-lg font-semibold tracking-tight">Payment Details</h3>
 
           <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
             <div>
@@ -155,12 +155,12 @@ export function CostDetailDrawer({
         </section>
 
         <section className="rounded-lg border bg-card p-4">
-          <h3 className="card-title">Notes</h3>
+          <h3 className="text-lg font-semibold tracking-tight">Notes</h3>
           <p className="mt-3 text-sm text-foreground">{cost.notes || "No notes provided."}</p>
         </section>
 
         <section className="rounded-lg border bg-card p-4">
-          <h3 className="card-title">History / Audit Trail</h3>
+          <h3 className="text-lg font-semibold tracking-tight">History / Audit Trail</h3>
 
           <div className="mt-4 space-y-2">
             {cost.auditTrail.length === 0 ? (

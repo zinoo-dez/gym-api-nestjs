@@ -61,7 +61,7 @@ export default function LoginPage() {
       </motion.div>
 
       {error ? (
-        <motion.div variants={item} className="rounded-md bg-error/10 p-3 text-sm font-medium text-error">
+        <motion.div variants={item} className="rounded-md bg-destructive/10 p-3 text-sm font-medium text-destructive">
           {error}
         </motion.div>
       ) : null}
@@ -75,7 +75,7 @@ export default function LoginPage() {
           className="w-full border border-input bg-background rounded-md px-3 py-2 text-sm"
           {...register("email")}
         />
-        {errors.email ? <p className="small-text text-error">{errors.email.message}</p> : null}
+        {errors.email ? <p className="small-text text-destructive">{errors.email.message}</p> : null}
       </motion.div>
 
       <motion.div variants={item} className="space-y-2">
@@ -99,7 +99,7 @@ export default function LoginPage() {
             {showPassword ? <EyeOff className="size-5" /> : <Eye className="size-5" />}
           </button>
         </div>
-        {errors.password ? <p className="small-text text-error">{errors.password.message}</p> : null}
+        {errors.password ? <p className="small-text text-destructive">{errors.password.message}</p> : null}
       </motion.div>
 
       <motion.button

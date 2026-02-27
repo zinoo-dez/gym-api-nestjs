@@ -91,12 +91,12 @@ export function TrainerFormPanel({
     >
       <form id="trainer-form" className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
         <section className="rounded-lg border bg-card p-4">
-          <h3 className="card-title">Account Details</h3>
+          <h3 className="text-lg font-semibold tracking-tight">Account Details</h3>
 
           <div className="mt-4 grid gap-4 md:grid-cols-2">
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="trainer-email">
-                Email <span className="text-danger">*</span>
+                Email <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="trainer-email"
@@ -111,7 +111,7 @@ export function TrainerFormPanel({
             {mode === "add" ? (
               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="trainer-password">
-                  Password <span className="text-danger">*</span>
+                  Password <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="trainer-password"
@@ -126,12 +126,12 @@ export function TrainerFormPanel({
         </section>
 
         <section className="rounded-lg border bg-card p-4">
-          <h3 className="card-title">Profile Information</h3>
+          <h3 className="text-lg font-semibold tracking-tight">Profile Information</h3>
 
           <div className="mt-4 grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="trainer-first-name">
-                First Name <span className="text-danger">*</span>
+                First Name <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="trainer-first-name"
@@ -143,7 +143,7 @@ export function TrainerFormPanel({
 
             <div className="space-y-2">
               <Label htmlFor="trainer-last-name">
-                Last Name <span className="text-danger">*</span>
+                Last Name <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="trainer-last-name"
@@ -166,12 +166,12 @@ export function TrainerFormPanel({
         </section>
 
         <section className="rounded-lg border bg-card p-4">
-          <h3 className="card-title">Professional Details</h3>
+          <h3 className="text-lg font-semibold tracking-tight">Professional Details</h3>
 
           <div className="mt-4 grid gap-4 md:grid-cols-2">
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="trainer-specializations">
-                Specializations <span className="text-danger">*</span>
+                Specializations <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="trainer-specializations"

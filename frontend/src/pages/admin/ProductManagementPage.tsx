@@ -1,7 +1,7 @@
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
+import { goeyToast } from "goey-toast";
 
 import {
   ProductFormPanel,
@@ -152,7 +152,7 @@ export function ProductManagementPage() {
     }
 
     if (!file.type.startsWith("image/")) {
-      toast.error("Please choose an image file.");
+      goeyToast.error("Please choose an image file.");
       return;
     }
 
@@ -164,7 +164,7 @@ export function ProductManagementPage() {
 
   const handleImageUpload = async () => {
     if (!selectedImageFile) {
-      toast.error("Select an image before uploading.");
+      goeyToast.error("Select an image before uploading.");
       return;
     }
 
@@ -174,9 +174,9 @@ export function ProductManagementPage() {
       const url = await productSalesService.uploadProductImage(selectedImageFile);
       setUploadedImageUrl(url);
       setImagePreviewUrl(url);
-      toast.success("Image uploaded successfully.");
+      goeyToast.success("Image uploaded successfully.");
     } catch (error) {
-      toast.error(toErrorMessage(error));
+      goeyToast.error(toErrorMessage(error));
     } finally {
       setImageUploading(false);
     }
@@ -205,7 +205,7 @@ export function ProductManagementPage() {
           }));
         }
 
-        toast.success("Product created successfully.");
+        goeyToast.success("Product created successfully.");
       } else {
         if (!editingProductId) {
           return;
@@ -223,12 +223,12 @@ export function ProductManagementPage() {
           }));
         }
 
-        toast.success("Product updated successfully.");
+        goeyToast.success("Product updated successfully.");
       }
 
       setFormOpen(false);
     } catch (error) {
-      toast.error(toErrorMessage(error));
+      goeyToast.error(toErrorMessage(error));
     }
   };
 

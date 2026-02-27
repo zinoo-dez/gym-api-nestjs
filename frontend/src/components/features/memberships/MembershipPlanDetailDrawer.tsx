@@ -107,7 +107,7 @@ export function MembershipPlanDetailDrawer({
     >
       <div className="space-y-6">
         <section className="rounded-lg border bg-card p-4">
-          <h3 className="card-title">Plan Overview</h3>
+          <h3 className="text-lg font-semibold tracking-tight">Plan Overview</h3>
 
           <div className="mt-4 flex flex-wrap gap-2">
             <MembershipPlanStatusBadge status={plan.status} />
@@ -137,7 +137,7 @@ export function MembershipPlanDetailDrawer({
         </section>
 
         <section className="rounded-lg border bg-card p-4">
-          <h3 className="card-title">Pricing & Duration</h3>
+          <h3 className="text-lg font-semibold tracking-tight">Pricing & Duration</h3>
 
           <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
             <div>
@@ -160,7 +160,7 @@ export function MembershipPlanDetailDrawer({
         </section>
 
         <section className="rounded-lg border bg-card p-4">
-          <h3 className="card-title">Included Features</h3>
+          <h3 className="text-lg font-semibold tracking-tight">Included Features</h3>
 
           <div className="mt-4 space-y-3">
             {plan.planFeatures.length === 0 && builtInFeatures.length === 0 ? (
@@ -187,7 +187,7 @@ export function MembershipPlanDetailDrawer({
         </section>
 
         <section className="rounded-lg border bg-card p-4">
-          <h3 className="card-title">Assigned Members</h3>
+          <h3 className="text-lg font-semibold tracking-tight">Assigned Members</h3>
 
           <div className="mt-4 space-y-2">
             {assignedMemberships.length === 0 ? (
@@ -209,7 +209,7 @@ export function MembershipPlanDetailDrawer({
         </section>
 
         <section className="rounded-lg border bg-card p-4">
-          <h3 className="card-title">Change History</h3>
+          <h3 className="text-lg font-semibold tracking-tight">Change History</h3>
 
           <div className="mt-4 space-y-2 text-sm">
             <div className="rounded-md border p-3">

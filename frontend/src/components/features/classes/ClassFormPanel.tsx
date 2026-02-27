@@ -256,7 +256,7 @@ export function ClassFormPanel({
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="class-name">
-                Class Name <span className="text-danger">*</span>
+                Class Name <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="class-name"
@@ -280,7 +280,7 @@ export function ClassFormPanel({
 
             <div className="space-y-2">
               <Label htmlFor="class-category">
-                Category <span className="text-danger">*</span>
+                Category <span className="text-destructive">*</span>
               </Label>
               <Select
                 id="class-category"
@@ -297,7 +297,7 @@ export function ClassFormPanel({
 
             <div className="space-y-2">
               <Label htmlFor="class-instructor">
-                Instructor <span className="text-danger">*</span>
+                Instructor <span className="text-destructive">*</span>
               </Label>
               <Select
                 id="class-instructor"
@@ -321,7 +321,7 @@ export function ClassFormPanel({
 
             <div className="space-y-2">
               <Label htmlFor="class-start-time">
-                Start Time <span className="text-danger">*</span>
+                Start Time <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="class-start-time"
@@ -335,7 +335,7 @@ export function ClassFormPanel({
 
             <div className="space-y-2">
               <Label htmlFor="class-end-time">
-                End Time <span className="text-danger">*</span>
+                End Time <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="class-end-time"
@@ -349,7 +349,7 @@ export function ClassFormPanel({
 
             <div className="space-y-2">
               <Label htmlFor="class-capacity">
-                Maximum Capacity <span className="text-danger">*</span>
+                Maximum Capacity <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="class-capacity"
@@ -378,7 +378,7 @@ export function ClassFormPanel({
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label>
-                    Repeat Days <span className="text-danger">*</span>
+                    Repeat Days <span className="text-destructive">*</span>
                   </Label>
                   <div className="flex flex-wrap gap-2">
                     {RECURRENCE_DAY_OPTIONS.map((dayOption) => {
@@ -402,7 +402,7 @@ export function ClassFormPanel({
 
                 <div className="max-w-xs space-y-2">
                   <Label htmlFor="class-occurrences">
-                    Number Of Sessions <span className="text-danger">*</span>
+                    Number Of Sessions <span className="text-destructive">*</span>
                   </Label>
                   <Input
                     id="class-occurrences"

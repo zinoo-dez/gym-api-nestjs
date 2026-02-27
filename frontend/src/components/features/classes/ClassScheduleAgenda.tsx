@@ -54,7 +54,7 @@ export function ClassScheduleAgenda({
     <section className="space-y-4 rounded-lg border bg-card p-3">
       <header className="flex items-center gap-2 border-b pb-3">
         <CalendarRange className="size-4 text-primary" />
-        <h2 className="card-title text-base">Agenda</h2>
+        <h2 className="text-lg font-semibold tracking-tight text-base">Agenda</h2>
       </header>
 
       {grouped.map(({ day, sessions: daySessions }) => (
@@ -112,7 +112,7 @@ export function ClassScheduleAgenda({
                           type="button"
                           size="icon"
                           variant="ghost"
-                          className="size-8 text-danger hover:bg-danger/10 hover:text-danger"
+                          className="size-8 text-destructive hover:bg-danger/10 hover:text-destructive"
                           onClick={(event) => {
                             event.stopPropagation();
                             onDeleteSession(session);
@@ -131,7 +131,7 @@ export function ClassScheduleAgenda({
                     <UserRound className="size-3.5" />
                     <span className="truncate">{session.instructorName || "Unassigned instructor"}</span>
                   </div>
-                  <span className="inline-flex rounded-full bg-surface-container-high px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-foreground shadow-sm">
+                  <span className="inline-flex rounded-full bg-card px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-foreground shadow-sm">
                     {getCategoryLabel(session.category)}
                   </span>
                 </div>

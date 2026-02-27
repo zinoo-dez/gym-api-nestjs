@@ -200,12 +200,12 @@ export function CostFormDrawer({
     >
       <form id="cost-form" className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
         <section className="rounded-lg border bg-card p-4">
-          <h3 className="card-title">Basic Details</h3>
+          <h3 className="text-lg font-semibold tracking-tight">Basic Details</h3>
 
           <div className="mt-4 grid gap-4 md:grid-cols-2">
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="cost-title">
-                Cost Title <span className="text-danger">*</span>
+                Cost Title <span className="text-destructive">*</span>
               </Label>
               <Input id="cost-title" {...register("title")} hasError={Boolean(errors.title)} />
               {errors.title ? <p className="error-text">{errors.title.message}</p> : null}
@@ -213,7 +213,7 @@ export function CostFormDrawer({
 
             <div className="space-y-2">
               <Label htmlFor="cost-category">
-                Category <span className="text-danger">*</span>
+                Category <span className="text-destructive">*</span>
               </Label>
               <Select
                 id="cost-category"
@@ -246,12 +246,12 @@ export function CostFormDrawer({
         </section>
 
         <section className="rounded-lg border bg-card p-4">
-          <h3 className="card-title">Financial Details</h3>
+          <h3 className="text-lg font-semibold tracking-tight">Financial Details</h3>
 
           <div className="mt-4 grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="cost-type">
-                Cost Type <span className="text-danger">*</span>
+                Cost Type <span className="text-destructive">*</span>
               </Label>
               <Select id="cost-type" {...register("costType")} hasError={Boolean(errors.costType)}>
                 {COST_TYPES.map((type) => (
@@ -264,7 +264,7 @@ export function CostFormDrawer({
 
             <div className="space-y-2">
               <Label htmlFor="cost-payment-method">
-                Payment Method <span className="text-danger">*</span>
+                Payment Method <span className="text-destructive">*</span>
               </Label>
               <Select
                 id="cost-payment-method"
@@ -281,7 +281,7 @@ export function CostFormDrawer({
 
             <div className="space-y-2">
               <Label htmlFor="cost-billing-period">
-                Billing Period <span className="text-danger">*</span>
+                Billing Period <span className="text-destructive">*</span>
               </Label>
               <Select
                 id="cost-billing-period"
@@ -298,7 +298,7 @@ export function CostFormDrawer({
 
             <div className="space-y-2">
               <Label htmlFor="cost-amount">
-                Base Amount (USD) <span className="text-danger">*</span>
+                Base Amount (USD) <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="cost-amount"
@@ -327,12 +327,12 @@ export function CostFormDrawer({
         </section>
 
         <section className="rounded-lg border bg-card p-4">
-          <h3 className="card-title">Payment Tracking</h3>
+          <h3 className="text-lg font-semibold tracking-tight">Payment Tracking</h3>
 
           <div className="mt-4 grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="cost-date">
-                Cost Date <span className="text-danger">*</span>
+                Cost Date <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="cost-date"
@@ -349,7 +349,7 @@ export function CostFormDrawer({
 
             <div className="space-y-2">
               <Label htmlFor="cost-due-date">
-                Due Date <span className="text-danger">*</span>
+                Due Date <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="cost-due-date"
@@ -366,7 +366,7 @@ export function CostFormDrawer({
 
             <div className="space-y-2">
               <Label htmlFor="cost-payment-status">
-                Payment Status <span className="text-danger">*</span>
+                Payment Status <span className="text-destructive">*</span>
               </Label>
               <Select
                 id="cost-payment-status"
@@ -396,7 +396,7 @@ export function CostFormDrawer({
         </section>
 
         <section className="rounded-lg border bg-card p-4">
-          <h3 className="card-title">Notes & Metadata</h3>
+          <h3 className="text-lg font-semibold tracking-tight">Notes & Metadata</h3>
 
           <div className="mt-4 grid gap-4 md:grid-cols-2">
             <div className="space-y-2 md:col-span-2">
@@ -410,7 +410,7 @@ export function CostFormDrawer({
 
             <div className="space-y-2">
               <Label htmlFor="cost-created-by">
-                Created By <span className="text-danger">*</span>
+                Created By <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="cost-created-by"
@@ -423,7 +423,7 @@ export function CostFormDrawer({
 
             <div className="space-y-2">
               <Label htmlFor="cost-status">
-                Record Status <span className="text-danger">*</span>
+                Record Status <span className="text-destructive">*</span>
               </Label>
               <Select id="cost-status" {...register("status")} hasError={Boolean(errors.status)}>
                 {COST_STATUSES.map((status) => (

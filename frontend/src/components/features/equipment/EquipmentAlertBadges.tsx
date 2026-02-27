@@ -12,7 +12,7 @@ export function EquipmentAlertBadges({ equipment }: EquipmentAlertBadgesProps) {
   return (
     <div className="flex flex-wrap items-center gap-1.5">
       {alerts.isMaintenanceOverdue ? (
-        <span className="inline-flex items-center gap-1 rounded-full bg-danger/20 px-2.5 py-0.5 text-xs font-semibold text-danger">
+        <span className="inline-flex items-center gap-1 rounded-full bg-danger/20 px-2.5 py-0.5 text-xs font-semibold text-destructive">
           <AlertTriangle className="size-3.5" />
           Maintenance Overdue
         </span>
@@ -33,7 +33,7 @@ export function EquipmentAlertBadges({ equipment }: EquipmentAlertBadgesProps) {
       ) : null}
 
       {alerts.isWarrantyExpired ? (
-        <span className="inline-flex items-center gap-1 rounded-full bg-danger/20 px-2.5 py-0.5 text-xs font-semibold text-danger">
+        <span className="inline-flex items-center gap-1 rounded-full bg-danger/20 px-2.5 py-0.5 text-xs font-semibold text-destructive">
           <ShieldAlert className="size-3.5" />
           Warranty Expired
         </span>

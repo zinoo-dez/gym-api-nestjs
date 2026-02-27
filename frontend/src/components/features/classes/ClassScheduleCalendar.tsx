@@ -313,7 +313,7 @@ export function ClassScheduleCalendar({
                           {onDeleteSession ? (
                             <button
                               type="button"
-                              className="rounded p-1 text-muted-foreground transition-colors hover:bg-danger/15 hover:text-danger"
+                              className="rounded p-1 text-muted-foreground transition-colors hover:bg-danger/15 hover:text-destructive"
                               onClick={(event) => {
                                 event.stopPropagation();
                                 onDeleteSession(session);

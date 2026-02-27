@@ -1,6 +1,6 @@
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import { useEffect, useMemo, useState } from "react";
-import { toast } from "sonner";
+import { goeyToast } from "goey-toast";
 
 import {
   formatNotificationTimestamp,
@@ -122,7 +122,7 @@ export function NotificationsPage() {
     try {
       await markReadMutation.mutateAsync({ id: notification.id });
     } catch (error) {
-      toast.error(toNotificationErrorMessage(error));
+      goeyToast.error(toNotificationErrorMessage(error));
     }
   };
 
@@ -134,9 +134,9 @@ export function NotificationsPage() {
     try {
       await deleteMutation.mutateAsync({ id: notification.id });
       setSelectedIds((value) => value.filter((id) => id !== notification.id));
-      toast.success("Notification deleted.");
+      goeyToast.success("Notification deleted.");
     } catch (error) {
-      toast.error(toNotificationErrorMessage(error));
+      goeyToast.error(toNotificationErrorMessage(error));
     }
   };
 
@@ -150,9 +150,9 @@ export function NotificationsPage() {
     try {
       await bulkDeleteMutation.mutateAsync({ ids: selectedIds });
       setSelectedIds([]);
-      toast.success(`${selectedCount} notification(s) deleted.`);
+      goeyToast.success(`${selectedCount} notification(s) deleted.`);
     } catch (error) {
-      toast.error(toNotificationErrorMessage(error));
+      goeyToast.error(toNotificationErrorMessage(error));
     }
   };
 
@@ -163,9 +163,9 @@ export function NotificationsPage() {
 
     try {
       await markAllMutation.mutateAsync();
-      toast.success("All notifications marked as read.");
+      goeyToast.success("All notifications marked as read.");
     } catch (error) {
-      toast.error(toNotificationErrorMessage(error));
+      goeyToast.error(toNotificationErrorMessage(error));
     }
   };
 
@@ -231,15 +231,15 @@ export function NotificationsPage() {
 
         <CardContent className="space-y-4">
           {notificationsQuery.isLoading ? (
-            <div className="flex items-center gap-3 rounded-2xl border border-outline-variant bg-surface-container-low p-6 text-sm text-on-surface-variant">
+            <div className="flex items-center gap-3 rounded-2xl border border-border bg-card p-6 text-sm text-muted-foreground">
               <MaterialIcon icon="refresh" className="text-lg animate-spin" />
               <span>Loading notifications...</span>
             </div>
           ) : null}
 
           {notificationsQuery.isError ? (
-            <div className="space-y-4 rounded-2xl border border-error/50 bg-error/5 p-6">
-              <p className="text-title-medium font-bold text-error">Unable to load notifications.</p>
+            <div className="space-y-4 rounded-2xl border border-destructive/50 bg-destructive/5 p-6">
+              <p className="text-base font-bold text-destructive">Unable to load notifications.</p>
               <Button type="button" variant="tonal" onClick={() => void notificationsQuery.refetch()}>
                 <MaterialIcon icon="refresh" className="text-lg" />
                 <span>Retry</span>
@@ -250,13 +250,13 @@ export function NotificationsPage() {
           {!notificationsQuery.isLoading &&
           !notificationsQuery.isError &&
           filteredNotifications.length === 0 ? (
-            <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed border-outline-variant p-12 text-center bg-surface-container-lowest">
-              <div className="flex size-16 items-center justify-center rounded-full bg-surface-container-high text-on-surface-variant">
+            <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed border-border p-12 text-center bg-background">
+              <div className="flex size-16 items-center justify-center rounded-full bg-card text-muted-foreground">
                 <MaterialIcon icon="notifications_off" className="text-3xl" />
               </div>
               <div className="space-y-1">
-                <p className="text-title-medium font-bold text-on-surface">No notifications found</p>
-                <p className="text-body-medium text-on-surface-variant max-w-xs mx-auto">
+                <p className="text-base font-bold text-foreground">No notifications found</p>
+                <p className="text-sm text-muted-foreground max-w-xs mx-auto">
                   Try another filter or check back later for new alerts.
                 </p>
               </div>
@@ -363,7 +363,7 @@ export function NotificationsPage() {
                                 type="button"
                                 variant="text"
                                 size="sm"
-                                className="text-error hover:bg-error/10 active:bg-error/20"
+                                className="text-destructive hover:bg-destructive/10 active:bg-destructive/20"
                                 onClick={() => void handleDeleteNotification(notification)}
                                 disabled={deleteMutation.isPending}
                               >
@@ -446,7 +446,7 @@ export function NotificationsPage() {
                           type="button"
                           variant="text"
                           size="sm"
-                          className="text-error hover:bg-error/10 active:bg-error/20"
+                          className="text-destructive hover:bg-destructive/10 active:bg-destructive/20"
                           onClick={() => void handleDeleteNotification(notification)}
                           disabled={deleteMutation.isPending}
                         >

@@ -17,7 +17,7 @@ interface MetricCardProps {
 const TONE_STYLES: Record<MetricCardProps["tone"], string> = {
   success: "bg-success/15 text-success",
   warning: "bg-warning/15 text-warning",
-  danger: "bg-danger/15 text-danger",
+  danger: "bg-danger/15 text-destructive",
   info: "bg-info/15 text-info",
 };
 
@@ -40,7 +40,7 @@ function MetricCard({ title, value, tone, icon: Icon }: MetricCardProps) {
 export function CostPaymentHealthCards({ metrics }: CostPaymentHealthCardsProps) {
   return (
     <section className="space-y-4">
-      <h3 className="card-title">Payment Health</h3>
+      <h3 className="text-lg font-semibold tracking-tight">Payment Health</h3>
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           title="Paid Amount"

@@ -76,7 +76,7 @@ export function ProductFormPanel({
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2 md:col-span-2">
             <Label htmlFor="product-name">
-              Product Name <span className="text-danger">*</span>
+              Product Name <span className="text-destructive">*</span>
             </Label>
             <Input
               id="product-name"
@@ -101,7 +101,7 @@ export function ProductFormPanel({
 
           <div className="space-y-2">
             <Label htmlFor="product-category">
-              Category <span className="text-danger">*</span>
+              Category <span className="text-destructive">*</span>
             </Label>
             <Select
               id="product-category"
@@ -117,7 +117,7 @@ export function ProductFormPanel({
 
           <div className="space-y-2">
             <Label htmlFor="product-sku">
-              SKU <span className="text-danger">*</span>
+              SKU <span className="text-destructive">*</span>
             </Label>
             <Input
               id="product-sku"
@@ -144,7 +144,7 @@ export function ProductFormPanel({
 
           <div className="space-y-2">
             <Label htmlFor="product-sale-price">
-              Sale Price <span className="text-danger">*</span>
+              Sale Price <span className="text-destructive">*</span>
             </Label>
             <Input
               id="product-sale-price"
@@ -160,7 +160,7 @@ export function ProductFormPanel({
 
           <div className="space-y-2">
             <Label htmlFor="product-stock-quantity">
-              Stock Quantity <span className="text-danger">*</span>
+              Stock Quantity <span className="text-destructive">*</span>
             </Label>
             <Input
               id="product-stock-quantity"

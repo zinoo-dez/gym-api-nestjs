@@ -99,12 +99,12 @@ export function MemberFormPanel({
     >
       <form id="member-form" className="space-y-6" onSubmit={handleSubmit(onSubmit as any)}>
         <section className="rounded-lg border bg-card p-4">
-          <h3 className="card-title">Account Details</h3>
+          <h3 className="text-lg font-semibold tracking-tight">Account Details</h3>
 
           <div className="mt-4 grid gap-4 md:grid-cols-2">
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="member-email">
-                Email <span className="text-danger">*</span>
+                Email <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="member-email"
@@ -119,7 +119,7 @@ export function MemberFormPanel({
             {mode === "add" ? (
               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="member-password">
-                  Password <span className="text-danger">*</span>
+                  Password <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="member-password"
@@ -134,12 +134,12 @@ export function MemberFormPanel({
         </section>
 
         <section className="rounded-lg border bg-card p-4">
-          <h3 className="card-title">Personal Information</h3>
+          <h3 className="text-lg font-semibold tracking-tight">Personal Information</h3>
 
           <div className="mt-4 grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="member-first-name">
-                First Name <span className="text-danger">*</span>
+                First Name <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="member-first-name"
@@ -151,7 +151,7 @@ export function MemberFormPanel({
 
             <div className="space-y-2">
               <Label htmlFor="member-last-name">
-                Last Name <span className="text-danger">*</span>
+                Last Name <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="member-last-name"
@@ -234,8 +234,8 @@ export function MemberFormPanel({
 
         {mode === "add" ? (
           <section className="rounded-lg border bg-card p-4">
-            <h3 className="card-title">Initial Payment Information</h3>
-            <p className="mt-1 text-label-small text-on-surface-variant">
+            <h3 className="text-lg font-semibold tracking-tight">Initial Payment Information</h3>
+            <p className="mt-1 text-xs text-muted-foreground">
               Optional: Record the first payment or joining fee during registration.
             </p>
             <div className="mt-4 grid gap-4 md:grid-cols-2">

@@ -97,12 +97,12 @@ export function StaffFormPanel({
     >
       <form id="staff-form" className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
         <section className="rounded-lg border bg-card p-4">
-          <h3 className="card-title">Account Details</h3>
+          <h3 className="text-lg font-semibold tracking-tight">Account Details</h3>
 
           <div className="mt-4 grid gap-4 md:grid-cols-2">
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="staff-email">
-                Email <span className="text-danger">*</span>
+                Email <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="staff-email"
@@ -117,7 +117,7 @@ export function StaffFormPanel({
             {mode === "add" ? (
               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="staff-password">
-                  Password <span className="text-danger">*</span>
+                  Password <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="staff-password"
@@ -132,12 +132,12 @@ export function StaffFormPanel({
         </section>
 
         <section className="rounded-lg border bg-card p-4">
-          <h3 className="card-title">Personal Info</h3>
+          <h3 className="text-lg font-semibold tracking-tight">Personal Info</h3>
 
           <div className="mt-4 grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="staff-first-name">
-                First Name <span className="text-danger">*</span>
+                First Name <span className="text-destructive">*</span>
               </Label>
               <Input id="staff-first-name" {...register("firstName")} hasError={Boolean(errors.firstName)} />
               {errors.firstName ? <p className="error-text">{errors.firstName.message}</p> : null}
@@ -145,7 +145,7 @@ export function StaffFormPanel({
 
             <div className="space-y-2">
               <Label htmlFor="staff-last-name">
-                Last Name <span className="text-danger">*</span>
+                Last Name <span className="text-destructive">*</span>
               </Label>
               <Input id="staff-last-name" {...register("lastName")} hasError={Boolean(errors.lastName)} />
               {errors.lastName ? <p className="error-text">{errors.lastName.message}</p> : null}
@@ -174,12 +174,12 @@ export function StaffFormPanel({
         </section>
 
         <section className="rounded-lg border bg-card p-4">
-          <h3 className="card-title">Role & Employment</h3>
+          <h3 className="text-lg font-semibold tracking-tight">Role & Employment</h3>
 
           <div className="mt-4 grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="staff-role">
-                Role <span className="text-danger">*</span>
+                Role <span className="text-destructive">*</span>
               </Label>
               <Select id="staff-role" {...register("staffRole")}>
                 <option value="">Select role</option>
@@ -194,7 +194,7 @@ export function StaffFormPanel({
 
             <div className="space-y-2">
               <Label htmlFor="staff-employee-id">
-                Employee ID <span className="text-danger">*</span>
+                Employee ID <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="staff-employee-id"
@@ -206,7 +206,7 @@ export function StaffFormPanel({
 
             <div className="space-y-2">
               <Label htmlFor="staff-hire-date">
-                Hire Date <span className="text-danger">*</span>
+                Hire Date <span className="text-destructive">*</span>
               </Label>
               <Input id="staff-hire-date" type="date" {...register("hireDate")} hasError={Boolean(errors.hireDate)} />
               {errors.hireDate ? <p className="error-text">{errors.hireDate.message}</p> : null}
@@ -214,7 +214,7 @@ export function StaffFormPanel({
 
             <div className="space-y-2">
               <Label htmlFor="staff-position">
-                Position <span className="text-danger">*</span>
+                Position <span className="text-destructive">*</span>
               </Label>
               <Input id="staff-position" {...register("position")} hasError={Boolean(errors.position)} />
               {errors.position ? <p className="error-text">{errors.position.message}</p> : null}

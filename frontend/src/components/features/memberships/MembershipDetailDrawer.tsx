@@ -138,7 +138,7 @@ export function MembershipDetailDrawer({
         ) : null}
 
         <section className="rounded-lg border bg-card p-4">
-          <h3 className="card-title">Member Info</h3>
+          <h3 className="text-lg font-semibold tracking-tight">Member Info</h3>
 
           <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
             <div>
@@ -163,7 +163,7 @@ export function MembershipDetailDrawer({
         </section>
 
         <section className="rounded-lg border bg-card p-4">
-          <h3 className="card-title">Membership Info</h3>
+          <h3 className="text-lg font-semibold tracking-tight">Membership Info</h3>
 
           <div className="mt-4 grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
@@ -193,7 +193,7 @@ export function MembershipDetailDrawer({
         </section>
 
         <section className="rounded-lg border bg-card p-4">
-          <h3 className="card-title">Timeline</h3>
+          <h3 className="text-lg font-semibold tracking-tight">Timeline</h3>
 
           <div className="mt-4 space-y-3">
             <div className="h-2 rounded-full bg-muted">
@@ -208,7 +208,7 @@ export function MembershipDetailDrawer({
         </section>
 
         <section className="rounded-lg border bg-card p-4">
-          <h3 className="card-title">Payment Summary</h3>
+          <h3 className="text-lg font-semibold tracking-tight">Payment Summary</h3>
 
           <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
             <div>
@@ -247,7 +247,7 @@ export function MembershipDetailDrawer({
         </section>
 
         <section className="rounded-lg border bg-card p-4">
-          <h3 className="card-title">History (Renewals / Freezes)</h3>
+          <h3 className="text-lg font-semibold tracking-tight">History (Renewals / Freezes)</h3>
 
           <div className="mt-4 space-y-2">
             {membershipHistory.length === 0 ? (

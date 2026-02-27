@@ -355,7 +355,7 @@ export function StaffManagementPage() {
       {loadState === "error" ? (
         <Card>
           <CardContent className="flex flex-col gap-3 p-6">
-            <p className="text-sm text-danger">Unable to load staff data.</p>
+            <p className="text-sm text-destructive">Unable to load staff data.</p>
             <div>
               <Button type="button" variant="outlined" onClick={() => void loadData()}>
                 <MaterialIcon icon="refresh" className="text-lg" />
@@ -368,7 +368,7 @@ export function StaffManagementPage() {
 
       {actionError ? (
         <Card>
-          <CardContent className="p-4 text-sm text-danger">{actionError}</CardContent>
+          <CardContent className="p-4 text-sm text-destructive">{actionError}</CardContent>
         </Card>
       ) : null}
 
@@ -549,7 +549,7 @@ export function StaffManagementPage() {
                           type="button"
                           variant="outlined"
                           size="sm"
-                          className="text-error border-error/20 hover:bg-error/5"
+                          className="text-destructive border-destructive/20 hover:bg-destructive/5"
                           disabled={!record?.isActive}
                           onClick={(event) => {
                             event.stopPropagation();
@@ -609,7 +609,7 @@ export function StaffManagementPage() {
                         type="button"
                         variant="outlined"
                         size="sm"
-                        className="text-error border-error/20 hover:bg-error/5"
+                        className="text-destructive border-destructive/20 hover:bg-destructive/5"
                         disabled={!record?.isActive}
                         onClick={() => {
                           if (record) {

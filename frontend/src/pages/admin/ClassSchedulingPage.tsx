@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { addDays, addWeeks, format, subDays, subWeeks } from "date-fns";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
-import { toast } from "sonner";
+import { goeyToast } from "goey-toast";
 
 import {
   ClassScheduleAgenda,
@@ -138,19 +138,19 @@ export function ClassSchedulingPage() {
     try {
       if (formMode === "create") {
         await createClassMutation.mutateAsync(payload);
-        toast.success("Class session created.");
+        goeyToast.success("Class session created.");
       } else if (editingClass) {
         await updateClassMutation.mutateAsync({
           classId: editingClass.id,
           payload,
         });
-        toast.success("Class session updated.");
+        goeyToast.success("Class session updated.");
       }
 
       setFormOpen(false);
       setEditingClass(null);
     } catch (error) {
-      toast.error(toErrorMessage(error));
+      goeyToast.error(toErrorMessage(error));
     }
   };
 
@@ -166,14 +166,14 @@ export function ClassSchedulingPage() {
 
     try {
       await deleteClassMutation.mutateAsync(classSession.id);
-      toast.success("Class session cancelled.");
+      goeyToast.success("Class session cancelled.");
 
       if (editingClass?.id === classSession.id) {
         setFormOpen(false);
         setEditingClass(null);
       }
     } catch (error) {
-      toast.error(toErrorMessage(error));
+      goeyToast.error(toErrorMessage(error));
     }
   };
 
@@ -189,9 +189,9 @@ export function ClassSchedulingPage() {
         endTime: nextEndTime,
       });
 
-      toast.success(`Rescheduled ${classSession.className}.`);
+      goeyToast.success(`Rescheduled ${classSession.className}.`);
     } catch (error) {
-      toast.error(toErrorMessage(error));
+      goeyToast.error(toErrorMessage(error));
     }
   };
 
@@ -279,7 +279,7 @@ export function ClassSchedulingPage() {
       </section>
 
       {classSchedulesQuery.isError ? (
-        <div className="rounded-lg border border-danger/40 bg-danger/10 p-4 text-sm text-danger">
+        <div className="rounded-lg border border-destructive/40 bg-danger/10 p-4 text-sm text-destructive">
           {toErrorMessage(classSchedulesQuery.error)}
         </div>
       ) : null}

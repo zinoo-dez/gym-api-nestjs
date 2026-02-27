@@ -1,4 +1,18 @@
 {
     "javascript.autoClosingTags": false,
-    "typescript.autoClosingTags": false
+    "typescript.autoClosingTags": false,
+    "mcp": {
+        "servers": {
+            "context7": {
+                "type": "stdio",
+                "command": "npx",
+                "args": [
+                    "-y",
+                    "@upstash/context7-mcp",
+                    "--api-key",
+                    "YOUR_API_KEY"
+                ]
+            }
+        }
+    }
 }

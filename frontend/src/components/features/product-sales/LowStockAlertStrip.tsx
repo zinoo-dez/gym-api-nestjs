@@ -16,14 +16,14 @@ export function LowStockAlertStrip({ alerts }: LowStockAlertStripProps) {
     <Card>
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
-          <Box className="mt-0.5 size-5 text-danger" />
+          <Box className="mt-0.5 size-5 text-destructive" />
           <div className="space-y-2">
             <p className="text-sm font-semibold text-foreground">Low Stock Alerts</p>
             <div className="flex flex-wrap gap-2">
               {alerts.slice(0, 8).map((alert) => (
                 <span
                   key={alert.productId}
-                  className="inline-flex items-center rounded-full bg-danger/20 px-2.5 py-0.5 text-xs font-semibold text-danger"
+                  className="inline-flex items-center rounded-full bg-danger/20 px-2.5 py-0.5 text-xs font-semibold text-destructive"
                 >
                   {alert.name} ({alert.stockQuantity})
                 </span>
