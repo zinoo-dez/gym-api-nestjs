@@ -1,4 +1,4 @@
-export * from "./ClassScheduleCalendar";
+export * from "./ClassFormPanel";
+export * from "./ClassRosterPanel";
 export * from "./ClassScheduleAgenda";
-export * from "./ClassFormModal";
-export * from "./ClassRosterModal";
+export * from "./ClassScheduleCalendar";

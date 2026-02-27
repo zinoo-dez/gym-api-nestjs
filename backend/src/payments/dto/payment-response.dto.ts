@@ -44,4 +44,5 @@ export class PaymentResponseDto {
   updatedAt!: Date;
   member?: PaymentMemberDto;
   subscription?: PaymentSubscriptionDto;
+  discountCodeId?: string;
 }

@@ -368,7 +368,9 @@ const getAllPages = async <T>(
   return results;
 };
 
-const toMemberSubscription = (subscription: MemberSubscriptionApi): MemberSubscription => ({
+const toMemberSubscription = (
+  subscription: MemberSubscriptionApi,
+): MemberSubscription => ({
   id: subscription.id,
   status: subscription.status,
   startDate: subscription.startDate,
@@ -377,7 +379,9 @@ const toMemberSubscription = (subscription: MemberSubscriptionApi): MemberSubscr
   membershipPlanName: subscription.membershipPlan?.name,
   membershipPlanPrice: subscription.membershipPlan?.price,
   membershipPlanDurationDays: Number(
-    subscription.membershipPlan?.durationDays ?? subscription.membershipPlan?.duration ?? 0,
+    subscription.membershipPlan?.durationDays ??
+      subscription.membershipPlan?.duration ??
+      0,
   ),
 });
 
@@ -443,7 +447,9 @@ const toAttendanceReport = (report: AttendanceReportApi): AttendanceReport => ({
   visitsByDayOfWeek: report.visitsByDayOfWeek ?? [],
 });
 
-const toMembershipPlanOption = (plan: MembershipPlanApi): MembershipPlanOption => ({
+const toMembershipPlanOption = (
+  plan: MembershipPlanApi,
+): MembershipPlanOption => ({
   id: plan.id,
   name: plan.name,
   price: Number(plan.price ?? 0),
@@ -466,7 +472,9 @@ const toTrainerProfile = (trainer: TrainerApi): TrainerProfile => ({
   updatedAt: trainer.updatedAt,
 });
 
-const toTrainerSessionRecord = (session: TrainerSessionApi): TrainerSessionRecord => ({
+const toTrainerSessionRecord = (
+  session: TrainerSessionApi,
+): TrainerSessionRecord => ({
   id: session.id,
   status: session.status,
   title: session.title,
@@ -506,7 +514,9 @@ const toTrainerClassScheduleRecord = (
   updatedAt: classSchedule.updatedAt,
 });
 
-const toInstructorProfile = (profile: InstructorProfileApi): TrainerInstructorProfile => ({
+const toInstructorProfile = (
+  profile: InstructorProfileApi,
+): TrainerInstructorProfile => ({
   trainerId: profile.trainerId,
   fullName: profile.fullName,
   bio: profile.bio,
@@ -517,7 +527,9 @@ const toInstructorProfile = (profile: InstructorProfileApi): TrainerInstructorPr
   ratingsCount: Number(profile.ratingsCount ?? 0),
   classHistory: {
     pastClassesCount: Number(profile.classHistory?.pastClassesCount ?? 0),
-    upcomingClassesCount: Number(profile.classHistory?.upcomingClassesCount ?? 0),
+    upcomingClassesCount: Number(
+      profile.classHistory?.upcomingClassesCount ?? 0,
+    ),
     topClassTypes: profile.classHistory?.topClassTypes ?? [],
   },
 });
@@ -559,17 +571,28 @@ export const peopleService = {
   },
 
   async getMemberById(memberId: string): Promise<MemberProfile> {
-    const response = await api.get<ApiEnvelope<MemberApi>>(`/members/${memberId}`);
+    const response = await api.get<ApiEnvelope<MemberApi>>(
+      `/members/${memberId}`,
+    );
     return toMemberProfile(response.data.data);
   },
 
   async createMember(payload: MemberPayload): Promise<MemberProfile> {
-    const response = await api.post<ApiEnvelope<MemberApi>>("/members", payload);
+    const response = await api.post<ApiEnvelope<MemberApi>>(
+      "/members",
+      payload,
+    );
     return toMemberProfile(response.data.data);
   },
 
-  async updateMember(memberId: string, payload: MemberUpdatePayload): Promise<MemberProfile> {
-    const response = await api.patch<ApiEnvelope<MemberApi>>(`/members/${memberId}`, payload);
+  async updateMember(
+    memberId: string,
+    payload: MemberUpdatePayload,
+  ): Promise<MemberProfile> {
+    const response = await api.patch<ApiEnvelope<MemberApi>>(
+      `/members/${memberId}`,
+      payload,
+    );
     return toMemberProfile(response.data.data);
   },
 
@@ -600,17 +623,22 @@ export const peopleService = {
     startDate?: string,
     endDate?: string,
   ): Promise<AttendanceReport> {
-    const response = await api.get<ApiEnvelope<AttendanceReportApi>>(`/attendance/report/${memberId}`, {
-      params: {
-        startDate,
-        endDate,
+    const response = await api.get<ApiEnvelope<AttendanceReportApi>>(
+      `/attendance/report/${memberId}`,
+      {
+        params: {
+          startDate,
+          endDate,
+        },
       },
-    });
+    );
 
     return toAttendanceReport(response.data.data);
   },
 
-  async listPayments(filters?: { memberId?: string }): Promise<MemberPaymentRecord[]> {
+  async listPayments(filters?: {
+    memberId?: string;
+  }): Promise<MemberPaymentRecord[]> {
     const payments = await getAllPages<PaymentApi>("/payments", {
       memberId: filters?.memberId,
     });
@@ -627,10 +655,34 @@ export const peopleService = {
     await api.post("/memberships", payload);
   },
 
-  async changeMembershipPlan(memberId: string, newPlanId: string): Promise<void> {
+  async changeMembershipPlan(
+    memberId: string,
+    newPlanId: string,
+  ): Promise<void> {
     await api.post(`/memberships/${memberId}/upgrade`, {
       newPlanId,
     });
+  },
+
+  async createPayment(payload: {
+    memberId?: string;
+    subscriptionId?: string;
+    amount: number;
+    currency?: string;
+    methodType?: string;
+    paymentMethod?: string;
+    provider?: string;
+    transactionNo?: string;
+    screenshotUrl?: string;
+    description?: string;
+    notes?: string;
+    status?: string;
+  }): Promise<MemberPaymentRecord> {
+    const response = await api.post<ApiEnvelope<PaymentApi>>(
+      "/payments",
+      payload,
+    );
+    return toPaymentRecord(response.data.data);
   },
 
   async freezeMembership(subscriptionId: string): Promise<void> {
@@ -647,17 +699,28 @@ export const peopleService = {
   },
 
   async getTrainerById(trainerId: string): Promise<TrainerProfile> {
-    const response = await api.get<ApiEnvelope<TrainerApi>>(`/trainers/${trainerId}`);
+    const response = await api.get<ApiEnvelope<TrainerApi>>(
+      `/trainers/${trainerId}`,
+    );
     return toTrainerProfile(response.data.data);
   },
 
   async createTrainer(payload: TrainerPayload): Promise<TrainerProfile> {
-    const response = await api.post<ApiEnvelope<TrainerApi>>("/trainers", payload);
+    const response = await api.post<ApiEnvelope<TrainerApi>>(
+      "/trainers",
+      payload,
+    );
     return toTrainerProfile(response.data.data);
   },
 
-  async updateTrainer(trainerId: string, payload: TrainerUpdatePayload): Promise<TrainerProfile> {
-    const response = await api.patch<ApiEnvelope<TrainerApi>>(`/trainers/${trainerId}`, payload);
+  async updateTrainer(
+    trainerId: string,
+    payload: TrainerUpdatePayload,
+  ): Promise<TrainerProfile> {
+    const response = await api.patch<ApiEnvelope<TrainerApi>>(
+      `/trainers/${trainerId}`,
+      payload,
+    );
     return toTrainerProfile(response.data.data);
   },
 
@@ -671,24 +734,34 @@ export const peopleService = {
     status?: string;
     upcomingOnly?: boolean;
   }): Promise<TrainerSessionRecord[]> {
-    const response = await api.get<ApiEnvelope<TrainerSessionApi[]>>("/trainer-sessions", {
-      params: {
-        trainerId: filters?.trainerId,
-        memberId: filters?.memberId,
-        status: filters?.status,
-        upcomingOnly: filters?.upcomingOnly,
+    const response = await api.get<ApiEnvelope<TrainerSessionApi[]>>(
+      "/trainer-sessions",
+      {
+        params: {
+          trainerId: filters?.trainerId,
+          memberId: filters?.memberId,
+          status: filters?.status,
+          upcomingOnly: filters?.upcomingOnly,
+        },
       },
-    });
+    );
 
     return (response.data.data ?? []).map(toTrainerSessionRecord);
   },
 
-  async createTrainerSession(payload: TrainerSessionCreatePayload): Promise<TrainerSessionRecord> {
-    const response = await api.post<ApiEnvelope<TrainerSessionApi>>("/trainer-sessions", payload);
+  async createTrainerSession(
+    payload: TrainerSessionCreatePayload,
+  ): Promise<TrainerSessionRecord> {
+    const response = await api.post<ApiEnvelope<TrainerSessionApi>>(
+      "/trainer-sessions",
+      payload,
+    );
     return toTrainerSessionRecord(response.data.data);
   },
 
-  async completeTrainerSession(sessionId: string): Promise<TrainerSessionRecord> {
+  async completeTrainerSession(
+    sessionId: string,
+  ): Promise<TrainerSessionRecord> {
     const response = await api.patch<ApiEnvelope<TrainerSessionApi>>(
       `/trainer-sessions/${sessionId}/complete`,
     );
@@ -721,7 +794,9 @@ export const peopleService = {
     return classes.map(toTrainerClassScheduleRecord);
   },
 
-  async getInstructorProfile(trainerId: string): Promise<TrainerInstructorProfile> {
+  async getInstructorProfile(
+    trainerId: string,
+  ): Promise<TrainerInstructorProfile> {
     const response = await api.get<ApiEnvelope<InstructorProfileApi>>(
       `/classes/instructors/${trainerId}/profile`,
     );
@@ -744,8 +819,14 @@ export const peopleService = {
     return toStaffProfile(response.data.data);
   },
 
-  async updateStaff(staffId: string, payload: StaffUpdatePayload): Promise<StaffProfile> {
-    const response = await api.patch<ApiEnvelope<StaffApi>>(`/staff/${staffId}`, payload);
+  async updateStaff(
+    staffId: string,
+    payload: StaffUpdatePayload,
+  ): Promise<StaffProfile> {
+    const response = await api.patch<ApiEnvelope<StaffApi>>(
+      `/staff/${staffId}`,
+      payload,
+    );
     return toStaffProfile(response.data.data);
   },
 
@@ -833,7 +914,8 @@ export const peopleService = {
       address: undefinedIfEmpty(values.address),
       avatarUrl: undefinedIfEmpty(values.avatarUrl),
       specializations: values.specializations,
-      certifications: values.certifications.length > 0 ? values.certifications : undefined,
+      certifications:
+        values.certifications.length > 0 ? values.certifications : undefined,
       experience: values.experience,
       hourlyRate: values.hourlyRate,
     };
@@ -855,7 +937,8 @@ export const peopleService = {
       address: undefinedIfEmpty(values.address),
       avatarUrl: undefinedIfEmpty(values.avatarUrl),
       specializations: values.specializations,
-      certifications: values.certifications.length > 0 ? values.certifications : undefined,
+      certifications:
+        values.certifications.length > 0 ? values.certifications : undefined,
       experience: values.experience,
       hourlyRate: values.hourlyRate,
     };

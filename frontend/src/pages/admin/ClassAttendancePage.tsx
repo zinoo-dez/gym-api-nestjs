@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 import {
-  ClassRosterModal,
+  ClassRosterPanel,
   ClassScheduleAgenda,
   ClassScheduleCalendar,
 } from "@/components/features/classes";
@@ -21,6 +21,8 @@ import {
   useDeleteClassMutation,
 } from "@/hooks/useClassScheduling";
 import { useIsMobile } from "@/hooks/useIsMobile";
+import { useAuthStore } from "@/store/auth.store";
+import { hasAnyRole, ROLE } from "@/lib/roles";
 
 const toErrorMessage = (error: unknown): string => {
   if (typeof error === "object" && error !== null) {
@@ -54,6 +56,7 @@ const toErrorMessage = (error: unknown): string => {
 export function ClassAttendancePage() {
   const navigate = useNavigate();
   const isCompactMobile = useIsMobile(640);
+  const role = useAuthStore((state) => state.user?.role);
 
   const [viewMode, setViewMode] = useState<CalendarViewMode>("week");
   const [anchorDate, setAnchorDate] = useState(() => new Date());
@@ -74,6 +77,9 @@ export function ClassAttendancePage() {
 
   const classSchedulesQuery = useClassSchedulesQuery(classFilters);
   const deleteClassMutation = useDeleteClassMutation();
+  const canAccessScheduling = hasAnyRole(role, [ROLE.ADMIN, ROLE.OWNER, ROLE.TRAINER]);
+  const canDeleteClass = hasAnyRole(role, [ROLE.ADMIN, ROLE.OWNER]);
+  const canQuickAddMember = hasAnyRole(role, [ROLE.ADMIN, ROLE.OWNER]);
 
   const classes = classSchedulesQuery.data ?? [];
 
@@ -152,14 +158,16 @@ export function ClassAttendancePage() {
             </p>
           </div>
 
-          <Button
-            type="button"
-            variant="outlined"
-            onClick={() => void navigate("/management/classes/schedule")}
-          >
-            <MaterialIcon icon="edit_calendar" className="text-lg" />
-            <span>Open Scheduling</span>
-          </Button>
+          {canAccessScheduling ? (
+            <Button
+              type="button"
+              variant="outlined"
+              onClick={() => void navigate("/management/classes/schedule")}
+            >
+              <MaterialIcon icon="edit_calendar" className="text-lg" />
+              <span>Open Scheduling</span>
+            </Button>
+          ) : null}
         </div>
 
         <div className="flex flex-col gap-3 rounded-lg border bg-card p-3 md:flex-row md:items-center md:justify-between">
@@ -253,13 +261,19 @@ export function ClassAttendancePage() {
         />
       )}
 
-      <ClassRosterModal
+      <ClassRosterPanel
         open={Boolean(activeClass)}
         classSession={activeClass}
         onClose={() => setActiveClass(null)}
-        onDeleteClass={(classSession) => {
-          void handleDeleteClass(classSession);
-        }}
+        onDeleteClass={
+          canDeleteClass
+            ? (classSession) => {
+                void handleDeleteClass(classSession);
+              }
+            : undefined
+        }
+        allowQuickAdd={canQuickAddMember}
+        isMobile={isCompactMobile}
       />
     </div>
   );

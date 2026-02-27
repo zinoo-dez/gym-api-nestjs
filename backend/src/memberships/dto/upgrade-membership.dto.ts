@@ -1,6 +1,6 @@
-import { IsUUID } from 'class-validator';
+import { IsString } from 'class-validator';
 
 export class UpgradeMembershipDto {
-  @IsUUID()
+  @IsString()
   newPlanId!: string;
 }

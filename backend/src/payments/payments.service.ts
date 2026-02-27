@@ -106,6 +106,7 @@ export class PaymentsService {
       data: {
         memberId: member.id,
         subscriptionId: dto.subscriptionId ?? undefined,
+        discountCodeId: dto.discountCodeId ?? undefined,
         amount: dto.amount,
         currency: dto.currency || 'MMK',
         methodType,
@@ -568,6 +569,7 @@ export class PaymentsService {
               : undefined,
           }
         : undefined,
+      discountCodeId: payment.discountCodeId || undefined,
     };
   }
 

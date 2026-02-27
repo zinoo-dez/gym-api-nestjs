@@ -3,7 +3,6 @@ import {
   IsNumber,
   IsOptional,
   IsString,
-  IsUUID,
   Min,
 } from 'class-validator';
 
@@ -19,7 +18,7 @@ export class CreateClassPackageDto {
   passType!: string;
 
   @IsOptional()
-  @IsUUID('4')
+  @IsString()
   classId?: string;
 
   @IsNumber()

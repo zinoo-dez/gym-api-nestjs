@@ -18,46 +18,49 @@ export const CLASS_CATEGORY_OPTIONS = [
 
 export const DEFAULT_CLASS_CATEGORY = CLASS_CATEGORY_OPTIONS[0].value;
 
-export const CATEGORY_STYLES: Record<string, { badgeClassName: string; cardClassName: string }> = {
+export const CATEGORY_STYLES: Record<
+  string,
+  { badgeClassName: string; cardClassName: string }
+> = {
   YOGA: {
     badgeClassName: "bg-info/20 text-info",
-    cardClassName: "border-info/40 bg-info/10",
+    cardClassName: "border-info/50 bg-info/25",
   },
   HIIT: {
     badgeClassName: "bg-danger/20 text-danger",
-    cardClassName: "border-danger/35 bg-danger/10",
+    cardClassName: "border-danger/50 bg-danger/25",
   },
   CROSSFIT: {
     badgeClassName: "bg-success/20 text-success",
-    cardClassName: "border-success/35 bg-success/10",
+    cardClassName: "border-success/50 bg-success/25",
   },
   PILATES: {
     badgeClassName: "bg-primary/20 text-primary",
-    cardClassName: "border-primary/35 bg-primary/10",
+    cardClassName: "border-primary/50 bg-primary/25",
   },
   STRENGTH: {
     badgeClassName: "bg-warning/20 text-warning",
-    cardClassName: "border-warning/35 bg-warning/10",
+    cardClassName: "border-warning/50 bg-warning/25",
   },
   CARDIO: {
     badgeClassName: "bg-secondary text-secondary-foreground",
-    cardClassName: "border-secondary bg-secondary/30",
+    cardClassName: "border-secondary bg-secondary/40",
   },
   SPIN: {
     badgeClassName: "bg-info/20 text-info",
-    cardClassName: "border-info/35 bg-info/10",
+    cardClassName: "border-info/50 bg-info/25",
   },
   DANCE: {
     badgeClassName: "bg-primary/20 text-primary",
-    cardClassName: "border-primary/35 bg-primary/10",
+    cardClassName: "border-primary/50 bg-primary/25",
   },
   BOXING: {
     badgeClassName: "bg-danger/20 text-danger",
-    cardClassName: "border-danger/35 bg-danger/10",
+    cardClassName: "border-danger/50 bg-danger/25",
   },
   OTHER: {
     badgeClassName: "bg-muted text-muted-foreground",
-    cardClassName: "border-border bg-muted/30",
+    cardClassName: "border-border bg-muted/40",
   },
 };
 
@@ -75,7 +78,10 @@ export const ATTENDANCE_STATUS_STYLES: Record<AttendanceStatus, string> = {
   CANCELLED: "bg-danger/20 text-danger",
 };
 
-export const RECURRENCE_DAY_OPTIONS: Array<{ code: RecurrenceDayCode; label: string }> = [
+export const RECURRENCE_DAY_OPTIONS: Array<{
+  code: RecurrenceDayCode;
+  label: string;
+}> = [
   { code: "MO", label: "Mon" },
   { code: "TU", label: "Tue" },
   { code: "WE", label: "Wed" },

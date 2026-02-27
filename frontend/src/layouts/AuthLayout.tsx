@@ -1,8 +1,8 @@
 import { Outlet, useLocation } from "react-router-dom";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, Variants } from "framer-motion";
 import { Activity, BarChart3, Sparkles } from "lucide-react";
 
-const panelFloat = {
+const panelFloat: Variants = {
   animate: {
     y: [0, -10, 0],
     transition: {

@@ -1,4 +1,4 @@
-import { IsOptional, IsDateString, IsUUID, IsString } from 'class-validator';
+import { IsOptional, IsDateString, IsString } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { PaginationDto } from '../../common/dto';
 
@@ -26,7 +26,7 @@ export class ClassFiltersDto extends PaginationDto {
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
   @IsOptional()
-  @IsUUID()
+  @IsString()
   trainerId?: string;
 
   @ApiPropertyOptional({

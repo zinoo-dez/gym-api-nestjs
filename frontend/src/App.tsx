@@ -1,6 +1,6 @@
 import { Suspense, lazy } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 
 import { useAuthStore } from "@/store/auth.store";
 import LandingPage from "@/pages/public/LandingPage";
@@ -33,10 +33,21 @@ import { NotificationsPage } from "@/pages/admin/NotificationsPage";
 import { SystemSettingsPage } from "@/pages/admin/SystemSettingsPage";
 import { ProtectedRoute } from "@/routes/ProtectedRoute";
 import { AdminRoute } from "@/routes/AdminRoute";
-import { hasManagementAccess } from "@/lib/roles";
+import { hasAnyRole, hasManagementAccess, hasOperationsAccess, ROLE } from "@/lib/roles";
 import { AppToaster } from "@/components/ui/AppToaster";
 
 const queryClient = new QueryClient();
+const PAYMENT_ROUTE_ROLES = [ROLE.ADMIN, ROLE.OWNER, ROLE.STAFF] as const;
+const INVENTORY_ROUTE_ROLES = [ROLE.ADMIN, ROLE.OWNER, ROLE.STAFF] as const;
+const CLASS_SCHEDULE_ROUTE_ROLES = [ROLE.ADMIN, ROLE.OWNER, ROLE.TRAINER] as const;
+const CLASS_ATTENDANCE_ROUTE_ROLES = [ROLE.ADMIN, ROLE.OWNER, ROLE.STAFF] as const;
+const CLASS_MANAGEMENT_ROUTE_ROLES = [
+  ROLE.ADMIN,
+  ROLE.OWNER,
+  ROLE.STAFF,
+  ROLE.TRAINER,
+] as const;
+
 const LazyClassSchedulingPage = lazy(() =>
   import("@/pages/admin/ClassSchedulingPage").then((module) => ({
     default: module.ClassSchedulingPage,
@@ -51,7 +62,7 @@ const LazyClassAttendancePage = lazy(() =>
 const DashboardRouter = () => {
   const user = useAuthStore((state) => state.user);
 
-  if (hasManagementAccess(user?.role)) {
+  if (hasOperationsAccess(user?.role)) {
     return <AdminLayout />;
   }
 
@@ -60,12 +71,35 @@ const DashboardRouter = () => {
 
 const DashboardIndex = () => {
   const user = useAuthStore((state) => state.user);
+  const role = user?.role;
 
-  if (hasManagementAccess(user?.role)) {
+  if (hasManagementAccess(role)) {
     return <AdminDashboard />;
   }
 
+  if (hasAnyRole(role, [ROLE.STAFF])) {
+    return <Navigate to="/app/payments" replace />;
+  }
+
+  if (hasAnyRole(role, [ROLE.TRAINER])) {
+    return <Navigate to="/app/management/classes/schedule" replace />;
+  }
+
   return <MemberDashboard />;
+};
+
+const ClassManagementIndex = () => {
+  const role = useAuthStore((state) => state.user?.role);
+
+  if (hasAnyRole(role, CLASS_SCHEDULE_ROUTE_ROLES)) {
+    return <Navigate to="/app/management/classes/schedule" replace />;
+  }
+
+  if (hasAnyRole(role, CLASS_ATTENDANCE_ROUTE_ROLES)) {
+    return <Navigate to="/app/management/classes/attendance" replace />;
+  }
+
+  return <Navigate to="/app" replace />;
 };
 
 const LegacyAppRedirect = () => {
@@ -131,7 +165,7 @@ const App = () => {
                   <Route
                     path="payments"
                     element={
-                      <AdminRoute>
+                      <AdminRoute allowedRoles={PAYMENT_ROUTE_ROLES}>
                         <PaymentsDashboardPage />
                       </AdminRoute>
                     }
@@ -139,15 +173,15 @@ const App = () => {
                   <Route
                     path="management/classes"
                     element={
-                      <AdminRoute>
-                        <Navigate to="/app/management/classes/schedule" replace />
+                      <AdminRoute allowedRoles={CLASS_MANAGEMENT_ROUTE_ROLES}>
+                        <ClassManagementIndex />
                       </AdminRoute>
                     }
                   />
                   <Route
                     path="management/classes/schedule"
                     element={
-                      <AdminRoute>
+                      <AdminRoute allowedRoles={CLASS_SCHEDULE_ROUTE_ROLES}>
                         <Suspense
                           fallback={
                             <div className="flex min-h-[260px] items-center justify-center rounded-lg border bg-card p-6 text-sm text-muted-foreground">
@@ -163,7 +197,7 @@ const App = () => {
                   <Route
                     path="management/classes/attendance"
                     element={
-                      <AdminRoute>
+                      <AdminRoute allowedRoles={CLASS_ATTENDANCE_ROUTE_ROLES}>
                         <Suspense
                           fallback={
                             <div className="flex min-h-[260px] items-center justify-center rounded-lg border bg-card p-6 text-sm text-muted-foreground">
@@ -179,8 +213,8 @@ const App = () => {
                   <Route
                     path="management/classes/:section"
                     element={
-                      <AdminRoute>
-                        <Navigate to="/app/management/classes/schedule" replace />
+                      <AdminRoute allowedRoles={CLASS_MANAGEMENT_ROUTE_ROLES}>
+                        <ClassManagementIndex />
                       </AdminRoute>
                     }
                   />
@@ -219,7 +253,7 @@ const App = () => {
                   <Route
                     path="management/products"
                     element={
-                      <AdminRoute>
+                      <AdminRoute allowedRoles={INVENTORY_ROUTE_ROLES}>
                         <Navigate to="/app/management/products/overview" replace />
                       </AdminRoute>
                     }
@@ -227,7 +261,7 @@ const App = () => {
                   <Route
                     path="management/products/overview"
                     element={
-                      <AdminRoute>
+                      <AdminRoute allowedRoles={INVENTORY_ROUTE_ROLES}>
                         <ProductSalesOverviewPage />
                       </AdminRoute>
                     }
@@ -235,7 +269,7 @@ const App = () => {
                   <Route
                     path="management/products/management"
                     element={
-                      <AdminRoute>
+                      <AdminRoute allowedRoles={INVENTORY_ROUTE_ROLES}>
                         <ProductManagementPage />
                       </AdminRoute>
                     }
@@ -243,7 +277,7 @@ const App = () => {
                   <Route
                     path="management/products/pos"
                     element={
-                      <AdminRoute>
+                      <AdminRoute allowedRoles={INVENTORY_ROUTE_ROLES}>
                         <ProductPosPage />
                       </AdminRoute>
                     }
@@ -251,7 +285,7 @@ const App = () => {
                   <Route
                     path="management/products/history"
                     element={
-                      <AdminRoute>
+                      <AdminRoute allowedRoles={INVENTORY_ROUTE_ROLES}>
                         <ProductSalesHistoryPage />
                       </AdminRoute>
                     }
@@ -259,7 +293,7 @@ const App = () => {
                   <Route
                     path="management/products/:section"
                     element={
-                      <AdminRoute>
+                      <AdminRoute allowedRoles={INVENTORY_ROUTE_ROLES}>
                         <Navigate to="/app/management/products/overview" replace />
                       </AdminRoute>
                     }

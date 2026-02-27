@@ -1,4 +1,9 @@
-export type StatusTone = "success" | "warning" | "danger" | "info" | "secondary";
+export type StatusTone =
+  | "success"
+  | "warning"
+  | "danger"
+  | "info"
+  | "secondary";
 
 export interface StatusPresentation {
   label: string;
@@ -130,9 +135,19 @@ export interface MemberOverviewMetrics {
   newMembersThisMonth: number;
 }
 
-export type MemberQuickFilter = "all" | "total" | "active" | "expiring" | "inactive" | "new";
+export type MemberQuickFilter =
+  | "all"
+  | "total"
+  | "active"
+  | "expiring"
+  | "inactive"
+  | "new";
 
-export type MemberSortOption = "expiry_asc" | "expiry_desc" | "activity_desc" | "activity_asc";
+export type MemberSortOption =
+  | "expiry_asc"
+  | "expiry_desc"
+  | "activity_desc"
+  | "activity_asc";
 
 export interface MemberFilterState {
   search: string;
@@ -310,7 +325,11 @@ export interface StaffOverviewMetrics {
   rolesDistribution: StaffRoleDistributionItem[];
 }
 
-export type StaffSortOption = "join_desc" | "join_asc" | "name_asc" | "name_desc";
+export type StaffSortOption =
+  | "join_desc"
+  | "join_asc"
+  | "name_asc"
+  | "name_desc";
 
 export interface StaffFilterState {
   search: string;
@@ -332,6 +351,12 @@ export interface MemberFormValues {
   currentWeight?: number;
   targetWeight?: number;
   emergencyContact: string;
+
+  // New fields for initial payment
+  initialPaymentAmount?: number;
+  paymentMethod?: string;
+  transactionNo?: string;
+  paymentNote?: string;
 }
 
 export interface TrainerFormValues {

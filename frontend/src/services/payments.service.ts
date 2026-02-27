@@ -78,6 +78,7 @@ export interface ManualPaymentPayload {
   paymentMethod: ManualOfflinePaymentMethod;
   paymentCategory: PaymentCategory;
   notes?: string;
+  discountCodeId?: string;
 }
 
 export interface ProcessRefundPayload {
@@ -144,6 +145,7 @@ interface ManualPaymentCreateRequestDto {
   provider: "CASH" | "CARD" | "KBZ" | "KBZ_PAY";
   notes?: string;
   description: string;
+  discountCodeId?: string;
 }
 
 const paymentCategoryDescription: Record<PaymentCategory, string> = {
@@ -753,6 +755,7 @@ const mapManualPaymentToCreatePaymentDto = (
     notes: trimmedNotes
       ? `${methodTag} ${categoryTag} ${trimmedNotes}`
       : `${methodTag} ${categoryTag}`,
+    discountCodeId: payload.discountCodeId,
   };
 
   return requestPayload;

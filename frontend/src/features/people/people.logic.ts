@@ -55,14 +55,23 @@ const toDate = (value?: string): Date => {
 const compareStrings = (left: string, right: string): number =>
   left.localeCompare(right, "en", { sensitivity: "base" });
 
-const normalizeStatus = (status?: string | null): string => (status ?? "").trim().toUpperCase();
+const normalizeStatus = (status?: string | null): string =>
+  (status ?? "").trim().toUpperCase();
 
 const statusToToneByKeyword = (status: string): StatusPresentation["tone"] => {
-  if (status.includes("ACTIVE") || status.includes("PAID") || status.includes("COMPLETE")) {
+  if (
+    status.includes("ACTIVE") ||
+    status.includes("PAID") ||
+    status.includes("COMPLETE")
+  ) {
     return "success";
   }
 
-  if (status.includes("PENDING") || status.includes("SCHEDULED") || status.includes("EXPIRING")) {
+  if (
+    status.includes("PENDING") ||
+    status.includes("SCHEDULED") ||
+    status.includes("EXPIRING")
+  ) {
     return "warning";
   }
 
@@ -226,7 +235,10 @@ const getLatestPaymentMap = (
 
     const previous = map.get(payment.subscriptionId);
 
-    if (!previous || compareAsc(toDate(previous.createdAt), toDate(payment.createdAt)) < 0) {
+    if (
+      !previous ||
+      compareAsc(toDate(previous.createdAt), toDate(payment.createdAt)) < 0
+    ) {
       map.set(payment.subscriptionId, payment);
     }
 
@@ -234,11 +246,16 @@ const getLatestPaymentMap = (
   }, new Map());
 };
 
-const getLastCheckInMap = (attendance: AttendanceRecord[]): Map<string, string> => {
+const getLastCheckInMap = (
+  attendance: AttendanceRecord[],
+): Map<string, string> => {
   return attendance.reduce<Map<string, string>>((map, record) => {
     const previous = map.get(record.memberId);
 
-    if (!previous || compareAsc(toDate(previous), toDate(record.checkInTime)) < 0) {
+    if (
+      !previous ||
+      compareAsc(toDate(previous), toDate(record.checkInTime)) < 0
+    ) {
       map.set(record.memberId, record.checkInTime);
     }
 
@@ -265,13 +282,35 @@ export const buildMemberListRecords = (
   const latestPaymentBySubscription = getLatestPaymentMap(payments);
   const lastCheckInByMember = getLastCheckInMap(attendance);
 
+  // Group payments by memberId to find the latest global payment
+  const latestPaymentByMember = payments.reduce<
+    Map<string, MemberPaymentRecord>
+  >((map, payment) => {
+    const previous = map.get(payment.memberId);
+    if (
+      !previous ||
+      compareAsc(toDate(previous.createdAt), toDate(payment.createdAt)) < 0
+    ) {
+      map.set(payment.memberId, payment);
+    }
+    return map;
+  }, new Map());
+
   return members
     .map((member) => {
       const subscription = getCurrentSubscription(member.subscriptions, now);
-      const membershipState = getMembershipDisplayState(subscription?.status ?? "", subscription?.endDate, now);
-      const latestPayment = subscription?.id
-        ? latestPaymentBySubscription.get(subscription.id)
-        : undefined;
+      const membershipState = getMembershipDisplayState(
+        subscription?.status ?? "",
+        subscription?.endDate,
+        now,
+      );
+
+      // Prefer subscription-linked payment, fall back to globally latest for this member
+      const latestPayment =
+        (subscription?.id
+          ? latestPaymentBySubscription.get(subscription.id)
+          : undefined) ?? latestPaymentByMember.get(member.id);
+
       const paymentState = latestPayment
         ? getStatusPresentation(latestPayment.status, "Unknown")
         : { label: "Not Recorded", tone: "secondary" as const };
@@ -283,7 +322,8 @@ export const buildMemberListRecords = (
 
       return {
         id: member.id,
-        fullName: `${member.firstName} ${member.lastName}`.trim() || member.email,
+        fullName:
+          `${member.firstName} ${member.lastName}`.trim() || member.email,
         email: member.email,
         phone: member.phone,
         planName: subscription?.membershipPlanName ?? "No Plan",
@@ -310,9 +350,13 @@ export const calculateMemberOverviewMetrics = (
   now = new Date(),
 ): MemberOverviewMetrics => {
   const activeMembers = rows.filter((row) => row.isActive).length;
-  const expiringMemberships = rows.filter((row) => row.membershipDisplayStatus === "Expiring").length;
+  const expiringMemberships = rows.filter(
+    (row) => row.membershipDisplayStatus === "Expiring",
+  ).length;
   const inactiveMembers = rows.filter((row) => !row.isActive).length;
-  const newMembersThisMonth = members.filter((member) => isCurrentMonth(member.createdAt, now)).length;
+  const newMembersThisMonth = members.filter((member) =>
+    isCurrentMonth(member.createdAt, now),
+  ).length;
 
   return {
     totalMembers: members.length,
@@ -323,7 +367,11 @@ export const calculateMemberOverviewMetrics = (
   };
 };
 
-const isWithinDateRange = (dateValue: string | undefined, from: string, to: string): boolean => {
+const isWithinDateRange = (
+  dateValue: string | undefined,
+  from: string,
+  to: string,
+): boolean => {
   if (!dateValue) {
     return false;
   }
@@ -337,11 +385,21 @@ const isWithinDateRange = (dateValue: string | undefined, from: string, to: stri
   const fromDate = from ? toDate(from) : undefined;
   const toDateValue = to ? toDate(to) : undefined;
 
-  if (fromDate && isValid(fromDate) && fromDate.getTime() !== 0 && isBefore(value, startOfDay(fromDate))) {
+  if (
+    fromDate &&
+    isValid(fromDate) &&
+    fromDate.getTime() !== 0 &&
+    isBefore(value, startOfDay(fromDate))
+  ) {
     return false;
   }
 
-  if (toDateValue && isValid(toDateValue) && toDateValue.getTime() !== 0 && isAfter(value, endOfDay(toDateValue))) {
+  if (
+    toDateValue &&
+    isValid(toDateValue) &&
+    toDateValue.getTime() !== 0 &&
+    isAfter(value, endOfDay(toDateValue))
+  ) {
     return false;
   }
 
@@ -363,9 +421,12 @@ export const applyMemberFilters = (
       row.phone?.toLowerCase().includes(query);
 
     const matchesMembershipStatus =
-      filters.membershipStatus === "all" || normalizeStatus(row.membershipStatus) === normalizeStatus(filters.membershipStatus);
+      filters.membershipStatus === "all" ||
+      normalizeStatus(row.membershipStatus) ===
+        normalizeStatus(filters.membershipStatus);
 
-    const matchesPlan = filters.planId === "all" || row.planId === filters.planId;
+    const matchesPlan =
+      filters.planId === "all" || row.planId === filters.planId;
 
     const matchesExpiryRange =
       (!filters.expiryFrom && !filters.expiryTo) ||
@@ -388,7 +449,13 @@ export const applyMemberFilters = (
       }
     })();
 
-    return matchesSearch && matchesMembershipStatus && matchesPlan && matchesExpiryRange && matchesQuickFilter;
+    return (
+      matchesSearch &&
+      matchesMembershipStatus &&
+      matchesPlan &&
+      matchesExpiryRange &&
+      matchesQuickFilter
+    );
   });
 
   const sorted = [...filtered].sort((left, right) => {
@@ -398,23 +465,37 @@ export const applyMemberFilters = (
       case "expiry_desc":
         return compareAsc(toDate(right.expiryDate), toDate(left.expiryDate));
       case "activity_asc":
-        return compareAsc(toDate(left.lastActivityAt), toDate(right.lastActivityAt));
+        return compareAsc(
+          toDate(left.lastActivityAt),
+          toDate(right.lastActivityAt),
+        );
       case "activity_desc":
       default:
-        return compareAsc(toDate(right.lastActivityAt), toDate(left.lastActivityAt));
+        return compareAsc(
+          toDate(right.lastActivityAt),
+          toDate(left.lastActivityAt),
+        );
     }
   });
 
   return sorted;
 };
 
-export const extractMemberStatusOptions = (rows: MemberListRecord[]): string[] => {
-  return Array.from(new Set(rows.map((row) => row.membershipStatus).filter((value) => value !== "UNKNOWN"))).sort(
-    compareStrings,
-  );
+export const extractMemberStatusOptions = (
+  rows: MemberListRecord[],
+): string[] => {
+  return Array.from(
+    new Set(
+      rows
+        .map((row) => row.membershipStatus)
+        .filter((value) => value !== "UNKNOWN"),
+    ),
+  ).sort(compareStrings);
 };
 
-export const buildMemberFormValuesFromProfile = (member: MemberProfile): MemberFormValues => {
+export const buildMemberFormValuesFromProfile = (
+  member: MemberProfile,
+): MemberFormValues => {
   return {
     email: member.email,
     password: "",
@@ -423,7 +504,9 @@ export const buildMemberFormValuesFromProfile = (member: MemberProfile): MemberF
     phone: member.phone ?? "",
     address: member.address ?? "",
     avatarUrl: member.avatarUrl ?? "",
-    dateOfBirth: member.dateOfBirth ? format(toDate(member.dateOfBirth), "yyyy-MM-dd") : "",
+    dateOfBirth: member.dateOfBirth
+      ? format(toDate(member.dateOfBirth), "yyyy-MM-dd")
+      : "",
     gender: member.gender ?? "",
     height: member.height,
     currentWeight: member.currentWeight,
@@ -448,19 +531,29 @@ export const buildTrainerListRecords = (
   now = new Date(),
 ): TrainerListRecord[] => {
   return trainers.map((trainer) => {
-    const relatedSessions = sessions.filter((session) => session.trainerId === trainer.id);
-    const sessionsThisMonth = relatedSessions.filter((session) => isSessionInMonth(session.sessionDate, now)).length;
+    const relatedSessions = sessions.filter(
+      (session) => session.trainerId === trainer.id,
+    );
+    const sessionsThisMonth = relatedSessions.filter((session) =>
+      isSessionInMonth(session.sessionDate, now),
+    ).length;
 
     const upcomingActiveSessions = relatedSessions.filter((session) => {
       const normalizedStatus = normalizeStatus(session.status);
-      return SESSION_ACTIVE_STATUSES.has(normalizedStatus) && !isBefore(toDate(session.sessionDate), startOfDay(now));
+      return (
+        SESSION_ACTIVE_STATUSES.has(normalizedStatus) &&
+        !isBefore(toDate(session.sessionDate), startOfDay(now))
+      );
     });
 
-    const assignedMembers = new Set(upcomingActiveSessions.map((session) => session.memberId));
+    const assignedMembers = new Set(
+      upcomingActiveSessions.map((session) => session.memberId),
+    );
 
     return {
       id: trainer.id,
-      fullName: `${trainer.firstName} ${trainer.lastName}`.trim() || trainer.email,
+      fullName:
+        `${trainer.firstName} ${trainer.lastName}`.trim() || trainer.email,
       email: trainer.email,
       specialization: trainer.specializations[0] ?? "General",
       specializations: trainer.specializations,
@@ -482,7 +575,10 @@ export const calculateTrainerOverviewMetrics = (
     totalTrainers: rows.length,
     activeTrainers: rows.filter((row) => row.isActive).length,
     assignedMembers: rows.reduce((sum, row) => sum + row.assignedMembers, 0),
-    sessionsThisMonth: rows.reduce((sum, row) => sum + row.sessionsThisMonth, 0),
+    sessionsThisMonth: rows.reduce(
+      (sum, row) => sum + row.sessionsThisMonth,
+      0,
+    ),
   };
 };
 
@@ -497,7 +593,9 @@ export const applyTrainerFilters = (
       query.length === 0 ||
       row.fullName.toLowerCase().includes(query) ||
       row.specialization.toLowerCase().includes(query) ||
-      row.specializations.some((specialization) => specialization.toLowerCase().includes(query));
+      row.specializations.some((specialization) =>
+        specialization.toLowerCase().includes(query),
+      );
 
     const matchesStatus =
       filters.activeStatus === "all" ||
@@ -536,28 +634,37 @@ export const buildTrainerAssignedMembers = (
     }
 
     const normalizedStatus = normalizeStatus(session.status);
-    return SESSION_ACTIVE_STATUSES.has(normalizedStatus) && !isBefore(toDate(session.sessionDate), startOfDay(now));
+    return (
+      SESSION_ACTIVE_STATUSES.has(normalizedStatus) &&
+      !isBefore(toDate(session.sessionDate), startOfDay(now))
+    );
   });
 
-  const byMember = filtered.reduce<Map<string, TrainerAssignedMember>>((map, session) => {
-    const current = map.get(session.memberId);
-    const nextSessionAt = current?.nextSessionAt
-      ? compareAsc(toDate(session.sessionDate), toDate(current.nextSessionAt)) < 0
-        ? session.sessionDate
-        : current.nextSessionAt
-      : session.sessionDate;
+  const byMember = filtered.reduce<Map<string, TrainerAssignedMember>>(
+    (map, session) => {
+      const current = map.get(session.memberId);
+      const nextSessionAt = current?.nextSessionAt
+        ? compareAsc(
+            toDate(session.sessionDate),
+            toDate(current.nextSessionAt),
+          ) < 0
+          ? session.sessionDate
+          : current.nextSessionAt
+        : session.sessionDate;
 
-    map.set(session.memberId, {
-      memberId: session.memberId,
-      memberName: session.memberName ?? "Unknown Member",
-      memberEmail: session.memberEmail,
-      activeSessions: (current?.activeSessions ?? 0) + 1,
-      nextSessionAt,
-      sessionIds: [...(current?.sessionIds ?? []), session.id],
-    });
+      map.set(session.memberId, {
+        memberId: session.memberId,
+        memberName: session.memberName ?? "Unknown Member",
+        memberEmail: session.memberEmail,
+        activeSessions: (current?.activeSessions ?? 0) + 1,
+        nextSessionAt,
+        sessionIds: [...(current?.sessionIds ?? []), session.id],
+      });
 
-    return map;
-  }, new Map());
+      return map;
+    },
+    new Map(),
+  );
 
   return Array.from(byMember.values()).sort((left, right) => {
     const sessionsDiff = right.activeSessions - left.activeSessions;
@@ -574,13 +681,21 @@ export const buildTrainerPerformanceSummary = (
   trainerId: string,
   sessions: TrainerSessionRecord[],
 ): TrainerPerformanceSummary => {
-  const trainerSessions = sessions.filter((session) => session.trainerId === trainerId);
+  const trainerSessions = sessions.filter(
+    (session) => session.trainerId === trainerId,
+  );
   const completedSessions = trainerSessions.filter(
     (session) => normalizeStatus(session.status) === "COMPLETED",
   );
 
-  const totalDuration = completedSessions.reduce((sum, session) => sum + session.duration, 0);
-  const totalRate = completedSessions.reduce((sum, session) => sum + session.rate, 0);
+  const totalDuration = completedSessions.reduce(
+    (sum, session) => sum + session.duration,
+    0,
+  );
+  const totalRate = completedSessions.reduce(
+    (sum, session) => sum + session.rate,
+    0,
+  );
 
   return {
     totalSessions: trainerSessions.length,
@@ -590,12 +705,17 @@ export const buildTrainerPerformanceSummary = (
         ? Math.round((completedSessions.length / trainerSessions.length) * 100)
         : 0,
     averageSessionDuration:
-      completedSessions.length > 0 ? Math.round(totalDuration / completedSessions.length) : 0,
-    averageSessionRate: completedSessions.length > 0 ? totalRate / completedSessions.length : 0,
+      completedSessions.length > 0
+        ? Math.round(totalDuration / completedSessions.length)
+        : 0,
+    averageSessionRate:
+      completedSessions.length > 0 ? totalRate / completedSessions.length : 0,
   };
 };
 
-export const buildTrainerFormValuesFromProfile = (trainer: TrainerProfile): TrainerFormValues => {
+export const buildTrainerFormValuesFromProfile = (
+  trainer: TrainerProfile,
+): TrainerFormValues => {
   return {
     email: trainer.email,
     password: "",
@@ -610,7 +730,9 @@ export const buildTrainerFormValuesFromProfile = (trainer: TrainerProfile): Trai
   };
 };
 
-export const buildStaffListRecords = (staff: StaffProfile[]): StaffListRecord[] => {
+export const buildStaffListRecords = (
+  staff: StaffProfile[],
+): StaffListRecord[] => {
   return staff.map((item) => ({
     id: item.id,
     fullName: `${item.firstName} ${item.lastName}`.trim() || item.email,
@@ -647,7 +769,8 @@ export const calculateStaffOverviewMetrics = (
   return {
     totalStaff: rows.length,
     activeStaff: rows.filter((row) => row.isActive).length,
-    newStaffThisMonth: rows.filter((row) => isCurrentMonth(row.joinDate, now)).length,
+    newStaffThisMonth: rows.filter((row) => isCurrentMonth(row.joinDate, now))
+      .length,
     rolesDistribution,
   };
 };
@@ -688,7 +811,9 @@ export const extractStaffRoleOptions = (rows: StaffListRecord[]): string[] => {
   return Array.from(new Set(rows.map((row) => row.role))).sort(compareStrings);
 };
 
-export const buildStaffFormValuesFromProfile = (staff: StaffProfile): StaffFormValues => {
+export const buildStaffFormValuesFromProfile = (
+  staff: StaffProfile,
+): StaffFormValues => {
   return {
     email: staff.email,
     password: "",
@@ -699,7 +824,9 @@ export const buildStaffFormValuesFromProfile = (staff: StaffProfile): StaffFormV
     avatarUrl: staff.avatarUrl ?? "",
     staffRole: normalizeStatus(staff.staffRole),
     employeeId: staff.employeeId,
-    hireDate: staff.hireDate ? format(toDate(staff.hireDate), "yyyy-MM-dd") : "",
+    hireDate: staff.hireDate
+      ? format(toDate(staff.hireDate), "yyyy-MM-dd")
+      : "",
     department: staff.department ?? "",
     position: staff.position,
     emergencyContact: staff.emergencyContact ?? "",

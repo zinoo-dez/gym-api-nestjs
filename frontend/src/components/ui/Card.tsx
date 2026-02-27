@@ -4,10 +4,13 @@ import { cn } from "@/lib/utils"
 
 const Card = React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement> & { variant?: 'elevated' | 'filled' | 'outlined' }
->(({ className, variant = 'filled', ...props }, ref) => {
+  React.HTMLAttributes<HTMLDivElement> & { 
+    variant?: 'elevated' | 'filled' | 'outlined',
+    interactive?: boolean
+  }
+>(({ className, variant = 'filled', interactive = false, ...props }, ref) => {
   const variants = {
-    elevated: "bg-surface-container-low shadow-md hover:shadow-lg transition-shadow duration-200",
+    elevated: "bg-surface-container-low shadow-md hover:shadow-lg",
     filled: "bg-surface-container-highest",
     outlined: "bg-surface border border-outline-variant",
   }
@@ -16,8 +19,9 @@ const Card = React.forwardRef<
     <div
       ref={ref}
       className={cn(
-        "rounded-2xl text-on-surface",
+        "rounded-2xl text-on-surface transition-all duration-200",
         variants[variant],
+        interactive && "clickable hover:shadow-md",
         className
       )}
       {...props}

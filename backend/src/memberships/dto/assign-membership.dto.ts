@@ -1,13 +1,13 @@
-import { IsUUID, IsDateString, IsOptional, IsString } from 'class-validator';
+import { IsString, IsDateString, IsOptional } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class AssignMembershipDto {
-  @ApiProperty({ example: '123e4567-e89b-12d3-a456-426614174000' })
-  @IsUUID('4', { message: 'Member ID must be a valid UUID' })
+  @ApiProperty({ example: 'cmm3uqoks000429ozjre4c2to' })
+  @IsString({ message: 'Member ID must be a string' })
   memberId!: string;
 
-  @ApiProperty({ example: '123e4567-e89b-12d3-a456-426614174111' })
-  @IsUUID('4', { message: 'Plan ID must be a valid UUID' })
+  @ApiProperty({ example: 'cmlmep0ae000cjxoz8plmljlr' })
+  @IsString({ message: 'Plan ID must be a string' })
   planId!: string;
 
   @ApiProperty({ example: '2026-02-15T09:00:00.000Z', format: 'date-time' })

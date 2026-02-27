@@ -299,6 +299,25 @@ export function useMembersManagement() {
         const created = await peopleService.createMember(
           peopleService.toMemberCreatePayload(values),
         );
+
+        // Handle initial payment if provided
+        if (values.initialPaymentAmount && values.initialPaymentAmount > 0) {
+          try {
+            await peopleService.createPayment({
+              memberId: created.id,
+              amount: values.initialPaymentAmount,
+              methodType: values.paymentMethod as any,
+              paymentMethod: values.paymentMethod || "CASH",
+              transactionNo: values.transactionNo,
+              notes:
+                values.paymentNote || "Initial payment during registration",
+            });
+          } catch (payError) {
+            console.error("Failed to record initial payment", payError);
+            // We don't block member creation if payment fails, but maybe log it
+          }
+        }
+
         setMembers((previous) => [created, ...previous]);
         setFormOpen(false);
         setSelectedMemberId(created.id);

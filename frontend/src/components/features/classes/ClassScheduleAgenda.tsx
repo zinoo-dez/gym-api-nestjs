@@ -131,7 +131,7 @@ export function ClassScheduleAgenda({
                     <UserRound className="size-3.5" />
                     <span className="truncate">{session.instructorName || "Unassigned instructor"}</span>
                   </div>
-                  <span className="inline-flex rounded-full bg-background/80 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-foreground">
+                  <span className="inline-flex rounded-full bg-surface-container-high px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-foreground shadow-sm">
                     {getCategoryLabel(session.category)}
                   </span>
                 </div>

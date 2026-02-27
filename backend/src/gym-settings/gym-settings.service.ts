@@ -3,7 +3,7 @@ import sanitizeHtml from 'sanitize-html';
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateGymSettingDto } from './dto';
 import { NotificationsService } from '../notifications/notifications.service';
-import { UserRole } from '@prisma/client';
+import { Prisma, UserRole } from '@prisma/client';
 
 @Injectable()
 export class GymSettingsService {
@@ -32,33 +32,85 @@ export class GymSettingsService {
       paypalSecret: '',
     };
 
-    const settings = await this.prisma.gymSetting.findFirst();
+    let settings:
+      | {
+          id: string;
+          name: string;
+          tagLine: string;
+          address: string;
+          phone: string;
+          email: string;
+          logo: string;
+          description: string;
+          favicon: string;
+          currency: string;
+          taxPercentage: number;
+          stripePublicKey: string;
+          stripeSecretKey: string;
+          paypalClientId: string;
+          paypalSecret: string;
+        }
+      | null = null;
+
+    try {
+      settings = await this.prisma.gymSetting.findFirst({
+        select: {
+          id: true,
+          name: true,
+          tagLine: true,
+          address: true,
+          phone: true,
+          email: true,
+          logo: true,
+          description: true,
+          favicon: true,
+          currency: true,
+          taxPercentage: true,
+          stripePublicKey: true,
+          stripeSecretKey: true,
+          paypalClientId: true,
+          paypalSecret: true,
+        },
+      });
+    } catch (error) {
+      if (this.isMissingDbObjectError(error)) {
+        return defaults;
+      }
+      throw error;
+    }
 
     if (!settings) {
       // Create settings with environment-driven defaults to avoid hardcoded values
-      return this.prisma.gymSetting.create({
-        data: {
-          name: process.env.GYM_NAME ?? defaults.name,
-          tagLine: process.env.GYM_TAGLINE ?? defaults.tagLine,
-          address: process.env.GYM_ADDRESS ?? defaults.address,
-          phone: process.env.GYM_PHONE ?? defaults.phone,
-          email: process.env.GYM_EMAIL ?? defaults.email,
-          logo: process.env.GYM_LOGO ?? defaults.logo,
-          description: process.env.GYM_DESCRIPTION ?? defaults.description,
-          favicon: process.env.GYM_FAVICON ?? defaults.favicon,
-          currency: process.env.PAYMENTS_CURRENCY ?? defaults.currency,
-          taxPercentage: Number.isFinite(envTaxPercentage)
-            ? envTaxPercentage
-            : defaults.taxPercentage,
-          stripePublicKey:
-            process.env.STRIPE_PUBLIC_KEY ?? defaults.stripePublicKey,
-          stripeSecretKey:
-            process.env.STRIPE_SECRET_KEY ?? defaults.stripeSecretKey,
-          paypalClientId:
-            process.env.PAYPAL_CLIENT_ID ?? defaults.paypalClientId,
-          paypalSecret: process.env.PAYPAL_SECRET ?? defaults.paypalSecret,
-        },
-      });
+      try {
+        return await this.prisma.gymSetting.create({
+          data: {
+            name: process.env.GYM_NAME ?? defaults.name,
+            tagLine: process.env.GYM_TAGLINE ?? defaults.tagLine,
+            address: process.env.GYM_ADDRESS ?? defaults.address,
+            phone: process.env.GYM_PHONE ?? defaults.phone,
+            email: process.env.GYM_EMAIL ?? defaults.email,
+            logo: process.env.GYM_LOGO ?? defaults.logo,
+            description: process.env.GYM_DESCRIPTION ?? defaults.description,
+            favicon: process.env.GYM_FAVICON ?? defaults.favicon,
+            currency: process.env.PAYMENTS_CURRENCY ?? defaults.currency,
+            taxPercentage: Number.isFinite(envTaxPercentage)
+              ? envTaxPercentage
+              : defaults.taxPercentage,
+            stripePublicKey:
+              process.env.STRIPE_PUBLIC_KEY ?? defaults.stripePublicKey,
+            stripeSecretKey:
+              process.env.STRIPE_SECRET_KEY ?? defaults.stripeSecretKey,
+            paypalClientId:
+              process.env.PAYPAL_CLIENT_ID ?? defaults.paypalClientId,
+            paypalSecret: process.env.PAYPAL_SECRET ?? defaults.paypalSecret,
+          },
+        });
+      } catch (error) {
+        if (this.isMissingDbObjectError(error)) {
+          return defaults;
+        }
+        throw error;
+      }
     }
 
     return {
@@ -138,5 +190,12 @@ export class GymSettingsService {
     }
 
     return updated;
+  }
+
+  private isMissingDbObjectError(error: unknown): boolean {
+    return (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      (error.code === 'P2021' || error.code === 'P2022')
+    );
   }
 }

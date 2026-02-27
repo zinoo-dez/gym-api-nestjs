@@ -1,11 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  IsEnum,
-  IsNumber,
-  IsOptional,
-  IsString,
-  IsUUID,
-} from 'class-validator';
+import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
 import { PaymentMethodType, PaymentProvider } from '@prisma/client';
 
 export class CreatePaymentDto {
@@ -22,7 +16,7 @@ export class CreatePaymentDto {
     example: 'cmember123abc',
   })
   @IsOptional()
-  @IsUUID()
+  @IsString()
   memberId?: string;
 
   @ApiProperty({
@@ -98,4 +92,12 @@ export class CreatePaymentDto {
   @IsOptional()
   @IsString()
   notes?: string;
+
+  @ApiPropertyOptional({
+    description: 'Discount code ID applied to this payment',
+    example: 'cdisc123abc',
+  })
+  @IsOptional()
+  @IsString()
+  discountCodeId?: string;
 }

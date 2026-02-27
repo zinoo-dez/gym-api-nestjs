@@ -5,7 +5,7 @@ import { toast } from "sonner";
 
 import {
   ClassScheduleAgenda,
-  ClassFormModal,
+  ClassFormPanel,
   ClassScheduleCalendar,
 } from "@/components/features/classes";
 import { Button } from "@/components/ui/Button";
@@ -26,6 +26,8 @@ import {
   useUpdateClassMutation,
 } from "@/hooks/useClassScheduling";
 import { useIsMobile } from "@/hooks/useIsMobile";
+import { useAuthStore } from "@/store/auth.store";
+import { hasAnyRole, ROLE } from "@/lib/roles";
 
 const toErrorMessage = (error: unknown): string => {
   if (typeof error === "object" && error !== null) {
@@ -58,6 +60,7 @@ const toErrorMessage = (error: unknown): string => {
 
 export function ClassSchedulingPage() {
   const isCompactMobile = useIsMobile(640);
+  const role = useAuthStore((state) => state.user?.role);
   const [viewMode, setViewMode] = useState<CalendarViewMode>("week");
   const [anchorDate, setAnchorDate] = useState(() => new Date());
 
@@ -85,6 +88,7 @@ export function ClassSchedulingPage() {
   const updateClassMutation = useUpdateClassMutation();
   const deleteClassMutation = useDeleteClassMutation();
   const rescheduleClassMutation = useRescheduleClassMutation();
+  const canDeleteClass = hasAnyRole(role, [ROLE.ADMIN, ROLE.OWNER]);
 
   const classes = classSchedulesQuery.data ?? [];
 
@@ -288,9 +292,13 @@ export function ClassSchedulingPage() {
           loading={classSchedulesQuery.isLoading}
           onSessionClick={openEditClass}
           onEditSession={openEditClass}
-          onDeleteSession={(session) => {
-            void handleDeleteClass(session);
-          }}
+          onDeleteSession={
+            canDeleteClass
+              ? (session) => {
+                  void handleDeleteClass(session);
+                }
+              : undefined
+          }
         />
       ) : (
         <ClassScheduleCalendar
@@ -300,16 +308,20 @@ export function ClassSchedulingPage() {
           loading={classSchedulesQuery.isLoading || rescheduleClassMutation.isPending}
           onSessionClick={openEditClass}
           onEditSession={openEditClass}
-          onDeleteSession={(session) => {
-            void handleDeleteClass(session);
-          }}
+          onDeleteSession={
+            canDeleteClass
+              ? (session) => {
+                  void handleDeleteClass(session);
+                }
+              : undefined
+          }
           onReschedule={(session, nextStartTime, nextEndTime) => {
             void handleReschedule(session, nextStartTime, nextEndTime);
           }}
         />
       )}
 
-      <ClassFormModal
+      <ClassFormPanel
         open={formOpen}
         mode={formMode}
         classSession={editingClass}
@@ -320,6 +332,7 @@ export function ClassSchedulingPage() {
           setEditingClass(null);
         }}
         onSubmit={handleFormSubmit}
+        isMobile={isCompactMobile}
       />
     </div>
   );

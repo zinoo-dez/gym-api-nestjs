@@ -1,4 +1,4 @@
-import { IsOptional, IsUUID, IsEnum } from 'class-validator';
+import { IsOptional, IsString, IsEnum } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { WorkoutGoal } from '../../common/enums';
 import { PaginationDto } from '../../common/dto';
@@ -6,18 +6,18 @@ import { PaginationDto } from '../../common/dto';
 export class WorkoutPlanFiltersDto extends PaginationDto {
   @ApiPropertyOptional({
     description: 'Filter by member ID',
-    example: '123e4567-e89b-12d3-a456-426614174000',
+    example: 'cmember123abc',
   })
   @IsOptional()
-  @IsUUID()
+  @IsString()
   memberId?: string;
 
   @ApiPropertyOptional({
     description: 'Filter by trainer ID',
-    example: '123e4567-e89b-12d3-a456-426614174000',
+    example: 'ctrainer123abc',
   })
   @IsOptional()
-  @IsUUID()
+  @IsString()
   trainerId?: string;
 
   @ApiPropertyOptional({

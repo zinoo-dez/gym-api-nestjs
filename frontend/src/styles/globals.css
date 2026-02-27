@@ -107,6 +107,29 @@
     @apply bg-surface text-on-surface antialiased;
     font-family: "Roboto", sans-serif;
   }
+
+  /* Global Clickable Styles */
+  button,
+  a,
+  [role="button"],
+  .clickable {
+    @apply cursor-pointer transition-all duration-200 active:scale-95;
+  }
+
+  /* Subtle Hover Animation for Generic Clickables */
+  button:hover,
+  a:hover,
+  [role="button"]:hover,
+  .clickable:hover {
+    @apply opacity-80;
+  }
+
+  /* Reset for buttons/links that shouldn't scale or change opacity */
+  button:disabled,
+  a:disabled,
+  .no-hover {
+    @apply cursor-default active:scale-100 opacity-100;
+  }
 }
 
 /* M3 Typography Scale Utilities */

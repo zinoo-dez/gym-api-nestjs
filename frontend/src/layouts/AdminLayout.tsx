@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -7,6 +7,7 @@ import { NotificationBell } from "@/components/features/notifications";
 import { ThemeToggle } from "@/components/features/settings";
 import { cn } from "@/lib/utils";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
+import { type AppRole, hasAnyRole, ROLE } from "@/lib/roles";
 
 interface MenuItem {
   icon: string;
@@ -19,80 +20,117 @@ interface MenuSection {
   items: MenuItem[];
 }
 
+const ADMIN_ROLES = [ROLE.ADMIN, ROLE.OWNER] as const;
+const OPERATIONS_ROLES = [ROLE.ADMIN, ROLE.OWNER, ROLE.STAFF, ROLE.TRAINER] as const;
+const PAYMENT_ROLES = [ROLE.ADMIN, ROLE.OWNER, ROLE.STAFF] as const;
+const INVENTORY_ROLES = [ROLE.ADMIN, ROLE.OWNER, ROLE.STAFF] as const;
+const CLASS_MANAGEMENT_ROLES = [ROLE.ADMIN, ROLE.OWNER, ROLE.STAFF, ROLE.TRAINER] as const;
+const CLASS_SCHEDULE_ROLES = [ROLE.ADMIN, ROLE.OWNER, ROLE.TRAINER] as const;
+const CLASS_ATTENDANCE_ROLES = [ROLE.ADMIN, ROLE.OWNER, ROLE.STAFF] as const;
+
+const resolveAllowedRolesForPath = (path: string): readonly AppRole[] => {
+  if (path === "/app" || path === "/app/") {
+    return OPERATIONS_ROLES;
+  }
+
+  if (path === "/app/payments") {
+    return PAYMENT_ROLES;
+  }
+
+  if (path.startsWith("/app/management/products")) {
+    return INVENTORY_ROLES;
+  }
+
+  if (path === "/app/management/classes/schedule") {
+    return CLASS_SCHEDULE_ROLES;
+  }
+
+  if (path === "/app/management/classes/attendance") {
+    return CLASS_ATTENDANCE_ROLES;
+  }
+
+  if (path.startsWith("/app/management/classes")) {
+    return CLASS_MANAGEMENT_ROLES;
+  }
+
+  return ADMIN_ROLES;
+};
+
+const canAccessPath = (role: string | null | undefined, path: string): boolean =>
+  hasAnyRole(role, resolveAllowedRolesForPath(path));
+
 const menuSections: MenuSection[] = [
   {
     title: "Overview",
-    items: [{ icon: "dashboard", label: "Dashboard", path: "/" }],
+    items: [{ icon: "dashboard", label: "Dashboard", path: "/app" }],
   },
   {
     title: "Management",
     items: [
-      { icon: "group", label: "Members", path: "/management/members" },
-      { icon: "support_agent", label: "Trainers", path: "/management/trainers" },
-      { icon: "badge", label: "Staff", path: "/management/staff" },
-      { icon: "credit_card", label: "Payments", path: "/payments" },
+      { icon: "group", label: "Members", path: "/app/management/members" },
+      { icon: "support_agent", label: "Trainers", path: "/app/management/trainers" },
+      { icon: "badge", label: "Staff", path: "/app/management/staff" },
+      { icon: "credit_card", label: "Payments", path: "/app/payments" },
     ],
   },
   {
     title: "Classes",
     items: [
-      { icon: "calendar_month", label: "Schedule", path: "/management/classes/schedule" },
-      { icon: "how_to_reg", label: "Attendance", path: "/management/classes/attendance" },
+      { icon: "calendar_month", label: "Schedule", path: "/app/management/classes/schedule" },
+      { icon: "how_to_reg", label: "Attendance", path: "/app/management/classes/attendance" },
     ],
   },
   {
     title: "Equipment",
     items: [
-      { icon: "fitness_center", label: "Overview", path: "/management/equipment/overview" },
-      { icon: "receipt_long", label: "Equipment List", path: "/management/equipment/list" },
+      { icon: "fitness_center", label: "Overview", path: "/app/management/equipment/overview" },
+      { icon: "receipt_long", label: "Equipment List", path: "/app/management/equipment/list" },
     ],
   },
   {
     title: "Inventory",
     items: [
-      { icon: "shopping_cart", label: "Overview", path: "/management/products/overview" },
-      { icon: "package_2", label: "Products", path: "/management/products/management" },
-      { icon: "point_of_sale", label: "POS", path: "/management/products/pos" },
-      { icon: "history", label: "Sales History", path: "/management/products/history" },
+      { icon: "shopping_cart", label: "Overview", path: "/app/management/products/overview" },
+      { icon: "package_2", label: "Products", path: "/app/management/products/management" },
+      { icon: "point_of_sale", label: "POS", path: "/app/management/products/pos" },
+      { icon: "history", label: "Sales History", path: "/app/management/products/history" },
     ],
   },
   {
     title: "Memberships",
     items: [
-      { icon: "verified", label: "Plans", path: "/management/memberships/plans" },
-      { icon: "groups", label: "Member List", path: "/management/memberships/members" },
-      { icon: "auto_awesome", label: "Features", path: "/management/memberships/features" },
+      { icon: "verified", label: "Plans", path: "/app/management/memberships/plans" },
+      { icon: "groups", label: "Member List", path: "/app/management/memberships/members" },
+      { icon: "auto_awesome", label: "Features", path: "/app/management/memberships/features" },
     ],
   },
   {
     title: "Finance",
     items: [
-      { icon: "account_balance_wallet", label: "Overview", path: "/finance/costs/overview" },
-      { icon: "monitoring", label: "Analysis", path: "/finance/costs/analysis" },
-      { icon: "receipt", label: "Records", path: "/finance/costs/records" },
-      { icon: "event_repeat", label: "Recurring", path: "/finance/costs/recurring" },
-      { icon: "store", label: "Vendors", path: "/finance/costs/vendors" },
+      { icon: "account_balance_wallet", label: "Overview", path: "/app/finance/costs/overview" },
+      { icon: "monitoring", label: "Analysis", path: "/app/finance/costs/analysis" },
+      { icon: "receipt", label: "Records", path: "/app/finance/costs/records" },
+      { icon: "event_repeat", label: "Recurring", path: "/app/finance/costs/recurring" },
+      { icon: "store", label: "Vendors", path: "/app/finance/costs/vendors" },
     ],
   },
   {
     title: "Settings",
     items: [
-      { icon: "settings_account_box", label: "Gym Identity", path: "/settings/gym-identity" },
-      { icon: "public", label: "Social Media", path: "/settings/social-media" },
-      { icon: "schedule", label: "Hours", path: "/settings/operating-hours" },
-      { icon: "payments", label: "Billing", path: "/settings/billing-defaults" },
-      { icon: "vpn_key", label: "Gateway", path: "/settings/payment-gateway-keys" },
-      { icon: "tune", label: "Preferences", path: "/settings/system-preferences" },
-      { icon: "lock", label: "Security", path: "/settings/change-password" },
+      { icon: "settings_account_box", label: "Gym Identity", path: "/app/settings/gym-identity" },
+      { icon: "public", label: "Social Media", path: "/app/settings/social-media" },
+      { icon: "schedule", label: "Hours", path: "/app/settings/operating-hours" },
+      { icon: "payments", label: "Billing", path: "/app/settings/billing-defaults" },
+      { icon: "vpn_key", label: "Gateway", path: "/app/settings/payment-gateway-keys" },
+      { icon: "tune", label: "Preferences", path: "/app/settings/system-preferences" },
+      { icon: "lock", label: "Security", path: "/app/settings/change-password" },
     ],
   },
 ];
 
-const allMenuItems = menuSections.flatMap((section) => section.items);
-
 const isPathActive = (currentPath: string, itemPath: string): boolean => {
-  if (itemPath === "/") {
-    return currentPath === "/";
+  if (itemPath === "/app" || itemPath === "/app/") {
+    return currentPath === "/app" || currentPath === "/app/";
   }
   return currentPath === itemPath || currentPath.startsWith(`${itemPath}/`);
 };
@@ -113,15 +151,36 @@ export function AdminLayout() {
   const isMedium = windowWidth >= 600 && windowWidth < 840;
   const isExpanded = windowWidth >= 840;
 
-  const activeLabel =
-    allMenuItems.find((item) => isPathActive(location.pathname, item.path))?.label || "Overview";
+  const visibleMenuSections = useMemo(
+    () =>
+      menuSections
+        .map((section) => ({
+          ...section,
+          items: section.items.filter((item) => canAccessPath(user?.role, item.path)),
+        }))
+        .filter((section) => section.items.length > 0),
+    [user?.role],
+  );
 
-  const mainRoutes = [
-    { icon: "dashboard", label: "Home", path: "/" },
-    { icon: "group", label: "Members", path: "/management/members" },
-    { icon: "calendar_month", label: "Schedule", path: "/management/classes/schedule" },
-    { icon: "shopping_cart", label: "Shop", path: "/management/products/overview" },
-  ];
+  const visibleMenuItems = useMemo(
+    () => visibleMenuSections.flatMap((section) => section.items),
+    [visibleMenuSections],
+  );
+
+  const activeLabel =
+    visibleMenuItems.find((item) => isPathActive(location.pathname, item.path))?.label || "Overview";
+
+  const mainRoutes = useMemo(
+    () =>
+      [
+        { icon: "dashboard", label: "Home", path: "/app" },
+        { icon: "group", label: "Members", path: "/app/management/members" },
+        { icon: "calendar_month", label: "Schedule", path: "/app/management/classes/schedule" },
+        { icon: "shopping_cart", label: "Shop", path: "/app/management/products/overview" },
+        { icon: "credit_card", label: "Payments", path: "/app/payments" },
+      ].filter((item) => canAccessPath(user?.role, item.path)),
+    [user?.role],
+  );
 
   return (
     <div className="flex h-screen overflow-hidden bg-surface text-on-surface">
@@ -227,7 +286,7 @@ export function AdminLayout() {
           </div>
 
           <nav className="flex-1 overflow-y-auto px-3 no-scrollbar space-y-4 py-4">
-            {menuSections.map((section) => (
+            {visibleMenuSections.map((section) => (
               <div key={section.title} className="space-y-1">
                 <p className="px-3 text-label-small font-medium uppercase tracking-wider text-on-surface-variant/70">
                   {section.title}
@@ -304,7 +363,7 @@ export function AdminLayout() {
                 </button>
               </div>
               <div className="flex-1 overflow-y-auto py-4">
-                {menuSections.map((section) => (
+                {visibleMenuSections.map((section) => (
                   <div key={section.title} className="mb-6 px-4">
                     <h4 className="px-4 text-label-small font-bold uppercase text-on-surface-variant mb-2">{section.title}</h4>
                     {section.items.map((item) => (

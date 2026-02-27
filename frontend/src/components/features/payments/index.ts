@@ -1,5 +1,5 @@
 export * from "./FinancialSummaryRibbon";
 export * from "./InvoiceViewPanel";
-export * from "./ManualPaymentModal";
+export * from "./ManualPaymentPanel";
 export * from "./PaymentStatusBadge";
-export * from "./RefundConfirmationDialog";
+export * from "./RefundConfirmationPanel";

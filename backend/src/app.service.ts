@@ -19,8 +19,16 @@ interface DashboardRangeWindow {
   previousEnd: Date;
 }
 
+interface DashboardBranchScope {
+  branchId: string | null;
+  branchToken: string;
+  noMatch: boolean;
+}
+
 @Injectable()
 export class AppService {
+  private static readonly NO_MATCH_ID = '__no_branch_match__';
+
   constructor(private readonly prisma: PrismaService) {}
 
   getHello(): string {
@@ -69,6 +77,23 @@ export class AppService {
     const { start, end, previousStart, previousEnd } =
       this.resolveDashboardRange(filters);
     const classCategory = this.normalizeClassCategory(filters?.classCategory);
+    const branchScope = await this.resolveBranchScope(filters?.branch);
+    const memberWhere = branchScope.noMatch
+      ? { id: AppService.NO_MATCH_ID }
+      : branchScope.branchId
+        ? { branchId: branchScope.branchId }
+        : undefined;
+    const subscriptionBranchWhere = branchScope.noMatch
+      ? { memberId: AppService.NO_MATCH_ID }
+      : branchScope.branchId
+        ? {
+            member: {
+              is: {
+                branchId: branchScope.branchId,
+              },
+            },
+          }
+        : {};
 
     const [
       totalMembers,
@@ -82,15 +107,24 @@ export class AppService {
       currentRangeSubscriptions,
       previousRangeSubscriptions,
     ] = await Promise.all([
-      this.prisma.member.count(),
       this.prisma.member.count({
-        where: { createdAt: { gte: start, lte: end } },
+        where: memberWhere,
       }),
       this.prisma.member.count({
-        where: { createdAt: { gte: previousStart, lte: previousEnd } },
+        where: {
+          ...(memberWhere ?? {}),
+          createdAt: { gte: start, lte: end },
+        },
+      }),
+      this.prisma.member.count({
+        where: {
+          ...(memberWhere ?? {}),
+          createdAt: { gte: previousStart, lte: previousEnd },
+        },
       }),
       this.prisma.subscription.count({
         where: {
+          ...subscriptionBranchWhere,
           status: 'ACTIVE',
           startDate: { lte: end },
           endDate: { gte: end },
@@ -98,6 +132,7 @@ export class AppService {
       }),
       this.prisma.subscription.count({
         where: {
+          ...subscriptionBranchWhere,
           status: 'ACTIVE',
           startDate: { lte: previousEnd },
           endDate: { gte: previousEnd },
@@ -105,6 +140,7 @@ export class AppService {
       }),
       this.prisma.subscription.count({
         where: {
+          ...subscriptionBranchWhere,
           status: 'ACTIVE',
           endDate: {
             gte: end,
@@ -112,14 +148,25 @@ export class AppService {
           },
         },
       }),
-      this.getAttendanceCountForRange(start, end, classCategory),
-      this.getAttendanceCountForRange(previousStart, previousEnd, classCategory),
+      this.getAttendanceCountForRange(start, end, classCategory, branchScope),
+      this.getAttendanceCountForRange(
+        previousStart,
+        previousEnd,
+        classCategory,
+        branchScope,
+      ),
       this.prisma.subscription.findMany({
-        where: { startDate: { gte: start, lte: end } },
+        where: {
+          ...subscriptionBranchWhere,
+          startDate: { gte: start, lte: end },
+        },
         include: { membershipPlan: true },
       }),
       this.prisma.subscription.findMany({
-        where: { startDate: { gte: previousStart, lte: previousEnd } },
+        where: {
+          ...subscriptionBranchWhere,
+          startDate: { gte: previousStart, lte: previousEnd },
+        },
         include: { membershipPlan: true },
       }),
     ]);
@@ -175,7 +222,7 @@ export class AppService {
         period: filters?.period ?? 'daily',
         startDate: this.dayKey(start),
         endDate: this.dayKey(end),
-        branch: filters?.branch ?? 'all',
+        branch: branchScope.branchToken,
         classCategory: classCategory ?? 'all',
       },
       generatedAt: now.toISOString(),
@@ -304,29 +351,14 @@ export class AppService {
   async getRecentActivity(filters?: DashboardFiltersDto) {
     const { start, end } = this.resolveDashboardRange(filters);
     const classCategory = this.normalizeClassCategory(filters?.classCategory);
-
-    const [attendance, bookings] = await Promise.all([
-      this.prisma.attendance.findMany({
-        where: {
-          checkInTime: {
-            gte: start,
-            lte: end,
-          },
-        },
-        orderBy: { checkInTime: 'desc' },
-        take: 20,
-        include: { member: { include: { user: true } } },
-      }),
-      this.prisma.classBooking.findMany({
-        where: {
-          bookedAt: {
-            gte: start,
-            lte: end,
-          },
+    const branchScope = await this.resolveBranchScope(filters?.branch);
+    const classScheduleFilter = branchScope.noMatch
+      ? {
+          id: AppService.NO_MATCH_ID,
           ...(classCategory
             ? {
-                classSchedule: {
-                  class: {
+                class: {
+                  is: {
                     category: {
                       equals: classCategory,
                       mode: 'insensitive' as const,
@@ -335,12 +367,81 @@ export class AppService {
                 },
               }
             : {}),
+        }
+      : branchScope.branchId || classCategory
+        ? {
+            ...(branchScope.branchId
+              ? {
+                  branchId: branchScope.branchId,
+                }
+              : {}),
+            ...(classCategory
+              ? {
+                  class: {
+                    is: {
+                      category: {
+                        equals: classCategory,
+                        mode: 'insensitive' as const,
+                      },
+                    },
+                  },
+                }
+              : {}),
+          }
+        : undefined;
+
+    const [attendance, bookings] = await Promise.all([
+      this.prisma.attendance.findMany({
+        where: {
+          checkInTime: {
+            gte: start,
+            lte: end,
+          },
+          ...(branchScope.noMatch
+            ? { memberId: AppService.NO_MATCH_ID }
+            : branchScope.branchId
+              ? {
+                  member: {
+                    is: {
+                      branchId: branchScope.branchId,
+                    },
+                  },
+                }
+              : {}),
+        },
+        orderBy: { checkInTime: 'desc' },
+        take: 20,
+        include: {
+          member: {
+            include: {
+              user: true,
+              branch: { select: { code: true, name: true } },
+            },
+          },
+        },
+      }),
+      this.prisma.classBooking.findMany({
+        where: {
+          bookedAt: {
+            gte: start,
+            lte: end,
+          },
+          ...(classScheduleFilter
+            ? {
+                classSchedule: classScheduleFilter,
+              }
+            : {}),
         },
         orderBy: { bookedAt: 'desc' },
         take: 20,
         include: {
           member: { include: { user: true } },
-          classSchedule: { include: { class: true } },
+          classSchedule: {
+            include: {
+              class: true,
+              branch: { select: { code: true, name: true } },
+            },
+          },
         },
       }),
     ]);
@@ -348,21 +449,25 @@ export class AppService {
     const activity = [
       ...attendance.map((record) => ({
         id: record.id,
-        member: `${record.member.user.firstName} ${record.member.user.lastName}`.trim(),
+        member:
+          `${record.member.user.firstName} ${record.member.user.lastName}`.trim(),
         action: 'Check-in',
         detail: `${record.member.user.firstName} ${record.member.user.lastName} checked in`,
         category: record.type === 'CLASS_ATTENDANCE' ? 'Class' : 'Gym Visit',
         classCategory: undefined as string | undefined,
+        branch: record.member.branch?.code ?? 'unassigned',
         status: 'completed',
         time: record.checkInTime,
       })),
       ...bookings.map((record) => ({
         id: record.id,
-        member: `${record.member.user.firstName} ${record.member.user.lastName}`.trim(),
+        member:
+          `${record.member.user.firstName} ${record.member.user.lastName}`.trim(),
         action: 'Class booking',
         detail: `${record.member.user.firstName} ${record.member.user.lastName} booked ${record.classSchedule.class.name}`,
         category: 'Class',
         classCategory: record.classSchedule.class.category,
+        branch: record.classSchedule.branch?.code ?? 'unassigned',
         status: record.status.toLowerCase(),
         time: record.bookedAt,
       })),
@@ -377,6 +482,7 @@ export class AppService {
       detail: item.detail,
       category: item.category,
       status: item.status,
+      branch: item.branch,
       classCategory: item.classCategory,
       time: item.time.toISOString(),
     }));
@@ -387,7 +493,82 @@ export class AppService {
     const { start, end, previousStart, previousEnd } =
       this.resolveDashboardRange(filters);
     const classCategory = this.normalizeClassCategory(filters?.classCategory);
-    const startOfRangeMonth = new Date(start.getFullYear(), start.getMonth(), 1);
+    const branchScope = await this.resolveBranchScope(filters?.branch);
+    const startOfRangeMonth = new Date(
+      start.getFullYear(),
+      start.getMonth(),
+      1,
+    );
+    const memberWhere = branchScope.noMatch
+      ? { id: AppService.NO_MATCH_ID }
+      : branchScope.branchId
+        ? { branchId: branchScope.branchId }
+        : undefined;
+    const memberRelationWhere = branchScope.noMatch
+      ? { memberId: AppService.NO_MATCH_ID }
+      : branchScope.branchId
+        ? {
+            member: {
+              is: {
+                branchId: branchScope.branchId,
+              },
+            },
+          }
+        : {};
+    const classScheduleWhere = branchScope.noMatch
+      ? {
+          id: AppService.NO_MATCH_ID,
+          ...(classCategory
+            ? {
+                class: {
+                  is: {
+                    category: {
+                      equals: classCategory,
+                      mode: 'insensitive' as const,
+                    },
+                  },
+                },
+              }
+            : {}),
+        }
+      : branchScope.branchId || classCategory
+        ? {
+            ...(branchScope.branchId
+              ? {
+                  branchId: branchScope.branchId,
+                }
+              : {}),
+            ...(classCategory
+              ? {
+                  class: {
+                    is: {
+                      category: {
+                        equals: classCategory,
+                        mode: 'insensitive' as const,
+                      },
+                    },
+                  },
+                }
+              : {}),
+          }
+        : undefined;
+    const productSaleBranchWhere = branchScope.noMatch
+      ? { id: AppService.NO_MATCH_ID }
+      : branchScope.branchId
+        ? {
+            OR: [
+              { branchId: branchScope.branchId },
+              {
+                branchId: null,
+                member: {
+                  is: {
+                    branchId: branchScope.branchId,
+                  },
+                },
+              },
+            ],
+          }
+        : {};
 
     const [
       payments,
@@ -403,13 +584,18 @@ export class AppService {
       invoices,
       activeMembersCurrentPeriod,
       activeMembersPreviousPeriod,
+      availableBranches,
     ] = await Promise.all([
       this.prisma.payment.findMany({
-        where: { createdAt: { gte: start, lte: end } },
+        where: {
+          ...memberRelationWhere,
+          createdAt: { gte: start, lte: end },
+        },
         select: { amount: true, status: true, createdAt: true },
       }),
       this.prisma.productSale.findMany({
         where: {
+          ...productSaleBranchWhere,
           soldAt: { gte: start, lte: end },
           status: 'COMPLETED',
         },
@@ -417,6 +603,7 @@ export class AppService {
       }),
       this.prisma.trainerSession.findMany({
         where: {
+          ...memberRelationWhere,
           sessionDate: { gte: start, lte: end },
           status: { in: ['SCHEDULED', 'COMPLETED'] },
         },
@@ -429,10 +616,12 @@ export class AppService {
         },
       }),
       this.prisma.member.findMany({
+        where: memberWhere,
         select: { id: true, createdAt: true, gender: true, dateOfBirth: true },
       }),
       this.prisma.subscription.findMany({
         where: {
+          ...memberRelationWhere,
           OR: [
             {
               startDate: { lte: end },
@@ -450,21 +639,19 @@ export class AppService {
         },
       }),
       this.prisma.attendance.findMany({
-        where: { checkInTime: { gte: start, lte: end } },
+        where: {
+          ...memberRelationWhere,
+          checkInTime: { gte: start, lte: end },
+        },
         select: { memberId: true, checkInTime: true, type: true },
       }),
       this.prisma.classBooking.findMany({
         where: {
           bookedAt: { gte: start, lte: end },
-          ...(classCategory
+          ...(classScheduleWhere
             ? {
                 classSchedule: {
-                  class: {
-                    category: {
-                      equals: classCategory,
-                      mode: 'insensitive' as const,
-                    },
-                  },
+                  ...classScheduleWhere,
                 },
               }
             : {}),
@@ -472,32 +659,114 @@ export class AppService {
         select: { classScheduleId: true, status: true, bookedAt: true },
       }),
       this.prisma.class.findMany({
-        where: classCategory
-          ? {
-              category: {
-                equals: classCategory,
-                mode: 'insensitive' as const,
-              },
-            }
-          : undefined,
+        where: {
+          ...(classCategory
+            ? {
+                category: {
+                  equals: classCategory,
+                  mode: 'insensitive' as const,
+                },
+              }
+            : {}),
+          ...(branchScope.noMatch
+            ? { id: AppService.NO_MATCH_ID }
+            : branchScope.branchId
+              ? {
+                  schedules: {
+                    some: {
+                      branchId: branchScope.branchId,
+                    },
+                  },
+                }
+              : {}),
+        },
         select: { id: true, name: true, category: true, maxCapacity: true },
       }),
-      this.prisma.trainer.findMany({ select: { id: true } }),
+      this.prisma.trainer.findMany({
+        where: branchScope.noMatch
+          ? { id: AppService.NO_MATCH_ID }
+          : branchScope.branchId
+            ? {
+                OR: [
+                  {
+                    classSchedules: {
+                      some: {
+                        branchId: branchScope.branchId,
+                      },
+                    },
+                  },
+                  {
+                    sessions: {
+                      some: {
+                        member: {
+                          is: {
+                            branchId: branchScope.branchId,
+                          },
+                        },
+                      },
+                    },
+                  },
+                ],
+              }
+            : undefined,
+        select: { id: true },
+      }),
       this.prisma.equipment.findMany({
-        where: { isActive: true },
+        where: {
+          isActive: true,
+          ...(branchScope.noMatch
+            ? { id: AppService.NO_MATCH_ID }
+            : branchScope.branchId
+              ? { branchId: branchScope.branchId }
+              : {}),
+        },
         select: { category: true },
       }),
       this.prisma.invoice.findMany({
-        where: { createdAt: { gte: start, lte: end } },
+        where: {
+          ...memberRelationWhere,
+          createdAt: { gte: start, lte: end },
+        },
         select: { total: true, status: true, dueDate: true },
       }),
       this.prisma.attendance.groupBy({
         by: ['memberId'],
-        where: { checkInTime: { gte: start, lte: end } },
+        where: {
+          ...(branchScope.noMatch
+            ? { memberId: AppService.NO_MATCH_ID }
+            : branchScope.branchId
+              ? {
+                  member: {
+                    is: {
+                      branchId: branchScope.branchId,
+                    },
+                  },
+                }
+              : {}),
+          checkInTime: { gte: start, lte: end },
+        },
       }),
       this.prisma.attendance.groupBy({
         by: ['memberId'],
-        where: { checkInTime: { gte: previousStart, lte: previousEnd } },
+        where: {
+          ...(branchScope.noMatch
+            ? { memberId: AppService.NO_MATCH_ID }
+            : branchScope.branchId
+              ? {
+                  member: {
+                    is: {
+                      branchId: branchScope.branchId,
+                    },
+                  },
+                }
+              : {}),
+          checkInTime: { gte: previousStart, lte: previousEnd },
+        },
+      }),
+      this.prisma.branch.findMany({
+        where: { isActive: true },
+        orderBy: { name: 'asc' },
+        select: { code: true },
       }),
     ]);
 
@@ -843,11 +1112,11 @@ export class AppService {
         period: filters?.period ?? 'daily',
         startDate: this.dayKey(start),
         endDate: this.dayKey(end),
-        branch: filters?.branch ?? 'all',
+        branch: branchScope.branchToken,
         classCategory: classCategory ?? 'all',
       },
       filterOptions: {
-        branches: [],
+        branches: availableBranches.map((branch) => branch.code),
         classCategories: Array.from(
           new Set(classes.map((gymClass) => gymClass.category)),
         ),
@@ -931,6 +1200,7 @@ export class AppService {
           `Range: ${query.startDate ?? '-'} to ${query.endDate ?? '-'} (${query.range ?? 'custom'})`,
         )
         .text(`Period: ${query.period ?? 'daily'}`)
+        .text(`Branch: ${query.branch ?? 'all'}`)
         .text(`Class Category: ${query.classCategory ?? 'all'}`);
 
       doc.moveDown();
@@ -993,8 +1263,16 @@ export class AppService {
     pushRow('meta', 'classCategory', query.classCategory ?? 'all');
 
     pushRow('summary', 'totalMembers', stats?.totalMembers?.value ?? 0);
-    pushRow('summary', 'activeMemberships', stats?.activeMemberships?.value ?? 0);
-    pushRow('summary', 'expiringMemberships', stats?.expiringMemberships?.value ?? 0);
+    pushRow(
+      'summary',
+      'activeMemberships',
+      stats?.activeMemberships?.value ?? 0,
+    );
+    pushRow(
+      'summary',
+      'expiringMemberships',
+      stats?.expiringMemberships?.value ?? 0,
+    );
     pushRow('summary', 'attendance', stats?.todayCheckIns?.value ?? 0);
     pushRow('summary', 'revenue', stats?.monthlyRevenue?.value ?? 0);
     pushRow('summary', 'newSignups', stats?.newSignups?.value ?? 0);
@@ -1039,7 +1317,12 @@ export class AppService {
     start: Date,
     end: Date,
     classCategory: string | null,
+    branchScope: DashboardBranchScope,
   ): Promise<number> {
+    if (branchScope.noMatch) {
+      return 0;
+    }
+
     if (!classCategory) {
       return this.prisma.attendance.count({
         where: {
@@ -1047,9 +1330,41 @@ export class AppService {
             gte: start,
             lte: end,
           },
+          ...(branchScope.branchId
+            ? {
+                member: {
+                  is: {
+                    branchId: branchScope.branchId,
+                  },
+                },
+              }
+            : {}),
         },
       });
     }
+
+    const classScheduleWhere = branchScope.branchId
+      ? {
+          branchId: branchScope.branchId,
+          class: {
+            is: {
+              category: {
+                equals: classCategory,
+                mode: 'insensitive' as const,
+              },
+            },
+          },
+        }
+      : {
+          class: {
+            is: {
+              category: {
+                equals: classCategory,
+                mode: 'insensitive' as const,
+              },
+            },
+          },
+        };
 
     return this.prisma.classBooking.count({
       where: {
@@ -1060,16 +1375,66 @@ export class AppService {
         status: {
           in: ['CONFIRMED', 'COMPLETED'],
         },
-        classSchedule: {
-          class: {
-            category: {
-              equals: classCategory,
+        classSchedule: classScheduleWhere,
+      },
+    });
+  }
+
+  private normalizeBranchToken(value?: string): string | null {
+    const normalized = value?.trim();
+    if (!normalized || normalized.toLowerCase() === 'all') {
+      return null;
+    }
+
+    return normalized;
+  }
+
+  private async resolveBranchScope(
+    value?: string,
+  ): Promise<DashboardBranchScope> {
+    const normalized = this.normalizeBranchToken(value);
+    if (!normalized) {
+      return {
+        branchId: null,
+        branchToken: 'all',
+        noMatch: false,
+      };
+    }
+
+    const branch = await this.prisma.branch.findFirst({
+      where: {
+        OR: [
+          { id: normalized },
+          {
+            code: {
+              equals: normalized,
               mode: 'insensitive',
             },
           },
-        },
+          {
+            name: {
+              equals: normalized,
+              mode: 'insensitive',
+            },
+          },
+        ],
       },
+      select: { id: true, code: true },
     });
+
+    if (!branch) {
+      return {
+        branchId: null,
+        branchToken: normalized,
+        noMatch: true,
+      };
+    }
+
+    return {
+      branchId: branch.id,
+      branchToken: branch.code,
+      noMatch: false,
+    };
   }
 
   private normalizeClassCategory(value?: string): string | null {
@@ -1116,7 +1481,9 @@ export class AppService {
     );
   }
 
-  private resolveDashboardRange(filters?: DashboardFiltersDto): DashboardRangeWindow {
+  private resolveDashboardRange(
+    filters?: DashboardFiltersDto,
+  ): DashboardRangeWindow {
     const now = new Date();
     const endOfToday = new Date(
       now.getFullYear(),

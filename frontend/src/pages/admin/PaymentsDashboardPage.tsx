@@ -5,9 +5,9 @@ import { toast } from "sonner";
 import {
   FinancialSummaryRibbon,
   InvoiceViewPanel,
-  ManualPaymentModal,
+  ManualPaymentPanel,
   PaymentStatusBadge,
-  RefundConfirmationDialog,
+  RefundConfirmationPanel,
 } from "@/components/features/payments";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
@@ -102,11 +102,11 @@ export function PaymentsDashboardPage() {
   const [filters, setFilters] = useState<PaymentsFilterState>(DEFAULT_FILTERS);
   const [selectedTransactionId, setSelectedTransactionId] = useState<string | null>(null);
 
-  const [manualModalOpen, setManualModalOpen] = useState(false);
+  const [manualPanelOpen, setManualPanelOpen] = useState(false);
   const [invoicePanelOpen, setInvoicePanelOpen] = useState(false);
   const [activeInvoiceId, setActiveInvoiceId] = useState<string | null>(null);
 
-  const [refundDialogOpen, setRefundDialogOpen] = useState(false);
+  const [refundPanelOpen, setRefundPanelOpen] = useState(false);
   const [refundTarget, setRefundTarget] = useState<PaymentTransaction | null>(null);
 
   useEffect(() => {
@@ -251,7 +251,7 @@ export function PaymentsDashboardPage() {
       return;
     }
     setRefundTarget(transaction);
-    setRefundDialogOpen(true);
+    setRefundPanelOpen(true);
   };
 
   const handleManualSubmit = async (payload: ManualPaymentPayload) => {
@@ -275,7 +275,7 @@ export function PaymentsDashboardPage() {
         payload: { reason },
       });
       toast.success("Refund processed successfully.");
-      setRefundDialogOpen(false);
+      setRefundPanelOpen(false);
       setRefundTarget(null);
     } catch (error) {
       toast.error(toPaymentErrorMessage(error));
@@ -319,7 +319,7 @@ export function PaymentsDashboardPage() {
             />
             <span>Refresh</span>
           </Button>
-          <Button type="button" onClick={() => setManualModalOpen(true)}>
+          <Button type="button" onClick={() => setManualPanelOpen(true)}>
             <MaterialIcon icon="add" className="text-lg" />
             <span>Collect Payment</span>
           </Button>
@@ -670,12 +670,13 @@ export function PaymentsDashboardPage() {
         </CardContent>
       </Card>
 
-      <ManualPaymentModal
-        open={manualModalOpen}
-        onOpenChange={setManualModalOpen}
+      <ManualPaymentPanel
+        open={manualPanelOpen}
+        onOpenChange={setManualPanelOpen}
         members={membersQuery.data ?? []}
         onSubmit={handleManualSubmit}
         isSubmitting={manualPaymentMutation.isPending}
+        isMobile={isMobile}
       />
 
       <InvoiceViewPanel
@@ -685,17 +686,20 @@ export function PaymentsDashboardPage() {
         isMobile={isMobile}
       />
 
-      <RefundConfirmationDialog
-        open={refundDialogOpen}
+      <RefundConfirmationPanel
+        open={refundPanelOpen}
         onOpenChange={(open) => {
-          setRefundDialogOpen(open);
+          setRefundPanelOpen(open);
           if (!open) {
             setRefundTarget(null);
           }
         }}
+        paymentId={refundTarget?.id ?? ""}
+        amount={refundTarget?.amount ?? 0}
         transactionLabel={refundTarget?.transactionId}
         isSubmitting={refundMutation.isPending}
         onConfirm={handleRefundConfirm}
+        isMobile={isMobile}
       />
 
       {summaryQuery.isError ? (

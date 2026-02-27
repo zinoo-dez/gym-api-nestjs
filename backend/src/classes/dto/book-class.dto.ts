@@ -1,9 +1,9 @@
-import { IsUUID } from 'class-validator';
+import { IsString } from 'class-validator';
 
 export class BookClassDto {
-  @IsUUID('4', { message: 'Member ID must be a valid UUID' })
+  @IsString({ message: 'Member ID must be a string' })
   memberId!: string;
 
-  @IsUUID('4', { message: 'Class schedule ID must be a valid UUID' })
+  @IsString({ message: 'Class schedule ID must be a string' })
   classScheduleId!: string;
 }

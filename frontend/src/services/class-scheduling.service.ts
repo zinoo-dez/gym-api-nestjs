@@ -303,10 +303,6 @@ const toUpdatePayload = (input: Partial<SaveClassInput>): Record<string, string 
   return payload;
 };
 
-const cancelBooking = async (bookingId: string): Promise<void> => {
-  await api.delete(`/classes/bookings/${bookingId}`);
-};
-
 const updateBookingStatus = async (
   bookingId: string,
   status: "CONFIRMED" | "NO_SHOW" | "CANCELLED" | "COMPLETED",
@@ -419,7 +415,7 @@ export const classSchedulingService = {
         throw new Error("No booking record found for member.");
       }
 
-      await cancelBooking(input.bookingId);
+      await updateBookingStatus(input.bookingId, "CANCELLED");
     }
   },
 

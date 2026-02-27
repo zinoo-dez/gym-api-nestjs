@@ -6,6 +6,7 @@ import { z } from "zod";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
+import { Select } from "@/components/ui/Select";
 import { ManagementPanel } from "@/components/features/people/ManagementPanel";
 import { MemberFormValues } from "@/features/people";
 
@@ -42,6 +43,10 @@ export function MemberFormPanel({
         currentWeight: z.coerce.number().optional(),
         targetWeight: z.coerce.number().optional(),
         emergencyContact: z.string().trim().optional().default(""),
+        initialPaymentAmount: z.coerce.number().optional(),
+        paymentMethod: z.string().optional().default(""),
+        transactionNo: z.string().optional().default(""),
+        paymentNote: z.string().optional().default(""),
       })
       .superRefine((values, ctx) => {
         if (mode === "add" && values.password.trim().length < 8) {
@@ -73,7 +78,7 @@ export function MemberFormPanel({
 
   const footer = (
     <div className="flex justify-end gap-2">
-      <Button type="button" variant="ghost" onClick={onClose}>
+      <Button type="button" variant="text" onClick={onClose}>
         Cancel
       </Button>
       <Button type="submit" form="member-form" disabled={!isValid || isSubmitting}>
@@ -92,7 +97,7 @@ export function MemberFormPanel({
       footer={footer}
       className="max-w-3xl"
     >
-      <form id="member-form" className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
+      <form id="member-form" className="space-y-6" onSubmit={handleSubmit(onSubmit as any)}>
         <section className="rounded-lg border bg-card p-4">
           <h3 className="card-title">Account Details</h3>
 
@@ -226,6 +231,49 @@ export function MemberFormPanel({
             </div>
           </div>
         </section>
+
+        {mode === "add" ? (
+          <section className="rounded-lg border bg-card p-4">
+            <h3 className="card-title">Initial Payment Information</h3>
+            <p className="mt-1 text-label-small text-on-surface-variant">
+              Optional: Record the first payment or joining fee during registration.
+            </p>
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="member-payment-amount">Payment Amount</Label>
+                <Input
+                  id="member-payment-amount"
+                  type="number"
+                  min={0}
+                  {...register("initialPaymentAmount", {
+                    setValueAs: (value) => (value === "" ? undefined : Number(value)),
+                  })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="member-payment-method">Payment Method</Label>
+                <Select id="member-payment-method" {...register("paymentMethod")}>
+                  <option value="">Select method</option>
+                  <option value="CASH">Cash</option>
+                  <option value="BANK">Bank Transfer</option>
+                  <option value="CARD">Credit/Debit Card</option>
+                  <option value="WALLET">Mobile Wallet</option>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="member-payment-transaction">Transaction No / Ref</Label>
+                <Input id="member-payment-transaction" {...register("transactionNo")} />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="member-payment-note">Payment Note</Label>
+                <Input id="member-payment-note" {...register("paymentNote")} />
+              </div>
+            </div>
+          </section>
+        ) : null}
       </form>
     </ManagementPanel>
   );

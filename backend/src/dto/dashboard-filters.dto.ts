@@ -42,7 +42,7 @@ export class DashboardFiltersDto {
   endDate?: string;
 
   @ApiPropertyOptional({
-    description: 'Branch identifier (reserved for multi-branch setups)',
+    description: 'Branch filter token (accepts branch id, code, or name)',
     example: 'downtown',
   })
   @IsOptional()

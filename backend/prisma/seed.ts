@@ -32,6 +32,7 @@ async function main() {
   await prisma.equipment.deleteMany();
   await prisma.membershipPlanFeature.deleteMany();
   await prisma.feature.deleteMany();
+  await prisma.discountCode.deleteMany();
   console.log('✓ Cleaned\n');
 
   // Hash password
@@ -188,6 +189,28 @@ async function main() {
     },
   });
   console.log('✓ 3 membership plans created\n');
+
+  // Create Discount Codes
+  console.log('🎟️ Creating discount codes...');
+  await prisma.discountCode.createMany({
+    data: [
+      {
+        code: 'SAVE10',
+        description: '10% off for new members',
+        type: 'PERCENTAGE',
+        amount: 10,
+        isActive: true,
+      },
+      {
+        code: 'FIXED50',
+        description: '50 units off',
+        type: 'FIXED',
+        amount: 50,
+        isActive: true,
+      },
+    ],
+  });
+  console.log('✓ 2 discount codes created\n');
 
   // Create Trainers
   console.log('🏋️ Creating trainers...');
@@ -481,7 +504,9 @@ async function main() {
         warrantyExpiryDate: new Date(now.getTime() + 540 * 24 * 60 * 60 * 1000),
         condition: 'needs_maintenance',
         maintenanceFrequency: 'quarterly',
-        lastMaintenanceDate: new Date(now.getTime() - 100 * 24 * 60 * 60 * 1000),
+        lastMaintenanceDate: new Date(
+          now.getTime() - 100 * 24 * 60 * 60 * 1000,
+        ),
         nextMaintenanceDate: new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000),
         assignedArea: 'Strength Zone - Floor 2',
         notes: 'Requires cable inspection.',
@@ -499,7 +524,9 @@ async function main() {
         warrantyExpiryDate: new Date(now.getTime() - 180 * 24 * 60 * 60 * 1000),
         condition: 'out_of_order',
         maintenanceFrequency: 'yearly',
-        lastMaintenanceDate: new Date(now.getTime() - 360 * 24 * 60 * 60 * 1000),
+        lastMaintenanceDate: new Date(
+          now.getTime() - 360 * 24 * 60 * 60 * 1000,
+        ),
         nextMaintenanceDate: new Date(now.getTime() - 20 * 24 * 60 * 60 * 1000),
         assignedArea: 'Studio Hall - Floor 1',
         notes: 'Scheduled for replacement.',

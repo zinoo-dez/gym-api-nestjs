@@ -61,7 +61,7 @@ export function DatePicker({
 
   const trigger = (
     <Button
-      variant="outline"
+      variant="outlined"
       role="combobox"
       aria-expanded={isOpen}
       disabled={disabled}
