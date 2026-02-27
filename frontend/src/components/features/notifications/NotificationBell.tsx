@@ -122,7 +122,7 @@ export function NotificationBell() {
                         ) : null}
 
                         {!notificationsQuery.isLoading && !notificationsQuery.isError && recentNotifications.length > 0 ? (
-                            <ul className="divide-y divide-outline-variant/30">
+                            <ul className="divide-y divide-border">
                                 {recentNotifications.map((notification) => {
                                     const visual = getNotificationVisual(notification);
 

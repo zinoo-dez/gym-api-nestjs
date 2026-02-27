@@ -7,10 +7,11 @@ import {
     usePaymentInvoiceQuery,
 } from "@/hooks/usePayments";
 import { Button } from "@/components/ui/Button";
+import { DataTable, DataTableColumn } from "@/components/ui/DataTable";
 import { SlidePanel } from "@/components/ui/SlidePanel";
 import { formatCurrency } from "@/lib/currency";
 import { formatDate } from "@/lib/date-utils";
-import type { PaymentInvoice } from "@/services/payments.service";
+import type { PaymentInvoice, PaymentInvoiceItem } from "@/services/payments.service";
 
 interface InvoiceViewPanelProps {
     open: boolean;
@@ -50,6 +51,13 @@ const invoiceStatusClass = (status: string): string => {
 
     return "bg-secondary text-secondary-foreground";
 };
+
+const invoiceItemColumns: DataTableColumn<PaymentInvoiceItem>[] = [
+    { id: "description", label: "Description", render: (row) => row.description },
+    { id: "quantity", label: "Qty", align: "right", render: (row) => row.quantity },
+    { id: "unitPrice", label: "Unit Price", align: "right", render: (row) => formatCurrency(row.unitPrice) },
+    { id: "lineTotal", label: "Line Total", align: "right", render: (row) => <span className="font-medium">{formatCurrency(row.lineTotal)}</span> },
+];
 
 const escapeHtml = (value: string): string =>
     value
@@ -315,29 +323,13 @@ export function InvoiceViewPanel({ open, onClose, invoiceId, isMobile }: Invoice
 
                     <section className="rounded-lg border bg-card p-4">
                         <h4 className="text-lg font-semibold tracking-tight">Itemized Charges</h4>
-                        <div className="mt-3 overflow-x-auto rounded-md border">
-                            <table className="w-full min-w-[640px] text-sm">
-                                <thead>
-                                    <tr className="border-b bg-muted/30 text-left">
-                                        <th className="px-4 py-3 font-medium text-muted-foreground">Description</th>
-                                        <th className="px-4 py-3 text-right font-medium text-muted-foreground">Qty</th>
-                                        <th className="px-4 py-3 text-right font-medium text-muted-foreground">Unit Price</th>
-                                        <th className="px-4 py-3 text-right font-medium text-muted-foreground">Line Total</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {invoice.items.map((item) => (
-                                        <tr key={item.id} className="border-b last:border-0 hover:bg-muted/30">
-                                            <td className="px-4 py-3 text-foreground">{item.description}</td>
-                                            <td className="px-4 py-3 text-right text-foreground">{item.quantity}</td>
-                                            <td className="px-4 py-3 text-right text-foreground">{formatCurrency(item.unitPrice)}</td>
-                                            <td className="px-4 py-3 text-right font-medium text-foreground">
-                                                {formatCurrency(item.lineTotal)}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                        <div className="mt-3">
+                            <DataTable<PaymentInvoiceItem>
+                                columns={invoiceItemColumns}
+                                rows={invoice.items}
+                                rowKey={(row) => row.id}
+                                minWidth="640px"
+                            />
                         </div>
 
                         <div className="mt-4 ml-auto w-full max-w-sm space-y-2 rounded-md border bg-muted/20 p-4 text-sm">

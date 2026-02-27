@@ -9,6 +9,7 @@ import {
 } from "@/components/features/notifications";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { DataTable, DataTableColumn } from "@/components/ui/DataTable";
 import {
     useBulkDeleteNotificationsMutation,
     useDeleteNotificationMutation,
@@ -169,6 +170,140 @@ export function NotificationsPage() {
         }
     };
 
+    const notificationColumns: DataTableColumn<NotificationRecord>[] = [
+        {
+            id: "select",
+            label: "",
+            headerClassName: "w-12",
+            headerRender: () => (
+                <input
+                    type="checkbox"
+                    aria-label="Select all visible notifications"
+                    className="size-4 rounded border-input text-primary focus:ring-2 focus:ring-ring"
+                    checked={allVisibleSelected}
+                    onChange={toggleSelectAllVisible}
+                />
+            ),
+            render: (row) => (
+                <input
+                    type="checkbox"
+                    aria-label={`Select ${row.title}`}
+                    className="mt-1 size-4 rounded border-input text-primary focus:ring-2 focus:ring-ring"
+                    checked={selectedIds.includes(row.id)}
+                    onChange={() => toggleSelection(row.id)}
+                />
+            ),
+        },
+        {
+            id: "notification",
+            label: "Notification",
+            render: (row) => {
+                const visual = getNotificationVisual(row);
+                return (
+                    <div className="flex gap-4">
+                        <span className={cn("mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-full shadow-sm", visual.toneStyle.iconContainerClassName)}>
+                            <MaterialIcon icon={visual.materialIcon} className={cn("text-xl", visual.toneStyle.iconClassName)} />
+                        </span>
+                        <div className="min-w-0 space-y-1">
+                            <p className="font-medium text-foreground">{row.title}</p>
+                            <p className="text-sm text-muted-foreground">{row.message}</p>
+                            {!row.read ? <span className="text-xs font-semibold text-primary">Unread</span> : null}
+                        </div>
+                    </div>
+                );
+            },
+        },
+        {
+            id: "category",
+            label: "Category",
+            render: (row) => {
+                const visual = getNotificationVisual(row);
+                return (
+                    <span className={cn("inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold", visual.toneStyle.badgeClassName)}>
+                        {getNotificationCategoryLabel(row.category)}
+                    </span>
+                );
+            },
+        },
+        {
+            id: "received",
+            label: "Received",
+            render: (row) => <span className="text-xs text-muted-foreground">{formatNotificationTimestamp(row.createdAt)}</span>,
+        },
+        {
+            id: "actions",
+            label: "Actions",
+            align: "right" as const,
+            render: (row) => (
+                <div className="flex justify-end gap-1">
+                    {!row.read ? (
+                        <Button type="button" variant="text" size="sm" onClick={() => void handleMarkAsRead(row)} disabled={markReadMutation.isPending}>
+                            Mark read
+                        </Button>
+                    ) : null}
+                    <Button
+                        type="button"
+                        variant="text"
+                        size="sm"
+                        className="text-destructive hover:bg-destructive/10 active:bg-destructive/20"
+                        onClick={() => void handleDeleteNotification(row)}
+                        disabled={deleteMutation.isPending}
+                    >
+                        Delete
+                    </Button>
+                </div>
+            ),
+        },
+    ];
+
+    const notificationMobileCard = (notification: NotificationRecord) => {
+        const visual = getNotificationVisual(notification);
+        return (
+            <article className={cn("rounded-lg border p-4 shadow-sm", !notification.read ? "bg-primary/5" : "")}>
+                <div className="flex items-start gap-3">
+                    <input
+                        type="checkbox"
+                        aria-label={`Select ${notification.title}`}
+                        className="mt-1 size-4 rounded border-input text-primary focus:ring-2 focus:ring-ring"
+                        checked={selectedIds.includes(notification.id)}
+                        onChange={() => toggleSelection(notification.id)}
+                    />
+                    <span className={cn("mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-full shadow-sm", visual.toneStyle.iconContainerClassName)}>
+                        <MaterialIcon icon={visual.materialIcon} className={cn("text-xl", visual.toneStyle.iconClassName)} />
+                    </span>
+                    <div className="min-w-0 flex-1 space-y-1">
+                        <p className="text-sm font-medium text-foreground">{notification.title}</p>
+                        <p className="text-sm text-muted-foreground">{notification.message}</p>
+                        <p className="text-xs text-muted-foreground">{formatNotificationTimestamp(notification.createdAt)}</p>
+                        <div className="flex flex-wrap items-center gap-2 pt-1">
+                            <span className={cn("inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold", visual.toneStyle.badgeClassName)}>
+                                {getNotificationCategoryLabel(notification.category)}
+                            </span>
+                            {!notification.read ? <span className="text-xs font-semibold text-primary">Unread</span> : null}
+                        </div>
+                    </div>
+                </div>
+                <div className="mt-4 flex flex-wrap gap-2">
+                    {!notification.read ? (
+                        <Button type="button" variant="outlined" size="sm" onClick={() => void handleMarkAsRead(notification)} disabled={markReadMutation.isPending}>
+                            Mark read
+                        </Button>
+                    ) : null}
+                    <Button
+                        type="button"
+                        variant="text"
+                        size="sm"
+                        className="text-destructive hover:bg-destructive/10 active:bg-destructive/20"
+                        onClick={() => void handleDeleteNotification(notification)}
+                        disabled={deleteMutation.isPending}
+                    >
+                        Delete
+                    </Button>
+                </div>
+            </article>
+        );
+    };
+
     return (
         <div className="space-y-8">
             <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -267,196 +402,15 @@ export function NotificationsPage() {
                         !notificationsQuery.isError &&
                         filteredNotifications.length > 0 ? (
                         <>
-                            <div className="hidden overflow-x-auto rounded-md border md:block">
-                                <table className="w-full min-w-[900px] text-sm">
-                                    <thead>
-                                        <tr className="border-b bg-muted/30 text-left">
-                                            <th className="w-12 px-4 py-3">
-                                                <input
-                                                    type="checkbox"
-                                                    aria-label="Select all visible notifications"
-                                                    className="size-4 rounded border-input text-primary focus:ring-2 focus:ring-ring"
-                                                    checked={allVisibleSelected}
-                                                    onChange={toggleSelectAllVisible}
-                                                />
-                                            </th>
-                                            <th className="px-4 py-3 font-medium text-muted-foreground">Notification</th>
-                                            <th className="px-4 py-3 font-medium text-muted-foreground">Category</th>
-                                            <th className="px-4 py-3 font-medium text-muted-foreground">Received</th>
-                                            <th className="px-4 py-3 text-right font-medium text-muted-foreground">Actions</th>
-                                        </tr>
-                                    </thead>
-
-                                    <tbody>
-                                        {visibleNotifications.map((notification) => {
-                                            const visual = getNotificationVisual(notification);
-
-                                            return (
-                                                <tr
-                                                    key={notification.id}
-                                                    className={cn(
-                                                        "border-b transition-colors last:border-0 hover:bg-muted/30",
-                                                        !notification.read ? "bg-primary/5" : "",
-                                                    )}
-                                                >
-                                                    <td className="px-4 py-3 align-top">
-                                                        <input
-                                                            type="checkbox"
-                                                            aria-label={`Select ${notification.title}`}
-                                                            className="mt-1 size-4 rounded border-input text-primary focus:ring-2 focus:ring-ring"
-                                                            checked={selectedIds.includes(notification.id)}
-                                                            onChange={() => toggleSelection(notification.id)}
-                                                        />
-                                                    </td>
-
-                                                    <td className="px-4 py-3 align-top">
-                                                        <div className="flex gap-4">
-                                                            <span
-                                                                className={cn(
-                                                                    "mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-full shadow-sm",
-                                                                    visual.toneStyle.iconContainerClassName,
-                                                                )}
-                                                            >
-                                                                <MaterialIcon icon={visual.materialIcon} className={cn("text-xl", visual.toneStyle.iconClassName)} />
-                                                            </span>
-
-                                                            <div className="min-w-0 space-y-1">
-                                                                <p className="font-medium text-foreground">{notification.title}</p>
-                                                                <p className="text-sm text-muted-foreground">{notification.message}</p>
-                                                                {!notification.read ? (
-                                                                    <span className="text-xs font-semibold text-primary">Unread</span>
-                                                                ) : null}
-                                                            </div>
-                                                        </div>
-                                                    </td>
-
-                                                    <td className="px-4 py-3 align-top">
-                                                        <span
-                                                            className={cn(
-                                                                "inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold",
-                                                                visual.toneStyle.badgeClassName,
-                                                            )}
-                                                        >
-                                                            {getNotificationCategoryLabel(notification.category)}
-                                                        </span>
-                                                    </td>
-
-                                                    <td className="px-4 py-3 align-top text-xs text-muted-foreground">
-                                                        {formatNotificationTimestamp(notification.createdAt)}
-                                                    </td>
-
-                                                    <td className="px-4 py-3 align-middle">
-                                                        <div className="flex justify-end gap-1">
-                                                            {!notification.read ? (
-                                                                <Button
-                                                                    type="button"
-                                                                    variant="text"
-                                                                    size="sm"
-                                                                    onClick={() => void handleMarkAsRead(notification)}
-                                                                    disabled={markReadMutation.isPending}
-                                                                >
-                                                                    Mark read
-                                                                </Button>
-                                                            ) : null}
-
-                                                            <Button
-                                                                type="button"
-                                                                variant="text"
-                                                                size="sm"
-                                                                className="text-destructive hover:bg-destructive/10 active:bg-destructive/20"
-                                                                onClick={() => void handleDeleteNotification(notification)}
-                                                                disabled={deleteMutation.isPending}
-                                                            >
-                                                                Delete
-                                                            </Button>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })}
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            <div className="space-y-3 md:hidden">
-                                {visibleNotifications.map((notification) => {
-                                    const visual = getNotificationVisual(notification);
-
-                                    return (
-                                        <article
-                                            key={notification.id}
-                                            className={cn("rounded-lg border p-4 shadow-sm", !notification.read ? "bg-primary/5" : "")}
-                                        >
-                                            <div className="flex items-start gap-3">
-                                                <input
-                                                    type="checkbox"
-                                                    aria-label={`Select ${notification.title}`}
-                                                    className="mt-1 size-4 rounded border-input text-primary focus:ring-2 focus:ring-ring"
-                                                    checked={selectedIds.includes(notification.id)}
-                                                    onChange={() => toggleSelection(notification.id)}
-                                                />
-
-                                                <span
-                                                    className={cn(
-                                                        "mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-full shadow-sm",
-                                                        visual.toneStyle.iconContainerClassName,
-                                                    )}
-                                                >
-                                                    <MaterialIcon icon={visual.materialIcon} className={cn("text-xl", visual.toneStyle.iconClassName)} />
-                                                </span>
-
-                                                <div className="min-w-0 flex-1 space-y-1">
-                                                    <p className="text-sm font-medium text-foreground">{notification.title}</p>
-                                                    <p className="text-sm text-muted-foreground">{notification.message}</p>
-                                                    <p className="text-xs text-muted-foreground">
-                                                        {formatNotificationTimestamp(notification.createdAt)}
-                                                    </p>
-
-                                                    <div className="flex flex-wrap items-center gap-2 pt-1">
-                                                        <span
-                                                            className={cn(
-                                                                "inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold",
-                                                                visual.toneStyle.badgeClassName,
-                                                            )}
-                                                        >
-                                                            {getNotificationCategoryLabel(notification.category)}
-                                                        </span>
-
-                                                        {!notification.read ? (
-                                                            <span className="text-xs font-semibold text-primary">Unread</span>
-                                                        ) : null}
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div className="mt-4 flex flex-wrap gap-2">
-                                                {!notification.read ? (
-                                                    <Button
-                                                        type="button"
-                                                        variant="outlined"
-                                                        size="sm"
-                                                        onClick={() => void handleMarkAsRead(notification)}
-                                                        disabled={markReadMutation.isPending}
-                                                    >
-                                                        Mark read
-                                                    </Button>
-                                                ) : null}
-
-                                                <Button
-                                                    type="button"
-                                                    variant="text"
-                                                    size="sm"
-                                                    className="text-destructive hover:bg-destructive/10 active:bg-destructive/20"
-                                                    onClick={() => void handleDeleteNotification(notification)}
-                                                    disabled={deleteMutation.isPending}
-                                                >
-                                                    Delete
-                                                </Button>
-                                            </div>
-                                        </article>
-                                    );
-                                })}
-                            </div>
+                            <DataTable<NotificationRecord>
+                                columns={notificationColumns}
+                                rows={visibleNotifications}
+                                rowKey={(row) => row.id}
+                                mobileCard={notificationMobileCard}
+                                emptyTitle="No notifications found"
+                                emptyDescription="Try another filter or check back later for new alerts."
+                                minWidth="900px"
+                            />
 
                             <div className="flex items-center justify-between gap-3">
                                 <p className="text-sm text-muted-foreground">

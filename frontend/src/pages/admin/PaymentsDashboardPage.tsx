@@ -11,6 +11,7 @@ import {
 } from "@/components/features/payments";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { useIsMobile } from "@/hooks/useIsMobile";
@@ -473,98 +474,97 @@ export function PaymentsDashboardPage() {
 
                     {!paymentsQuery.isLoading && !paymentsQuery.isError ? (
                         <>
-                            <div className="overflow-x-auto rounded-md border">
-                                <table className="w-full min-w-[960px] text-sm">
-                                    <thead>
-                                        <tr className="border-b bg-muted/30 text-left">
-                                            <th className="px-4 py-3 font-medium text-muted-foreground">Transaction ID</th>
-                                            <th className="px-4 py-3 font-medium text-muted-foreground">Member Name</th>
-                                            <th className="px-4 py-3 font-medium text-muted-foreground">Amount</th>
-                                            <th className="px-4 py-3 font-medium text-muted-foreground">Payment Method</th>
-                                            <th className="px-4 py-3 font-medium text-muted-foreground">Date</th>
-                                            <th className="px-4 py-3 font-medium text-muted-foreground">Status</th>
-                                            <th className="px-4 py-3 text-right font-medium text-muted-foreground">Actions</th>
-                                        </tr>
-                                    </thead>
-
-                                    <tbody>
-                                        {visibleTransactions.map((transaction) => {
-                                            const isSelected = transaction.id === selectedTransactionId;
-
-                                            return (
-                                                <tr
-                                                    key={transaction.id}
-                                                    className={cn(
-                                                        "cursor-pointer border-b transition-colors hover:bg-muted/30",
-                                                        isSelected ? "bg-muted/40" : "",
-                                                    )}
-                                                    onClick={() => setSelectedTransactionId(transaction.id)}
+                            <DataTable<PaymentTransaction>
+                                columns={[
+                                    {
+                                        id: "transactionId",
+                                        label: "Transaction ID",
+                                        render: (transaction) => (
+                                            <p className="font-medium text-foreground">{transaction.transactionId}</p>
+                                        ),
+                                    },
+                                    {
+                                        id: "memberName",
+                                        label: "Member Name",
+                                        render: (transaction) => (
+                                            <>
+                                                <p className="text-foreground">{transaction.memberName}</p>
+                                                <p className="text-xs text-muted-foreground">{transaction.memberEmail || "-"}</p>
+                                            </>
+                                        ),
+                                    },
+                                    {
+                                        id: "amount",
+                                        label: "Amount",
+                                        render: (transaction) => (
+                                            <span className="font-medium text-foreground">{formatCurrency(transaction.amount)}</span>
+                                        ),
+                                    },
+                                    {
+                                        id: "paymentMethod",
+                                        label: "Payment Method",
+                                        render: (transaction) => (
+                                            <span className="text-foreground">{paymentMethodLabels[transaction.paymentMethod]}</span>
+                                        ),
+                                    },
+                                    {
+                                        id: "date",
+                                        label: "Date",
+                                        render: (transaction) => (
+                                            <span className="text-foreground">{formatDate(transaction.date, "MMM d, yyyy · h:mm a") || "-"}</span>
+                                        ),
+                                    },
+                                    {
+                                        id: "status",
+                                        label: "Status",
+                                        render: (transaction) => <PaymentStatusBadge status={transaction.status} />,
+                                    },
+                                    {
+                                        id: "actions",
+                                        label: "Actions",
+                                        align: "right",
+                                        render: (transaction) => (
+                                            <div className="flex justify-end gap-1">
+                                                <Button
+                                                    type="button"
+                                                    size="sm"
+                                                    variant="outlined"
+                                                    onClick={(event) => {
+                                                        event.stopPropagation();
+                                                        handleOpenInvoice(transaction);
+                                                    }}
+                                                    disabled={!canUseInvoice}
+                                                    title="View Invoice"
                                                 >
-                                                    <td className="px-4 py-3 align-top">
-                                                        <p className="font-medium text-foreground">{transaction.transactionId}</p>
-                                                    </td>
-                                                    <td className="px-4 py-3 align-top">
-                                                        <p className="text-foreground">{transaction.memberName}</p>
-                                                        <p className="text-xs text-muted-foreground">{transaction.memberEmail || "-"}</p>
-                                                    </td>
-                                                    <td className="px-4 py-3 align-top font-medium text-foreground">
-                                                        {formatCurrency(transaction.amount)}
-                                                    </td>
-                                                    <td className="px-4 py-3 align-top text-foreground">
-                                                        {paymentMethodLabels[transaction.paymentMethod]}
-                                                    </td>
-                                                    <td className="px-4 py-3 align-top text-foreground">
-                                                        {formatDate(transaction.date, "MMM d, yyyy · h:mm a") || "-"}
-                                                    </td>
-                                                    <td className="px-4 py-3 align-top">
-                                                        <PaymentStatusBadge status={transaction.status} />
-                                                    </td>
-                                                    <td className="px-4 py-3 align-middle">
-                                                        <div className="flex justify-end gap-1">
-                                                            <Button
-                                                                type="button"
-                                                                size="sm"
-                                                                variant="outlined"
-                                                                onClick={(event) => {
-                                                                    event.stopPropagation();
-                                                                    handleOpenInvoice(transaction);
-                                                                }}
-                                                                disabled={!canUseInvoice}
-                                                                title="View Invoice"
-                                                            >
-                                                                <MaterialIcon icon="receipt_long" className="text-lg" />
-                                                                <span>Invoice</span>
-                                                            </Button>
+                                                    <MaterialIcon icon="receipt_long" className="text-lg" />
+                                                    <span>Invoice</span>
+                                                </Button>
 
-                                                            {canUseRefund ? (
-                                                                <Button
-                                                                    type="button"
-                                                                    size="sm"
-                                                                    variant="text"
-                                                                    onClick={(event) => {
-                                                                        event.stopPropagation();
-                                                                        handleOpenRefund(transaction);
-                                                                    }}
-                                                                    className="text-destructive hover:bg-destructive/10 active:bg-destructive/20"
-                                                                    title="Process Refund"
-                                                                >
-                                                                    <span>Refund</span>
-                                                                </Button>
-                                                            ) : null}
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })}
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            {visibleTransactions.length === 0 ? (
-                                <div className="rounded-md border border-dashed p-8 text-center">
-                                    <p className="text-sm text-muted-foreground">No transactions matched the current filters.</p>
-                                </div>
-                            ) : null}
+                                                {canUseRefund ? (
+                                                    <Button
+                                                        type="button"
+                                                        size="sm"
+                                                        variant="text"
+                                                        onClick={(event) => {
+                                                            event.stopPropagation();
+                                                            handleOpenRefund(transaction);
+                                                        }}
+                                                        className="text-destructive hover:bg-destructive/10 active:bg-destructive/20"
+                                                        title="Process Refund"
+                                                    >
+                                                        <span>Refund</span>
+                                                    </Button>
+                                                ) : null}
+                                            </div>
+                                        ),
+                                    },
+                                ] satisfies DataTableColumn<PaymentTransaction>[]}
+                                rows={visibleTransactions}
+                                rowKey={(transaction) => transaction.id}
+                                onRowClick={(transaction) => setSelectedTransactionId(transaction.id)}
+                                emptyTitle="No transactions matched the current filters."
+                                minWidth="960px"
+                            />
                         </>
                     ) : null}
                 </CardContent>

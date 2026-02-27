@@ -11,7 +11,7 @@
         "dev:backend": "pnpm --filter backend run dev",
         "dev:frontend": "pnpm --filter frontend run dev",
         "dev:mobile": "pnpm --filter mobile run start",
-        "dev": "npx concurrently \"pnpm run dev:backend\" \"pnpm run dev:frontend\"",
+        "dev": "pnpm exec concurrently \"pnpm run dev:backend\" \"pnpm run dev:frontend\"",
         "build:backend": "pnpm --filter backend run build",
         "build:frontend": "pnpm --filter frontend run build",
         "build": "pnpm run build:backend && pnpm run build:frontend",
