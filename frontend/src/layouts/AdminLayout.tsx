@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -7,7 +7,17 @@ import { NotificationBell } from "@/components/features/notifications";
 import { ThemeToggle } from "@/components/features/settings";
 import { cn } from "@/lib/utils";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
-import { type AppRole, hasAnyRole, ROLE } from "@/lib/roles";
+import {
+    type AppRole,
+    hasAnyRole,
+    ROLE,
+    PAYMENT_ROUTE_ROLES,
+    INVENTORY_ROUTE_ROLES,
+    CLASS_SCHEDULE_ROUTE_ROLES,
+    CLASS_ATTENDANCE_ROUTE_ROLES,
+    CLASS_MANAGEMENT_ROUTE_ROLES,
+} from "@/lib/roles";
+import { useBreakpoint } from "@/hooks/use-breakpoint";
 
 interface MenuItem {
     icon: string;
@@ -22,11 +32,6 @@ interface MenuSection {
 
 const ADMIN_ROLES = [ROLE.ADMIN, ROLE.OWNER] as const;
 const OPERATIONS_ROLES = [ROLE.ADMIN, ROLE.OWNER, ROLE.STAFF, ROLE.TRAINER] as const;
-const PAYMENT_ROLES = [ROLE.ADMIN, ROLE.OWNER, ROLE.STAFF] as const;
-const INVENTORY_ROLES = [ROLE.ADMIN, ROLE.OWNER, ROLE.STAFF] as const;
-const CLASS_MANAGEMENT_ROLES = [ROLE.ADMIN, ROLE.OWNER, ROLE.STAFF, ROLE.TRAINER] as const;
-const CLASS_SCHEDULE_ROLES = [ROLE.ADMIN, ROLE.OWNER, ROLE.TRAINER] as const;
-const CLASS_ATTENDANCE_ROLES = [ROLE.ADMIN, ROLE.OWNER, ROLE.STAFF] as const;
 
 const resolveAllowedRolesForPath = (path: string): readonly AppRole[] => {
     if (path === "/app" || path === "/app/") {
@@ -34,23 +39,23 @@ const resolveAllowedRolesForPath = (path: string): readonly AppRole[] => {
     }
 
     if (path === "/app/payments") {
-        return PAYMENT_ROLES;
+        return PAYMENT_ROUTE_ROLES;
     }
 
     if (path.startsWith("/app/management/products")) {
-        return INVENTORY_ROLES;
+        return INVENTORY_ROUTE_ROLES;
     }
 
     if (path === "/app/management/classes/schedule") {
-        return CLASS_SCHEDULE_ROLES;
+        return CLASS_SCHEDULE_ROUTE_ROLES;
     }
 
     if (path === "/app/management/classes/attendance") {
-        return CLASS_ATTENDANCE_ROLES;
+        return CLASS_ATTENDANCE_ROUTE_ROLES;
     }
 
     if (path.startsWith("/app/management/classes")) {
-        return CLASS_MANAGEMENT_ROLES;
+        return CLASS_MANAGEMENT_ROUTE_ROLES;
     }
 
     return ADMIN_ROLES;
@@ -136,20 +141,14 @@ const isPathActive = (currentPath: string, itemPath: string): boolean => {
 };
 
 export function AdminLayout() {
-    const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+    const breakpoint = useBreakpoint();
     const location = useLocation();
     const { user, logout } = useAuthStore();
     const [drawerOpen, setDrawerOpen] = useState(false);
 
-    useEffect(() => {
-        const handleResize = () => setWindowWidth(window.innerWidth);
-        window.addEventListener("resize", handleResize);
-        return () => window.removeEventListener("resize", handleResize);
-    }, []);
-
-    const isCompact = windowWidth < 600;
-    const isMedium = windowWidth >= 600 && windowWidth < 840;
-    const isExpanded = windowWidth >= 840;
+    const isCompact = breakpoint === "compact";
+    const isMedium = breakpoint === "medium";
+    const isExpanded = breakpoint === "expanded";
 
     const visibleMenuSections = useMemo(
         () =>

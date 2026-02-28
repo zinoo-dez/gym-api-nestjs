@@ -11,6 +11,7 @@ import {
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import type { CurrentUserPayload } from '../common/interfaces/current-user-payload.interface';
 import { Public } from '../auth/decorators/public.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -44,7 +45,7 @@ export class BodyCompositionController {
   @ApiOperation({ summary: 'Record body composition measurements' })
   async recordMeasurement(
     @Body() dto: RecordBodyCompositionDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: CurrentUserPayload,
   ) {
     return this.bodyCompositionService.recordMeasurement(dto, user);
   }
@@ -54,7 +55,7 @@ export class BodyCompositionController {
   @ApiOperation({ summary: 'Get my body composition timeline' })
   async getMyMeasurements(
     @Query() filters: TimelineFiltersDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: CurrentUserPayload,
   ) {
     return this.bodyCompositionService.getMeasurements(
       user.memberId,
@@ -69,7 +70,7 @@ export class BodyCompositionController {
   async getMemberMeasurements(
     @Param('memberId') memberId: string,
     @Query() filters: TimelineFiltersDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: CurrentUserPayload,
   ) {
     return this.bodyCompositionService.getMeasurements(memberId, filters, user);
   }
@@ -79,7 +80,7 @@ export class BodyCompositionController {
   @ApiOperation({ summary: 'Create a progress photo record' })
   async createPhoto(
     @Body() dto: CreateProgressPhotoDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: CurrentUserPayload,
   ) {
     return this.bodyCompositionService.createPhoto(dto, user);
   }
@@ -89,7 +90,7 @@ export class BodyCompositionController {
   @ApiOperation({ summary: 'Get my progress photo timeline' })
   async getMyPhotos(
     @Query() filters: ProgressPhotoFiltersDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: CurrentUserPayload,
   ) {
     return this.bodyCompositionService.getPhotos(user.memberId, filters, user);
   }
@@ -100,7 +101,7 @@ export class BodyCompositionController {
   async getMemberPhotos(
     @Param('memberId') memberId: string,
     @Query() filters: ProgressPhotoFiltersDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: CurrentUserPayload,
   ) {
     return this.bodyCompositionService.getPhotos(memberId, filters, user);
   }
@@ -110,7 +111,7 @@ export class BodyCompositionController {
   @ApiOperation({ summary: 'Get my side-by-side photo comparison' })
   async getMyPhotoComparison(
     @Query() query: PhotoComparisonQueryDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: CurrentUserPayload,
   ) {
     return this.bodyCompositionService.comparePhotos(
       user.memberId,
@@ -125,7 +126,7 @@ export class BodyCompositionController {
   async getMemberPhotoComparison(
     @Param('memberId') memberId: string,
     @Query() query: PhotoComparisonQueryDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: CurrentUserPayload,
   ) {
     return this.bodyCompositionService.comparePhotos(memberId, query, user);
   }
@@ -135,7 +136,7 @@ export class BodyCompositionController {
   @ApiOperation({ summary: 'Create a progress goal' })
   async createGoal(
     @Body() dto: CreateProgressGoalDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: CurrentUserPayload,
   ) {
     return this.bodyCompositionService.createGoal(dto, user);
   }
@@ -145,7 +146,7 @@ export class BodyCompositionController {
   @ApiOperation({ summary: 'Get my progress goals' })
   async getMyGoals(
     @Query() filters: ProgressGoalFiltersDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: CurrentUserPayload,
   ) {
     return this.bodyCompositionService.getGoals(user.memberId, filters, user);
   }
@@ -156,7 +157,7 @@ export class BodyCompositionController {
   async getMemberGoals(
     @Param('memberId') memberId: string,
     @Query() filters: ProgressGoalFiltersDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: CurrentUserPayload,
   ) {
     return this.bodyCompositionService.getGoals(memberId, filters, user);
   }
@@ -167,7 +168,7 @@ export class BodyCompositionController {
   async updateGoal(
     @Param('goalId') goalId: string,
     @Body() dto: UpdateProgressGoalDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: CurrentUserPayload,
   ) {
     return this.bodyCompositionService.updateGoal(goalId, dto, user);
   }
@@ -177,7 +178,7 @@ export class BodyCompositionController {
   @ApiOperation({ summary: 'Create a progress milestone' })
   async createMilestone(
     @Body() dto: CreateProgressMilestoneDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: CurrentUserPayload,
   ) {
     return this.bodyCompositionService.createMilestone(dto, user);
   }
@@ -187,7 +188,7 @@ export class BodyCompositionController {
   @ApiOperation({ summary: 'Get my milestones' })
   async getMyMilestones(
     @Query() filters: ProgressMilestoneFiltersDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: CurrentUserPayload,
   ) {
     return this.bodyCompositionService.getMilestones(
       user.memberId,
@@ -202,7 +203,7 @@ export class BodyCompositionController {
   async getMemberMilestones(
     @Param('memberId') memberId: string,
     @Query() filters: ProgressMilestoneFiltersDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: CurrentUserPayload,
   ) {
     return this.bodyCompositionService.getMilestones(memberId, filters, user);
   }
@@ -210,7 +211,7 @@ export class BodyCompositionController {
   @Post('milestones/:id/share')
   @Roles(UserRole.ADMIN, UserRole.TRAINER, UserRole.STAFF, UserRole.MEMBER)
   @ApiOperation({ summary: 'Generate share token for a milestone' })
-  async shareMilestone(@Param('id') id: string, @CurrentUser() user: any) {
+  async shareMilestone(@Param('id') id: string, @CurrentUser() user: CurrentUserPayload) {
     return this.bodyCompositionService.shareMilestone(id, user);
   }
 
@@ -226,7 +227,7 @@ export class BodyCompositionController {
   @ApiOperation({ summary: 'Get my visual progress dashboard data' })
   async getMyDashboard(
     @Query() query: ReportQueryDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: CurrentUserPayload,
   ) {
     return this.bodyCompositionService.getDashboard(user.memberId, query, user);
   }
@@ -237,7 +238,7 @@ export class BodyCompositionController {
   async getMemberDashboard(
     @Param('memberId') memberId: string,
     @Query() query: ReportQueryDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: CurrentUserPayload,
   ) {
     return this.bodyCompositionService.getDashboard(memberId, query, user);
   }
@@ -245,7 +246,7 @@ export class BodyCompositionController {
   @Get('me/report')
   @Roles(UserRole.MEMBER)
   @ApiOperation({ summary: 'Get my structured progress report' })
-  async getMyReport(@Query() query: ReportQueryDto, @CurrentUser() user: any) {
+  async getMyReport(@Query() query: ReportQueryDto, @CurrentUser() user: CurrentUserPayload) {
     return this.bodyCompositionService.getReport(user.memberId, query, user);
   }
 
@@ -255,7 +256,7 @@ export class BodyCompositionController {
   async getMemberReport(
     @Param('memberId') memberId: string,
     @Query() query: ReportQueryDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: CurrentUserPayload,
   ) {
     return this.bodyCompositionService.getReport(memberId, query, user);
   }

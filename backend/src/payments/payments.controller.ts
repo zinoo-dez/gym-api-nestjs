@@ -16,6 +16,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { UserRole } from '@prisma/client';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import type { CurrentUserPayload } from '../common/interfaces/current-user-payload.interface';
 import { PaymentsService } from './payments.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { PaymentFiltersDto } from './dto/payment-filters.dto';
@@ -42,7 +43,7 @@ export class PaymentsController {
   @ApiResponse({ status: 201, type: PaymentResponseDto })
   async create(
     @Body() dto: CreatePaymentDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: CurrentUserPayload,
   ): Promise<PaymentResponseDto> {
     return this.paymentsService.create(dto, user);
   }
@@ -59,7 +60,7 @@ export class PaymentsController {
   @Get('me')
   @Roles(UserRole.MEMBER)
   @ApiOperation({ summary: 'Get current member payments' })
-  async findMine(@CurrentUser() user: any): Promise<PaymentResponseDto[]> {
+  async findMine(@CurrentUser() user: CurrentUserPayload): Promise<PaymentResponseDto[]> {
     return this.paymentsService.findMyPayments(user);
   }
 
@@ -111,7 +112,7 @@ export class PaymentsController {
   })
   async downloadInvoicePdf(
     @Param('id') id: string,
-    @CurrentUser() user: any,
+    @CurrentUser() user: CurrentUserPayload,
     @Res({ passthrough: true }) response: Response,
   ): Promise<StreamableFile> {
     const file = await this.paymentsService.getInvoicePdfByPaymentOrInvoiceId(
@@ -132,7 +133,7 @@ export class PaymentsController {
   @ApiResponse({ status: 200, type: PaymentInvoiceResponseDto })
   async getInvoice(
     @Param('id') id: string,
-    @CurrentUser() user: any,
+    @CurrentUser() user: CurrentUserPayload,
   ): Promise<PaymentInvoiceResponseDto> {
     return this.paymentsService.getInvoiceByPaymentOrInvoiceId(id, user);
   }

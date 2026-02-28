@@ -1,8 +1,8 @@
 import {
-  Module,
-  NestModule,
-  MiddlewareConsumer,
-  RequestMethod,
+    Module,
+    NestModule,
+    MiddlewareConsumer,
+    RequestMethod,
 } from '@nestjs/common';
 import { APP_GUARD, APP_FILTER } from '@nestjs/core';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
@@ -24,6 +24,7 @@ import { PricingModule } from './pricing/pricing.module';
 import { GymSettingsModule } from './gym-settings/gym-settings.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { SanitizationMiddleware } from './common/middleware';
+import { CommonModule } from './common/common.module';
 import { LoggingModule } from './logging/logging.module';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 import { LoggerService } from './logging/logger.service';
@@ -43,74 +44,75 @@ import { EquipmentModule } from './equipment/equipment.module';
 import { CostsModule } from './costs/costs.module';
 
 @Module({
-  imports: [
-    // Configure ConfigModule globally
-    ConfigModule.forRoot({ isGlobal: true }),
-    ScheduleModule.forRoot(),
-    // Configure rate limiting: 100 requests per 15 minutes (900 seconds)
-    ThrottlerModule.forRoot([
-      {
-        ttl: 900000, // 15 minutes in milliseconds
-        limit: 100, // 100 requests per TTL window
-      },
-    ]),
-    // Configure caching globally
-    CacheModule.register({
-      isGlobal: true,
-      ttl: 3600000, // Default TTL: 1 hour in milliseconds
-      max: 100, // Maximum number of items in cache
-    }),
-    LoggingModule,
-    PrismaModule,
-    AuthModule,
-    MembersModule,
-    MembershipsModule,
-    TrainersModule,
-    ClassesModule,
-    AttendanceModule,
-    WorkoutPlansModule,
-    UsersModule,
-    PricingModule,
-    NotificationsModule,
-    GymSettingsModule,
-    DiscountCodesModule,
-    GymOperatingHoursModule,
-    FeaturesModule,
-    StaffModule,
-    PaymentsModule,
-    UploadsModule,
-    RetentionModule,
-    TrainerSessionsModule,
-    MarketingModule,
-    InventorySalesModule,
-    BodyCompositionModule,
-    EquipmentModule,
-    CostsModule,
-  ],
-  controllers: [AppController],
-  providers: [
-    AppService,
-    LoggingInterceptor,
-    // Apply ThrottlerGuard globally to all routes
-    {
-      provide: APP_GUARD,
-      useClass: ThrottlerGuard,
-    },
-    // Apply GlobalExceptionFilter with LoggerService injection
-    {
-      provide: APP_FILTER,
-      useFactory: (loggerService: LoggerService) => {
-        return new GlobalExceptionFilter(loggerService);
-      },
-      inject: [LoggerService],
-    },
-  ],
+    imports: [
+        // Configure ConfigModule globally
+        ConfigModule.forRoot({ isGlobal: true }),
+        ScheduleModule.forRoot(),
+        // Configure rate limiting: 100 requests per 15 minutes (900 seconds)
+        ThrottlerModule.forRoot([
+            {
+                ttl: 900000, // 15 minutes in milliseconds
+                limit: 100, // 100 requests per TTL window
+            },
+        ]),
+        // Configure caching globally
+        CacheModule.register({
+            isGlobal: true,
+            ttl: 3600000, // Default TTL: 1 hour in milliseconds
+            max: 100, // Maximum number of items in cache
+        }),
+        LoggingModule,
+        CommonModule,
+        PrismaModule,
+        AuthModule,
+        MembersModule,
+        MembershipsModule,
+        TrainersModule,
+        ClassesModule,
+        AttendanceModule,
+        WorkoutPlansModule,
+        UsersModule,
+        PricingModule,
+        NotificationsModule,
+        GymSettingsModule,
+        DiscountCodesModule,
+        GymOperatingHoursModule,
+        FeaturesModule,
+        StaffModule,
+        PaymentsModule,
+        UploadsModule,
+        RetentionModule,
+        TrainerSessionsModule,
+        MarketingModule,
+        InventorySalesModule,
+        BodyCompositionModule,
+        EquipmentModule,
+        CostsModule,
+    ],
+    controllers: [AppController],
+    providers: [
+        AppService,
+        LoggingInterceptor,
+        // Apply ThrottlerGuard globally to all routes
+        {
+            provide: APP_GUARD,
+            useClass: ThrottlerGuard,
+        },
+        // Apply GlobalExceptionFilter with LoggerService injection
+        {
+            provide: APP_FILTER,
+            useFactory: (loggerService: LoggerService) => {
+                return new GlobalExceptionFilter(loggerService);
+            },
+            inject: [LoggerService],
+        },
+    ],
 })
 export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    // Apply sanitization middleware to all routes
-    consumer
-      .apply(SanitizationMiddleware)
-      .forRoutes({ path: '*path', method: RequestMethod.ALL });
-  }
+    configure(consumer: MiddlewareConsumer) {
+        // Apply sanitization middleware to all routes
+        consumer
+            .apply(SanitizationMiddleware)
+            .forRoutes({ path: '*path', method: RequestMethod.ALL });
+    }
 }

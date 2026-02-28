@@ -19,39 +19,14 @@ import {
 import {
     useClassSchedulesQuery,
     useDeleteClassMutation,
-} from "@/hooks/useClassScheduling";
-import { useIsMobile } from "@/hooks/useIsMobile";
+} from "@/hooks/use-class-scheduling";
+import { useIsMobile } from "@/hooks/use-is-mobile";
 import { useAuthStore } from "@/store/auth.store";
 import { hasAnyRole, ROLE } from "@/lib/roles";
+import { getApiErrorMessage } from "@/lib/api-error";
 
-const toErrorMessage = (error: unknown): string => {
-    if (typeof error === "object" && error !== null) {
-        const candidate = error as {
-            message?: string;
-            response?: {
-                data?: {
-                    message?: string | string[];
-                };
-            };
-        };
-
-        const apiMessage = candidate.response?.data?.message;
-
-        if (Array.isArray(apiMessage)) {
-            return apiMessage.join(", ");
-        }
-
-        if (typeof apiMessage === "string" && apiMessage.length > 0) {
-            return apiMessage;
-        }
-
-        if (typeof candidate.message === "string" && candidate.message.length > 0) {
-            return candidate.message;
-        }
-    }
-
-    return "Unable to complete request.";
-};
+const toErrorMessage = (error: unknown) =>
+    getApiErrorMessage(error, "Unable to complete request.");
 
 export function ClassAttendancePage() {
     const navigate = useNavigate();
@@ -152,17 +127,15 @@ export function ClassAttendancePage() {
             <header className="flex flex-col gap-4">
                 <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                     <div>
-                        <h1 className="page-title">Class Attendance</h1>
-                        <p className="body-text text-muted-foreground">
-                            Monitor class rosters in real-time and update attendance statuses for each session.
-                        </p>
+                        <h1 className="text-3xl font-bold text-foreground">Class Attendance</h1>
+
                     </div>
 
                     {canAccessScheduling ? (
                         <Button
                             type="button"
                             variant="outline"
-                            onClick={() => void navigate("/management/classes/schedule")}
+                            onClick={() => void navigate("/app/management/classes/schedule")}
                         >
                             <MaterialIcon icon="edit_calendar" className="text-lg" />
                             <span>Open Scheduling</span>

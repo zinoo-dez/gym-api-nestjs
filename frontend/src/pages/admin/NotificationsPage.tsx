@@ -16,7 +16,7 @@ import {
     useMarkAllNotificationsReadMutation,
     useMarkNotificationReadMutation,
     useNotificationsFeedQuery,
-} from "@/hooks/useNotifications";
+} from "@/hooks/use-notifications";
 import { cn } from "@/lib/utils";
 import {
     toNotificationErrorMessage,
@@ -308,7 +308,7 @@ export function NotificationsPage() {
         <div className="space-y-8">
             <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                 <div>
-                    <h1 className="page-title">Notification Center</h1>
+                    <h1 className="text-3xl font-bold text-foreground">Notification Center</h1>
                     <p className="body-text text-muted-foreground">
                         Monitor system alerts, payment updates, and member activity in one place.
                     </p>

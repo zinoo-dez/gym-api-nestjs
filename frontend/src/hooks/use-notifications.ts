@@ -93,6 +93,12 @@ export const useNotificationsRealtimeSync = () => {
         const notifications = query.data?.data ?? [];
 
         if (!initializedRef.current) {
+            // Wait until the first successful fetch so we don't treat existing
+            // notifications as "new" on every page reload.
+            if (!query.isSuccess) {
+                return;
+            }
+
             knownNotificationIdsRef.current = new Set(notifications.map((notification) => notification.id));
             initializedRef.current = true;
             return;
@@ -114,7 +120,7 @@ export const useNotificationsRealtimeSync = () => {
         }
 
         knownNotificationIdsRef.current = new Set(notifications.map((notification) => notification.id));
-    }, [query.data?.data]);
+    }, [query.data?.data, query.isSuccess]);
 
     return query;
 };

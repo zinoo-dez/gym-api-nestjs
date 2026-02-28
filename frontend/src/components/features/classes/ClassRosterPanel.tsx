@@ -21,7 +21,7 @@ import {
     useClassRosterQuery,
     useMemberSearchQuery,
     useUpdateAttendanceStatusMutation,
-} from "@/hooks/useClassScheduling";
+} from "@/hooks/use-class-scheduling";
 
 interface ClassRosterPanelProps {
     open: boolean;

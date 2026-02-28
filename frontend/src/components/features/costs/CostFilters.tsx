@@ -11,7 +11,7 @@ import {
   COST_TYPE_LABELS,
   CostFilterState,
 } from "@/features/costs";
-import { useIsMobile } from "@/hooks/useIsMobile";
+import { useIsMobile } from "@/hooks/use-is-mobile";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";

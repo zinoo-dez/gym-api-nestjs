@@ -18,6 +18,7 @@ import {
 } from '@nestjs/swagger';
 import { MarketingAutomationType, UserRole } from '@prisma/client';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import type { CurrentUserPayload } from '../common/interfaces/current-user-payload.interface';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -71,7 +72,7 @@ export class MarketingController {
   @ApiOperation({ summary: 'Create campaign draft/scheduled campaign' })
   async createCampaign(
     @Body() dto: CreateCampaignDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: CurrentUserPayload,
   ) {
     return this.marketingService.createCampaign(dto, user?.id);
   }

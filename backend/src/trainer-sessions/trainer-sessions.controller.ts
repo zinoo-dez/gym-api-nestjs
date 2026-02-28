@@ -11,6 +11,7 @@ import {
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import type { CurrentUserPayload } from '../common/interfaces/current-user-payload.interface';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -35,7 +36,7 @@ export class TrainerSessionsController {
   @ApiOperation({ summary: 'Book a trainer session' })
   async createSession(
     @Body() dto: CreateTrainerSessionDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: CurrentUserPayload,
   ) {
     return this.trainerSessionsService.createSession(dto, user);
   }
@@ -45,7 +46,7 @@ export class TrainerSessionsController {
   @ApiOperation({ summary: 'List trainer sessions' })
   async listSessions(
     @Query() filters: TrainerSessionFiltersDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: CurrentUserPayload,
   ) {
     return this.trainerSessionsService.listSessions(filters, user);
   }
@@ -53,7 +54,7 @@ export class TrainerSessionsController {
   @Patch(':id/complete')
   @Roles(UserRole.ADMIN, UserRole.TRAINER, UserRole.STAFF)
   @ApiOperation({ summary: 'Mark trainer session complete' })
-  async completeSession(@Param('id') id: string, @CurrentUser() user: any) {
+  async completeSession(@Param('id') id: string, @CurrentUser() user: CurrentUserPayload) {
     return this.trainerSessionsService.completeSession(id, user);
   }
 
@@ -63,7 +64,7 @@ export class TrainerSessionsController {
   async recordProgress(
     @Param('id') id: string,
     @Body() dto: CreateUserProgressDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: CurrentUserPayload,
   ) {
     return this.trainerSessionsService.recordProgress(id, dto, user);
   }
@@ -73,7 +74,7 @@ export class TrainerSessionsController {
   @ApiOperation({ summary: 'Get member progress history' })
   async getMemberProgress(
     @Param('memberId') memberId: string,
-    @CurrentUser() user: any,
+    @CurrentUser() user: CurrentUserPayload,
   ) {
     return this.trainerSessionsService.getMemberProgress(memberId, user);
   }
@@ -88,7 +89,7 @@ export class TrainerSessionsController {
   @Get('me/progress')
   @Roles(UserRole.MEMBER)
   @ApiOperation({ summary: 'Get current member progress history' })
-  async getMyProgress(@CurrentUser() user: any) {
+  async getMyProgress(@CurrentUser() user: CurrentUserPayload) {
     return this.trainerSessionsService.getMyProgress(user);
   }
 }

@@ -22,7 +22,7 @@ export function ProgressScreen() {
   return (
     <AppScreen
       title="My Progress"
-      subtitle="Track your gains and body measurements."
+
     >
       {isLoading ? (
         <StyledView className="py-10 items-center">

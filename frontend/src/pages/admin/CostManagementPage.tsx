@@ -42,9 +42,10 @@ import { CostVendorSummary } from "@/components/features/costs/CostVendorSummary
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
-import { useIsMobile } from "@/hooks/useIsMobile";
+import { useIsMobile } from "@/hooks/use-is-mobile";
 import { costService } from "@/services/cost.service";
 import { useAuthStore } from "@/store/auth.store";
+import { getApiErrorMessage } from "@/lib/api-error";
 
 type LoadState = "loading" | "error" | "ready";
 
@@ -56,56 +57,27 @@ const COST_SECTION_IDS: CostSectionView[] = [
     "vendors",
 ];
 
-const SECTION_CONFIG: Record<CostSectionView, { title: string; subtitle: string }> = {
+const SECTION_CONFIG: Record<CostSectionView, { title: string }> = {
     overview: {
         title: "Cost Overview",
-        subtitle: "See headline totals, payment health, and near-term due costs.",
+
     },
     analysis: {
         title: "Cost Analysis",
-        subtitle: "Track monthly patterns, cost composition, and fixed vs variable structure.",
     },
     records: {
         title: "Cost Records",
-        subtitle: "Search, filter, and manage detailed entries with full tracking metadata.",
     },
     recurring: {
         title: "Recurring Tracker",
-        subtitle: "Monitor recurring commitments and upcoming automated projections.",
     },
     vendors: {
         title: "Vendor Spend",
-        subtitle: "Compare payee concentration and identify overdue vendor obligations.",
     },
 };
 
-const toErrorMessage = (error: unknown): string => {
-    if (typeof error === "object" && error !== null) {
-        const errorWithMessage = error as {
-            message?: string;
-            response?: {
-                data?: {
-                    message?: string | string[];
-                };
-            };
-        };
-
-        const apiMessage = errorWithMessage.response?.data?.message;
-        if (Array.isArray(apiMessage)) {
-            return apiMessage.join(", ");
-        }
-
-        if (typeof apiMessage === "string" && apiMessage.length > 0) {
-            return apiMessage;
-        }
-
-        if (typeof errorWithMessage.message === "string" && errorWithMessage.message.length > 0) {
-            return errorWithMessage.message;
-        }
-    }
-
-    return "Unable to complete cost request.";
-};
+const toErrorMessage = (error: unknown) =>
+    getApiErrorMessage(error, "Unable to complete cost request.");
 
 const isCostSectionView = (value: string): value is CostSectionView => {
     return COST_SECTION_IDS.includes(value as CostSectionView);
@@ -135,7 +107,7 @@ export function CostManagementPage() {
             return;
         }
 
-        navigate("/finance/costs/overview", { replace: true });
+        navigate("/app/finance/costs/overview", { replace: true });
     }, [navigate, section]);
 
     const defaultFilters = useMemo<CostFilterState>(() => getDefaultCostFilterState(), []);
@@ -335,10 +307,9 @@ export function CostManagementPage() {
         <div className="space-y-8">
             <header className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <div>
-                    <h1 className="page-title">Cost & Expense Tracking</h1>
-                    <p className="body-text text-muted-foreground">{sectionMeta.subtitle}</p>
+                    <h1 className="text-3xl font-bold text-foreground">Cost & Expense Tracking</h1>
                 </div>
-                <Button type="button" onClick={openAddForm}>
+                <Button type="button" onClick={openAddForm} className="h-10 px-8 shadow-md">
                     <MaterialIcon icon="add" className="text-lg" />
                     <span>Add Cost</span>
                 </Button>
@@ -373,7 +344,7 @@ export function CostManagementPage() {
             {loadState === "ready" ? (
                 <div className="space-y-6">
                     <section>
-                        <h2 className="section-title">{sectionMeta.title}</h2>
+                        <h2 className="text-lg font-bold text-foreground">{sectionMeta.title}</h2>
                     </section>
 
                     {activeSection === "overview" ? (
@@ -448,7 +419,7 @@ export function CostManagementPage() {
                                             Add your first operating cost to start financial tracking.
                                         </p>
                                         <div>
-                                            <Button type="button" onClick={openAddForm}>
+                                            <Button type="button" onClick={openAddForm} className="h-10 px-8 shadow-md">
                                                 <MaterialIcon icon="add" className="text-lg" />
                                                 <span>Add Cost</span>
                                             </Button>

@@ -34,8 +34,8 @@ import {
     useUpdateGeneralSettingsMutation,
     useUpdatePaymentsMutation,
     useUpdateSecurityMutation,
-} from "@/hooks/useSettings";
-import { useUnsavedChangesPrompt } from "@/hooks/useUnsavedChangesPrompt";
+} from "@/hooks/use-settings";
+import { useUnsavedChangesPrompt } from "@/hooks/use-unsaved-changes-prompt";
 import { cn } from "@/lib/utils";
 import { toSettingsErrorMessage } from "@/services/settings.service";
 
@@ -186,7 +186,7 @@ export function SystemSettingsPage() {
 
     useEffect(() => {
         if (!section || !isSettingsSectionId(section)) {
-            void navigate("/settings/gym-identity", { replace: true });
+            void navigate("/app/settings/gym-identity", { replace: true });
         }
     }, [navigate, section]);
 
@@ -352,7 +352,7 @@ export function SystemSettingsPage() {
         return (
             <div className="space-y-8">
                 <header className="space-y-2">
-                    <h1 className="page-title">System Settings</h1>
+                    <h1 className="text-3xl font-bold text-foreground">System Settings</h1>
                     <p className="body-text text-muted-foreground">Loading your settings workspace...</p>
                 </header>
 
@@ -370,7 +370,7 @@ export function SystemSettingsPage() {
         return (
             <div className="space-y-8">
                 <header className="space-y-2">
-                    <h1 className="page-title">System Settings</h1>
+                    <h1 className="text-3xl font-bold text-foreground">System Settings</h1>
                     <p className="body-text text-muted-foreground">
                         Failed to load settings. Please retry to continue configuration.
                     </p>
@@ -392,7 +392,7 @@ export function SystemSettingsPage() {
         <div className="space-y-8 pb-8">
             <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="space-y-2">
-                    <h1 className="page-title">System Settings</h1>
+                    <h1 className="text-3xl font-bold text-foreground">System Settings</h1>
                     <p className="body-text text-muted-foreground">
                         Configure gym profile, operations, billing, and security by section.
                     </p>
@@ -415,7 +415,7 @@ export function SystemSettingsPage() {
 
                 <section className="space-y-4">
                     <div className="space-y-1">
-                        <h2 className="section-title">{activeSectionConfig.label}</h2>
+                        <h2 className="text-lg font-bold text-foreground">{activeSectionConfig.label}</h2>
                         <p className="small-text">{activeSectionConfig.description}</p>
                     </div>
 

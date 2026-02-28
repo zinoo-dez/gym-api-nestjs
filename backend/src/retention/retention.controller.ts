@@ -18,6 +18,7 @@ import {
 import { UserRole } from '@prisma/client';
 import { PaginatedResponseDto } from '../common/dto';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import type { CurrentUserPayload } from '../common/interfaces/current-user-payload.interface';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -142,7 +143,7 @@ export class RetentionController {
   })
   async bulkUpdateTasks(
     @Body() dto: BulkUpdateRetentionTasksDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: CurrentUserPayload,
   ): Promise<BulkUpdateRetentionTasksResponseDto> {
     return this.retentionService.bulkUpdateTasks(dto, user?.id);
   }
@@ -168,7 +169,7 @@ export class RetentionController {
   async updateTask(
     @Param('id') id: string,
     @Body() dto: UpdateRetentionTaskDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: CurrentUserPayload,
   ): Promise<RetentionTaskResponseDto> {
     return this.retentionService.updateTask(id, dto, user?.id);
   }

@@ -24,8 +24,8 @@ import {
     useCreateProductMutation,
     useProductListQuery,
     useUpdateProductMutation,
-} from "@/hooks/useProductSales";
-import { useIsMobile } from "@/hooks/useIsMobile";
+} from "@/hooks/use-product-sales";
+import { useIsMobile } from "@/hooks/use-is-mobile";
 import { productSalesService, type ProductRecord } from "@/services/product-sales.service";
 
 export function ProductManagementPage() {
@@ -236,17 +236,14 @@ export function ProductManagementPage() {
         <div className="space-y-8">
             <header className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <div>
-                    <h1 className="page-title">Product Management</h1>
-                    <p className="body-text text-muted-foreground">
-                        Manage product catalog, pricing, stock levels, and product images.
-                    </p>
+                    <h1 className="text-3xl font-bold text-foreground">Product Management</h1>
                 </div>
 
                 <div className="flex gap-2">
                     <Button
                         type="button"
                         variant="outline"
-                        onClick={() => void navigate("/management/products/pos")}
+                        onClick={() => void navigate("/app/management/products/pos")}
                     >
                         <MaterialIcon icon="shopping_cart" className="text-lg" />
                         <span>Go to POS</span>

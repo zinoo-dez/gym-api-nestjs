@@ -5,7 +5,7 @@ import {
     toPaymentErrorMessage,
     useDownloadInvoicePdfMutation,
     usePaymentInvoiceQuery,
-} from "@/hooks/usePayments";
+} from "@/hooks/use-payments";
 import { Button } from "@/components/ui/Button";
 import { DataTable, DataTableColumn } from "@/components/ui/DataTable";
 import { SlidePanel } from "@/components/ui/SlidePanel";

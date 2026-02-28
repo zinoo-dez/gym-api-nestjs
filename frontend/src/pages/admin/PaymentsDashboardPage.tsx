@@ -14,7 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
-import { useIsMobile } from "@/hooks/useIsMobile";
+import { useIsMobile } from "@/hooks/use-is-mobile";
 import {
     toPaymentErrorMessage,
     useCancelAutoRenewMutation,
@@ -24,7 +24,7 @@ import {
     usePaymentSummaryQuery,
     usePaymentsQuery,
     useProcessRefundMutation,
-} from "@/hooks/usePayments";
+} from "@/hooks/use-payments";
 import { formatCurrency } from "@/lib/currency";
 import { formatDate } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
@@ -301,10 +301,7 @@ export function PaymentsDashboardPage() {
         <div className="space-y-8">
             <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div className="space-y-1">
-                    <h1 className="page-title">Payment &amp; Billing Management</h1>
-                    <p className="body-text text-muted-foreground">
-                        Manage transactions, invoices, subscriptions, and refund workflows from one financial desk.
-                    </p>
+                    <h1 className="text-3xl font-bold text-foreground">Payment &amp; Billing Management</h1>
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -331,7 +328,7 @@ export function PaymentsDashboardPage() {
                 <FinancialSummaryRibbon
                     title="Total Revenue (MTD)"
                     value={formatCurrency(summaryQuery.data?.totalRevenueMtd ?? 0)}
-                    subtitle="Recognized successful payments this month"
+
                     icon="payments"
                     tone="success"
                 />
@@ -339,7 +336,7 @@ export function PaymentsDashboardPage() {
                 <FinancialSummaryRibbon
                     title="Pending Invoices (Dues)"
                     value={formatCurrency(summaryQuery.data?.pendingInvoicesDues ?? 0)}
-                    subtitle="Outstanding pending collections"
+
                     icon="calendar_month"
                     tone="warning"
                 />
@@ -347,7 +344,7 @@ export function PaymentsDashboardPage() {
                 <FinancialSummaryRibbon
                     title="Recent Failed Payments"
                     value={`${summaryQuery.data?.recentFailedPayments ?? 0}`}
-                    subtitle="Failed attempts in the last 14 days"
+
                     icon="cancel"
                     tone="danger"
                 />

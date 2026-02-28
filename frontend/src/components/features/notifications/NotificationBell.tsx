@@ -13,7 +13,7 @@ import {
     useMarkAllNotificationsReadMutation,
     useMarkNotificationReadMutation,
     useNotificationsRealtimeSync,
-} from "@/hooks/useNotifications";
+} from "@/hooks/use-notifications";
 import { cn } from "@/lib/utils";
 import {
     toNotificationErrorMessage,

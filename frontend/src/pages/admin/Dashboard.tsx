@@ -17,9 +17,10 @@ import {
     ReportsKpiCard,
     RevenueOverviewChart,
 } from "@/components/features/reports";
-import { useAttendanceOverviewQuery, useReportsSummaryQuery, useRevenueOverviewQuery } from "@/hooks/useReports";
+import { useAttendanceOverviewQuery, useReportsSummaryQuery, useRevenueOverviewQuery } from "@/hooks/use-reports";
 import { formatCurrency } from "@/lib/currency";
 import { reportsService } from "@/services/reports.service";
+import { getApiErrorMessage } from "@/lib/api-error";
 
 const INTEGER_FORMATTER = new Intl.NumberFormat("en-US");
 
@@ -27,34 +28,8 @@ const formatInteger = (value: number): string => {
     return INTEGER_FORMATTER.format(Math.trunc(value));
 };
 
-const toErrorMessage = (error: unknown): string => {
-    if (typeof error === "object" && error !== null) {
-        const candidate = error as {
-            message?: string;
-            response?: {
-                data?: {
-                    message?: string | string[];
-                };
-            };
-        };
-
-        const apiMessage = candidate.response?.data?.message;
-
-        if (Array.isArray(apiMessage)) {
-            return apiMessage.join(", ");
-        }
-
-        if (typeof apiMessage === "string" && apiMessage.length > 0) {
-            return apiMessage;
-        }
-
-        if (typeof candidate.message === "string" && candidate.message.length > 0) {
-            return candidate.message;
-        }
-    }
-
-    return "Unable to load report data.";
-};
+const toErrorMessage = (error: unknown) =>
+    getApiErrorMessage(error, "Unable to load report data.");
 
 const downloadBlob = (blob: Blob, filename: string): void => {
     const url = URL.createObjectURL(blob);
@@ -154,9 +129,6 @@ export function Dashboard() {
         <div className="space-y-8">
             <header className="space-y-3">
                 <h1 className="text-3xl font-bold text-foreground">Gym Analytics Dashboard</h1>
-                <p className="text-base text-muted-foreground max-w-2xl">
-                    Track revenue, memberships, attendance trends, and transaction activity in one responsive reporting view.
-                </p>
             </header>
 
             <ReportsFilterBar

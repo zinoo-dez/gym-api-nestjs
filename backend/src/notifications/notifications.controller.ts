@@ -19,6 +19,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import type { CurrentUserPayload } from '../common/interfaces/current-user-payload.interface';
 import { UserRole } from '@prisma/client';
 import { NotificationResponseDto } from './dto/notification-response.dto';
 import { CreateNotificationDto } from './dto/create-notification.dto';
@@ -46,7 +47,7 @@ export class NotificationsController {
   @ApiOperation({ summary: 'Get current user notifications' })
   @ApiResponse({ status: 200, type: [NotificationResponseDto] })
   async getMyNotifications(
-    @CurrentUser() user: any,
+    @CurrentUser() user: CurrentUserPayload,
   ): Promise<NotificationResponseDto[]> {
     return this.notificationsService.getUserNotifications(user.userId);
   }
@@ -87,7 +88,7 @@ export class NotificationsController {
   @Patch('me/read-all')
   @Roles(UserRole.ADMIN, UserRole.MEMBER, UserRole.TRAINER, UserRole.STAFF)
   @ApiOperation({ summary: 'Mark all current user notifications as read' })
-  async markAllUserRead(@CurrentUser() user: any) {
+  async markAllUserRead(@CurrentUser() user: CurrentUserPayload) {
     await this.notificationsService.markAllReadForUser(user.userId);
     return { message: 'All notifications marked as read' };
   }

@@ -37,6 +37,10 @@
     --color-success-foreground: var(--success-foreground);
     --color-warning: var(--warning);
     --color-warning-foreground: var(--warning-foreground);
+    --color-danger: var(--danger);
+    --color-danger-foreground: var(--danger-foreground);
+    --color-info: var(--info);
+    --color-info-foreground: var(--info-foreground);
     --color-border: var(--border);
     --color-input: var(--input);
     --color-ring: var(--ring);
@@ -98,6 +102,14 @@
     /* Warning — Amber */
     --warning: oklch(0.75 0.17 75);
     --warning-foreground: oklch(0.235 0.014 264);
+
+    /* Danger — Alias for destructive red (semantic: error states, cancelled) */
+    --danger: oklch(0.577 0.245 27.33);
+    --danger-foreground: oklch(0.985 0 0);
+
+    /* Info — Cool blue for informational badges & highlights */
+    --info: oklch(0.6 0.18 250);
+    --info-foreground: oklch(0.985 0 0);
 
     /* Borders & Input */
     --border: oklch(0.913 0.005 264);
@@ -163,6 +175,14 @@
     /* Warning — Amber stays bright */
     --warning: oklch(0.75 0.17 75);
     --warning-foreground: oklch(0.235 0.014 264);
+
+    /* Danger — Lighter red for dark mode */
+    --danger: oklch(0.704 0.191 22.22);
+    --danger-foreground: oklch(0.145 0.017 266);
+
+    /* Info — Lighter blue for dark mode */
+    --info: oklch(0.7 0.16 250);
+    --info-foreground: oklch(0.145 0.017 266);
 
     /* Borders & Input */
     --border: oklch(1 0 0 / 10%);

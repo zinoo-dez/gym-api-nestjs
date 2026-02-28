@@ -17,6 +17,7 @@ import {
   ResetPasswordDto,
 } from './dto';
 import { CurrentUser } from './decorators/current-user.decorator';
+import type { CurrentUserPayload } from '../common/interfaces/current-user-payload.interface';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @ApiTags('auth')
@@ -94,7 +95,7 @@ export class AuthController {
   @Post('change-password')
   async changePassword(
     @Body() changePasswordDto: ChangePasswordDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: CurrentUserPayload,
   ) {
     return this.authService.changePassword(user.userId, changePasswordDto);
   }

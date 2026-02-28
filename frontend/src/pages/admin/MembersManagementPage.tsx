@@ -12,7 +12,7 @@ import {
     MemberFormPanel,
     StatusBadge,
 } from "@/components/features/people";
-import { useIsMobile } from "@/hooks/useIsMobile";
+import { useIsMobile } from "@/hooks/use-is-mobile";
 import {
     formatDisplayDate,
     formatDisplayDateTime,
@@ -70,12 +70,9 @@ export function MembersManagementPage() {
             <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div className="space-y-1">
                     <h1 className="text-3xl font-bold text-foreground">Members Management</h1>
-                    <p className="text-base text-muted-foreground max-w-2xl">
-                        Full operational control over member profiles, membership lifecycle, and account status.
-                    </p>
                 </div>
-                <Button type="button" onClick={openAddForm} className="h-14 px-8 shadow-md">
-                    <MaterialIcon icon="person_add" className="text-xl" />
+                <Button type="button" onClick={openAddForm} className="h-10 px-8 shadow-md">
+                    <MaterialIcon icon="person_add" className="text-lg" />
                     <span>Add Member</span>
                 </Button>
             </header>

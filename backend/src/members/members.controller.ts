@@ -28,6 +28,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import type { CurrentUserPayload } from '../common/interfaces/current-user-payload.interface';
 import { UserRole } from '@prisma/client';
 import { WorkoutPlansService } from '../workout-plans/workout-plans.service';
 import { WorkoutPlanResponseDto } from '../workout-plans/dto';
@@ -81,7 +82,7 @@ export class MembersController {
   })
   async findAll(
     @Query() filters: MemberFiltersDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: CurrentUserPayload,
   ): Promise<PaginatedResponseDto<MemberResponseDto>> {
     return this.membersService.findAll(filters, user);
   }
@@ -97,7 +98,7 @@ export class MembersController {
     description: 'Member profile retrieved successfully',
     type: MemberResponseDto,
   })
-  async findMe(@CurrentUser() user: any): Promise<MemberResponseDto> {
+  async findMe(@CurrentUser() user: CurrentUserPayload): Promise<MemberResponseDto> {
     const member = await this.membersService.findByUserId(user.userId);
     return this.membersService.toResponseDto(member);
   }
@@ -108,7 +109,7 @@ export class MembersController {
     summary: 'Get current member bookings',
     description: 'Retrieve all class bookings for the current member.',
   })
-  async getMyBookings(@CurrentUser() user: any): Promise<any[]> {
+  async getMyBookings(@CurrentUser() user: CurrentUserPayload): Promise<any[]> {
     const member = await this.membersService.findByUserId(user.userId);
     return this.membersService.getBookings(member.id, user);
   }
@@ -120,7 +121,7 @@ export class MembersController {
     description: 'Retrieve workout plans for the current member.',
   })
   async getMyWorkoutPlans(
-    @CurrentUser() user: any,
+    @CurrentUser() user: CurrentUserPayload,
   ): Promise<WorkoutPlanResponseDto[]> {
     const member = await this.membersService.findByUserId(user.userId);
     return this.workoutPlansService.findByMember(member.id, user);
@@ -146,7 +147,7 @@ export class MembersController {
   @ApiResponse({ status: 404, description: 'Member not found' })
   async findOne(
     @Param('id') id: string,
-    @CurrentUser() user: any,
+    @CurrentUser() user: CurrentUserPayload,
   ): Promise<MemberResponseDto> {
     return this.membersService.findOne(id, user);
   }
@@ -174,7 +175,7 @@ export class MembersController {
   async update(
     @Param('id') id: string,
     @Body() updateMemberDto: UpdateMemberDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: CurrentUserPayload,
   ): Promise<MemberResponseDto> {
     return this.membersService.update(id, updateMemberDto, user);
   }
@@ -248,7 +249,7 @@ export class MembersController {
   @ApiResponse({ status: 404, description: 'Member not found' })
   async getBookings(
     @Param('id') id: string,
-    @CurrentUser() user: any,
+    @CurrentUser() user: CurrentUserPayload,
   ): Promise<any[]> {
     return this.membersService.getBookings(id, user);
   }
@@ -273,7 +274,7 @@ export class MembersController {
   @ApiResponse({ status: 404, description: 'Member not found' })
   async getWorkoutPlans(
     @Param('id') id: string,
-    @CurrentUser() user: any,
+    @CurrentUser() user: CurrentUserPayload,
   ): Promise<WorkoutPlanResponseDto[]> {
     return this.workoutPlansService.findByMember(id, user);
   }
@@ -290,7 +291,7 @@ export class MembersController {
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Member not found' })
-  async getMyQrCode(@CurrentUser() user: any): Promise<any> {
+  async getMyQrCode(@CurrentUser() user: CurrentUserPayload): Promise<any> {
     const member = await this.membersService.findByUserId(user.userId);
     return this.membersService.getQrCode(member.id);
   }
@@ -307,7 +308,7 @@ export class MembersController {
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Member not found' })
-  async regenerateMyQrCode(@CurrentUser() user: any): Promise<any> {
+  async regenerateMyQrCode(@CurrentUser() user: CurrentUserPayload): Promise<any> {
     const member = await this.membersService.findByUserId(user.userId);
     return this.membersService.regenerateQrCode(member.id);
   }

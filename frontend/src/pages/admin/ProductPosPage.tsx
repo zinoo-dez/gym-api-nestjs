@@ -8,7 +8,7 @@ import {
     useLowStockAlertsQuery,
     useMembersForSaleQuery,
     useProductListQuery,
-} from "@/hooks/useProductSales";
+} from "@/hooks/use-product-sales";
 import { type PosPaymentMethod, type ProductRecord } from "@/services/product-sales.service";
 
 export function ProductPosPage() {
@@ -175,10 +175,7 @@ export function ProductPosPage() {
     return (
         <div className="space-y-8">
             <header>
-                <h1 className="page-title">Point of Sale (POS)</h1>
-                <p className="body-text text-muted-foreground">
-                    Process member and walk-in purchases with live stock synchronization.
-                </p>
+                <h1 className="text-3xl font-bold text-foreground">Point of Sale (POS)</h1>
             </header>
 
             <PosSalePanel

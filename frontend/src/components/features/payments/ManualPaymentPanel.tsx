@@ -9,7 +9,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import type { PaymentMemberOption } from "@/hooks/usePayments";
+import type { PaymentMemberOption } from "@/hooks/use-payments";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
